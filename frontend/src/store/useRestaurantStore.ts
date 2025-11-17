@@ -502,39 +502,51 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
       
       // Order Actions
   setOrders: (orders: Order[]) => set({ 
-        orders,
-        activeOrders: orders.filter(o => 
-          ['pending', 'confirmed', 'preparing', 'ready', 'served'].includes(o.status)
-        )
+        orders: Array.isArray(orders) ? orders : [],
+        activeOrders: Array.isArray(orders) ? orders.filter(o => 
+          o && ['pending', 'confirmed', 'preparing', 'ready', 'served'].includes(o.status)
+        ) : []
       }),
       
-  addOrder: (order: Order) => set((state) => ({
-        orders: [...state.orders, order],
-        activeOrders: [...state.activeOrders, order]
-      })),
+  addOrder: (order: Order) => set((state) => {
+        const currentOrders = Array.isArray(state.orders) ? state.orders : [];
+        const currentActiveOrders = Array.isArray(state.activeOrders) ? state.activeOrders : [];
+        return {
+          orders: [...currentOrders, order],
+          activeOrders: ['pending', 'confirmed', 'preparing', 'ready', 'served'].includes(order.status) 
+            ? [...currentActiveOrders, order]
+            : currentActiveOrders
+        };
+      }),
       
   updateOrderStatus: (id: string, status: Order['status']) => set((state) => {
-        const updatedOrders = state.orders.map(o => 
-          o.id === id ? { ...o, status } : o
-        );
+        const currentOrders = Array.isArray(state.orders) ? state.orders : [];
+        const updatedOrders = currentOrders.map(o => 
+          o && o.id === id ? { ...o, status } : o
+        ).filter(Boolean);
         return {
           orders: updatedOrders,
           activeOrders: updatedOrders.filter(o => 
-            ['pending', 'confirmed', 'preparing', 'ready', 'served'].includes(o.status)
+            o && ['pending', 'confirmed', 'preparing', 'ready', 'served'].includes(o.status)
           )
         };
       }),
       
-  updateOrderItemStatus: (orderId: string, itemIndex: number, status: 'pending' | 'preparing' | 'ready' | 'served') => set((state) => ({
-        orders: state.orders.map(order => {
-          if (order.id === orderId) {
-            const updatedItems = [...order.items];
-            updatedItems[itemIndex] = { ...updatedItems[itemIndex], status };
-            return { ...order, items: updatedItems };
-          }
-          return order;
-        })
-      })),
+  updateOrderItemStatus: (orderId: string, itemIndex: number, status: 'pending' | 'preparing' | 'ready' | 'served') => set((state) => {
+        const currentOrders = Array.isArray(state.orders) ? state.orders : [];
+        return {
+          orders: currentOrders.map(order => {
+            if (order && order.id === orderId && Array.isArray(order.items)) {
+              const updatedItems = [...order.items];
+              if (updatedItems[itemIndex]) {
+                updatedItems[itemIndex] = { ...updatedItems[itemIndex], status };
+                return { ...order, items: updatedItems };
+              }
+            }
+            return order;
+          })
+        };
+      }),
       
       // Service Call Actions
   setServiceCalls: (calls: ServiceCall[]) => set({ serviceCalls: calls }),

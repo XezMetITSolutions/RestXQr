@@ -1182,72 +1182,103 @@ export default function SettingsPage() {
 
                       {/* Canlı Önizleme - Aşağıda */}
                       <div className="mt-8">
-                        <div className="bg-white rounded-lg shadow-sm p-6">
-                          <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                            <FaEye className="text-purple-600" />
-                            Canlı Önizleme
-                          </h4>
-                          <p className="text-sm text-gray-600 mb-6">
-                            Değişikliklerinizi anlık olarak görüntüleyin
-                          </p>
-                          
-                          {/* Modern Telefon Önizleme */}
-                          <div className="relative">
-                            {/* Gradient Background */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-blue-50 to-pink-100 rounded-2xl opacity-50"></div>
-                            
-                            {/* Phone Frame */}
-                            <div className="relative p-8">
-                              <div className="bg-white rounded-[3rem] shadow-2xl p-4 mx-auto max-w-sm border-8 border-gray-800">
-                                {/* Notch */}
-                                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-gray-800 rounded-b-3xl"></div>
-                                
-                                {/* Screen */}
-                                <div className="bg-gray-50 rounded-[2.5rem] overflow-hidden h-[600px] relative">
-                                  {/* Status Bar */}
-                                  <div className="bg-white px-6 py-3 flex items-center justify-between text-xs">
-                                    <span className="font-semibold">9:41</span>
-                                    <div className="flex items-center gap-1">
-                                      <div className="w-4 h-3 border border-gray-400 rounded-sm relative">
-                                        <div className="absolute inset-0.5 bg-gray-800 rounded-sm"></div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Content */}
-                                  <div className="p-4 overflow-y-auto h-full">
-                                    <PhonePreview className="w-full" />
-                                  </div>
+                        <div className="bg-gradient-to-br from-white via-purple-50/30 to-blue-50/30 rounded-2xl shadow-xl border border-purple-100/50 p-8 backdrop-blur-sm">
+                          <div className="flex items-center justify-between mb-6">
+                            <div>
+                              <h4 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2 flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+                                  <FaEye className="text-white text-lg" />
                                 </div>
-                                
-                                {/* Home Indicator */}
-                                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-800 rounded-full"></div>
-                              </div>
+                                Canlı Önizleme
+                              </h4>
+                              <p className="text-sm text-gray-600 ml-12">
+                                Değişikliklerinizi anlık olarak görüntüleyin
+                              </p>
                             </div>
-                            
-                            {/* Floating Action Buttons */}
-                            <div className="absolute top-4 right-4 flex flex-col gap-2">
+                            <div className="flex gap-2">
                               <button 
                                 onClick={() => window.open('/menu', '_blank')}
-                                className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
-                                title="Canlı Önizleme"
+                                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center gap-2 font-medium"
+                                title="Yeni Sekmede Aç"
                               >
-                                <FaEye className="text-purple-600" />
+                                <FaEye className="text-sm" />
+                                <span className="text-sm">Aç</span>
                               </button>
                               <button 
                                 onClick={() => window.location.reload()}
-                                className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                                className="px-4 py-2 bg-white text-gray-700 rounded-xl shadow-md hover:shadow-lg transition-all hover:scale-105 flex items-center gap-2 font-medium border border-gray-200"
                                 title="Yenile"
                               >
-                                <FaSync className="text-blue-600" />
+                                <FaSync className="text-sm" />
+                                <span className="text-sm">Yenile</span>
                               </button>
                             </div>
                           </div>
                           
-                          <div className="mt-6 text-center space-y-2">
-                            <p className="text-sm font-medium text-gray-700">
-                              ✨ Canlı Önizleme
-                            </p>
+                          {/* Modern Telefon Önizleme */}
+                          <div className="relative flex items-center justify-center">
+                            {/* Animated Background Gradient */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-200/40 via-blue-200/40 to-pink-200/40 rounded-3xl blur-3xl animate-pulse"></div>
+                            
+                            {/* Glow Effect */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-blue-400/20 to-pink-400/20 rounded-3xl"></div>
+                            
+                            {/* Phone Frame Container */}
+                            <div className="relative z-10 p-12">
+                              {/* Phone Shadow */}
+                              <div className="absolute inset-0 bg-gradient-to-br from-gray-900/20 to-gray-800/20 rounded-[4rem] blur-2xl transform scale-90"></div>
+                              
+                              {/* Modern Phone Frame */}
+                              <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-[4rem] shadow-2xl p-3 mx-auto max-w-sm transform hover:scale-105 transition-transform duration-300">
+                                {/* Top Bezel with Dynamic Island */}
+                                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-gray-900 rounded-full flex items-center justify-center gap-2 px-4 z-20">
+                                  <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
+                                  <div className="w-16 h-5 bg-black rounded-full"></div>
+                                  <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
+                                </div>
+                                
+                                {/* Screen with Glass Effect */}
+                                <div className="bg-gradient-to-br from-gray-50 to-white rounded-[3.5rem] overflow-hidden h-[650px] relative shadow-inner border-2 border-gray-200/50">
+                                  {/* Modern Status Bar */}
+                                  <div className="bg-gradient-to-r from-white/95 to-gray-50/95 backdrop-blur-md px-6 py-4 flex items-center justify-between text-xs font-semibold border-b border-gray-200/50">
+                                    <span className="text-gray-900">9:41</span>
+                                    <div className="flex items-center gap-1.5">
+                                      <div className="flex gap-0.5">
+                                        <div className="w-1 h-1.5 bg-gray-900 rounded-full"></div>
+                                        <div className="w-1 h-1.5 bg-gray-900 rounded-full"></div>
+                                        <div className="w-1 h-1.5 bg-gray-900 rounded-full"></div>
+                                      </div>
+                                      <div className="w-5 h-3 border border-gray-900 rounded-sm relative overflow-hidden">
+                                        <div className="absolute inset-0.5 bg-gray-900 rounded-sm"></div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Content with Smooth Scroll */}
+                                  <div className="p-4 overflow-y-auto h-[calc(100%-3.5rem)]" style={{ scrollbarWidth: 'thin', scrollbarColor: '#c084fc #f3f4f6' }}>
+                                    <PhonePreview className="w-full" />
+                                  </div>
+                                </div>
+                                
+                                {/* Modern Home Indicator */}
+                                <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 w-36 h-1.5 bg-gray-900 rounded-full shadow-lg"></div>
+                                
+                                {/* Side Buttons */}
+                                <div className="absolute left-0 top-24 w-1 h-16 bg-gray-700 rounded-r-full"></div>
+                                <div className="absolute left-0 top-44 w-1 h-10 bg-gray-700 rounded-r-full"></div>
+                                <div className="absolute right-0 top-24 w-1 h-16 bg-gray-700 rounded-l-full"></div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Info Footer */}
+                          <div className="mt-8 text-center space-y-2">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full">
+                              <span className="text-2xl">✨</span>
+                              <p className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                Canlı Önizleme Aktif
+                              </p>
+                            </div>
                             <p className="text-xs text-gray-500">
                               Değişiklikleriniz anında yansıtılır
                             </p>

@@ -36,10 +36,10 @@ export default function BusinessDashboard() {
   const router = useRouter();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
   const { 
-    categories, 
-    menuItems, 
-    orders, 
-    activeOrders, 
+    categories = [], 
+    menuItems = [], 
+    orders = [], 
+    activeOrders = [], 
     fetchRestaurantMenu,
     loading: restaurantLoading 
   } = useRestaurantStore();
@@ -488,31 +488,41 @@ export default function BusinessDashboard() {
                   </Link>
                 </div>
                 <div className="space-y-6">
-                  {(activeOrders || []).map(order => (
-                    <div key={order?.id || Math.random()} className="group/item flex items-center justify-between p-6 bg-gradient-to-r from-gray-50/80 to-gray-100/80 rounded-2xl hover:from-gray-100 hover:to-gray-200 transition-all duration-300 border border-gray-200/50 hover:shadow-xl hover:scale-[1.02] backdrop-blur-sm">
-                      <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-200 rounded-2xl flex items-center justify-center shadow-lg group-hover/item:shadow-xl transition-all duration-300">
-                          <span className="font-black text-purple-600 text-xl">{order?.tableNumber || 'N/A'}</span>
+                  {Array.isArray(activeOrders) && activeOrders.length > 0 ? (
+                    activeOrders.map(order => {
+                      if (!order) return null;
+                      const itemsLength = Array.isArray(order.items) ? order.items.length : 0;
+                      return (
+                        <div key={order?.id || Math.random()} className="group/item flex items-center justify-between p-6 bg-gradient-to-r from-gray-50/80 to-gray-100/80 rounded-2xl hover:from-gray-100 hover:to-gray-200 transition-all duration-300 border border-gray-200/50 hover:shadow-xl hover:scale-[1.02] backdrop-blur-sm">
+                          <div className="flex items-center gap-6">
+                            <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-200 rounded-2xl flex items-center justify-center shadow-lg group-hover/item:shadow-xl transition-all duration-300">
+                              <span className="font-black text-purple-600 text-xl">{order?.tableNumber || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <p className="font-black text-gray-800 text-xl">Masa {order?.tableNumber || 'N/A'}</p>
+                              <p className="text-gray-600 font-bold">{itemsLength} ürün • ₺{order?.totalAmount || 0}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className={`px-4 py-2 rounded-full text-sm font-black shadow-lg ${
+                              order?.status === 'ready' 
+                                ? 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800'
+                                : 'bg-gradient-to-r from-yellow-100 to-orange-200 text-yellow-800'
+                            }`}>
+                              {order?.status === 'ready' ? 'Hazır' : 'Hazırlanıyor'}
+                            </span>
+                            <span className="text-sm text-gray-500 font-bold">
+                              {order?.createdAt ? new Date(order.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                            </span>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-black text-gray-800 text-xl">Masa {order?.tableNumber || 'N/A'}</p>
-                          <p className="text-gray-600 font-bold">{(order?.items?.length || 0)} ürün • ₺{order?.totalAmount || 0}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className={`px-4 py-2 rounded-full text-sm font-black shadow-lg ${
-                          order?.status === 'ready' 
-                            ? 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800'
-                            : 'bg-gradient-to-r from-yellow-100 to-orange-200 text-yellow-800'
-                        }`}>
-                          {order?.status === 'ready' ? 'Hazır' : 'Hazırlanıyor'}
-                        </span>
-                        <span className="text-sm text-gray-500 font-bold">
-                          {order?.createdAt ? new Date(order.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
-                        </span>
-                      </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-12 text-gray-500 font-bold">
+                      Aktif sipariş bulunmuyor
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
