@@ -23,6 +23,8 @@ router.post('/', async (req, res) => {
   try {
     const { text, targetLanguage } = req.body;
 
+    console.log('🔍 Translate request:', { text: text?.substring(0, 50), targetLanguage });
+
     if (!text) {
       return res.status(400).json({
         success: false,
@@ -40,21 +42,27 @@ router.post('/', async (req, res) => {
     // API key kontrolü
     const deeplApiKey = process.env.DEEPL_API_KEY || process.env.NEXT_PUBLIC_DEEPL_API_KEY;
     if (!deeplApiKey) {
-      console.error('DeepL API key not found');
+      console.error('❌ DeepL API key not found in environment variables');
+      console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('DEEPL')));
       return res.status(200).json({
         translatedText: text,
         error: 'API key not configured'
       });
     }
 
+    console.log('✅ DeepL API key found:', deeplApiKey.substring(0, 10) + '...');
+
     // DeepL dil kodunu al
     const targetLangCode = languageToDeepLCode[targetLanguage] || 'EN';
+    console.log('🌍 Target language:', targetLanguage, '->', targetLangCode);
     
     // DeepL API endpoint (free plan ':fx' ile biter, pro plan normal key)
     const isFree = deeplApiKey.endsWith(':fx');
     const apiUrl = isFree 
       ? 'https://api-free.deepl.com/v2/translate'
       : 'https://api.deepl.com/v2/translate';
+
+    console.log('📡 DeepL API URL:', apiUrl, '(Free:', isFree + ')');
 
     // DeepL API'ye istek gönder
     const formData = new URLSearchParams();
@@ -63,6 +71,7 @@ router.post('/', async (req, res) => {
     formData.append('target_lang', targetLangCode);
     // source_lang belirtmezsek DeepL otomatik algılar
 
+    console.log('📤 Sending request to DeepL...');
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -71,24 +80,33 @@ router.post('/', async (req, res) => {
       body: formData.toString()
     });
 
+    console.log('📥 DeepL response status:', response.status, response.statusText);
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('DeepL API error:', response.status, errorText);
-      throw new Error(`DeepL API error: ${response.status}`);
+      console.error('❌ DeepL API error:', response.status, errorText);
+      return res.status(200).json({
+        translatedText: text,
+        error: `DeepL API error: ${response.status} - ${errorText}`
+      });
     }
 
     const data = await response.json();
+    console.log('📊 DeepL response data:', JSON.stringify(data).substring(0, 200));
+    
     const translatedText = data.translations?.[0]?.text || text;
+    console.log('✅ Translation result:', translatedText.substring(0, 50) + '...');
 
     return res.json({
       translatedText: translatedText.trim()
     });
   } catch (error) {
-    console.error('Translation API error:', error);
+    console.error('❌ Translation API error:', error);
+    console.error('Error stack:', error.stack);
     // Hata durumunda orijinal metni döndür
     return res.status(200).json({
-      translatedText: req.body.text || '',
-      error: 'Translation service unavailable'
+      translatedText: req.body?.text || '',
+      error: `Translation service unavailable: ${error.message}`
     });
   }
 });
