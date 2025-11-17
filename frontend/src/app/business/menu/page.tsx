@@ -291,64 +291,6 @@ export default function MenuManagement() {
     }
   };
 
-<<<<<<< HEAD
-  const updateItemTranslationField = (lang: string, field: 'name' | 'description', value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      translations: {
-        ...(prev.translations || {}),
-        [lang]: {
-          ...(prev.translations?.[lang] || {}),
-          [field]: value
-        }
-      }
-    }));
-  };
-
-  const handleItemAutoTranslate = async () => {
-    if (!translationLanguages.length) return;
-    if (!formData.name && !formData.description) {
-      setItemTranslationError('Çevirmek için önce ürün adı veya açıklama girin.');
-      return;
-    }
-    setItemTranslationError(null);
-    setIsTranslatingItem(true);
-    const updatedTranslations = { ...(formData.translations || {}) };
-    try {
-      for (const lang of translationLanguages) {
-        if (formData.name) {
-          const translatedName = await translateWithDeepL({
-            text: formData.name,
-            targetLanguage: lang
-          });
-          updatedTranslations[lang] = {
-            ...(updatedTranslations[lang] || {}),
-            name: translatedName
-          };
-        }
-        if (formData.description) {
-          const translatedDescription = await translateWithDeepL({
-            text: formData.description,
-            targetLanguage: lang
-          });
-          updatedTranslations[lang] = {
-            ...(updatedTranslations[lang] || {}),
-            description: translatedDescription
-          };
-        }
-      }
-      setFormData((prev) => ({
-        ...prev,
-        translations: updatedTranslations
-      }));
-    } catch (error) {
-      console.error('Ürün çevirisi hatası:', error);
-      setItemTranslationError('Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.');
-    } finally {
-      setIsTranslatingItem(false);
-    }
-  };
-
   const handleViewTranslations = async (item: any) => {
     setSelectedItemForTranslation(item);
     setShowTranslationsModal(true);
