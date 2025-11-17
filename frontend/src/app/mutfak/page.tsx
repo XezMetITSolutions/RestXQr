@@ -194,6 +194,29 @@ export default function MutfakPanel() {
     }
   };
 
+  // Ödeme yöntemi, bahşiş ve bağış bilgilerini notlardan temizle
+  const cleanNotes = (notes: string | undefined): string | undefined => {
+    if (!notes) return notes;
+    
+    // Ödeme yöntemi, bahşiş ve bağış bilgilerini regex ile temizle
+    let cleaned = notes
+      .replace(/Ödeme\s+yöntemi:\s*[^,]+(,\s*)?/gi, '')
+      .replace(/Bahşiş:\s*[^,]+(,\s*)?/gi, '')
+      .replace(/Bağış:\s*[^,]+(,\s*)?/gi, '')
+      .replace(/,\s*,/g, ',') // Çift virgülleri temizle
+      .replace(/^,\s*/, '') // Başlangıçtaki virgülü temizle
+      .replace(/,\s*$/, '') // Sondaki virgülü temizle
+      .replace(/^\s*📝\s*Özel\s+Not:\s*/i, '') // "📝 Özel Not:" başlığını temizle
+      .trim();
+    
+    // Eğer sadece boşluk veya virgül kaldıysa undefined döndür
+    if (!cleaned || cleaned === ',' || cleaned === '') {
+      return undefined;
+    }
+    
+    return cleaned;
+  };
+
   const showOrderDetails = (order: Order) => {
     setSelectedOrder(order);
     setShowOrderModal(true);
@@ -437,10 +460,10 @@ export default function MutfakPanel() {
                             <span className="text-gray-600">Tahmini Süre:</span>
                             <span className="font-semibold text-gray-800">{estimatedTime} dk</span>
                           </div>
-                          {order.notes && (
+                          {cleanNotes(order.notes) && (
                             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
                               <div className="font-semibold text-yellow-800 mb-1">📝 Özel Not:</div>
-                              <div className="text-sm text-gray-700">{order.notes}</div>
+                              <div className="text-sm text-gray-700">{cleanNotes(order.notes)}</div>
                             </div>
                           )}
                         </div>
@@ -666,13 +689,13 @@ export default function MutfakPanel() {
               </div>
 
               {/* Notlar */}
-              {selectedOrder.notes && (
+              {cleanNotes(selectedOrder.notes) && (
                 <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
                   <div className="flex items-start gap-3">
                     <span className="text-2xl">📝</span>
                     <div>
                       <div className="font-semibold text-yellow-900 mb-1">Sipariş Notu</div>
-                      <div className="text-yellow-800">{selectedOrder.notes}</div>
+                      <div className="text-yellow-800">{cleanNotes(selectedOrder.notes)}</div>
                     </div>
                   </div>
                 </div>
