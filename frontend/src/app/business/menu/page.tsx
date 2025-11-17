@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -30,13 +30,17 @@ import {
   FaCheck,
   FaExclamationTriangle,
   FaBars,
-  FaMoneyBillWave
+  FaMoneyBillWave,
+  FaGlobe,
+  FaMagic
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
 import { lazy, Suspense } from 'react';
 import BusinessSidebar from '@/components/BusinessSidebar';
 import { useFeature } from '@/hooks/useFeature';
+import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
+import { translateWithDeepL } from '@/lib/deepl';
 
 // Lazy load heavy components
 const CameraCapture = lazy(() => import('@/components/CameraCapture'));
@@ -132,7 +136,16 @@ export default function MenuManagement() {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
   
-  // Form state'leri - Sadece Türkçe
+  const { settings } = useBusinessSettingsStore();
+  const selectedLanguages = settings?.menuSettings?.language?.length
+    ? settings.menuSettings.language
+    : ['tr'];
+  const translationLanguages = useMemo(
+    () => selectedLanguages.filter((lang) => lang !== 'tr'),
+    [selectedLanguages]
+  );
+  
+  // Form state'leri
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -145,15 +158,21 @@ export default function MenuManagement() {
     allergens: [],
     portion: '',
     isAvailable: true,
-    isPopular: false
+    isPopular: false,
+    translations: {}
   });
   
   const [categoryFormData, setCategoryFormData] = useState({
     name: '',
     description: '',
     order: 0,
-    isActive: true
+    isActive: true,
+    translations: {}
   });
+  const [isTranslatingItem, setIsTranslatingItem] = useState(false);
+  const [itemTranslationError, setItemTranslationError] = useState<string | null>(null);
+  const [isTranslatingCategory, setIsTranslatingCategory] = useState(false);
+  const [categoryTranslationError, setCategoryTranslationError] = useState<string | null>(null);
 
   // Kamera stream'ini video element'ine bağla
   useEffect(() => {
@@ -214,7 +233,8 @@ export default function MenuManagement() {
       allergens: [],
       portion: '',
       isAvailable: true,
-      isPopular: false
+      isPopular: false,
+      translations: {}
     });
     setShowItemForm(true);
   };
@@ -233,7 +253,8 @@ export default function MenuManagement() {
       allergens: Array.isArray(item.allergens) ? item.allergens : [],
       portion: item.portion || '',
       isAvailable: item.isAvailable !== false,
-      isPopular: item.isPopular || false
+      isPopular: item.isPopular || false,
+      translations: item.translations || {}
     });
     // Resmi de yükle (imageUrl veya image field'ını kontrol et)
     const imageToLoad = item.imageUrl || item.image;
@@ -262,6 +283,63 @@ export default function MenuManagement() {
         console.error('Ürün silinirken hata:', error);
         alert('Ürün silinirken bir hata oluştu');
       }
+    }
+  };
+
+  const updateItemTranslationField = (lang: string, field: 'name' | 'description', value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      translations: {
+        ...(prev.translations || {}),
+        [lang]: {
+          ...(prev.translations?.[lang] || {}),
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  const handleItemAutoTranslate = async () => {
+    if (!translationLanguages.length) return;
+    if (!formData.name && !formData.description) {
+      setItemTranslationError('Çevirmek için önce ürün adı veya açıklama girin.');
+      return;
+    }
+    setItemTranslationError(null);
+    setIsTranslatingItem(true);
+    const updatedTranslations = { ...(formData.translations || {}) };
+    try {
+      for (const lang of translationLanguages) {
+        if (formData.name) {
+          const translatedName = await translateWithDeepL({
+            text: formData.name,
+            targetLanguage: lang
+          });
+          updatedTranslations[lang] = {
+            ...(updatedTranslations[lang] || {}),
+            name: translatedName
+          };
+        }
+        if (formData.description) {
+          const translatedDescription = await translateWithDeepL({
+            text: formData.description,
+            targetLanguage: lang
+          });
+          updatedTranslations[lang] = {
+            ...(updatedTranslations[lang] || {}),
+            description: translatedDescription
+          };
+        }
+      }
+      setFormData((prev) => ({
+        ...prev,
+        translations: updatedTranslations
+      }));
+    } catch (error) {
+      console.error('Ürün çevirisi hatası:', error);
+      setItemTranslationError('Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsTranslatingItem(false);
     }
   };
 
@@ -443,7 +521,8 @@ export default function MenuManagement() {
       name: '',
       description: '',
       order: categories.length,
-      isActive: true
+      isActive: true,
+      translations: {}
     });
     setSubcategories([]);
     setShowCategoryForm(true);
@@ -455,9 +534,71 @@ export default function MenuManagement() {
       name: category.name || '',
       description: category.description || '',
       order: category.order || 0,
-      isActive: category.isActive !== false
+      isActive: category.isActive !== false,
+      translations: category.translations || {}
     });
     setShowCategoryForm(true);
+  };
+
+  const updateCategoryTranslationField = (
+    lang: string,
+    field: 'name' | 'description',
+    value: string
+  ) => {
+    setCategoryFormData((prev) => ({
+      ...prev,
+      translations: {
+        ...(prev.translations || {}),
+        [lang]: {
+          ...(prev.translations?.[lang] || {}),
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  const handleCategoryAutoTranslate = async () => {
+    if (!translationLanguages.length) return;
+    if (!categoryFormData.name && !categoryFormData.description) {
+      setCategoryTranslationError('Çevirmek için önce kategori adı veya açıklama girin.');
+      return;
+    }
+    setCategoryTranslationError(null);
+    setIsTranslatingCategory(true);
+    const updatedTranslations = { ...(categoryFormData.translations || {}) };
+    try {
+      for (const lang of translationLanguages) {
+        if (categoryFormData.name) {
+          const translatedName = await translateWithDeepL({
+            text: categoryFormData.name,
+            targetLanguage: lang
+          });
+          updatedTranslations[lang] = {
+            ...(updatedTranslations[lang] || {}),
+            name: translatedName
+          };
+        }
+        if (categoryFormData.description) {
+          const translatedDescription = await translateWithDeepL({
+            text: categoryFormData.description,
+            targetLanguage: lang
+          });
+          updatedTranslations[lang] = {
+            ...(updatedTranslations[lang] || {}),
+            description: translatedDescription
+          };
+        }
+      }
+      setCategoryFormData((prev) => ({
+        ...prev,
+        translations: updatedTranslations
+      }));
+    } catch (error) {
+      console.error('Kategori çevirisi hatası:', error);
+      setCategoryTranslationError('Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsTranslatingCategory(false);
+    }
   };
 
   const handleDeleteCategory = async (categoryId: string) => {
@@ -1053,6 +1194,62 @@ export default function MenuManagement() {
                           placeholder="Ürün açıklaması..."
                         />
                     </div>
+
+                    {translationLanguages.length > 0 && (
+                      <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 space-y-4">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-center gap-2 text-purple-800">
+                            <FaGlobe />
+                            <div>
+                              <p className="font-semibold">Çeviriler</p>
+                              <p className="text-xs text-purple-600">
+                                Seçili diller için ürün adı ve açıklamasını düzenleyin.
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleItemAutoTranslate}
+                            disabled={isTranslatingItem}
+                            className="inline-flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-60"
+                          >
+                            <FaMagic />
+                            {isTranslatingItem ? 'Çevriliyor...' : 'Otomatik Çevir'}
+                          </button>
+                        </div>
+                        {itemTranslationError && (
+                          <p className="text-xs text-red-600">{itemTranslationError}</p>
+                        )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {translationLanguages.map((lang) => (
+                            <div key={lang} className="space-y-3">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  Ürün Adı ({lang.toUpperCase()})
+                                </label>
+                                <input
+                                  type="text"
+                                  value={formData.translations?.[lang]?.name || ''}
+                                  onChange={(e) => updateItemTranslationField(lang, 'name', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  Açıklama ({lang.toUpperCase()})
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  value={formData.translations?.[lang]?.description || ''}
+                                  onChange={(e) => updateItemTranslationField(lang, 'description', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Fiyat ve Kategori */}
                     <div className="grid grid-cols-2 gap-4">

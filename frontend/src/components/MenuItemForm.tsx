@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { FaPlus, FaTrash, FaTimes, FaVideo, FaLock } from 'react-icons/fa';
+import { useMemo, useState } from 'react';
+import { FaPlus, FaTrash, FaTimes, FaVideo, FaLock, FaGlobe, FaMagic } from 'react-icons/fa';
 import ImageUpload from './ImageUpload';
 import { useFeature } from '@/hooks/useFeature';
+import { translateWithDeepL } from '@/lib/deepl';
 
 interface MenuItemFormProps {
   formData: any;
@@ -11,6 +12,7 @@ interface MenuItemFormProps {
   categories: any[];
   subcategories: any[];
   getSubcategoriesByParent: (parentId: string) => any[];
+  languages: string[];
 }
 
 export default function MenuItemForm({
@@ -18,11 +20,19 @@ export default function MenuItemForm({
   setFormData,
   categories,
   subcategories,
-  getSubcategoriesByParent
+  getSubcategoriesByParent,
+  languages
 }: MenuItemFormProps) {
   const [newIngredient, setNewIngredient] = useState('');
   const [newAllergen, setNewAllergen] = useState('');
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
   const hasVideoMenu = useFeature('video_menu');
+  const activeLanguages = useMemo(() => (languages?.length ? languages : ['tr']), [languages]);
+  const translationLanguages = useMemo(
+    () => activeLanguages.filter((lang) => lang !== 'tr'),
+    [activeLanguages]
+  );
 
   const addIngredient = () => {
     if (newIngredient.trim()) {
@@ -55,6 +65,67 @@ export default function MenuItemForm({
     setFormData({
       ...formData,
       allergens: formData.allergens.filter((_: any, i: number) => i !== index)
+    });
+  };
+
+  const ensureTranslationBucket = (lang: string) => {
+    return formData.translations?.[lang] || {};
+  };
+
+  const handleAutoTranslate = async () => {
+    if (!formData.name && !formData.description) {
+      setTranslationError('Çevirmek için önce ürün adı veya açıklama girin.');
+      return;
+    }
+    if (!translationLanguages.length) return;
+    setTranslationError(null);
+    setIsTranslating(true);
+    const updatedTranslations = { ...(formData.translations || {}) };
+    try {
+      for (const lang of translationLanguages) {
+        if (formData.name) {
+          const translatedName = await translateWithDeepL({
+            text: formData.name,
+            targetLanguage: lang
+          });
+          updatedTranslations[lang] = {
+            ...ensureTranslationBucket(lang),
+            name: translatedName
+          };
+        }
+        if (formData.description) {
+          const translatedDesc = await translateWithDeepL({
+            text: formData.description,
+            targetLanguage: lang
+          });
+          updatedTranslations[lang] = {
+            ...ensureTranslationBucket(lang),
+            description: translatedDesc
+          };
+        }
+      }
+      setFormData({
+        ...formData,
+        translations: updatedTranslations
+      });
+    } catch (error) {
+      console.error('Translation error:', error);
+      setTranslationError('Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  const handleTranslationChange = (lang: string, field: 'name' | 'description', value: string) => {
+    setFormData({
+      ...formData,
+      translations: {
+        ...(formData.translations || {}),
+        [lang]: {
+          ...ensureTranslationBucket(lang),
+          [field]: value
+        }
+      }
     });
   };
 
@@ -94,6 +165,64 @@ export default function MenuItemForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
+
+          {translationLanguages.length > 0 && (
+            <div className="md:col-span-2">
+              <div className="bg-white border rounded-lg p-4 space-y-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2">
+                    <FaGlobe className="text-purple-600" />
+                    <div>
+                      <p className="font-semibold text-gray-800">Çeviriler</p>
+                      <p className="text-xs text-gray-500">
+                        Seçili diller için ürün adını ve açıklamasını düzenleyin.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAutoTranslate}
+                    disabled={isTranslating}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 disabled:opacity-60"
+                  >
+                    <FaMagic />
+                    {isTranslating ? 'Çevriliyor...' : 'Otomatik Çevir'}
+                  </button>
+                </div>
+                {translationError && (
+                  <p className="text-xs text-red-600">{translationError}</p>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {translationLanguages.map((lang) => (
+                    <div key={lang} className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1">
+                          Ürün Adı ({lang.toUpperCase()})
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.translations?.[lang]?.name || ''}
+                          onChange={(e) => handleTranslationChange(lang, 'name', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1">
+                          Açıklama ({lang.toUpperCase()})
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={formData.translations?.[lang]?.description || ''}
+                          onChange={(e) => handleTranslationChange(lang, 'description', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
