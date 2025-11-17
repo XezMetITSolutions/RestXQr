@@ -43,7 +43,7 @@ const getActiveSubdomain = (): string | null => {
  */
 export function useFeature(featureId: string): boolean {
   const { authenticatedRestaurant } = useAuthStore();
-  const { restaurants, fetchRestaurantByUsername } = useRestaurantStore();
+  const { restaurants = [], fetchRestaurantByUsername } = useRestaurantStore();
   const [loading, setLoading] = useState(false);
   
   // Demo panelde tüm özellikler aktif
@@ -84,13 +84,15 @@ export function useFeature(featureId: string): boolean {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const subdomain = getActiveSubdomain();
-      const restaurant = subdomain ? restaurants.find(r => r.username === subdomain) : null;
+      const restaurant = subdomain && Array.isArray(restaurants) 
+        ? restaurants.find(r => r && r.username === subdomain) 
+        : null;
       console.log('🎯 useFeature Debug:', {
         featureId,
         subdomain,
         authenticatedRestaurant: authenticatedRestaurant?.features,
         restaurantFromStore: restaurant?.features,
-        totalRestaurants: restaurants.length
+        totalRestaurants: Array.isArray(restaurants) ? restaurants.length : 0
       });
     }
   }, [featureId, authenticatedRestaurant, restaurants]);
@@ -144,8 +146,8 @@ export function useFeature(featureId: string): boolean {
   
   // Authenticated yoksa subdomain'e göre restaurant bul (backend'den çekilmiş)
   const detectedSubdomain = getActiveSubdomain();
-  if (detectedSubdomain) {
-    const restaurant = restaurants.find(r => r.username === detectedSubdomain);
+  if (detectedSubdomain && Array.isArray(restaurants)) {
+    const restaurant = restaurants.find(r => r && r.username === detectedSubdomain);
     
     if (restaurant) {
       console.log('🏪 useFeature: Using restaurant from store:', restaurant.features);
@@ -183,7 +185,7 @@ export function useFeature(featureId: string): boolean {
  */
 export function useFeatures(featureIds: string[]): Record<string, boolean> {
   const { authenticatedRestaurant } = useAuthStore();
-  const { restaurants } = useRestaurantStore();
+  const { restaurants = [] } = useRestaurantStore();
   const [remoteFeatures, setRemoteFeatures] = useState<string[] | null>(null);
 
   // Demo panelde tüm özellikler aktif
@@ -200,12 +202,12 @@ export function useFeatures(featureIds: string[]): Record<string, boolean> {
       }), {} as Record<string, boolean>);
     }
     const subdomain = getActiveSubdomain();
-    if (subdomain) {
-      const restaurant = restaurants.find(r => r.username === subdomain);
+    if (subdomain && Array.isArray(restaurants)) {
+      const restaurant = restaurants.find(r => r && r.username === subdomain);
       if (restaurant) {
         return featureIds.reduce((acc, id) => ({
           ...acc,
-          [id]: restaurant.features?.includes(id) ?? false
+          [id]: Array.isArray(restaurant.features) && restaurant.features.includes(id)
         }), {} as Record<string, boolean>);
       }
     }
@@ -256,7 +258,7 @@ export function useFeatures(featureIds: string[]): Record<string, boolean> {
  */
 export function useActiveFeatures(): string[] {
   const { authenticatedRestaurant } = useAuthStore();
-  const { restaurants } = useRestaurantStore();
+  const { restaurants = [] } = useRestaurantStore();
   const [remoteFeatures, setRemoteFeatures] = useState<string[] | null>(null);
 
   // Demo panelde tüm özellikler aktif - tüm mevcut özellikleri döndür
@@ -275,11 +277,15 @@ export function useActiveFeatures(): string[] {
   }
 
   const local = useMemo(() => {
-    if (authenticatedRestaurant) return authenticatedRestaurant.features ?? [];
+    if (authenticatedRestaurant) {
+      return Array.isArray(authenticatedRestaurant.features) ? authenticatedRestaurant.features : [];
+    }
     const subdomain = getActiveSubdomain();
-    if (subdomain) {
-      const restaurant = restaurants.find(r => r.username === subdomain);
-      if (restaurant) return restaurant.features ?? [];
+    if (subdomain && Array.isArray(restaurants)) {
+      const restaurant = restaurants.find(r => r && r.username === subdomain);
+      if (restaurant) {
+        return Array.isArray(restaurant.features) ? restaurant.features : [];
+      }
     }
     return null;
   }, [authenticatedRestaurant?.id, authenticatedRestaurant?.features, restaurants]);
@@ -320,5 +326,5 @@ export function useActiveFeatures(): string[] {
  */
 export function useFeatureCount(): number {
   const local = useActiveFeatures();
-  return local.length;
+  return Array.isArray(local) ? local.length : 0;
 }
