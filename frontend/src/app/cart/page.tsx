@@ -129,7 +129,7 @@ function CartPageContent() {
     
     pendingOrderItems.forEach(item => {
       addItem({
-        itemId: item.itemId,
+        itemId: item.itemId || item.id,
         name: item.name,
         price: item.price,
         quantity: item.quantity,
@@ -146,8 +146,8 @@ function CartPageContent() {
     alert('✅ Siparişteki ürünler sepete yüklendi. Değişiklik yapabilir ve tekrar sipariş verebilirsiniz.');
   };
 
-  // Calculate totals
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  // Calculate totals - items undefined olabilir, güvenli kontrol
+  const subtotal = (items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const total = subtotal + tipAmount + donationAmount;
 
   const handleRemoveItem = (itemId: string) => {
@@ -218,7 +218,7 @@ function CartPageContent() {
       const orderData = {
         restaurantId,
         tableNumber: tableNumber || undefined,
-        items: items.map(item => ({
+         items: (items || []).map(item => ({
           menuItemId: item.itemId || item.id,
           name: item.name,
           quantity: item.quantity,
@@ -255,21 +255,21 @@ function CartPageContent() {
           createdAt: response.data?.created_at
         });
         
-        // Sipariş ID'sini kaydet ve 1 dakika countdown başlat
-        const orderId = response.data?.id;
-        if (orderId) {
-          setPendingOrderId(orderId);
-          setConfirmationCountdown(60); // 60 saniye
-          // Siparişteki ürünleri kaydet (değişiklik yapmak için)
-          setPendingOrderItems(items.map(item => ({
-            itemId: item.itemId || item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            notes: item.notes || '',
-            image: item.image
-          })));
-        }
+         // Sipariş ID'sini kaydet ve 1 dakika countdown başlat
+         const orderId = response.data?.id;
+         if (orderId) {
+           setPendingOrderId(orderId);
+           setConfirmationCountdown(60); // 60 saniye
+           // Siparişteki ürünleri kaydet (değişiklik yapmak için)
+           setPendingOrderItems((items || []).map(item => ({
+             itemId: item.itemId || item.id,
+             name: item.name,
+             price: item.price,
+             quantity: item.quantity,
+             notes: item.notes || '',
+             image: item.image
+           })));
+         }
         
         // Clear cart after successful order
         clearCart();
@@ -307,9 +307,9 @@ function CartPageContent() {
         name: currentRestaurant?.name,
         username: currentRestaurant?.username
       },
-      cart: {
-        itemCount: items.length,
-        items: items.map(i => ({
+       cart: {
+         itemCount: (items || []).length,
+         items: (items || []).map(i => ({
           name: i.name,
           quantity: i.quantity,
           price: i.price + '₺',
@@ -401,26 +401,26 @@ function CartPageContent() {
             <div className="container mx-auto px-4 py-3">
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="text-2xl">⏱️</div>
+                  <div className="text-2xl flex-shrink-0">⏱️</div>
                   <div className="min-w-0">
-                    <div className="font-bold text-gray-900">
+                    <div className="font-bold text-gray-900 text-sm sm:text-base">
                       Siparişiniz oluşturuldu! {confirmationCountdown} saniye içinde panellere iletilecek.
                     </div>
-                    <div className="text-sm text-gray-700 mt-1">
+                    <div className="text-xs sm:text-sm text-gray-700 mt-1">
                       Bu süre içinde iptal veya değişiklik yapabilirsiniz.
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={handleModifyOrder}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors whitespace-nowrap"
+                    className="px-3 sm:px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors whitespace-nowrap text-sm"
                   >
                     Değişiklik Yap
                   </button>
                   <button
                     onClick={handleCancelOrder}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors whitespace-nowrap"
+                    className="px-3 sm:px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors whitespace-nowrap text-sm"
                   >
                     İptal Et
                   </button>
@@ -430,9 +430,9 @@ function CartPageContent() {
           </div>
         )}
 
-        {/* Cart Items */}
-        <div className={`pt-16 px-3 py-4 ${pendingOrderId && confirmationCountdown !== null && confirmationCountdown > 0 ? 'pt-32' : ''}`}>
-          {items.length === 0 ? (
+         {/* Cart Items */}
+         <div className={`pt-16 px-3 py-4 ${pendingOrderId && confirmationCountdown !== null && confirmationCountdown > 0 ? 'pt-32' : ''}`}>
+           {(!items || items.length === 0) ? (
             <div className="text-center py-12">
               <FaShoppingCart size={48} className="mx-auto text-gray-300 mb-4" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
@@ -452,7 +452,7 @@ function CartPageContent() {
             <>
               {/* Cart Items List */}
               <div className="space-y-3 mb-6">
-                {items.map((item) => (
+                 {(items || []).map((item) => (
                   <div key={item.itemId} className="bg-white rounded-lg shadow-sm border p-3 flex">
                     <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
                       <Image 
@@ -624,7 +624,7 @@ function CartPageContent() {
             <Link href="/cart" className="flex flex-col items-center" style={{ color: primary }}>
               <div className="relative">
                 <FaShoppingCart className="mb-0.5" size={16} />
-                {items.length > 0 && (
+                 {items && items.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center">
                     {items.length}
                   </span>
