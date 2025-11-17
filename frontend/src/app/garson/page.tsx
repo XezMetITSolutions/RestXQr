@@ -230,12 +230,6 @@ export default function GarsonPanel() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={fetchOrders}
-                className="bg-yellow-400 text-purple-900 px-4 py-2 rounded-lg font-bold hover:bg-yellow-300 transition-colors text-sm"
-              >
-                YENİLE
-              </button>
-              <button
                 onClick={() => {
                   localStorage.removeItem('staff_user');
                   localStorage.removeItem('staff_token');
