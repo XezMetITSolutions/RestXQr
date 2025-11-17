@@ -120,8 +120,8 @@ export default function MutfakPanel() {
   useEffect(() => {
     if (restaurantId) {
       fetchOrders();
-      // Her 5 saniyede bir yenile
-      const interval = setInterval(fetchOrders, 5000);
+      // Her 2 saniyede bir yenile (daha hızlı güncelleme)
+      const interval = setInterval(fetchOrders, 2000);
       return () => clearInterval(interval);
     }
   }, [restaurantId]);
