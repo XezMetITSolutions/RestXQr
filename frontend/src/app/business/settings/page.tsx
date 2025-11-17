@@ -982,9 +982,9 @@ export default function SettingsPage() {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                      {/* Sol Kolon - Ayarlar */}
-                      <div className="xl:col-span-2 space-y-8">
+                    <div className="space-y-8">
+                      {/* Ayarlar */}
+                      <div className="space-y-8">
                         {/* Logo Yükleme */}
                         <div>
                           <h4 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
@@ -1180,79 +1180,77 @@ export default function SettingsPage() {
                         </div>
                       </div>
 
-                      {/* Sağ Kolon - Canlı Önizleme */}
-                      <div className="xl:col-span-1">
-                        <div className="sticky top-6">
-                          <div className="bg-white rounded-lg shadow-sm p-6">
-                            <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                              <FaEye className="text-purple-600" />
-                              Canlı Önizleme
-                            </h4>
-                            <p className="text-sm text-gray-600 mb-6">
-                              Değişikliklerinizi anlık olarak görüntüleyin
-                            </p>
+                      {/* Canlı Önizleme - Aşağıda */}
+                      <div className="mt-8">
+                        <div className="bg-white rounded-lg shadow-sm p-6">
+                          <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <FaEye className="text-purple-600" />
+                            Canlı Önizleme
+                          </h4>
+                          <p className="text-sm text-gray-600 mb-6">
+                            Değişikliklerinizi anlık olarak görüntüleyin
+                          </p>
+                          
+                          {/* Modern Telefon Önizleme */}
+                          <div className="relative">
+                            {/* Gradient Background */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-blue-50 to-pink-100 rounded-2xl opacity-50"></div>
                             
-                            {/* Modern Telefon Önizleme */}
-                            <div className="relative">
-                              {/* Gradient Background */}
-                              <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-blue-50 to-pink-100 rounded-2xl opacity-50"></div>
-                              
-                              {/* Phone Frame */}
-                              <div className="relative p-8">
-                                <div className="bg-white rounded-[3rem] shadow-2xl p-4 mx-auto max-w-sm border-8 border-gray-800">
-                                  {/* Notch */}
-                                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-gray-800 rounded-b-3xl"></div>
-                                  
-                                  {/* Screen */}
-                                  <div className="bg-gray-50 rounded-[2.5rem] overflow-hidden h-[600px] relative">
-                                    {/* Status Bar */}
-                                    <div className="bg-white px-6 py-3 flex items-center justify-between text-xs">
-                                      <span className="font-semibold">9:41</span>
-                                      <div className="flex items-center gap-1">
-                                        <div className="w-4 h-3 border border-gray-400 rounded-sm relative">
-                                          <div className="absolute inset-0.5 bg-gray-800 rounded-sm"></div>
-                                        </div>
+                            {/* Phone Frame */}
+                            <div className="relative p-8">
+                              <div className="bg-white rounded-[3rem] shadow-2xl p-4 mx-auto max-w-sm border-8 border-gray-800">
+                                {/* Notch */}
+                                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-gray-800 rounded-b-3xl"></div>
+                                
+                                {/* Screen */}
+                                <div className="bg-gray-50 rounded-[2.5rem] overflow-hidden h-[600px] relative">
+                                  {/* Status Bar */}
+                                  <div className="bg-white px-6 py-3 flex items-center justify-between text-xs">
+                                    <span className="font-semibold">9:41</span>
+                                    <div className="flex items-center gap-1">
+                                      <div className="w-4 h-3 border border-gray-400 rounded-sm relative">
+                                        <div className="absolute inset-0.5 bg-gray-800 rounded-sm"></div>
                                       </div>
-                                    </div>
-                                    
-                                    {/* Content */}
-                                    <div className="p-4 overflow-y-auto h-full">
-                                      <PhonePreview className="w-full" />
                                     </div>
                                   </div>
                                   
-                                  {/* Home Indicator */}
-                                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-800 rounded-full"></div>
+                                  {/* Content */}
+                                  <div className="p-4 overflow-y-auto h-full">
+                                    <PhonePreview className="w-full" />
+                                  </div>
                                 </div>
-                              </div>
-                              
-                              {/* Floating Action Buttons */}
-                              <div className="absolute top-4 right-4 flex flex-col gap-2">
-                                <button 
-                                  onClick={() => window.open('/menu', '_blank')}
-                                  className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
-                                  title="Canlı Önizleme"
-                                >
-                                  <FaEye className="text-purple-600" />
-                                </button>
-                                <button 
-                                  onClick={() => window.location.reload()}
-                                  className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
-                                  title="Yenile"
-                                >
-                                  <FaSync className="text-blue-600" />
-                                </button>
+                                
+                                {/* Home Indicator */}
+                                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-800 rounded-full"></div>
                               </div>
                             </div>
                             
-                            <div className="mt-6 text-center space-y-2">
-                              <p className="text-sm font-medium text-gray-700">
-                                ✨ Canlı Önizleme
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Değişiklikleriniz anında yansıtılır
-                              </p>
+                            {/* Floating Action Buttons */}
+                            <div className="absolute top-4 right-4 flex flex-col gap-2">
+                              <button 
+                                onClick={() => window.open('/menu', '_blank')}
+                                className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                                title="Canlı Önizleme"
+                              >
+                                <FaEye className="text-purple-600" />
+                              </button>
+                              <button 
+                                onClick={() => window.location.reload()}
+                                className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                                title="Yenile"
+                              >
+                                <FaSync className="text-blue-600" />
+                              </button>
                             </div>
+                          </div>
+                          
+                          <div className="mt-6 text-center space-y-2">
+                            <p className="text-sm font-medium text-gray-700">
+                              ✨ Canlı Önizleme
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Değişiklikleriniz anında yansıtılır
+                            </p>
                           </div>
                         </div>
                       </div>
