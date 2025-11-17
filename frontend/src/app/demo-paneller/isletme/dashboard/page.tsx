@@ -35,6 +35,7 @@ import { useFeature } from '@/hooks/useFeature';
 export default function BusinessDashboard() {
   const router = useRouter();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
+  const restaurantStore = useRestaurantStore();
   const { 
     categories = [], 
     menuItems = [], 
@@ -42,7 +43,13 @@ export default function BusinessDashboard() {
     activeOrders = [], 
     fetchRestaurantMenu,
     loading: restaurantLoading 
-  } = useRestaurantStore();
+  } = restaurantStore;
+  
+  // Güvenli array'ler - undefined kontrolü
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  const safeMenuItems = Array.isArray(menuItems) ? menuItems : [];
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const safeActiveOrders = Array.isArray(activeOrders) ? activeOrders : [];
   
   // Sayfa yüklendiginde auth'u initialize et (demo için sadece bir kez)
   useEffect(() => {
@@ -220,7 +227,7 @@ export default function BusinessDashboard() {
 
   const calculateTotalPrice = () => {
     const planPrice = plans[selectedPlan].pricing[billingCycle];
-    const servicesPrice = Object.entries(selectedServices).reduce((total, [serviceId, quantity]) => {
+    const servicesPrice = Object.entries(selectedServices || {}).reduce((total, [serviceId, quantity]) => {
       const service = additionalServices[serviceId as keyof typeof additionalServices];
       return total + (service.basePrice + (service.perChange * (quantity - 1)));
     }, 0);
@@ -272,7 +279,7 @@ export default function BusinessDashboard() {
   const endOfDay = new Date(today.setHours(23, 59, 59, 999));
   
   // Bugünkü siparişler
-  const todayOrders = (orders || []).filter(order => {
+  const todayOrders = safeOrders.filter(order => {
     if (!order?.createdAt) return false;
     try {
       const orderDate = new Date(order.createdAt);
@@ -287,7 +294,7 @@ export default function BusinessDashboard() {
   
   // Bu ayki siparişler
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const monthlyOrders = (orders || []).filter(order => {
+  const monthlyOrders = safeOrders.filter(order => {
     if (!order?.createdAt) return false;
     try {
       const orderDate = new Date(order.createdAt);
@@ -488,8 +495,8 @@ export default function BusinessDashboard() {
                   </Link>
                 </div>
                 <div className="space-y-6">
-                  {Array.isArray(activeOrders) && activeOrders.length > 0 ? (
-                    activeOrders.map(order => {
+                  {safeActiveOrders.length > 0 ? (
+                    safeActiveOrders.map(order => {
                       if (!order) return null;
                       const itemsLength = Array.isArray(order.items) ? order.items.length : 0;
                       return (
@@ -680,7 +687,7 @@ export default function BusinessDashboard() {
                 <div>
                   <h4 className="text-lg font-semibold text-gray-800 mb-4">Dahil Özellikler</h4>
                   <ul className="space-y-3">
-                    {selectedFeatures.map((featureId, index) => (
+                    {(Array.isArray(selectedFeatures) ? selectedFeatures : []).map((featureId, index) => (
                       <li key={index} className="flex items-center gap-3">
                         <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -879,7 +886,8 @@ export default function BusinessDashboard() {
                     <div className="space-y-8">
                       {['Menü', 'QR Kodlar', 'Raporlar', 'Personel', 'Siparişler', 'Genel'].map(panel => {
                         const panelServices = getServicesByPanel(panel);
-                        if (panelServices.length === 0) return null;
+                        const safePanelServices = Array.isArray(panelServices) ? panelServices : [];
+                        if (safePanelServices.length === 0) return null;
                         
                         return (
                           <div key={panel} className="border-2 border-gray-200 rounded-2xl p-6 bg-gradient-to-r from-gray-50 to-gray-100 hover:shadow-lg transition-all duration-300">
@@ -893,7 +901,7 @@ export default function BusinessDashboard() {
                               {panel} Paneli
                             </h5>
                             <div className="space-y-4">
-                              {panelServices.map(([serviceId, service]) => (
+                              {safePanelServices.map(([serviceId, service]) => (
                                 <div key={serviceId} className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all duration-300">
                                   <div className="flex-1">
                                     <h6 className="font-bold text-gray-800 text-lg">{service.name}</h6>
@@ -939,7 +947,7 @@ export default function BusinessDashboard() {
                         <span className="text-gray-700 font-bold text-lg">{plans[selectedPlan].name}</span>
                         <span className="font-bold text-xl text-gray-800">₺{plans[selectedPlan].pricing[billingCycle]}</span>
                       </div>
-                      {Object.entries(selectedServices).map(([serviceId, quantity]) => {
+                      {Object.entries(selectedServices || {}).map(([serviceId, quantity]) => {
                         const service = additionalServices[serviceId as keyof typeof additionalServices];
                         const totalPrice = service.basePrice + (service.perChange * (quantity - 1));
                         return (
