@@ -19,7 +19,6 @@ interface Order {
   status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
   totalAmount: number;
   notes?: string;
-  paymentStatus?: string;
   orderType: string;
   created_at: string;
   items: OrderItem[];
@@ -613,11 +612,11 @@ export default function MutfakPanel() {
                   <div 
                     className="inline-block px-4 py-2 rounded-full text-sm font-bold"
                     style={{ 
-                      backgroundColor: getStatusColor(selectedOrder.status).bg,
-                      color: getStatusColor(selectedOrder.status).color
+                      backgroundColor: getStatusInfo(selectedOrder.status).bg,
+                      color: getStatusInfo(selectedOrder.status).color
                     }}
                   >
-                    {getStatusColor(selectedOrder.status).text}
+                    {getStatusInfo(selectedOrder.status).text}
                   </div>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
