@@ -48,6 +48,18 @@ import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
 import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
 import BusinessSidebar from '@/components/BusinessSidebar';
 
+const LANGUAGE_OPTIONS = [
+  { code: 'tr', label: 'Türkçe', flag: '🇹🇷', description: 'Varsayılan dil' },
+  { code: 'en', label: 'English', flag: '🇺🇸', description: 'Global müşteriler için' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪', description: 'Almanca menü' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷', description: 'Fransızca menü' },
+  { code: 'es', label: 'Español', flag: '🇪🇸', description: 'İspanyolca menü' },
+  { code: 'it', label: 'Italiano', flag: '🇮🇹', description: 'İtalyanca menü' },
+  { code: 'ru', label: 'Русский', flag: '🇷🇺', description: 'Rusça menü' },
+  { code: 'ar', label: 'العربية', flag: '🇸🇦', description: 'Arapça menü' },
+  { code: 'zh', label: '中文', flag: '🇨🇳', description: 'Çince menü' }
+];
+
 export default function SettingsPage() {
   const router = useRouter();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
@@ -112,6 +124,21 @@ export default function SettingsPage() {
       ...prev,
       [service]: count
     }));
+  };
+
+  const selectedLanguages = settings.menuSettings.language || ['tr'];
+
+  const toggleLanguage = (code: string) => {
+    const current = settings.menuSettings.language || ['tr'];
+    if (current.includes(code)) {
+      if (current.length === 1) {
+        alert('En az bir dil aktif olmalı.');
+        return;
+      }
+      updateMenuSettings({ language: current.filter(lang => lang !== code) });
+    } else {
+      updateMenuSettings({ language: [...current, code] });
+    }
   };
 
   useEffect(() => {
@@ -364,7 +391,8 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'general', name: 'Genel Ayarlar', icon: FaCog },
-    { id: 'branding', name: 'Görsel Kimlik', icon: FaPalette }
+    { id: 'branding', name: 'Görsel Kimlik', icon: FaPalette },
+    { id: 'languages', name: 'Diller', icon: FaGlobe }
     // Ödeme & Abonelik, Entegrasyonlar, Bildirimler - Kaldırıldı
   ];
 
@@ -1229,6 +1257,76 @@ export default function SettingsPage() {
                         </div>
                       </div>
 
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Diller */}
+              {activeTab === 'languages' && (
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+                      <div>
+                        <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                          <FaGlobe className="text-purple-600" />
+                          Dil Ayarları
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          Menüde göstermek istediğiniz dilleri seçin. En az bir dil aktif olmalıdır.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="bg-purple-50 text-purple-700 px-3 py-2 rounded-lg text-sm font-semibold">
+                          Aktif Dil: {selectedLanguages.length}
+                        </div>
+                        <button
+                          onClick={() => handleSave('languages')}
+                          disabled={isLoading}
+                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
+                        >
+                          {isLoading ? <FaSpinner className="animate-spin" /> : <FaSave />}
+                          Kaydet
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {LANGUAGE_OPTIONS.map((language) => {
+                        const isActive = selectedLanguages.includes(language.code);
+                        return (
+                          <div
+                            key={language.code}
+                            className={`border rounded-2xl p-4 flex items-center justify-between transition-all ${
+                              isActive ? 'border-purple-400 bg-purple-50 shadow-sm' : 'border-gray-200 hover:border-purple-200'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-2xl">{language.flag}</span>
+                                <div>
+                                  <p className="text-sm font-semibold text-gray-900">{language.label}</p>
+                                  <p className="text-xs text-gray-500 uppercase tracking-wide">{language.code}</p>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-2">{language.description}</p>
+                            </div>
+                            <button
+                              onClick={() => toggleLanguage(language.code)}
+                              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                                isActive
+                                  ? 'bg-green-100 text-green-700 border border-green-200'
+                                  : 'bg-gray-100 text-gray-600 border border-gray-200'
+                              }`}
+                            >
+                              {isActive ? 'Aktif' : 'Aktifleştir'}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-6 bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
+                      💡 Dil çevirileri otomatik olarak oluşturulur. Menüde seçtiğiniz diller arasında geçiş yapılabilir.
                     </div>
                   </div>
                 </div>
