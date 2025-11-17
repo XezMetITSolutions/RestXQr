@@ -43,6 +43,7 @@ export default function MutfakPanel() {
   const [showMenuModal, setShowMenuModal] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
+  const [menuSearchTerm, setMenuSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
 
@@ -243,6 +244,7 @@ export default function MutfakPanel() {
 
   const handleMenuManagement = () => {
     setShowMenuModal(true);
+    setMenuSearchTerm(''); // Arama terimini sıfırla
     fetchMenuItems();
   };
 
@@ -532,8 +534,43 @@ export default function MutfakPanel() {
                   <p className="text-gray-600">Menüye ürün ekleyin.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {menuItems.map((item) => (
+                <>
+                  {/* Arama Kutusu */}
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      placeholder="🔍 Yemek ara..."
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-base focus:outline-none focus:border-yellow-500"
+                      value={menuSearchTerm}
+                      onChange={(e) => setMenuSearchTerm(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  
+                  {/* Filtrelenmiş Menü Öğeleri */}
+                  {(() => {
+                    const filteredItems = menuItems.filter(item => {
+                      if (!menuSearchTerm) return true;
+                      const searchLower = menuSearchTerm.toLowerCase();
+                      return (
+                        item.name.toLowerCase().includes(searchLower) ||
+                        (item.description && item.description.toLowerCase().includes(searchLower))
+                      );
+                    });
+
+                    if (filteredItems.length === 0) {
+                      return (
+                        <div className="text-center py-12 bg-gray-50 rounded-lg">
+                          <div className="text-4xl mb-4">🔍</div>
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">Sonuç bulunamadı</h3>
+                          <p className="text-gray-600">"{menuSearchTerm}" için arama sonucu yok.</p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-3">
+                        {filteredItems.map((item) => (
                     <div 
                       key={item.id} 
                       className={`bg-white border-2 rounded-lg p-4 ${
@@ -578,10 +615,13 @@ export default function MutfakPanel() {
                         </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
