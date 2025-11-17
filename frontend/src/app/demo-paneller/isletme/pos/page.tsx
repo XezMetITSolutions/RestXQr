@@ -41,90 +41,139 @@ export default function POSPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [posDevices, setPosDevices] = useState<POSDevice[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [posDevices, setPosDevices] = useState<POSDevice[]>([
+    {
+      id: '1',
+      name: 'Kasa 1',
+      deviceId: 'POS-001',
+      location: 'Ana Kasa',
+      status: 'online',
+      lastSync: new Date().toISOString(),
+      todayTransactions: 125,
+      todayRevenue: 12500,
+      battery: 85
+    },
+    {
+      id: '2',
+      name: 'Kasa 2',
+      deviceId: 'POS-002',
+      location: 'Teras',
+      status: 'online',
+      lastSync: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      todayTransactions: 98,
+      todayRevenue: 9800,
+      battery: 65
+    },
+    {
+      id: '3',
+      name: 'Kasa 3',
+      deviceId: 'POS-003',
+      location: 'VIP Salon',
+      status: 'offline',
+      lastSync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      todayTransactions: 45,
+      todayRevenue: 4500,
+      battery: 25
+    }
+  ]);
+  const [loading, setLoading] = useState(false);
   const [editingDevice, setEditingDevice] = useState<POSDevice | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    deviceId: '',
+    location: '',
+    battery: 100
+  });
 
   useEffect(() => {
     // Demo için session kontrolü yok
-    fetchPOSDevices();
   }, []);
 
-  const fetchPOSDevices = async () => {
-    try {
-      setLoading(true);
-      const restaurantId = user?.id;
-      if (!restaurantId) return;
-      
-      const response = await apiService.getPOSDevices(restaurantId);
-      if (response.success && response.data) {
-        setPosDevices(response.data);
-      }
-    } catch (error) {
-      console.error('POS cihazları yüklenirken hata:', error);
-    } finally {
-      setLoading(false);
+  const handleAddPOSDevice = () => {
+    if (!formData.name || !formData.deviceId || !formData.location) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
     }
+
+    const newDevice: POSDevice = {
+      id: String(Date.now()),
+      name: formData.name,
+      deviceId: formData.deviceId,
+      location: formData.location,
+      status: 'online',
+      lastSync: new Date().toISOString(),
+      todayTransactions: 0,
+      todayRevenue: 0,
+      battery: formData.battery
+    };
+
+    setPosDevices(prev => [...prev, newDevice]);
+    setShowAddModal(false);
+    resetForm();
   };
 
-  const handleAddPOSDevice = async (deviceData: Partial<POSDevice>) => {
-    try {
-      const restaurantId = user?.id;
-      if (!restaurantId) return;
-
-      const response = await apiService.createPOSDevice({
-        ...deviceData,
-        restaurantId
-      });
-      
-      if (response.success) {
-        await fetchPOSDevices();
-        setShowAddModal(false);
-      }
-    } catch (error) {
-      console.error('POS cihazı eklenirken hata:', error);
-    }
+  const handleEditClick = (device: POSDevice) => {
+    setEditingDevice(device);
+    setFormData({
+      name: device.name,
+      deviceId: device.deviceId,
+      location: device.location,
+      battery: device.battery
+    });
   };
 
-  const handleUpdatePOSDevice = async (id: string, deviceData: Partial<POSDevice>) => {
-    try {
-      const response = await apiService.updatePOSDevice(id, deviceData);
-      if (response.success) {
-        await fetchPOSDevices();
-        setEditingDevice(null);
-      }
-    } catch (error) {
-      console.error('POS cihazı güncellenirken hata:', error);
+  const handleUpdatePOSDevice = () => {
+    if (!editingDevice) return;
+
+    if (!formData.name || !formData.deviceId || !formData.location) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
     }
+
+    setPosDevices(prev => prev.map(d => 
+      d.id === editingDevice.id 
+        ? { 
+            ...d, 
+            name: formData.name,
+            deviceId: formData.deviceId,
+            location: formData.location,
+            battery: formData.battery
+          } 
+        : d
+    ));
+    setEditingDevice(null);
+    resetForm();
   };
 
-  const handleDeletePOSDevice = async (id: string) => {
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      deviceId: '',
+      location: '',
+      battery: 100
+    });
+  };
+
+  const handleDeletePOSDevice = (id: string) => {
     if (!confirm('Bu POS cihazını silmek istediğinizden emin misiniz?')) return;
+    setPosDevices(prev => prev.filter(d => d.id !== id));
+  };
+
+  const handleSyncPOSDevice = (id: string) => {
+    setPosDevices(prev => prev.map(d => 
+      d.id === id 
+        ? { ...d, lastSync: new Date().toISOString(), status: 'syncing' as const }
+        : d
+    ));
     
-    try {
-      const response = await apiService.deletePOSDevice(id);
-      if (response.success) {
-        await fetchPOSDevices();
-      }
-    } catch (error) {
-      console.error('POS cihazı silinirken hata:', error);
-    }
+    setTimeout(() => {
+      setPosDevices(prev => prev.map(d => 
+        d.id === id 
+          ? { ...d, status: 'online' as const }
+          : d
+      ));
+    }, 2000);
   };
-
-  const handleSyncPOSDevice = async (id: string) => {
-    try {
-      const response = await apiService.syncPOSDevice(id);
-      if (response.success) {
-        await fetchPOSDevices();
-      }
-    } catch (error) {
-      console.error('POS cihazı senkronize edilirken hata:', error);
-    }
-  };
-
-  useEffect(() => {
-    // Demo için session kontrolü yok
-  }, [isAuthenticated, router]);
 
   // Özellik kontrolü
   if (!hasPOSIntegration) {
@@ -356,15 +405,24 @@ export default function POSPage() {
 
                   <div className="flex items-center gap-2">
                     {device.status !== 'offline' && (
-                      <button className="flex-1 px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 flex items-center justify-center gap-2 text-sm font-medium">
+                      <button 
+                        onClick={() => handleSyncPOSDevice(device.id)}
+                        className="flex-1 px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 flex items-center justify-center gap-2 text-sm font-medium"
+                      >
                         <FaSync />
                         Senkronize Et
                       </button>
                     )}
-                    <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
+                    <button 
+                      onClick={() => handleEditClick(device)}
+                      className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+                    >
                       <FaEdit />
                     </button>
-                    <button className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
+                    <button 
+                      onClick={() => handleDeletePOSDevice(device.id)}
+                      className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                    >
                       <FaTrash />
                     </button>
                   </div>
@@ -395,6 +453,168 @@ export default function POSPage() {
           </div>
         </div>
       </div>
+
+      {/* Add POS Device Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Yeni POS Cihazı Ekle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Cihaz Adı <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Örn: Kasa 1"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cihaz ID <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.deviceId}
+                    onChange={(e) => setFormData({ ...formData, deviceId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="Örn: POS-001"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Lokasyon <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="Örn: Ana Kasa"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Batarya Seviyesi (%)
+                </label>
+                <input
+                  type="number"
+                  value={formData.battery}
+                  onChange={(e) => setFormData({ ...formData, battery: parseInt(e.target.value) || 100 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  min="0"
+                  max="100"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleAddPOSDevice}
+                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+              >
+                Kaydet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit POS Device Modal */}
+      {editingDevice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">POS Cihazını Düzenle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Cihaz Adı <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Örn: Kasa 1"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cihaz ID <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.deviceId}
+                    onChange={(e) => setFormData({ ...formData, deviceId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="Örn: POS-001"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Lokasyon <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="Örn: Ana Kasa"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Batarya Seviyesi (%)
+                </label>
+                <input
+                  type="number"
+                  value={formData.battery}
+                  onChange={(e) => setFormData({ ...formData, battery: parseInt(e.target.value) || 100 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  min="0"
+                  max="100"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setEditingDevice(null);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleUpdatePOSDevice}
+                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+              >
+                Güncelle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

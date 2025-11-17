@@ -363,13 +363,51 @@ router.put('/:id', async (req, res) => {
       });
     }
     
+    // Plan güncellemesi yapılıyorsa özellikleri otomatik ekle
+    let updatedFeatures = features || restaurant.features || [];
+    const newPlan = subscriptionPlan || restaurant.subscriptionPlan;
+    const oldPlan = restaurant.subscriptionPlan;
+    
+    // Plan değiştiyse özellikleri güncelle
+    if (newPlan && newPlan !== oldPlan) {
+      // Premium, Corporate, Enterprise planlarında aktif olan özellikler
+      const premiumFeatures = ['accounting_software', 'event_management', 'ai_recommendations', 'inventory_management'];
+      if (newPlan === 'premium' || newPlan === 'corporate' || newPlan === 'enterprise') {
+        premiumFeatures.forEach(feature => {
+          if (!updatedFeatures.includes(feature)) {
+            updatedFeatures.push(feature);
+            console.log(`✅ Added ${feature} feature for ${newPlan} plan`);
+          }
+        });
+      }
+      
+      // Corporate, Enterprise planlarında aktif olan özellikler
+      const corporateFeatures = ['pos_integration', 'delivery_integration', 'multi_branch'];
+      if (newPlan === 'corporate' || newPlan === 'enterprise') {
+        corporateFeatures.forEach(feature => {
+          if (!updatedFeatures.includes(feature)) {
+            updatedFeatures.push(feature);
+            console.log(`✅ Added ${feature} feature for ${newPlan} plan`);
+          }
+        });
+      }
+      
+      // Sadece Enterprise planında aktif olan özellikler
+      if (newPlan === 'enterprise') {
+        if (!updatedFeatures.includes('api_access')) {
+          updatedFeatures.push('api_access');
+          console.log(`✅ Added api_access feature for ${newPlan} plan`);
+        }
+      }
+    }
+    
     await restaurant.update({
       name: name || restaurant.name,
       email: email || restaurant.email,
       phone: phone || restaurant.phone,
       address: address || restaurant.address,
-      features: features || restaurant.features,
-      subscriptionPlan: subscriptionPlan || restaurant.subscriptionPlan
+      features: updatedFeatures,
+      subscriptionPlan: newPlan || restaurant.subscriptionPlan
     });
     
     // Remove password from response

@@ -95,9 +95,50 @@ export function useFeature(featureId: string): boolean {
     }
   }, [featureId, authenticatedRestaurant, restaurants]);
   
+  // Plan bazlı özellik kontrolü - bazı özellikler plan'a göre otomatik aktif
+  const checkFeatureByPlan = (plan: string | undefined, featureId: string): boolean => {
+    // Premium, Corporate, Enterprise planlarında aktif olan özellikler
+    const premiumFeatures = [
+      'accounting_software',
+      'event_management',
+      'ai_recommendations',
+      'inventory_management'
+    ];
+    if (premiumFeatures.includes(featureId)) {
+      return plan === 'premium' || plan === 'corporate' || plan === 'enterprise';
+    }
+    
+    // Corporate, Enterprise planlarında aktif olan özellikler
+    const corporateFeatures = [
+      'pos_integration',
+      'delivery_integration',
+      'multi_branch'
+    ];
+    if (corporateFeatures.includes(featureId)) {
+      return plan === 'corporate' || plan === 'enterprise';
+    }
+    
+    // Sadece Enterprise planında aktif olan özellikler
+    const enterpriseFeatures = [
+      'api_access'
+    ];
+    if (enterpriseFeatures.includes(featureId)) {
+      return plan === 'enterprise';
+    }
+    
+    return false;
+  };
+
   // Önce authenticated restaurant'ı kontrol et
   if (authenticatedRestaurant) {
     console.log('🔐 useFeature: Using authenticated restaurant features:', authenticatedRestaurant.features);
+    const plan = authenticatedRestaurant.subscriptionPlan || authenticatedRestaurant.subscription_plan;
+    // Önce plan bazlı kontrolü yap
+    if (checkFeatureByPlan(plan, featureId)) {
+      console.log('✅ useFeature: Feature enabled by plan:', { plan, featureId });
+      return true;
+    }
+    // Sonra features array'ini kontrol et
     return authenticatedRestaurant.features?.includes(featureId) ?? false;
   }
   
@@ -108,6 +149,13 @@ export function useFeature(featureId: string): boolean {
     
     if (restaurant) {
       console.log('🏪 useFeature: Using restaurant from store:', restaurant.features);
+      const plan = restaurant.subscriptionPlan || restaurant.subscription_plan;
+      // Önce plan bazlı kontrolü yap
+      if (checkFeatureByPlan(plan, featureId)) {
+        console.log('✅ useFeature: Feature enabled by plan:', { plan, featureId });
+        return true;
+      }
+      // Sonra features array'ini kontrol et
       return restaurant.features?.includes(featureId) ?? false;
     }
   }

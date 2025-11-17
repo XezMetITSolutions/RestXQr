@@ -32,7 +32,8 @@ import {
   FaBars,
   FaMoneyBillWave,
   FaGlobe,
-  FaMagic
+  FaMagic,
+  FaLanguage
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
@@ -135,6 +136,10 @@ export default function MenuManagement() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [showTranslationsModal, setShowTranslationsModal] = useState(false);
+  const [selectedItemForTranslation, setSelectedItemForTranslation] = useState<any>(null);
+  const [translations, setTranslations] = useState<{[key: string]: {name: string, description: string}}>({});
+  const [loadingTranslations, setLoadingTranslations] = useState(false);
   
   const { settings } = useBusinessSettingsStore();
   const selectedLanguages = settings?.menuSettings?.language?.length
@@ -286,6 +291,7 @@ export default function MenuManagement() {
     }
   };
 
+<<<<<<< HEAD
   const updateItemTranslationField = (lang: string, field: 'name' | 'description', value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -340,6 +346,101 @@ export default function MenuManagement() {
       setItemTranslationError('Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setIsTranslatingItem(false);
+    }
+  };
+
+  const handleViewTranslations = async (item: any) => {
+    setSelectedItemForTranslation(item);
+    setShowTranslationsModal(true);
+    setLoadingTranslations(true);
+    setTranslations({});
+
+    try {
+      // Çevirileri API'den al veya oluştur
+      const languages = ['en', 'tr', 'ar', 'de', 'fr', 'es', 'it', 'ru'];
+      const newTranslations: {[key: string]: {name: string, description: string}} = {};
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://masapp-backend.onrender.com';
+
+      for (const lang of languages) {
+        try {
+          // Türkçe için çeviri yapmaya gerek yok
+          if (lang === 'tr') {
+            newTranslations[lang] = {
+              name: item.name,
+              description: item.description || ''
+            };
+            continue;
+          }
+
+          // Çeviri API'sini kullan
+          const languageMap: {[key: string]: string} = {
+            'en': 'English',
+            'ar': 'Arabic',
+            'de': 'German',
+            'fr': 'French',
+            'es': 'Spanish',
+            'it': 'Italian',
+            'ru': 'Russian'
+          };
+
+          const targetLanguage = languageMap[lang] || 'English';
+
+          // Ürün adı çevirisi
+          const nameResponse = await fetch(`${API_BASE_URL}/api/translate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              text: item.name,
+              targetLanguage: targetLanguage
+            })
+          });
+
+          // Açıklama çevirisi (varsa)
+          let descResponse = null;
+          if (item.description) {
+            descResponse = await fetch(`${API_BASE_URL}/api/translate`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                text: item.description,
+                targetLanguage: targetLanguage
+              })
+            });
+          }
+
+          const nameData = await nameResponse.json();
+          const descData = descResponse ? await descResponse.json() : { translatedText: '' };
+
+          newTranslations[lang] = {
+            name: nameData.translatedText || item.name,
+            description: descData.translatedText || item.description || ''
+          };
+        } catch (error) {
+          console.error(`Çeviri hatası (${lang}):`, error);
+          // Hata durumunda orijinal metni kullan
+          newTranslations[lang] = {
+            name: item.name,
+            description: item.description || ''
+          };
+        }
+      }
+
+      setTranslations(newTranslations);
+    } catch (error) {
+      console.error('Çeviriler yüklenirken hata:', error);
+      // Hata durumunda en azından orijinal dili göster
+      setTranslations({
+        'tr': {
+          name: item.name,
+          description: item.description || ''
+        }
+      });
+    } finally {
+      setLoadingTranslations(false);
     }
   };
 
@@ -947,14 +1048,23 @@ export default function MenuManagement() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex flex-wrap gap-2">
                           <button 
+                            onClick={() => handleViewTranslations(item)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="Çevirileri Gör"
+                          >
+                            <FaLanguage />
+                          </button>
+                          <button 
                             onClick={() => handleEditItem(item)}
                             className="text-purple-600 hover:text-purple-900"
+                            title="Düzenle"
                           >
                             <FaEdit />
                           </button>
                           <button 
                             onClick={() => handleDeleteItem(item.id)}
                             className="text-red-600 hover:text-red-900"
+                            title="Sil"
                           >
                             <FaTrash />
                           </button>
@@ -1026,14 +1136,23 @@ export default function MenuManagement() {
                       </span>
                       <div className="flex gap-2">
                         <button 
+                          onClick={() => handleViewTranslations(item)}
+                          className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg"
+                          title="Çevirileri Gör"
+                        >
+                          <FaLanguage className="text-sm" />
+                        </button>
+                        <button 
                           onClick={() => handleEditItem(item)}
                           className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-lg"
+                          title="Düzenle"
                         >
                           <FaEdit className="text-sm" />
                         </button>
                         <button 
                           onClick={() => handleDeleteItem(item.id)}
                           className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg"
+                          title="Sil"
                         >
                           <FaTrash className="text-sm" />
                         </button>
@@ -1993,6 +2112,98 @@ export default function MenuManagement() {
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 font-medium"
                   >
                     İptal
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Translations Modal */}
+          {showTranslationsModal && selectedItemForTranslation && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+              <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999]">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                      <FaLanguage className="text-blue-600" />
+                      Ürün Çevirileri
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">{selectedItemForTranslation.name}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowTranslationsModal(false);
+                      setSelectedItemForTranslation(null);
+                      setTranslations({});
+                    }}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={24} />
+                  </button>
+                </div>
+                <div className="p-6 overflow-y-auto max-h-[70vh]">
+                  {loadingTranslations ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                      <span className="ml-3 text-gray-600">Çeviriler yükleniyor...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {Object.entries(translations).length > 0 ? (
+                        Object.entries(translations).map(([lang, translation]) => {
+                          const languageNames: {[key: string]: string} = {
+                            'tr': 'Türkçe',
+                            'en': 'English',
+                            'ar': 'العربية',
+                            'de': 'Deutsch',
+                            'fr': 'Français',
+                            'es': 'Español',
+                            'it': 'Italiano',
+                            'ru': 'Русский'
+                          };
+
+                          return (
+                            <div key={lang} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                  {lang.toUpperCase()}
+                                </div>
+                                <h3 className="font-semibold text-lg">{languageNames[lang] || lang}</h3>
+                              </div>
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Ürün Adı</label>
+                                  <p className="text-gray-900 font-medium mt-1">{translation.name}</p>
+                                </div>
+                                {translation.description && (
+                                  <div>
+                                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Açıklama</label>
+                                    <p className="text-gray-700 mt-1">{translation.description}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-12">
+                          <FaLanguage className="mx-auto text-5xl text-gray-300 mb-4" />
+                          <p className="text-gray-600">Çeviriler yüklenemedi</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="p-6 border-t bg-gray-50 flex justify-end">
+                  <button
+                    onClick={() => {
+                      setShowTranslationsModal(false);
+                      setSelectedItemForTranslation(null);
+                      setTranslations({});
+                    }}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Kapat
                   </button>
                 </div>
               </div>

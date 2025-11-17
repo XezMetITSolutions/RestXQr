@@ -41,9 +41,18 @@ export default function POSPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deviceToDelete, setDeviceToDelete] = useState<string | null>(null);
   const [posDevices, setPosDevices] = useState<POSDevice[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingDevice, setEditingDevice] = useState<POSDevice | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    deviceId: '',
+    location: '',
+    battery: 100
+  });
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -61,7 +70,19 @@ export default function POSPage() {
       
       const response = await apiService.getPOSDevices(restaurantId);
       if (response.success && response.data) {
-        setPosDevices(response.data);
+        // Backend'den gelen veriyi frontend formatına çevir
+        const transformedDevices = response.data.map((device: any) => ({
+          id: device.id,
+          name: device.name,
+          deviceId: device.deviceId || device.device_id || '',
+          location: device.location || '',
+          status: device.status || 'offline',
+          lastSync: device.lastSync || device.last_sync || new Date().toISOString(),
+          todayTransactions: device.todayTransactions || device.today_transactions || 0,
+          todayRevenue: parseFloat(device.todayRevenue || device.today_revenue || 0),
+          battery: device.battery || 100
+        }));
+        setPosDevices(transformedDevices);
       }
     } catch (error) {
       console.error('POS cihazları yüklenirken hata:', error);
@@ -70,48 +91,108 @@ export default function POSPage() {
     }
   };
 
-  const handleAddPOSDevice = async (deviceData: Partial<POSDevice>) => {
+  const handleAddPOSDevice = async () => {
+    if (!formData.name || !formData.deviceId || !formData.location) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
+    }
+
     try {
       const restaurantId = user?.id;
       if (!restaurantId) return;
 
       const response = await apiService.createPOSDevice({
-        ...deviceData,
-        restaurantId
+        restaurantId,
+        name: formData.name,
+        deviceId: formData.deviceId,
+        location: formData.location,
+        battery: formData.battery
       });
       
       if (response.success) {
         await fetchPOSDevices();
         setShowAddModal(false);
+        resetForm();
+      } else {
+        alert('POS cihazı eklenirken hata oluştu.');
       }
     } catch (error) {
       console.error('POS cihazı eklenirken hata:', error);
+      alert('POS cihazı eklenirken hata oluştu.');
     }
   };
 
-  const handleUpdatePOSDevice = async (id: string, deviceData: Partial<POSDevice>) => {
+  const handleEditClick = (device: POSDevice) => {
+    setEditingDevice(device);
+    setFormData({
+      name: device.name,
+      deviceId: device.deviceId,
+      location: device.location,
+      battery: device.battery
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdatePOSDevice = async () => {
+    if (!formData.name || !formData.deviceId || !formData.location) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
+    }
+
+    if (!editingDevice) return;
+
     try {
-      const response = await apiService.updatePOSDevice(id, deviceData);
+      const response = await apiService.updatePOSDevice(editingDevice.id, {
+        name: formData.name,
+        deviceId: formData.deviceId,
+        location: formData.location,
+        battery: formData.battery
+      });
+      
       if (response.success) {
         await fetchPOSDevices();
+        setShowEditModal(false);
         setEditingDevice(null);
+        resetForm();
+      } else {
+        alert('POS cihazı güncellenirken hata oluştu.');
       }
     } catch (error) {
       console.error('POS cihazı güncellenirken hata:', error);
+      alert('POS cihazı güncellenirken hata oluştu.');
     }
   };
 
-  const handleDeletePOSDevice = async (id: string) => {
-    if (!confirm('Bu POS cihazını silmek istediğinizden emin misiniz?')) return;
-    
+  const handleDeleteClick = (deviceId: string) => {
+    setDeviceToDelete(deviceId);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deviceToDelete) return;
+
     try {
-      const response = await apiService.deletePOSDevice(id);
+      const response = await apiService.deletePOSDevice(deviceToDelete);
       if (response.success) {
         await fetchPOSDevices();
+        setShowDeleteConfirm(false);
+        setDeviceToDelete(null);
+      } else {
+        alert('POS cihazı silinirken hata oluştu.');
       }
     } catch (error) {
       console.error('POS cihazı silinirken hata:', error);
+      alert('POS cihazı silinirken hata oluştu.');
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      deviceId: '',
+      location: '',
+      battery: 100
+    });
   };
 
   const handleSyncPOSDevice = async (id: string) => {
@@ -361,15 +442,24 @@ export default function POSPage() {
 
                   <div className="flex items-center gap-2">
                     {device.status !== 'offline' && (
-                      <button className="flex-1 px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 flex items-center justify-center gap-2 text-sm font-medium">
+                      <button 
+                        onClick={() => handleSyncPOSDevice(device.id)}
+                        className="flex-1 px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 flex items-center justify-center gap-2 text-sm font-medium"
+                      >
                         <FaSync />
                         Senkronize Et
                       </button>
                     )}
-                    <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
+                    <button 
+                      onClick={() => handleEditClick(device)}
+                      className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+                    >
                       <FaEdit />
                     </button>
-                    <button className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
+                    <button 
+                      onClick={() => handleDeleteClick(device.id)}
+                      className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                    >
                       <FaTrash />
                     </button>
                   </div>
@@ -400,6 +490,207 @@ export default function POSPage() {
           </div>
         </div>
       </div>
+
+      {/* Add POS Device Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Yeni POS Cihazı Ekle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Cihaz Adı <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Örn: Kasa 1"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cihaz ID <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.deviceId}
+                    onChange={(e) => setFormData({ ...formData, deviceId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="Örn: POS-001"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Lokasyon <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="Örn: Ana Kasa"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Batarya Seviyesi (%)
+                </label>
+                <input
+                  type="number"
+                  value={formData.battery}
+                  onChange={(e) => setFormData({ ...formData, battery: parseInt(e.target.value) || 100 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  min="0"
+                  max="100"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleAddPOSDevice}
+                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+              >
+                Kaydet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit POS Device Modal */}
+      {showEditModal && editingDevice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">POS Cihazını Düzenle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Cihaz Adı <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Örn: Kasa 1"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cihaz ID <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.deviceId}
+                    onChange={(e) => setFormData({ ...formData, deviceId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="Örn: POS-001"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Lokasyon <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="Örn: Ana Kasa"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Batarya Seviyesi (%)
+                </label>
+                <input
+                  type="number"
+                  value={formData.battery}
+                  onChange={(e) => setFormData({ ...formData, battery: parseInt(e.target.value) || 100 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  min="0"
+                  max="100"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingDevice(null);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleUpdatePOSDevice}
+                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+              >
+                Güncelle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <FaTrash className="text-red-600 text-xl" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">POS Cihazını Sil</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Bu POS cihazını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeviceToDelete(null);
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Sil
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

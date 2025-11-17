@@ -45,74 +45,158 @@ export default function DeliveryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [deliveries, setDeliveries] = useState<Delivery[]>([
+    {
+      id: '1',
+      orderNumber: 'ORD-2024-001',
+      customerName: 'Ahmet Yılmaz',
+      customerPhone: '+90 555 123 4567',
+      address: 'Atatürk Caddesi No:123, Kadıköy',
+      items: 5,
+      totalAmount: 250,
+      status: 'on_way',
+      deliveryPerson: 'Mehmet Kaya',
+      estimatedTime: '30 dk',
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: '2',
+      orderNumber: 'ORD-2024-002',
+      customerName: 'Ayşe Demir',
+      customerPhone: '+90 555 234 5678',
+      address: 'Bahariye Caddesi No:45, Kadıköy',
+      items: 3,
+      totalAmount: 180,
+      status: 'preparing',
+      deliveryPerson: '-',
+      estimatedTime: '-',
+      createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString()
+    },
+    {
+      id: '3',
+      orderNumber: 'ORD-2024-003',
+      customerName: 'Fatma Şahin',
+      customerPhone: '+90 555 345 6789',
+      address: 'Moda Caddesi No:67, Kadıköy',
+      items: 8,
+      totalAmount: 420,
+      status: 'delivered',
+      deliveryPerson: 'Ali Veli',
+      estimatedTime: '-',
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+    }
+  ]);
+  const [loading, setLoading] = useState(false);
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
+  const [formData, setFormData] = useState({
+    orderNumber: '',
+    customerName: '',
+    customerPhone: '',
+    address: '',
+    items: 1,
+    totalAmount: 0,
+    status: 'pending' as 'pending' | 'preparing' | 'on_way' | 'delivered' | 'cancelled',
+    deliveryPerson: '',
+    estimatedTime: ''
+  });
 
   useEffect(() => {
     // Demo için session kontrolü yok
-    fetchDeliveries();
   }, []);
 
-  const fetchDeliveries = async () => {
-    try {
-      setLoading(true);
-      const restaurantId = user?.id;
-      if (!restaurantId) return;
-      
-      const response = await apiService.getDeliveries(restaurantId);
-      if (response.success && response.data) {
-        setDeliveries(response.data);
-      }
-    } catch (error) {
-      console.error('Teslimatlar yüklenirken hata:', error);
-    } finally {
-      setLoading(false);
+  const handleAddDelivery = () => {
+    if (!formData.orderNumber || !formData.customerName || !formData.customerPhone || !formData.address) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
     }
+
+    const newDelivery: Delivery = {
+      id: String(Date.now()),
+      orderNumber: formData.orderNumber,
+      customerName: formData.customerName,
+      customerPhone: formData.customerPhone,
+      address: formData.address,
+      items: formData.items,
+      totalAmount: formData.totalAmount,
+      status: formData.status,
+      deliveryPerson: formData.deliveryPerson || '-',
+      estimatedTime: formData.estimatedTime || '-',
+      createdAt: new Date().toISOString()
+    };
+
+    setDeliveries(prev => [...prev, newDelivery]);
+    setShowAddModal(false);
+    resetForm();
   };
 
-  const handleAddDelivery = async (deliveryData: Partial<Delivery>) => {
-    try {
-      const restaurantId = user?.id;
-      if (!restaurantId) return;
-
-      const response = await apiService.createDelivery({
-        ...deliveryData,
-        restaurantId
-      });
-      
-      if (response.success) {
-        await fetchDeliveries();
-        setShowAddModal(false);
-      }
-    } catch (error) {
-      console.error('Teslimat eklenirken hata:', error);
-    }
+  const handleEditClick = (delivery: Delivery) => {
+    setEditingDelivery(delivery);
+    setFormData({
+      orderNumber: delivery.orderNumber,
+      customerName: delivery.customerName,
+      customerPhone: delivery.customerPhone,
+      address: delivery.address,
+      items: delivery.items,
+      totalAmount: delivery.totalAmount,
+      status: delivery.status,
+      deliveryPerson: delivery.deliveryPerson === '-' ? '' : delivery.deliveryPerson,
+      estimatedTime: delivery.estimatedTime === '-' ? '' : delivery.estimatedTime
+    });
   };
 
-  const handleUpdateDelivery = async (id: string, deliveryData: Partial<Delivery>) => {
-    try {
-      const response = await apiService.updateDelivery(id, deliveryData);
-      if (response.success) {
-        await fetchDeliveries();
-        setEditingDelivery(null);
-      }
-    } catch (error) {
-      console.error('Teslimat güncellenirken hata:', error);
+  const handleUpdateDelivery = () => {
+    if (!editingDelivery) return;
+
+    if (!formData.orderNumber || !formData.customerName || !formData.customerPhone || !formData.address) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
     }
+
+    setDeliveries(prev => prev.map(d => 
+      d.id === editingDelivery.id 
+        ? { 
+            ...d, 
+            orderNumber: formData.orderNumber,
+            customerName: formData.customerName,
+            customerPhone: formData.customerPhone,
+            address: formData.address,
+            items: formData.items,
+            totalAmount: formData.totalAmount,
+            status: formData.status,
+            deliveryPerson: formData.deliveryPerson || '-',
+            estimatedTime: formData.estimatedTime || '-'
+          } 
+        : d
+    ));
+    setEditingDelivery(null);
+    resetForm();
   };
 
-  const handleDeleteDelivery = async (id: string) => {
+  const resetForm = () => {
+    setFormData({
+      orderNumber: '',
+      customerName: '',
+      customerPhone: '',
+      address: '',
+      items: 1,
+      totalAmount: 0,
+      status: 'pending',
+      deliveryPerson: '',
+      estimatedTime: ''
+    });
+  };
+
+  const handleDeleteDelivery = (id: string) => {
     if (!confirm('Bu teslimati silmek istediğinizden emin misiniz?')) return;
-    
-    try {
-      const response = await apiService.deleteDelivery(id);
-      if (response.success) {
-        await fetchDeliveries();
-      }
-    } catch (error) {
-      console.error('Teslimat silinirken hata:', error);
-    }
+    setDeliveries(prev => prev.filter(d => d.id !== id));
+  };
+
+  const handleStatusUpdate = (id: string, newStatus: Delivery['status']) => {
+    setDeliveries(prev => prev.map(d => 
+      d.id === id 
+        ? { ...d, status: newStatus }
+        : d
+    ));
   };
 
   // Özellik kontrolü
@@ -352,10 +436,21 @@ export default function DeliveryPage() {
                   <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
                     {delivery.status !== 'delivered' && delivery.status !== 'cancelled' && (
                       <>
-                        <button className="flex-1 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-sm font-medium">
-                          Durumu Güncelle
-                        </button>
-                        <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
+                        <select
+                          value={delivery.status}
+                          onChange={(e) => handleStatusUpdate(delivery.id, e.target.value as Delivery['status'])}
+                          className="flex-1 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-sm font-medium border border-orange-200"
+                        >
+                          <option value="pending">Bekliyor</option>
+                          <option value="preparing">Hazırlanıyor</option>
+                          <option value="on_way">Yolda</option>
+                          <option value="delivered">Teslim Edildi</option>
+                          <option value="cancelled">İptal</option>
+                        </select>
+                        <button 
+                          onClick={() => handleEditClick(delivery)}
+                          className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+                        >
                           <FaEdit />
                         </button>
                       </>
@@ -365,7 +460,10 @@ export default function DeliveryPage() {
                         ✓ Başarıyla teslim edildi
                       </div>
                     )}
-                    <button className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
+                    <button 
+                      onClick={() => handleDeleteDelivery(delivery.id)}
+                      className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                    >
                       <FaTrash />
                     </button>
                   </div>
@@ -396,6 +494,304 @@ export default function DeliveryPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Delivery Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Yeni Teslimat Ekle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sipariş No <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.orderNumber}
+                  onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="Örn: ORD-2024-001"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Müşteri Adı <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customerName}
+                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: Ahmet Yılmaz"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Telefon <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customerPhone}
+                    onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: +90 555 123 4567"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adres <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  rows={2}
+                  placeholder="Tam adres bilgisi..."
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ürün Sayısı
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.items}
+                    onChange={(e) => setFormData({ ...formData, items: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tutar (₺)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.totalAmount}
+                    onChange={(e) => setFormData({ ...formData, totalAmount: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Durum
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="pending">Bekliyor</option>
+                    <option value="preparing">Hazırlanıyor</option>
+                    <option value="on_way">Yolda</option>
+                    <option value="delivered">Teslim Edildi</option>
+                    <option value="cancelled">İptal</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Kurye
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.deliveryPerson}
+                    onChange={(e) => setFormData({ ...formData, deliveryPerson: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: Mehmet Kaya"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tahmini Süre
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.estimatedTime}
+                    onChange={(e) => setFormData({ ...formData, estimatedTime: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: 30 dk"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleAddDelivery}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              >
+                Kaydet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Delivery Modal */}
+      {editingDelivery && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Teslimatı Düzenle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sipariş No <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.orderNumber}
+                  onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="Örn: ORD-2024-001"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Müşteri Adı <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customerName}
+                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: Ahmet Yılmaz"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Telefon <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customerPhone}
+                    onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: +90 555 123 4567"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adres <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  rows={2}
+                  placeholder="Tam adres bilgisi..."
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ürün Sayısı
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.items}
+                    onChange={(e) => setFormData({ ...formData, items: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tutar (₺)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.totalAmount}
+                    onChange={(e) => setFormData({ ...formData, totalAmount: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Durum
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="pending">Bekliyor</option>
+                    <option value="preparing">Hazırlanıyor</option>
+                    <option value="on_way">Yolda</option>
+                    <option value="delivered">Teslim Edildi</option>
+                    <option value="cancelled">İptal</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Kurye
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.deliveryPerson}
+                    onChange={(e) => setFormData({ ...formData, deliveryPerson: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: Mehmet Kaya"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tahmini Süre
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.estimatedTime}
+                    onChange={(e) => setFormData({ ...formData, estimatedTime: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: 30 dk"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setEditingDelivery(null);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleUpdateDelivery}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              >
+                Güncelle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

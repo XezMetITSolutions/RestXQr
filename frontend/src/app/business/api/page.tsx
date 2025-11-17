@@ -43,10 +43,18 @@ export default function ApiPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [keyToDelete, setKeyToDelete] = useState<string | null>(null);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    permissions: [] as string[],
+    expiresAt: ''
+  });
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -64,7 +72,19 @@ export default function ApiPage() {
       
       const response = await apiService.getApiKeys(restaurantId);
       if (response.success && response.data) {
-        setApiKeys(response.data);
+        // Backend'den gelen veriyi frontend formatına çevir
+        const transformedKeys = response.data.map((key: any) => ({
+          id: key.id,
+          name: key.name,
+          key: key.key || key.apiKey || '',
+          status: key.status || 'active',
+          permissions: key.permissions || [],
+          requestCount: key.requestCount || key.request_count || 0,
+          lastUsed: key.lastUsed || key.last_used || '',
+          createdAt: key.created_at || key.createdAt,
+          expiresAt: key.expiresAt || key.expires_at || ''
+        }));
+        setApiKeys(transformedKeys);
       }
     } catch (error) {
       console.error('API keys yüklenirken hata:', error);
@@ -73,48 +93,104 @@ export default function ApiPage() {
     }
   };
 
-  const handleAddApiKey = async (keyData: Partial<ApiKey>) => {
+  const handleAddApiKey = async () => {
+    if (!formData.name) {
+      alert('Lütfen API anahtarı adını girin.');
+      return;
+    }
+
     try {
       const restaurantId = user?.id;
       if (!restaurantId) return;
 
       const response = await apiService.createApiKey({
-        ...keyData,
-        restaurantId
+        restaurantId,
+        name: formData.name,
+        permissions: formData.permissions,
+        expiresAt: formData.expiresAt || null
       });
       
       if (response.success) {
         await fetchApiKeys();
         setShowAddModal(false);
+        resetForm();
+      } else {
+        alert('API anahtarı eklenirken hata oluştu.');
       }
     } catch (error) {
       console.error('API key eklenirken hata:', error);
+      alert('API anahtarı eklenirken hata oluştu.');
     }
   };
 
-  const handleUpdateApiKey = async (id: string, keyData: Partial<ApiKey>) => {
+  const handleEditClick = (key: ApiKey) => {
+    setEditingKey(key);
+    setFormData({
+      name: key.name,
+      permissions: key.permissions,
+      expiresAt: key.expiresAt
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateApiKey = async () => {
+    if (!formData.name) {
+      alert('Lütfen API anahtarı adını girin.');
+      return;
+    }
+
+    if (!editingKey) return;
+
     try {
-      const response = await apiService.updateApiKey(id, keyData);
+      const response = await apiService.updateApiKey(editingKey.id, {
+        name: formData.name,
+        permissions: formData.permissions,
+        expiresAt: formData.expiresAt || null
+      });
+      
       if (response.success) {
         await fetchApiKeys();
+        setShowEditModal(false);
         setEditingKey(null);
+        resetForm();
+      } else {
+        alert('API anahtarı güncellenirken hata oluştu.');
       }
     } catch (error) {
       console.error('API key güncellenirken hata:', error);
+      alert('API anahtarı güncellenirken hata oluştu.');
     }
   };
 
-  const handleDeleteApiKey = async (id: string) => {
-    if (!confirm('Bu API key\'i silmek istediğinizden emin misiniz?')) return;
-    
+  const handleDeleteClick = (keyId: string) => {
+    setKeyToDelete(keyId);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!keyToDelete) return;
+
     try {
-      const response = await apiService.deleteApiKey(id);
+      const response = await apiService.deleteApiKey(keyToDelete);
       if (response.success) {
         await fetchApiKeys();
+        setShowDeleteConfirm(false);
+        setKeyToDelete(null);
+      } else {
+        alert('API anahtarı silinirken hata oluştu.');
       }
     } catch (error) {
       console.error('API key silinirken hata:', error);
+      alert('API anahtarı silinirken hata oluştu.');
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      permissions: [],
+      expiresAt: ''
+    });
   };
 
   const handleRegenerateApiKey = async (id: string) => {
@@ -308,10 +384,16 @@ export default function ApiPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
+                      <button 
+                        onClick={() => handleEditClick(apiKey)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                      >
                         <FaEdit />
                       </button>
-                      <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                      <button 
+                        onClick={() => handleDeleteClick(apiKey.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      >
                         <FaTrash />
                       </button>
                     </div>
@@ -401,6 +483,203 @@ export default function ApiPage() {
           </div>
         </div>
       </div>
+
+      {/* Add API Key Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Yeni API Anahtarı Ekle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Anahtar Adı <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="Örn: Üretim API Anahtarı"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  İzinler
+                </label>
+                <div className="space-y-2">
+                  {['read', 'write', 'delete'].map((perm) => (
+                    <label key={perm} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.permissions.includes(perm)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({ ...formData, permissions: [...formData.permissions, perm] });
+                          } else {
+                            setFormData({ ...formData, permissions: formData.permissions.filter(p => p !== perm) });
+                          }
+                        }}
+                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        {perm === 'read' ? 'Okuma' : perm === 'write' ? 'Yazma' : 'Silme'}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Son Kullanma Tarihi (Opsiyonel)
+                </label>
+                <input
+                  type="date"
+                  value={formData.expiresAt}
+                  onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleAddApiKey}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Kaydet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit API Key Modal */}
+      {showEditModal && editingKey && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">API Anahtarını Düzenle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Anahtar Adı <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="Örn: Üretim API Anahtarı"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  İzinler
+                </label>
+                <div className="space-y-2">
+                  {['read', 'write', 'delete'].map((perm) => (
+                    <label key={perm} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.permissions.includes(perm)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({ ...formData, permissions: [...formData.permissions, perm] });
+                          } else {
+                            setFormData({ ...formData, permissions: formData.permissions.filter(p => p !== perm) });
+                          }
+                        }}
+                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        {perm === 'read' ? 'Okuma' : perm === 'write' ? 'Yazma' : 'Silme'}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Son Kullanma Tarihi (Opsiyonel)
+                </label>
+                <input
+                  type="date"
+                  value={formData.expiresAt}
+                  onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingKey(null);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleUpdateApiKey}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Güncelle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <FaTrash className="text-red-600 text-xl" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">API Anahtarını Sil</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Bu API anahtarını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setKeyToDelete(null);
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Sil
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

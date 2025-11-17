@@ -544,6 +544,31 @@ class ApiService {
     });
   }
 
+  // Inventory endpoints
+  async getInventoryItems(restaurantId: string) {
+    return this.request<any>(`/inventory?restaurantId=${restaurantId}`);
+  }
+
+  async createInventoryItem(data: any) {
+    return this.request<any>('/inventory', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateInventoryItem(id: string, data: any) {
+    return this.request<any>(`/inventory/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteInventoryItem(id: string) {
+    return this.request<any>(`/inventory/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Staff Login
   async staffLogin(credentials: { username: string; password: string }) {
     return this.request<any>('/staff/login', {

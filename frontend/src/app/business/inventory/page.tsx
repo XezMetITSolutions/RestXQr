@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import BusinessSidebar from '@/components/BusinessSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFeature } from '@/hooks/useFeature';
+import { apiService } from '@/services/api';
 import { 
   FaBox, 
   FaPlus, 
@@ -33,55 +34,65 @@ interface InventoryItem {
 
 export default function InventoryPage() {
   const router = useRouter();
-  const { isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated, logout, user } = useAuthStore();
   const hasInventoryManagement = useFeature('inventory_management');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    name: '',
+    category: '',
+    quantity: 0,
+    unit: 'kg',
+    minStock: 0,
+    price: 0,
+    supplier: ''
+  });
 
-  // Demo data
-  const [inventory, setInventory] = useState<InventoryItem[]>([
-    {
-      id: '1',
-      name: 'Domates',
-      category: 'Sebze',
-      quantity: 50,
-      unit: 'kg',
-      minStock: 20,
-      price: 15,
-      supplier: 'Yerel Hal',
-      lastUpdated: new Date().toISOString()
-    },
-    {
-      id: '2',
-      name: 'Tavuk Göğsü',
-      category: 'Et & Tavuk',
-      quantity: 15,
-      unit: 'kg',
-      minStock: 10,
-      price: 85,
-      supplier: 'Et Market',
-      lastUpdated: new Date().toISOString()
-    },
-    {
-      id: '3',
-      name: 'Zeytinyağı',
-      category: 'Yağlar',
-      quantity: 5,
-      unit: 'litre',
-      minStock: 10,
-      price: 120,
-      supplier: 'Gıda Deposu',
-      lastUpdated: new Date().toISOString()
-    }
-  ]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
 
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push('/isletme-giris');
+    } else {
+      fetchInventory();
     }
   }, [isAuthenticated, router]);
+
+  const fetchInventory = async () => {
+    try {
+      setLoading(true);
+      const restaurantId = user?.id;
+      if (!restaurantId) return;
+      
+      const response = await apiService.getInventoryItems(restaurantId);
+      if (response.success && response.data) {
+        // Backend'den gelen veriyi frontend formatına çevir
+        const transformedInventory = response.data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          quantity: parseFloat(item.quantity) || 0,
+          unit: item.unit || 'kg',
+          minStock: parseFloat(item.minStock) || 0,
+          price: parseFloat(item.price) || 0,
+          supplier: item.supplier,
+          lastUpdated: item.updated_at || item.created_at
+        }));
+        setInventory(transformedInventory);
+      }
+    } catch (error) {
+      console.error('Inventory items yüklenirken hata:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Özellik kontrolü
   if (!hasInventoryManagement) {
@@ -107,6 +118,148 @@ export default function InventoryPage() {
   const handleLogout = () => {
     logout();
     router.push('/isletme-giris');
+  };
+
+  const handleAddItem = async () => {
+    if (!formData.name || !formData.category || !formData.supplier) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
+    }
+
+    try {
+      const restaurantId = user?.id;
+      if (!restaurantId) return;
+
+      const response = await apiService.createInventoryItem({
+        restaurantId,
+        name: formData.name,
+        category: formData.category,
+        quantity: formData.quantity,
+        unit: formData.unit,
+        minStock: formData.minStock,
+        price: formData.price,
+        supplier: formData.supplier
+      });
+
+      if (response.success) {
+        await fetchInventory();
+        setShowAddModal(false);
+        resetForm();
+      } else {
+        alert('Ürün eklenirken hata oluştu.');
+      }
+    } catch (error) {
+      console.error('Ürün eklenirken hata:', error);
+      alert('Ürün eklenirken hata oluştu.');
+    }
+  };
+
+  const handleEditClick = (item: InventoryItem) => {
+    setEditingItem(item);
+    setFormData({
+      name: item.name,
+      category: item.category,
+      quantity: item.quantity,
+      unit: item.unit,
+      minStock: item.minStock,
+      price: item.price,
+      supplier: item.supplier
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateItem = async () => {
+    if (!formData.name || !formData.category || !formData.supplier) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
+    }
+
+    if (!editingItem) return;
+
+    try {
+      const response = await apiService.updateInventoryItem(editingItem.id, {
+        name: formData.name,
+        category: formData.category,
+        quantity: formData.quantity,
+        unit: formData.unit,
+        minStock: formData.minStock,
+        price: formData.price,
+        supplier: formData.supplier
+      });
+
+      if (response.success) {
+        await fetchInventory();
+        setShowEditModal(false);
+        setEditingItem(null);
+        resetForm();
+      } else {
+        alert('Ürün güncellenirken hata oluştu.');
+      }
+    } catch (error) {
+      console.error('Ürün güncellenirken hata:', error);
+      alert('Ürün güncellenirken hata oluştu.');
+    }
+  };
+
+  const handleDeleteClick = (itemId: string) => {
+    setItemToDelete(itemId);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      const response = await apiService.deleteInventoryItem(itemToDelete);
+      if (response.success) {
+        await fetchInventory();
+        setShowDeleteConfirm(false);
+        setItemToDelete(null);
+      } else {
+        alert('Ürün silinirken hata oluştu.');
+      }
+    } catch (error) {
+      console.error('Ürün silinirken hata:', error);
+      alert('Ürün silinirken hata oluştu.');
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      category: '',
+      quantity: 0,
+      unit: 'kg',
+      minStock: 0,
+      price: 0,
+      supplier: ''
+    });
+  };
+
+  const handleExport = () => {
+    const csvContent = [
+      ['Ürün Adı', 'Kategori', 'Miktar', 'Birim', 'Minimum Stok', 'Fiyat', 'Tedarikçi', 'Son Güncelleme'],
+      ...inventory.map(item => [
+        item.name,
+        item.category,
+        item.quantity.toString(),
+        item.unit,
+        item.minStock.toString(),
+        item.price.toString(),
+        item.supplier,
+        new Date(item.lastUpdated).toLocaleDateString('tr-TR')
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `stok-raporu-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const filteredInventory = inventory.filter(item => {
@@ -149,7 +302,10 @@ export default function InventoryPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2">
+                <button 
+                  onClick={handleExport}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2"
+                >
                   <FaDownload />
                   <span className="hidden sm:inline">Dışa Aktar</span>
                 </button>
@@ -248,10 +404,18 @@ export default function InventoryPage() {
             </div>
           )}
 
+          {/* Loading State */}
+          {loading && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+              <p className="text-gray-600">Yükleniyor...</p>
+            </div>
+          )}
+
           {/* Inventory Table */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
+          {!loading && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -311,10 +475,16 @@ export default function InventoryPage() {
                         {item.supplier}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-blue-600 hover:text-blue-900 mr-3">
+                        <button 
+                          onClick={() => handleEditClick(item)}
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                        >
                           <FaEdit />
                         </button>
-                        <button className="text-red-600 hover:text-red-900">
+                        <button 
+                          onClick={() => handleDeleteClick(item.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
                           <FaTrash />
                         </button>
                       </td>
@@ -324,8 +494,300 @@ export default function InventoryPage() {
               </table>
             </div>
           </div>
+          )}
         </div>
       </div>
+
+      {/* Add Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Yeni Ürün Ekle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ürün Adı <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Örn: Domates"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Kategori <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Örn: Sebze"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Birim
+                  </label>
+                  <select
+                    value={formData.unit}
+                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="kg">kg</option>
+                    <option value="litre">litre</option>
+                    <option value="adet">adet</option>
+                    <option value="paket">paket</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Miktar
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({ ...formData, quantity: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Minimum Stok
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.minStock}
+                    onChange={(e) => setFormData({ ...formData, minStock: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fiyat (₺)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tedarikçi <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.supplier}
+                    onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Örn: Yerel Hal"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleAddItem}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                Kaydet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && editingItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Ürünü Düzenle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ürün Adı <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Örn: Domates"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Kategori <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Örn: Sebze"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Birim
+                  </label>
+                  <select
+                    value={formData.unit}
+                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="kg">kg</option>
+                    <option value="litre">litre</option>
+                    <option value="adet">adet</option>
+                    <option value="paket">paket</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Miktar
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({ ...formData, quantity: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Minimum Stok
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.minStock}
+                    onChange={(e) => setFormData({ ...formData, minStock: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fiyat (₺)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tedarikçi <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.supplier}
+                    onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Örn: Yerel Hal"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingItem(null);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleUpdateItem}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                Güncelle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <FaTrash className="text-red-600 text-xl" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Ürünü Sil</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Bu ürünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setItemToDelete(null);
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Sil
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

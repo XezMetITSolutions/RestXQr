@@ -100,33 +100,97 @@ export default function BranchesPage() {
   ]);
   const [loading, setLoading] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    city: '',
+    phone: '',
+    manager: '',
+    openingHours: '09:00 - 23:00',
+    employeeCount: 0,
+    status: 'active' as 'active' | 'inactive'
+  });
 
   useEffect(() => {
     // Demo için session kontrolü yok
   }, []);
 
-  const handleAddBranch = async (branchData: Partial<Branch>) => {
-    // Demo modda yeni şube ekle
+  const handleAddBranch = () => {
+    if (!formData.name || !formData.address || !formData.city || !formData.phone || !formData.manager) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
+    }
+
     const newBranch: Branch = {
       id: String(Date.now()),
-      name: branchData.name || '',
-      address: branchData.address || '',
-      city: branchData.city || '',
-      phone: branchData.phone || '',
-      manager: branchData.manager || '',
-      status: 'active',
-      openingHours: branchData.openingHours || '09:00 - 23:00',
-      employeeCount: branchData.employeeCount || 0,
+      name: formData.name,
+      address: formData.address,
+      city: formData.city,
+      phone: formData.phone,
+      manager: formData.manager,
+      status: formData.status,
+      openingHours: formData.openingHours,
+      employeeCount: formData.employeeCount,
       monthlyRevenue: 0,
       createdAt: new Date().toISOString()
     };
     setBranches(prev => [...prev, newBranch]);
     setShowAddModal(false);
+    resetForm();
   };
 
-  const handleUpdateBranch = async (id: string, branchData: Partial<Branch>) => {
-    setBranches(prev => prev.map(b => b.id === id ? { ...b, ...branchData } : b));
+  const handleUpdateBranch = () => {
+    if (!editingBranch) return;
+
+    if (!formData.name || !formData.address || !formData.city || !formData.phone || !formData.manager) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
+    }
+
+    setBranches(prev => prev.map(b => 
+      b.id === editingBranch.id 
+        ? { 
+            ...b, 
+            name: formData.name,
+            address: formData.address,
+            city: formData.city,
+            phone: formData.phone,
+            manager: formData.manager,
+            status: formData.status,
+            openingHours: formData.openingHours,
+            employeeCount: formData.employeeCount
+          } 
+        : b
+    ));
     setEditingBranch(null);
+    resetForm();
+  };
+
+  const handleEditClick = (branch: Branch) => {
+    setEditingBranch(branch);
+    setFormData({
+      name: branch.name,
+      address: branch.address,
+      city: branch.city,
+      phone: branch.phone,
+      manager: branch.manager,
+      openingHours: branch.openingHours,
+      employeeCount: branch.employeeCount,
+      status: branch.status
+    });
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      address: '',
+      city: '',
+      phone: '',
+      manager: '',
+      openingHours: '09:00 - 23:00',
+      employeeCount: 0,
+      status: 'active'
+    });
   };
 
   const handleDeleteBranch = async (id: string) => {
@@ -338,7 +402,7 @@ export default function BranchesPage() {
 
                   <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
                     <button 
-                      onClick={() => setEditingBranch(branch)}
+                      onClick={() => handleEditClick(branch)}
                       className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 flex items-center justify-center gap-2"
                     >
                       <FaEdit />
@@ -368,6 +432,272 @@ export default function BranchesPage() {
           ) : null}
         </div>
       </div>
+
+      {/* Add Branch Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Yeni Şube Ekle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Şube Adı <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Örn: Merkez Şube"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adres <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Örn: Atatürk Caddesi No:123"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Şehir <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Örn: İstanbul"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Telefon <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Örn: +90 212 555 0101"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Yönetici <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.manager}
+                    onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Örn: Ahmet Yılmaz"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Çalışma Saatleri
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.openingHours}
+                    onChange={(e) => setFormData({ ...formData, openingHours: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Örn: 09:00 - 23:00"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Çalışan Sayısı
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.employeeCount}
+                    onChange={(e) => setFormData({ ...formData, employeeCount: parseInt(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Durum
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="active">Aktif</option>
+                    <option value="inactive">Pasif</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleAddBranch}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Kaydet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Branch Modal */}
+      {editingBranch && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Şubeyi Düzenle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Şube Adı <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Örn: Merkez Şube"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adres <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Örn: Atatürk Caddesi No:123"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Şehir <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Örn: İstanbul"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Telefon <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Örn: +90 212 555 0101"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Yönetici <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.manager}
+                    onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Örn: Ahmet Yılmaz"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Çalışma Saatleri
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.openingHours}
+                    onChange={(e) => setFormData({ ...formData, openingHours: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Örn: 09:00 - 23:00"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Çalışan Sayısı
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.employeeCount}
+                    onChange={(e) => setFormData({ ...formData, employeeCount: parseInt(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Durum
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="active">Aktif</option>
+                    <option value="inactive">Pasif</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setEditingBranch(null);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleUpdateBranch}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Güncelle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

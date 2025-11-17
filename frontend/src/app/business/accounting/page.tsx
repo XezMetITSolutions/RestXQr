@@ -40,9 +40,21 @@ export default function AccountingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [formData, setFormData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    description: '',
+    category: '',
+    type: 'income' as 'income' | 'expense',
+    amount: 0,
+    paymentMethod: '',
+    invoiceNumber: ''
+  });
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -60,7 +72,18 @@ export default function AccountingPage() {
       
       const response = await apiService.getTransactions(restaurantId);
       if (response.success && response.data) {
-        setTransactions(response.data);
+        // Backend'den gelen veriyi frontend formatına çevir
+        const transformedTransactions = response.data.map((transaction: any) => ({
+          id: transaction.id,
+          date: transaction.date || transaction.created_at,
+          description: transaction.description,
+          category: transaction.category,
+          type: transaction.type,
+          amount: parseFloat(transaction.amount) || 0,
+          paymentMethod: transaction.paymentMethod || transaction.payment_method || 'Nakit',
+          invoiceNumber: transaction.invoiceNumber || transaction.invoice_number || ''
+        }));
+        setTransactions(transformedTransactions);
       }
     } catch (error) {
       console.error('İşlemler yüklenirken hata:', error);
@@ -69,47 +92,118 @@ export default function AccountingPage() {
     }
   };
 
-  const handleAddTransaction = async (transactionData: Partial<Transaction>) => {
+  const handleAddTransaction = async () => {
+    if (!formData.description || !formData.category || formData.amount <= 0) {
+      alert('Lütfen tüm zorunlu alanları doldurun ve tutarı girin.');
+      return;
+    }
+
     try {
       const restaurantId = user?.id;
       if (!restaurantId) return;
 
       const response = await apiService.createTransaction({
-        ...transactionData,
+        date: formData.date,
+        description: formData.description,
+        category: formData.category,
+        type: formData.type,
+        amount: formData.amount,
+        paymentMethod: formData.paymentMethod || 'Nakit',
+        invoiceNumber: formData.invoiceNumber || undefined,
         restaurantId
       });
       
       if (response.success) {
         await fetchTransactions();
         setShowAddModal(false);
+        resetForm();
+      } else {
+        alert('İşlem eklenirken hata oluştu.');
       }
     } catch (error) {
       console.error('İşlem eklenirken hata:', error);
+      alert('İşlem eklenirken bir hata oluştu.');
     }
   };
 
-  const handleUpdateTransaction = async (id: string, transactionData: Partial<Transaction>) => {
+  const handleEditClick = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setFormData({
+      date: transaction.date,
+      description: transaction.description,
+      category: transaction.category,
+      type: transaction.type,
+      amount: transaction.amount,
+      paymentMethod: transaction.paymentMethod,
+      invoiceNumber: transaction.invoiceNumber || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      date: new Date().toISOString().split('T')[0],
+      description: '',
+      category: '',
+      type: 'income',
+      amount: 0,
+      paymentMethod: '',
+      invoiceNumber: ''
+    });
+  };
+
+  const handleUpdateTransaction = async () => {
+    if (!editingTransaction) return;
+
+    if (!formData.description || !formData.category || formData.amount <= 0) {
+      alert('Lütfen tüm zorunlu alanları doldurun ve tutarı girin.');
+      return;
+    }
+
     try {
-      const response = await apiService.updateTransaction(id, transactionData);
+      const response = await apiService.updateTransaction(editingTransaction.id, {
+        date: formData.date,
+        description: formData.description,
+        category: formData.category,
+        type: formData.type,
+        amount: formData.amount,
+        paymentMethod: formData.paymentMethod,
+        invoiceNumber: formData.invoiceNumber || undefined
+      });
       if (response.success) {
         await fetchTransactions();
+        setShowEditModal(false);
         setEditingTransaction(null);
+        resetForm();
+      } else {
+        alert('İşlem güncellenirken hata oluştu.');
       }
     } catch (error) {
       console.error('İşlem güncellenirken hata:', error);
+      alert('İşlem güncellenirken bir hata oluştu.');
     }
   };
 
-  const handleDeleteTransaction = async (id: string) => {
-    if (!confirm('Bu işlemi silmek istediğinizden emin misiniz?')) return;
-    
+  const handleDeleteClick = (transactionId: string) => {
+    setTransactionToDelete(transactionId);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!transactionToDelete) return;
+
     try {
-      const response = await apiService.deleteTransaction(id);
+      const response = await apiService.deleteTransaction(transactionToDelete);
       if (response.success) {
         await fetchTransactions();
+        setShowDeleteConfirm(false);
+        setTransactionToDelete(null);
+      } else {
+        alert('İşlem silinirken hata oluştu.');
       }
     } catch (error) {
       console.error('İşlem silinirken hata:', error);
+      alert('İşlem silinirken hata oluştu.');
     }
   };
 
@@ -335,10 +429,16 @@ export default function AccountingPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-blue-600 hover:text-blue-900 mr-3">
+                        <button 
+                          onClick={() => handleEditClick(transaction)}
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                        >
                           <FaEdit />
                         </button>
-                        <button className="text-red-600 hover:text-red-900">
+                        <button 
+                          onClick={() => handleDeleteClick(transaction.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
                           <FaTrash />
                         </button>
                       </td>
@@ -371,6 +471,297 @@ export default function AccountingPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Transaction Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Yeni İşlem Ekle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tarih <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    İşlem Tipi <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as 'income' | 'expense' })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  >
+                    <option value="income">Gelir</option>
+                    <option value="expense">Gider</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Açıklama <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  placeholder="Örn: Günlük Satış Geliri"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Kategori <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Örn: Satış"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tutar (₺) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ödeme Yöntemi
+                  </label>
+                  <select
+                    value={formData.paymentMethod}
+                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  >
+                    <option value="">Seçiniz</option>
+                    <option value="Nakit">Nakit</option>
+                    <option value="Kredi Kartı">Kredi Kartı</option>
+                    <option value="Banka Transferi">Banka Transferi</option>
+                    <option value="Otomatik Ödeme">Otomatik Ödeme</option>
+                    <option value="Karışık">Karışık</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fatura No
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.invoiceNumber}
+                    onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Örn: INV-2024-001"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleAddTransaction}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+              >
+                Kaydet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Transaction Modal */}
+      {showEditModal && editingTransaction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">İşlemi Düzenle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tarih <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    İşlem Tipi <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as 'income' | 'expense' })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  >
+                    <option value="income">Gelir</option>
+                    <option value="expense">Gider</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Açıklama <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  placeholder="Örn: Günlük Satış Geliri"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Kategori <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Örn: Satış"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tutar (₺) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ödeme Yöntemi
+                  </label>
+                  <select
+                    value={formData.paymentMethod}
+                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  >
+                    <option value="">Seçiniz</option>
+                    <option value="Nakit">Nakit</option>
+                    <option value="Kredi Kartı">Kredi Kartı</option>
+                    <option value="Banka Transferi">Banka Transferi</option>
+                    <option value="Otomatik Ödeme">Otomatik Ödeme</option>
+                    <option value="Karışık">Karışık</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fatura No
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.invoiceNumber}
+                    onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Örn: INV-2024-001"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingTransaction(null);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleUpdateTransaction}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+              >
+                Güncelle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <FaTrash className="text-red-600 text-xl" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">İşlemi Sil</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Bu işlemi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setTransactionToDelete(null);
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Sil
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

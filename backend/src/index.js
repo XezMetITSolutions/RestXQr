@@ -32,13 +32,22 @@ const corsOptions = {
     // Allow localhost for development
     if (origin === 'http://localhost:3000') return callback(null, true);
     
+    // Get base domain from environment or use default
+    const baseDomain = process.env.BASE_DOMAIN || 'restxqr.com';
+    
     // Allow main domain
-    if (origin === 'https://restxqr.com' || origin === 'https://www.restxqr.com') {
+    if (origin === `https://${baseDomain}` || origin === `https://www.${baseDomain}`) {
       return callback(null, true);
     }
     
-    // Allow all subdomains of restxqr.com
-    if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.restxqr\.com$/)) {
+    // Allow all subdomains of base domain
+    const domainPattern = new RegExp(`^https://[a-zA-Z0-9-]+\\.${baseDomain.replace(/\./g, '\\.')}$`);
+    if (origin.match(domainPattern)) {
+      return callback(null, true);
+    }
+    
+    // Allow localhost for development
+    if (origin.match(/^https?:\/\/localhost(:\d+)?$/) || origin.match(/^https?:\/\/127\.0\.0\.1(:\d+)?$/)) {
       return callback(null, true);
     }
     
@@ -127,9 +136,11 @@ app.use('/api/apikeys', require('./routes/apikeys')); // API key management
 app.use('/api/deliveries', require('./routes/deliveries')); // Delivery management
 app.use('/api/pos', require('./routes/pos')); // POS device management
 app.use('/api/transactions', require('./routes/transactions')); // Transaction management
+app.use('/api/inventory', require('./routes/inventory')); // Inventory management
 app.use('/api/ai', require('./routes/ai')); // AI recommendations
 app.use('/api/videomenu', require('./routes/videomenu')); // Video menu
 app.use('/api/events', require('./routes/events')); // Event management
+app.use('/api/translate', require('./routes/translate')); // Translation service
 // File upload routes - Gerçek dosya yükleme sistemi
 const multer = require('multer');
 const sharp = require('sharp');

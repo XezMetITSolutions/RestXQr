@@ -44,17 +44,23 @@ export default function BusinessDashboard() {
     loading: restaurantLoading 
   } = useRestaurantStore();
   
-  // Sayfa yüklendiginde auth'u initialize et
+  // Sayfa yüklendiginde auth'u initialize et (demo için sadece bir kez)
   useEffect(() => {
     initializeAuth();
-  }, [initializeAuth]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
-  // Restaurant menüsünü yükle
+  // Restaurant menüsünü yükle (demo için sadece bir kez)
   useEffect(() => {
-    if (authenticatedRestaurant?.id) {
-      fetchRestaurantMenu(authenticatedRestaurant.id);
+    if (authenticatedRestaurant?.id && fetchRestaurantMenu) {
+      try {
+        fetchRestaurantMenu(authenticatedRestaurant.id).catch(err => {
+          console.error('Menu fetch error (demo):', err);
+        });
+      } catch (err) {
+        console.error('Menu fetch error (demo):', err);
+      }
     }
-  }, [authenticatedRestaurant?.id, fetchRestaurantMenu]);
+  }, [authenticatedRestaurant?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // Demo kullanıcı bilgileri
   const displayName = 'RestXQr Demo Restoran';
@@ -266,23 +272,33 @@ export default function BusinessDashboard() {
   const endOfDay = new Date(today.setHours(23, 59, 59, 999));
   
   // Bugünkü siparişler
-  const todayOrders = orders.filter(order => {
-    const orderDate = new Date(order.createdAt);
-    return orderDate >= startOfDay && orderDate <= endOfDay;
+  const todayOrders = (orders || []).filter(order => {
+    if (!order?.createdAt) return false;
+    try {
+      const orderDate = new Date(order.createdAt);
+      return orderDate >= startOfDay && orderDate <= endOfDay;
+    } catch {
+      return false;
+    }
   });
   
   // Bugünkü ciro
-  const todayRevenue = todayOrders.reduce((total, order) => total + (order.totalAmount || 0), 0);
+  const todayRevenue = todayOrders.reduce((total, order) => total + (order?.totalAmount || 0), 0);
   
   // Bu ayki siparişler
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const monthlyOrders = orders.filter(order => {
-    const orderDate = new Date(order.createdAt);
-    return orderDate >= startOfMonth;
+  const monthlyOrders = (orders || []).filter(order => {
+    if (!order?.createdAt) return false;
+    try {
+      const orderDate = new Date(order.createdAt);
+      return orderDate >= startOfMonth;
+    } catch {
+      return false;
+    }
   });
   
   // Aylık ciro
-  const monthlyRevenue = monthlyOrders.reduce((total, order) => total + (order.totalAmount || 0), 0);
+  const monthlyRevenue = monthlyOrders.reduce((total, order) => total + (order?.totalAmount || 0), 0);
   
   // Demo verileri
   const stats = {
@@ -472,26 +488,28 @@ export default function BusinessDashboard() {
                   </Link>
                 </div>
                 <div className="space-y-6">
-                  {activeOrders.map(order => (
-                    <div key={order.id} className="group/item flex items-center justify-between p-6 bg-gradient-to-r from-gray-50/80 to-gray-100/80 rounded-2xl hover:from-gray-100 hover:to-gray-200 transition-all duration-300 border border-gray-200/50 hover:shadow-xl hover:scale-[1.02] backdrop-blur-sm">
+                  {(activeOrders || []).map(order => (
+                    <div key={order?.id || Math.random()} className="group/item flex items-center justify-between p-6 bg-gradient-to-r from-gray-50/80 to-gray-100/80 rounded-2xl hover:from-gray-100 hover:to-gray-200 transition-all duration-300 border border-gray-200/50 hover:shadow-xl hover:scale-[1.02] backdrop-blur-sm">
                       <div className="flex items-center gap-6">
                         <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-200 rounded-2xl flex items-center justify-center shadow-lg group-hover/item:shadow-xl transition-all duration-300">
-                          <span className="font-black text-purple-600 text-xl">{order.tableNumber || 'N/A'}</span>
+                          <span className="font-black text-purple-600 text-xl">{order?.tableNumber || 'N/A'}</span>
                         </div>
                         <div>
-                          <p className="font-black text-gray-800 text-xl">Masa {order.tableNumber || 'N/A'}</p>
-                          <p className="text-gray-600 font-bold">{order.items?.length || 0} ürün • ₺{order.totalAmount || 0}</p>
+                          <p className="font-black text-gray-800 text-xl">Masa {order?.tableNumber || 'N/A'}</p>
+                          <p className="text-gray-600 font-bold">{(order?.items?.length || 0)} ürün • ₺{order?.totalAmount || 0}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <span className={`px-4 py-2 rounded-full text-sm font-black shadow-lg ${
-                          order.status === 'ready' 
+                          order?.status === 'ready' 
                             ? 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800'
                             : 'bg-gradient-to-r from-yellow-100 to-orange-200 text-yellow-800'
                         }`}>
-                          {order.status === 'ready' ? 'Hazır' : 'Hazırlanıyor'}
+                          {order?.status === 'ready' ? 'Hazır' : 'Hazırlanıyor'}
                         </span>
-                        <span className="text-sm text-gray-500 font-bold">{new Date(order.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="text-sm text-gray-500 font-bold">
+                          {order?.createdAt ? new Date(order.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                        </span>
                       </div>
                     </div>
                   ))}

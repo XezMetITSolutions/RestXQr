@@ -44,49 +44,71 @@ export default function ApiPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([
+    {
+      id: '1',
+      name: 'Production API Key',
+      key: 'api_key_prod_1234567890abcdefghijklmnopqrstuvwxyz',
+      status: 'active',
+      permissions: ['read', 'write'],
+      requestCount: 1250,
+      lastUsed: new Date().toISOString(),
+      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: '2',
+      name: 'Test API Key',
+      key: 'api_key_test_0987654321zyxwvutsrqponmlkjihgfedcba',
+      status: 'active',
+      permissions: ['read'],
+      requestCount: 450,
+      lastUsed: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  ]);
+  const [loading, setLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    permissions: [] as string[],
+    expiresAt: ''
+  });
 
   useEffect(() => {
     // Demo için session kontrolü yok
-    fetchApiKeys();
   }, []);
 
-  const fetchApiKeys = async () => {
-    try {
-      setLoading(true);
-      const restaurantId = user?.id;
-      if (!restaurantId) return;
-      
-      const response = await apiService.getApiKeys(restaurantId);
-      if (response.success && response.data) {
-        setApiKeys(response.data);
-      }
-    } catch (error) {
-      console.error('API keys yüklenirken hata:', error);
-    } finally {
-      setLoading(false);
+  const handleAddApiKey = () => {
+    if (!formData.name) {
+      alert('Lütfen API anahtarı adını girin.');
+      return;
     }
+
+    const newKey: ApiKey = {
+      id: String(Date.now()),
+      name: formData.name,
+      key: `api_key_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`,
+      status: 'active',
+      permissions: formData.permissions.length > 0 ? formData.permissions : ['read'],
+      requestCount: 0,
+      lastUsed: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      expiresAt: formData.expiresAt || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+    };
+
+    setApiKeys(prev => [...prev, newKey]);
+    setShowAddModal(false);
+    resetForm();
   };
 
-  const handleAddApiKey = async (keyData: Partial<ApiKey>) => {
-    try {
-      const restaurantId = user?.id;
-      if (!restaurantId) return;
-
-      const response = await apiService.createApiKey({
-        ...keyData,
-        restaurantId
-      });
-      
-      if (response.success) {
-        await fetchApiKeys();
-        setShowAddModal(false);
-      }
-    } catch (error) {
-      console.error('API key eklenirken hata:', error);
-    }
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      permissions: [],
+      expiresAt: ''
+    });
   };
 
   const handleUpdateApiKey = async (id: string, keyData: Partial<ApiKey>) => {
@@ -305,10 +327,10 @@ export default function ApiPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
-                        <FaEdit />
-                      </button>
-                      <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                      <button 
+                        onClick={() => handleDeleteApiKey(apiKey.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      >
                         <FaTrash />
                       </button>
                     </div>
@@ -398,6 +420,85 @@ export default function ApiPage() {
           </div>
         </div>
       </div>
+
+      {/* Add API Key Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Yeni API Anahtarı Ekle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  API Anahtarı Adı <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="Örn: Production API Key"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  İzinler
+                </label>
+                <div className="space-y-2">
+                  {['read', 'write', 'delete'].map((perm) => (
+                    <label key={perm} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.permissions.includes(perm)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({ ...formData, permissions: [...formData.permissions, perm] });
+                          } else {
+                            setFormData({ ...formData, permissions: formData.permissions.filter(p => p !== perm) });
+                          }
+                        }}
+                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        {perm === 'read' ? 'Okuma' : perm === 'write' ? 'Yazma' : 'Silme'}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Son Kullanma Tarihi
+                </label>
+                <input
+                  type="date"
+                  value={formData.expiresAt ? formData.expiresAt.split('T')[0] : ''}
+                  onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value ? new Date(e.target.value).toISOString() : '' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleAddApiKey}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Oluştur
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

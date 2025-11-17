@@ -41,6 +41,7 @@ const Transaction = require('./Transaction')(sequelize, Sequelize.DataTypes);
 const AIRecommendation = require('./AIRecommendation')(sequelize, Sequelize.DataTypes);
 const VideoMenuItem = require('./VideoMenuItem')(sequelize, Sequelize.DataTypes);
 const Event = require('./Event')(sequelize, Sequelize.DataTypes);
+const InventoryItem = require('./InventoryItem')(sequelize, Sequelize.DataTypes);
 
 // Define associations
 Restaurant.hasMany(MenuCategory, { foreignKey: 'restaurantId', as: 'categories' });
@@ -101,6 +102,10 @@ VideoMenuItem.belongsTo(Restaurant, { foreignKey: 'restaurantId', as: 'restauran
 Restaurant.hasMany(Event, { foreignKey: 'restaurantId', as: 'events' });
 Event.belongsTo(Restaurant, { foreignKey: 'restaurantId', as: 'restaurant' });
 
+// InventoryItem associations
+Restaurant.hasMany(InventoryItem, { foreignKey: 'restaurantId', as: 'inventoryItems' });
+InventoryItem.belongsTo(Restaurant, { foreignKey: 'restaurantId', as: 'restaurant' });
+
 // Test connection
 const connectDB = async () => {
   try {
@@ -147,5 +152,6 @@ module.exports = {
   Transaction,
   AIRecommendation,
   VideoMenuItem,
-  Event
+  Event,
+  InventoryItem
 };

@@ -45,9 +45,23 @@ export default function DeliveryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deliveryToDelete, setDeliveryToDelete] = useState<string | null>(null);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
+  const [formData, setFormData] = useState({
+    orderNumber: '',
+    customerName: '',
+    customerPhone: '',
+    address: '',
+    items: 0,
+    totalAmount: 0,
+    status: 'pending' as 'pending' | 'preparing' | 'on_way' | 'delivered' | 'cancelled',
+    deliveryPerson: '',
+    estimatedTime: '30'
+  });
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -65,7 +79,21 @@ export default function DeliveryPage() {
       
       const response = await apiService.getDeliveries(restaurantId);
       if (response.success && response.data) {
-        setDeliveries(response.data);
+        // Backend'den gelen veriyi frontend formatına çevir
+        const transformedDeliveries = response.data.map((delivery: any) => ({
+          id: delivery.id,
+          orderNumber: delivery.orderNumber || delivery.order_number || '',
+          customerName: delivery.customerName || delivery.customer_name || '',
+          customerPhone: delivery.customerPhone || delivery.customer_phone || '',
+          address: delivery.address || '',
+          items: delivery.items || 0,
+          totalAmount: parseFloat(delivery.totalAmount || delivery.total_amount || 0),
+          status: delivery.status || 'pending',
+          deliveryPerson: delivery.deliveryPerson || delivery.delivery_person || '',
+          estimatedTime: delivery.estimatedTime || delivery.estimated_time || '30',
+          createdAt: delivery.created_at || delivery.createdAt
+        }));
+        setDeliveries(transformedDeliveries);
       }
     } catch (error) {
       console.error('Teslimatlar yüklenirken hata:', error);
@@ -74,48 +102,142 @@ export default function DeliveryPage() {
     }
   };
 
-  const handleAddDelivery = async (deliveryData: Partial<Delivery>) => {
+  const handleAddDelivery = async () => {
+    if (!formData.orderNumber || !formData.customerName || !formData.customerPhone || !formData.address) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
+    }
+
     try {
       const restaurantId = user?.id;
       if (!restaurantId) return;
 
       const response = await apiService.createDelivery({
-        ...deliveryData,
-        restaurantId
+        restaurantId,
+        orderNumber: formData.orderNumber,
+        customerName: formData.customerName,
+        customerPhone: formData.customerPhone,
+        address: formData.address,
+        items: formData.items,
+        totalAmount: formData.totalAmount,
+        status: formData.status,
+        deliveryPerson: formData.deliveryPerson,
+        estimatedTime: formData.estimatedTime
       });
       
       if (response.success) {
         await fetchDeliveries();
         setShowAddModal(false);
+        resetForm();
+      } else {
+        alert('Teslimat eklenirken hata oluştu.');
       }
     } catch (error) {
       console.error('Teslimat eklenirken hata:', error);
+      alert('Teslimat eklenirken hata oluştu.');
     }
   };
 
-  const handleUpdateDelivery = async (id: string, deliveryData: Partial<Delivery>) => {
+  const handleEditClick = (delivery: Delivery) => {
+    setEditingDelivery(delivery);
+    setFormData({
+      orderNumber: delivery.orderNumber,
+      customerName: delivery.customerName,
+      customerPhone: delivery.customerPhone,
+      address: delivery.address,
+      items: delivery.items,
+      totalAmount: delivery.totalAmount,
+      status: delivery.status,
+      deliveryPerson: delivery.deliveryPerson,
+      estimatedTime: delivery.estimatedTime
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateDelivery = async () => {
+    if (!formData.orderNumber || !formData.customerName || !formData.customerPhone || !formData.address) {
+      alert('Lütfen tüm zorunlu alanları doldurun.');
+      return;
+    }
+
+    if (!editingDelivery) return;
+
     try {
-      const response = await apiService.updateDelivery(id, deliveryData);
+      const response = await apiService.updateDelivery(editingDelivery.id, {
+        orderNumber: formData.orderNumber,
+        customerName: formData.customerName,
+        customerPhone: formData.customerPhone,
+        address: formData.address,
+        items: formData.items,
+        totalAmount: formData.totalAmount,
+        status: formData.status,
+        deliveryPerson: formData.deliveryPerson,
+        estimatedTime: formData.estimatedTime
+      });
+      
       if (response.success) {
         await fetchDeliveries();
+        setShowEditModal(false);
         setEditingDelivery(null);
+        resetForm();
+      } else {
+        alert('Teslimat güncellenirken hata oluştu.');
       }
     } catch (error) {
       console.error('Teslimat güncellenirken hata:', error);
+      alert('Teslimat güncellenirken hata oluştu.');
     }
   };
 
-  const handleDeleteDelivery = async (id: string) => {
-    if (!confirm('Bu teslimati silmek istediğinizden emin misiniz?')) return;
-    
+  const handleDeleteClick = (deliveryId: string) => {
+    setDeliveryToDelete(deliveryId);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deliveryToDelete) return;
+
     try {
-      const response = await apiService.deleteDelivery(id);
+      const response = await apiService.deleteDelivery(deliveryToDelete);
       if (response.success) {
         await fetchDeliveries();
+        setShowDeleteConfirm(false);
+        setDeliveryToDelete(null);
+      } else {
+        alert('Teslimat silinirken hata oluştu.');
       }
     } catch (error) {
       console.error('Teslimat silinirken hata:', error);
+      alert('Teslimat silinirken hata oluştu.');
     }
+  };
+
+  const handleStatusUpdate = async (deliveryId: string, newStatus: string) => {
+    try {
+      const response = await apiService.updateDelivery(deliveryId, { status: newStatus });
+      if (response.success) {
+        await fetchDeliveries();
+      } else {
+        alert('Durum güncellenirken hata oluştu.');
+      }
+    } catch (error) {
+      console.error('Durum güncellenirken hata:', error);
+      alert('Durum güncellenirken hata oluştu.');
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      orderNumber: '',
+      customerName: '',
+      customerPhone: '',
+      address: '',
+      items: 0,
+      totalAmount: 0,
+      status: 'pending',
+      deliveryPerson: '',
+      estimatedTime: '30'
+    });
   };
 
   // Özellik kontrolü
@@ -355,10 +477,21 @@ export default function DeliveryPage() {
                   <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
                     {delivery.status !== 'delivered' && delivery.status !== 'cancelled' && (
                       <>
-                        <button className="flex-1 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-sm font-medium">
-                          Durumu Güncelle
-                        </button>
-                        <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
+                        <select
+                          value={delivery.status}
+                          onChange={(e) => handleStatusUpdate(delivery.id, e.target.value)}
+                          className="flex-1 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-sm font-medium border border-orange-200"
+                        >
+                          <option value="pending">Bekliyor</option>
+                          <option value="preparing">Hazırlanıyor</option>
+                          <option value="on_way">Yolda</option>
+                          <option value="delivered">Teslim Edildi</option>
+                          <option value="cancelled">İptal</option>
+                        </select>
+                        <button 
+                          onClick={() => handleEditClick(delivery)}
+                          className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+                        >
                           <FaEdit />
                         </button>
                       </>
@@ -368,7 +501,10 @@ export default function DeliveryPage() {
                         ✓ Başarıyla teslim edildi
                       </div>
                     )}
-                    <button className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
+                    <button 
+                      onClick={() => handleDeleteClick(delivery.id)}
+                      className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                    >
                       <FaTrash />
                     </button>
                   </div>
@@ -399,6 +535,343 @@ export default function DeliveryPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Delivery Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Yeni Teslimat Ekle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sipariş No <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.orderNumber}
+                  onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="Örn: ORD-2024-001"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Müşteri Adı <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customerName}
+                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: Ahmet Yılmaz"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Telefon <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customerPhone}
+                    onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: +90 555 123 4567"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adres <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  rows={2}
+                  placeholder="Tam adres bilgisi..."
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ürün Sayısı
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.items}
+                    onChange={(e) => setFormData({ ...formData, items: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tutar (₺)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.totalAmount}
+                    onChange={(e) => setFormData({ ...formData, totalAmount: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Durum
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="pending">Bekliyor</option>
+                    <option value="preparing">Hazırlanıyor</option>
+                    <option value="on_way">Yolda</option>
+                    <option value="delivered">Teslim Edildi</option>
+                    <option value="cancelled">İptal</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Kurye Adı
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.deliveryPerson}
+                    onChange={(e) => setFormData({ ...formData, deliveryPerson: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: Mehmet Yıldız"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tahmini Süre (dakika)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.estimatedTime}
+                    onChange={(e) => setFormData({ ...formData, estimatedTime: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: 30"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleAddDelivery}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              >
+                Kaydet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Delivery Modal */}
+      {showEditModal && editingDelivery && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Teslimatı Düzenle</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sipariş No <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.orderNumber}
+                  onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="Örn: ORD-2024-001"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Müşteri Adı <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customerName}
+                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: Ahmet Yılmaz"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Telefon <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customerPhone}
+                    onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: +90 555 123 4567"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adres <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  rows={2}
+                  placeholder="Tam adres bilgisi..."
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ürün Sayısı
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.items}
+                    onChange={(e) => setFormData({ ...formData, items: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tutar (₺)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.totalAmount}
+                    onChange={(e) => setFormData({ ...formData, totalAmount: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Durum
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="pending">Bekliyor</option>
+                    <option value="preparing">Hazırlanıyor</option>
+                    <option value="on_way">Yolda</option>
+                    <option value="delivered">Teslim Edildi</option>
+                    <option value="cancelled">İptal</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Kurye Adı
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.deliveryPerson}
+                    onChange={(e) => setFormData({ ...formData, deliveryPerson: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: Mehmet Yıldız"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tahmini Süre (dakika)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.estimatedTime}
+                    onChange={(e) => setFormData({ ...formData, estimatedTime: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Örn: 30"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingDelivery(null);
+                  resetForm();
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleUpdateDelivery}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              >
+                Güncelle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <FaTrash className="text-red-600 text-xl" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Teslimatı Sil</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Bu teslimatı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeliveryToDelete(null);
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Sil
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
