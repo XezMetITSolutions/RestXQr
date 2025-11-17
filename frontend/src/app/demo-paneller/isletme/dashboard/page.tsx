@@ -36,16 +36,16 @@ export default function BusinessDashboard() {
   const router = useRouter();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
   const restaurantStore = useRestaurantStore();
-  const { 
-    categories = [], 
-    menuItems = [], 
-    orders = [], 
-    activeOrders = [], 
-    fetchRestaurantMenu,
-    loading: restaurantLoading 
-  } = restaurantStore;
   
-  // Güvenli array'ler - undefined kontrolü
+  // Store'dan güvenli şekilde değerleri al
+  const categories = restaurantStore?.categories;
+  const menuItems = restaurantStore?.menuItems;
+  const orders = restaurantStore?.orders;
+  const activeOrders = restaurantStore?.activeOrders;
+  const fetchRestaurantMenu = restaurantStore?.fetchRestaurantMenu;
+  const restaurantLoading = restaurantStore?.loading;
+  
+  // Güvenli array'ler - undefined kontrolü (destructuring'den önce)
   const safeCategories = Array.isArray(categories) ? categories : [];
   const safeMenuItems = Array.isArray(menuItems) ? menuItems : [];
   const safeOrders = Array.isArray(orders) ? orders : [];

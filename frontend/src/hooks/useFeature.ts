@@ -43,7 +43,9 @@ const getActiveSubdomain = (): string | null => {
  */
 export function useFeature(featureId: string): boolean {
   const { authenticatedRestaurant } = useAuthStore();
-  const { restaurants = [], fetchRestaurantByUsername } = useRestaurantStore();
+  const restaurantStore = useRestaurantStore();
+  const restaurants = Array.isArray(restaurantStore?.restaurants) ? restaurantStore.restaurants : [];
+  const fetchRestaurantByUsername = restaurantStore?.fetchRestaurantByUsername;
   const [loading, setLoading] = useState(false);
   
   // Demo panelde tüm özellikler aktif
@@ -95,7 +97,7 @@ export function useFeature(featureId: string): boolean {
         totalRestaurants: Array.isArray(restaurants) ? restaurants.length : 0
       });
     }
-  }, [featureId, authenticatedRestaurant, restaurants]);
+  }, [featureId, authenticatedRestaurant, restaurants?.length]);
   
   // Plan bazlı özellik kontrolü - bazı özellikler plan'a göre otomatik aktif
   const checkFeatureByPlan = (plan: string | undefined, featureId: string): boolean => {
@@ -185,7 +187,8 @@ export function useFeature(featureId: string): boolean {
  */
 export function useFeatures(featureIds: string[]): Record<string, boolean> {
   const { authenticatedRestaurant } = useAuthStore();
-  const { restaurants = [] } = useRestaurantStore();
+  const restaurantStore = useRestaurantStore();
+  const restaurants = Array.isArray(restaurantStore?.restaurants) ? restaurantStore.restaurants : [];
   const [remoteFeatures, setRemoteFeatures] = useState<string[] | null>(null);
 
   // Demo panelde tüm özellikler aktif
@@ -212,7 +215,7 @@ export function useFeatures(featureIds: string[]): Record<string, boolean> {
       }
     }
     return null;
-  }, [authenticatedRestaurant?.id, authenticatedRestaurant?.features, restaurants, featureIds.join('|')]);
+  }, [authenticatedRestaurant?.id, authenticatedRestaurant?.features, restaurants?.length, featureIds.join('|')]);
 
   useEffect(() => {
     // Demo panelde backend'e gitme
@@ -258,7 +261,8 @@ export function useFeatures(featureIds: string[]): Record<string, boolean> {
  */
 export function useActiveFeatures(): string[] {
   const { authenticatedRestaurant } = useAuthStore();
-  const { restaurants = [] } = useRestaurantStore();
+  const restaurantStore = useRestaurantStore();
+  const restaurants = Array.isArray(restaurantStore?.restaurants) ? restaurantStore.restaurants : [];
   const [remoteFeatures, setRemoteFeatures] = useState<string[] | null>(null);
 
   // Demo panelde tüm özellikler aktif - tüm mevcut özellikleri döndür
@@ -288,7 +292,7 @@ export function useActiveFeatures(): string[] {
       }
     }
     return null;
-  }, [authenticatedRestaurant?.id, authenticatedRestaurant?.features, restaurants]);
+  }, [authenticatedRestaurant?.id, authenticatedRestaurant?.features, restaurants?.length]);
 
   useEffect(() => {
     // Demo panelde backend'e gitme
