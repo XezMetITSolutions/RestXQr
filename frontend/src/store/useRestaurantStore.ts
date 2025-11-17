@@ -126,9 +126,9 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         
         set((state) => ({ 
           currentRestaurant: restaurantData,
-          restaurants: [...state.restaurants.filter(r => r.id !== restaurantData.id), restaurantData],
-          categories: restaurantData?.categories || [],
-          menuItems: allMenuItems,
+          restaurants: [...(Array.isArray(state.restaurants) ? state.restaurants : []).filter(r => r.id !== restaurantData.id), restaurantData],
+          categories: Array.isArray(restaurantData?.categories) ? restaurantData.categories : [],
+          menuItems: Array.isArray(allMenuItems) ? allMenuItems : [],
           loading: false 
         }));
         
@@ -400,7 +400,7 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
       
       if (response.success) {
         // Backend'den gelen veriyi frontend formatına dönüştür
-        const categories = response.data.categories || [];
+        const categories = Array.isArray(response.data?.categories) ? response.data.categories : [];
         let allItems: any[] = [];
         
         console.log('📊 Raw categories from backend:', categories.length);
@@ -445,8 +445,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         console.log('✅ First transformed item:', transformedItems[0]);
         
         set({
-          categories: transformedCategories,
-          menuItems: transformedItems,
+          categories: Array.isArray(transformedCategories) ? transformedCategories : [],
+          menuItems: Array.isArray(transformedItems) ? transformedItems : [],
           loading: false
         });
         
@@ -477,27 +477,27 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
       })),
       
   // Menu Actions
-  setCategories: (categories: MenuCategory[]) => set({ categories }),
+  setCategories: (categories: MenuCategory[]) => set({ categories: Array.isArray(categories) ? categories : [] }),
       
   addCategory: (category: MenuCategory) => set((state) => ({
-        categories: [...state.categories, category]
+        categories: [...(Array.isArray(state.categories) ? state.categories : []), category]
       })),
       
   updateCategory: (id: string, updates: Partial<MenuCategory>) => set((state) => ({
-        categories: state.categories.map(c => 
+        categories: (Array.isArray(state.categories) ? state.categories : []).map(c => 
           c.id === id ? { ...c, ...updates } : c
         )
       })),
       
   deleteCategory: (id: string) => set((state) => ({
-        categories: state.categories.filter(c => c.id !== id),
-        menuItems: state.menuItems.filter(item => item.categoryId !== id)
+        categories: (Array.isArray(state.categories) ? state.categories : []).filter(c => c.id !== id),
+        menuItems: (Array.isArray(state.menuItems) ? state.menuItems : []).filter(item => item.categoryId !== id)
       })),
       
-  setMenuItems: (items: MenuItem[]) => set({ menuItems: items }),
+  setMenuItems: (items: MenuItem[]) => set({ menuItems: Array.isArray(items) ? items : [] }),
       
   addMenuItem: (item: MenuItem) => set((state) => ({
-        menuItems: [...state.menuItems, item]
+        menuItems: [...(Array.isArray(state.menuItems) ? state.menuItems : []), item]
       })),
       
       // Order Actions
