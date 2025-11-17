@@ -40,12 +40,64 @@ function CartPageContent() {
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQuickServiceModalOpen, setIsQuickServiceModalOpen] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const [confirmationCountdown, setConfirmationCountdown] = useState<number | null>(null);
   
   const primary = settings.branding.primaryColor;
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Countdown timer
+  useEffect(() => {
+    if (confirmationCountdown !== null && confirmationCountdown > 0) {
+      const timer = setInterval(() => {
+        setConfirmationCountdown(prev => {
+          if (prev === null || prev <= 1) {
+            // 1 dakika doldu, sipariş panellere gönderildi
+            setPendingOrderId(null);
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    } else if (confirmationCountdown === 0) {
+      // Süre doldu
+      setPendingOrderId(null);
+      setConfirmationCountdown(null);
+    }
+  }, [confirmationCountdown]);
+
+  // Sipariş iptal fonksiyonu
+  const handleCancelOrder = async () => {
+    if (!pendingOrderId) return;
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+      const response = await fetch(`${apiUrl}/orders/${pendingOrderId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: 'cancelled' })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setPendingOrderId(null);
+        setConfirmationCountdown(null);
+        alert('✅ Siparişiniz iptal edildi.');
+      } else {
+        alert('❌ Sipariş iptal edilemedi. Lütfen tekrar deneyin.');
+      }
+    } catch (error) {
+      console.error('Sipariş iptal hatası:', error);
+      alert('❌ Sipariş iptal edilemedi. Lütfen tekrar deneyin.');
+    }
+  };
 
   // Calculate totals
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -156,8 +208,12 @@ function CartPageContent() {
           createdAt: response.data?.created_at
         });
         
-        // En uzun hazırlık süresini hesapla
-        const maxPrepTime = getMaxPreparationTime();
+        // Sipariş ID'sini kaydet ve 1 dakika countdown başlat
+        const orderId = response.data?.id;
+        if (orderId) {
+          setPendingOrderId(orderId);
+          setConfirmationCountdown(60); // 60 saniye
+        }
         
         // Clear cart after successful order
         clearCart();
@@ -166,13 +222,6 @@ function CartPageContent() {
         setDonationAmount(0);
         
         console.log('🧹 Sepet temizlendi');
-        
-        // Sipariş onay mesajı göster
-        if (maxPrepTime > 0) {
-          alert(`✅ Siparişiniz alınmıştır!\n\nSiparişiniz ${maxPrepTime} dakika içinde masanıza getirilecektir.`);
-        } else {
-          alert('✅ Siparişiniz alınmıştır!\n\nSiparişiniz kısa sürede masanıza getirilecektir.');
-        }
       } else {
         console.error('❌ SİPARİŞ BAŞARISIZ:', response);
         alert('❌ Sipariş gönderilemedi. Lütfen tekrar deneyin.');
@@ -290,8 +339,35 @@ function CartPageContent() {
           </div>
         </header>
 
+        {/* Pending Order Confirmation Banner */}
+        {pendingOrderId && confirmationCountdown !== null && confirmationCountdown > 0 && (
+          <div className="fixed top-16 left-0 right-0 z-30 bg-yellow-400 border-b-2 border-yellow-500 shadow-lg">
+            <div className="container mx-auto px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">⏱️</div>
+                  <div>
+                    <div className="font-bold text-gray-900">
+                      Siparişiniz oluşturuldu! {confirmationCountdown} saniye içinde panellere iletilecek.
+                    </div>
+                    <div className="text-sm text-gray-700 mt-1">
+                      Bu süre içinde iptal veya değişiklik yapabilirsiniz.
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleCancelOrder}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
+                >
+                  İptal Et
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Cart Items */}
-        <div className="pt-16 px-3 py-4">
+        <div className={`pt-16 px-3 py-4 ${pendingOrderId && confirmationCountdown !== null && confirmationCountdown > 0 ? 'pt-32' : ''}`}>
           {items.length === 0 ? (
             <div className="text-center py-12">
               <FaShoppingCart size={48} className="mx-auto text-gray-300 mb-4" />

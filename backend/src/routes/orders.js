@@ -143,22 +143,42 @@ router.post('/', async (req, res) => {
     // Deactivation should occur after payment is completed. Placeholder logic below if needed later:
     // await QRToken.update({ isActive: false }, { where: { restaurantId, tableNumber, isActive: true } });
 
-    // Real-time notification için order bilgilerini publish et
+    // 1 dakika sonra panellere gönder (iptal/değişiklik için süre tanı)
     const { publish } = require('../lib/realtime');
-    publish('new_order', {
-      orderId: order.id,
-      restaurantId: order.restaurantId,
-      tableNumber: order.tableNumber,
-      items: items.map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        notes: item.notes || ''
-      })),
-      totalAmount: order.totalAmount,
-      timestamp: new Date().toISOString()
-    });
+    
+    // Sipariş oluşturulduğunda hemen panellere gönderme, 1 dakika bekle
+    setTimeout(async () => {
+      try {
+        // 1 dakika sonra sipariş hala iptal edilmemişse panellere gönder
+        const currentOrder = await Order.findByPk(order.id);
+        if (currentOrder && currentOrder.status !== 'cancelled') {
+          publish('new_order', {
+            orderId: order.id,
+            restaurantId: order.restaurantId,
+            tableNumber: order.tableNumber,
+            items: items.map(item => ({
+              name: item.name,
+              quantity: item.quantity,
+              notes: item.notes || ''
+            })),
+            totalAmount: order.totalAmount,
+            timestamp: new Date().toISOString()
+          });
+          console.log(`✅ Sipariş ${order.id} 1 dakika sonra panellere gönderildi`);
+        } else {
+          console.log(`⚠️ Sipariş ${order.id} iptal edilmiş, panellere gönderilmedi`);
+        }
+      } catch (error) {
+        console.error('❌ Sipariş panellere gönderilirken hata:', error);
+      }
+    }, 60000); // 1 dakika = 60000 ms
 
-    res.status(201).json({ success: true, data: order, message: 'Order created' });
+    res.status(201).json({ 
+      success: true, 
+      data: order, 
+      message: 'Order created. Will be sent to panels in 1 minute.',
+      confirmationTime: 60 // Frontend'e 60 saniye bilgisi gönder
+    });
   } catch (error) {
     console.error('POST /orders error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
