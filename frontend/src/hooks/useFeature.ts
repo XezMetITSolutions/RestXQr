@@ -2,6 +2,38 @@ import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
 import { useEffect, useState, useMemo } from 'react';
 
+const RESERVED_SUBDOMAINS = ['restxqr', 'www', 'localhost', '127', '127.0.0.1'];
+
+const detectDemoRoute = () => 
+  typeof window !== 'undefined' && window.location.pathname.includes('/demo-paneller/');
+
+const getActiveSubdomain = (): string | null => {
+  if (typeof window === 'undefined') return null;
+
+  const rawHostname = window.location.hostname?.toLowerCase() || '';
+  if (!rawHostname) return null;
+
+  const hostname = rawHostname.split(':')[0]; // strip port if present
+
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return null;
+  }
+
+  if (hostname.endsWith('.localhost')) {
+    const sub = hostname.replace('.localhost', '');
+    if (!sub || RESERVED_SUBDOMAINS.includes(sub)) return null;
+    return sub;
+  }
+
+  const parts = hostname.split('.');
+  if (parts.length <= 2) return null;
+
+  const subdomain = parts[0];
+  if (!subdomain || RESERVED_SUBDOMAINS.includes(subdomain)) return null;
+
+  return subdomain;
+};
+
 /**
  * Restaurant'a özel özellik kontrolü için hook - REAL-TIME
  * Backend'den canlı veri çeker, localStorage kullanmaz
@@ -15,7 +47,7 @@ export function useFeature(featureId: string): boolean {
   const [loading, setLoading] = useState(false);
   
   // Demo panelde tüm özellikler aktif
-  const isDemo = typeof window !== 'undefined' && window.location.pathname.includes('/demo-paneller/');
+  const isDemo = detectDemoRoute();
   if (isDemo) {
     console.log('📦 useFeature: Demo mode - all features enabled');
     return true;
@@ -23,30 +55,36 @@ export function useFeature(featureId: string): boolean {
   
   // Real-time data fetch için subdomain'i al ve backend'den çek
   useEffect(() => {
-    // Demo panelde backend'e gitme
-    if (isDemo) {
+    if (typeof window === 'undefined') return;
+    const demoMode = detectDemoRoute();
+    if (demoMode) {
       console.log('📦 useFeature: Demo mode, skipping fetch');
       return;
     }
     
-    if (typeof window !== 'undefined') {
-      const subdomain = window.location.hostname.split('.')[0];
-      if (subdomain && subdomain !== 'localhost' && subdomain !== 'www') {
-        console.log('🔍 useFeature: Fetching data for subdomain:', subdomain);
-        setLoading(true);
-        fetchRestaurantByUsername(subdomain).finally(() => {
-          setLoading(false);
-          console.log('✅ useFeature: Fetch completed for subdomain:', subdomain);
-        });
-      }
+    const subdomain = getActiveSubdomain();
+    if (!subdomain) {
+      console.log('ℹ️ useFeature: No subdomain detected, skipping fetch');
+      return;
     }
+
+    console.log('🔍 useFeature: Fetching data for subdomain:', subdomain);
+    setLoading(true);
+    fetchRestaurantByUsername(subdomain)
+      .catch((error) => {
+        console.warn('⚠️ useFeature: fetchRestaurantByUsername failed', error);
+      })
+      .finally(() => {
+        setLoading(false);
+        console.log('✅ useFeature: Fetch completed for subdomain:', subdomain);
+      });
   }, [fetchRestaurantByUsername]);
   
   // Debug logging
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const subdomain = window.location.hostname.split('.')[0];
-      const restaurant = restaurants.find(r => r.username === subdomain);
+      const subdomain = getActiveSubdomain();
+      const restaurant = subdomain ? restaurants.find(r => r.username === subdomain) : null;
       console.log('🎯 useFeature Debug:', {
         featureId,
         subdomain,
@@ -64,9 +102,9 @@ export function useFeature(featureId: string): boolean {
   }
   
   // Authenticated yoksa subdomain'e göre restaurant bul (backend'den çekilmiş)
-  if (typeof window !== 'undefined') {
-    const subdomain = window.location.hostname.split('.')[0];
-    const restaurant = restaurants.find(r => r.username === subdomain);
+  const detectedSubdomain = getActiveSubdomain();
+  if (detectedSubdomain) {
+    const restaurant = restaurants.find(r => r.username === detectedSubdomain);
     
     if (restaurant) {
       console.log('🏪 useFeature: Using restaurant from store:', restaurant.features);
@@ -113,8 +151,8 @@ export function useFeatures(featureIds: string[]): Record<string, boolean> {
         [id]: authenticatedRestaurant.features?.includes(id) ?? false
       }), {} as Record<string, boolean>);
     }
-    if (typeof window !== 'undefined') {
-      const subdomain = window.location.hostname.split('.')[0];
+    const subdomain = getActiveSubdomain();
+    if (subdomain) {
       const restaurant = restaurants.find(r => r.username === subdomain);
       if (restaurant) {
         return featureIds.reduce((acc, id) => ({
@@ -137,7 +175,7 @@ export function useFeatures(featureIds: string[]): Record<string, boolean> {
     if (local) return;
     if (authenticatedRestaurant) return;
     if (typeof window === 'undefined') return;
-    const subdomain = window.location.hostname.split('.')[0];
+    const subdomain = getActiveSubdomain();
     if (!subdomain) return;
     let cancelled = false;
     (async () => {
@@ -190,8 +228,8 @@ export function useActiveFeatures(): string[] {
 
   const local = useMemo(() => {
     if (authenticatedRestaurant) return authenticatedRestaurant.features ?? [];
-    if (typeof window !== 'undefined') {
-      const subdomain = window.location.hostname.split('.')[0];
+    const subdomain = getActiveSubdomain();
+    if (subdomain) {
       const restaurant = restaurants.find(r => r.username === subdomain);
       if (restaurant) return restaurant.features ?? [];
     }
@@ -209,7 +247,7 @@ export function useActiveFeatures(): string[] {
     if (local) return;
     if (authenticatedRestaurant) return;
     if (typeof window === 'undefined') return;
-    const subdomain = window.location.hostname.split('.')[0];
+    const subdomain = getActiveSubdomain();
     if (!subdomain) return;
     let cancelled = false;
     (async () => {
