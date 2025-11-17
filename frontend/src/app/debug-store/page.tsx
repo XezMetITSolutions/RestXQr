@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRestaurantStore } from '@/store/useRestaurantStore';
-import { useAuthStore } from '@/store/useAuthStore';
+import useRestaurantStore from '@/store/useRestaurantStore';
+import useAuthStore from '@/store/useAuthStore';
 
 export default function DebugStorePage() {
   const [refreshKey, setRefreshKey] = useState(0);
