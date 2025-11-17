@@ -28,7 +28,7 @@ import useRestaurantStore from '@/store/useRestaurantStore';
 
 function CartPageContent() {
   const { currentLanguage, translate } = useLanguage();
-  const { items, tableNumber, removeItem, updateQuantity, clearCart, getMaxPreparationTime } = useCartStore();
+  const { items, tableNumber, removeItem, updateQuantity, clearCart, getMaxPreparationTime, addItem } = useCartStore();
   const { settings } = useBusinessSettingsStore();
   const { currentRestaurant } = useRestaurantStore();
   const [isClient, setIsClient] = useState(false);
@@ -42,6 +42,7 @@ function CartPageContent() {
   const [isQuickServiceModalOpen, setIsQuickServiceModalOpen] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [confirmationCountdown, setConfirmationCountdown] = useState<number | null>(null);
+  const [pendingOrderItems, setPendingOrderItems] = useState<any[]>([]);
   
   const primary = settings.branding.primaryColor;
 
@@ -89,6 +90,7 @@ function CartPageContent() {
       if (data.success) {
         setPendingOrderId(null);
         setConfirmationCountdown(null);
+        setPendingOrderItems([]);
         alert('✅ Siparişiniz iptal edildi.');
       } else {
         alert('❌ Sipariş iptal edilemedi. Lütfen tekrar deneyin.');
@@ -97,6 +99,51 @@ function CartPageContent() {
       console.error('Sipariş iptal hatası:', error);
       alert('❌ Sipariş iptal edilemedi. Lütfen tekrar deneyin.');
     }
+  };
+
+  // Değişiklik yap fonksiyonu - siparişteki ürünleri sepete geri yükle
+  const handleModifyOrder = async () => {
+    if (!pendingOrderItems || pendingOrderItems.length === 0) {
+      alert('⚠️ Siparişteki ürünler bulunamadı.');
+      return;
+    }
+
+    // Eski siparişi iptal et
+    if (pendingOrderId) {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+        await fetch(`${apiUrl}/orders/${pendingOrderId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status: 'cancelled' })
+        });
+      } catch (error) {
+        console.error('Eski sipariş iptal hatası:', error);
+      }
+    }
+
+    // Sepeti temizle ve siparişteki ürünleri sepete geri yükle
+    clearCart();
+    
+    pendingOrderItems.forEach(item => {
+      addItem({
+        itemId: item.itemId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        notes: item.notes || '',
+        image: item.image
+      });
+    });
+
+    // Countdown'ı durdur ve state'leri temizle
+    setPendingOrderId(null);
+    setConfirmationCountdown(null);
+    setPendingOrderItems([]);
+
+    alert('✅ Siparişteki ürünler sepete yüklendi. Değişiklik yapabilir ve tekrar sipariş verebilirsiniz.');
   };
 
   // Calculate totals
@@ -213,6 +260,15 @@ function CartPageContent() {
         if (orderId) {
           setPendingOrderId(orderId);
           setConfirmationCountdown(60); // 60 saniye
+          // Siparişteki ürünleri kaydet (değişiklik yapmak için)
+          setPendingOrderItems(items.map(item => ({
+            itemId: item.itemId || item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            notes: item.notes || '',
+            image: item.image
+          })));
         }
         
         // Clear cart after successful order
@@ -343,10 +399,10 @@ function CartPageContent() {
         {pendingOrderId && confirmationCountdown !== null && confirmationCountdown > 0 && (
           <div className="fixed top-16 left-0 right-0 z-30 bg-yellow-400 border-b-2 border-yellow-500 shadow-lg">
             <div className="container mx-auto px-4 py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="text-2xl">⏱️</div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="font-bold text-gray-900">
                       Siparişiniz oluşturuldu! {confirmationCountdown} saniye içinde panellere iletilecek.
                     </div>
@@ -355,12 +411,20 @@ function CartPageContent() {
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={handleCancelOrder}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
-                >
-                  İptal Et
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleModifyOrder}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors whitespace-nowrap"
+                  >
+                    Değişiklik Yap
+                  </button>
+                  <button
+                    onClick={handleCancelOrder}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors whitespace-nowrap"
+                  >
+                    İptal Et
+                  </button>
+                </div>
               </div>
             </div>
           </div>
