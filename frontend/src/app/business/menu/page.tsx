@@ -709,10 +709,10 @@ export default function MenuManagement() {
             </div>
           </div>
 
-          {/* Items List - Desktop Table View */}
-          <div className="hidden lg:block bg-white rounded-lg shadow-sm border overflow-hidden">
+          {/* Items List - Responsive Table View */}
+          <div className="hidden md:block bg-white rounded-lg shadow-sm border">
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[720px] table-auto">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -804,7 +804,7 @@ export default function MenuManagement() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <button 
                             onClick={() => handleEditItem(item)}
                             className="text-purple-600 hover:text-purple-900"
@@ -827,7 +827,7 @@ export default function MenuManagement() {
           </div>
 
           {/* Mobile Card View */}
-          <div className="lg:hidden space-y-3">
+          <div className="md:hidden space-y-3">
             {filteredItems.map(item => (
               <div key={item.id} className="bg-white rounded-lg shadow-sm border p-4">
                 <div className="flex items-start gap-3">
