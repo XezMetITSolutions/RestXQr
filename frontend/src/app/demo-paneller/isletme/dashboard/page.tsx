@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AnnouncementQuickModal from '@/components/AnnouncementQuickModal';
@@ -28,24 +28,29 @@ import {
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
-import { useState } from 'react';
 import BusinessPaymentModal from '@/components/BusinessPaymentModal';
 import { useFeature } from '@/hooks/useFeature';
 
 export default function BusinessDashboard() {
   const router = useRouter();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
+  const [isClient, setIsClient] = useState(false);
   const restaurantStore = useRestaurantStore();
   
-  // Store'dan güvenli şekilde değerleri al
-  const categories = restaurantStore?.categories;
-  const menuItems = restaurantStore?.menuItems;
-  const orders = restaurantStore?.orders;
-  const activeOrders = restaurantStore?.activeOrders;
-  const fetchRestaurantMenu = restaurantStore?.fetchRestaurantMenu;
-  const restaurantLoading = restaurantStore?.loading;
+  // Client-side rendering kontrolü
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   
-  // Güvenli array'ler - undefined kontrolü (destructuring'den önce)
+  // Store'dan değerleri güvenli şekilde al - store undefined olabilir
+  const categories = restaurantStore?.categories ?? undefined;
+  const menuItems = restaurantStore?.menuItems ?? undefined;
+  const orders = restaurantStore?.orders ?? undefined;
+  const activeOrders = restaurantStore?.activeOrders ?? undefined;
+  const fetchRestaurantMenu = restaurantStore?.fetchRestaurantMenu;
+  const restaurantLoading = restaurantStore?.loading ?? false;
+  
+  // Güvenli array'ler - undefined kontrolü (store henüz yüklenmemiş olabilir)
   const safeCategories = Array.isArray(categories) ? categories : [];
   const safeMenuItems = Array.isArray(menuItems) ? menuItems : [];
   const safeOrders = Array.isArray(orders) ? orders : [];
@@ -316,11 +321,23 @@ export default function BusinessDashboard() {
     monthlyOrders: 156, // Demo: Aylık sipariş
     averageRating: 4.8, // Demo: Ortalama puan
     customerSatisfaction: 92, // Demo: Müşteri memnuniyeti
-    totalMenuItems: 38, // Demo: Menü ürünleri
-    activeCategories: 7, // Demo: Aktif kategoriler
+    totalMenuItems: safeMenuItems.length || 38, // Demo: Menü ürünleri
+    activeCategories: safeCategories.length || 7, // Demo: Aktif kategoriler
     totalWaiters: 12, // Demo: Personel
     activeTables: 8 // Demo: Aktif masa
   };
+
+  // Client-side rendering kontrolü - ilk yüklemede loading göster
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
