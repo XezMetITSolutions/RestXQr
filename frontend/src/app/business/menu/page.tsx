@@ -3,17 +3,17 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
-  FaSearch, 
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaSearch,
   FaUtensils,
   FaFire,
   FaTag,
   FaChartBar,
-  FaStore, 
-  FaUsers, 
+  FaStore,
+  FaUsers,
   FaShoppingCart,
   FaChartLine,
   FaQrcode,
@@ -51,10 +51,10 @@ const BulkImportModal = lazy(() => import('@/components/BulkImportModal'));
 export default function MenuManagement() {
   const router = useRouter();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
-  const { 
-    currentRestaurant, 
+  const {
+    currentRestaurant,
     restaurants,
-    categories: allCategories, 
+    categories: allCategories,
     menuItems: allMenuItems,
     createMenuCategory,
     createMenuItem,
@@ -66,25 +66,25 @@ export default function MenuManagement() {
     loading,
     error
   } = useRestaurantStore();
-  
+
   // Feature kontrolü kaldırıldı - herkes menü yönetimine erişebilir
-  
+
   // Restoran ID'sini al
   const getRestaurantId = useCallback(() => {
     // Önce authenticated restaurant'tan al
     if (authenticatedRestaurant?.id) {
       return authenticatedRestaurant.id;
     }
-    
+
     // Subdomain'den de alabilir (fallback)
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
       const subdomain = hostname.split('.')[0];
       const mainDomains = ['localhost', 'www', 'guzellestir'];
-      
+
       if (!mainDomains.includes(subdomain) && hostname.includes('.')) {
         // Subdomain'e göre restaurant bul
-        const restaurant = restaurants.find(r => 
+        const restaurant = restaurants.find(r =>
           r.name.toLowerCase().replace(/\s+/g, '') === subdomain ||
           r.username === subdomain
         );
@@ -93,23 +93,23 @@ export default function MenuManagement() {
     }
     return null;
   }, [authenticatedRestaurant?.id, restaurants]);
-  
+
   const currentRestaurantId = getRestaurantId();
-  
+
   console.log('🔍 Filtering data:');
   console.log('  currentRestaurantId:', currentRestaurantId);
   console.log('  allCategories:', allCategories.length);
   console.log('  allMenuItems:', allMenuItems.length);
-  
+
   // Sadece bu restorana ait kategorileri ve ürünleri filtrele
   const categories = allCategories.filter(c => c.restaurantId === currentRestaurantId);
   const items = allMenuItems.filter(i => i.restaurantId === currentRestaurantId);
-  
+
   console.log('  filtered categories:', categories.length);
   console.log('  filtered items:', items.length);
   console.log('  first item restaurantId:', allMenuItems[0]?.restaurantId);
   console.log('  match?', allMenuItems[0]?.restaurantId === currentRestaurantId);
-  
+
   const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || 'Kullanıcı';
 
   const [activeTab, setActiveTab] = useState<'items' | 'categories' | 'stats'>('items');
@@ -121,7 +121,7 @@ export default function MenuManagement() {
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'available' | 'out-of-stock'>('all');
   const [showOutOfStock, setShowOutOfStock] = useState(false);
-  const [subcategories, setSubcategories] = useState<Array<{id: string, name: {tr: string, en: string}}>>([]);
+  const [subcategories, setSubcategories] = useState<Array<{ id: string, name: { tr: string, en: string } }>>([]);
   const [showCamera, setShowCamera] = useState(false);
   const [showImageUploader, setShowImageUploader] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
@@ -138,9 +138,9 @@ export default function MenuManagement() {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [showTranslationsModal, setShowTranslationsModal] = useState(false);
   const [selectedItemForTranslation, setSelectedItemForTranslation] = useState<any>(null);
-  const [translations, setTranslations] = useState<{[key: string]: {name: string, description: string}}>({});
+  const [translations, setTranslations] = useState<{ [key: string]: { name: string, description: string } }>({});
   const [loadingTranslations, setLoadingTranslations] = useState(false);
-  
+
   const { settings } = useBusinessSettingsStore();
   const selectedLanguages = settings?.menuSettings?.language?.length
     ? settings.menuSettings.language
@@ -149,7 +149,7 @@ export default function MenuManagement() {
     () => selectedLanguages.filter((lang) => lang !== 'tr'),
     [selectedLanguages]
   );
-  
+
   // Form state'leri
   const [formData, setFormData] = useState({
     name: '',
@@ -166,7 +166,7 @@ export default function MenuManagement() {
     isPopular: false,
     translations: {}
   });
-  
+
   const [categoryFormData, setCategoryFormData] = useState({
     name: '',
     description: '',
@@ -207,10 +207,10 @@ export default function MenuManagement() {
 
   useEffect(() => {
     // Eğer subdomain varsa authentication olmadan da çalışsın (test için)
-    const hasSubdomain = typeof window !== 'undefined' && 
+    const hasSubdomain = typeof window !== 'undefined' &&
       !['localhost', 'www', 'guzellestir'].includes(window.location.hostname.split('.')[0]) &&
       window.location.hostname.includes('.');
-      
+
     if (!isAuthenticated() && !hasSubdomain) {
       router.push('/login');
     }
@@ -280,7 +280,7 @@ export default function MenuManagement() {
       try {
         if (currentRestaurantId) {
           await deleteMenuItem(currentRestaurantId, itemId);
-      console.log('Ürün silindi:', itemId);
+          console.log('Ürün silindi:', itemId);
           // Menüyü yeniden yükle
           await fetchRestaurantMenu(currentRestaurantId);
         }
@@ -300,7 +300,7 @@ export default function MenuManagement() {
     try {
       // Çevirileri API'den al veya oluştur
       const languages = ['en', 'tr', 'ar', 'de', 'fr', 'es', 'it', 'ru'];
-      const newTranslations: {[key: string]: {name: string, description: string}} = {};
+      const newTranslations: { [key: string]: { name: string, description: string } } = {};
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://masapp-backend.onrender.com';
 
       for (const lang of languages) {
@@ -314,53 +314,31 @@ export default function MenuManagement() {
             continue;
           }
 
-          // Çeviri API'sini kullan
-          const languageMap: {[key: string]: string} = {
-            'en': 'English',
-            'ar': 'Arabic',
-            'de': 'German',
-            'fr': 'French',
-            'es': 'Spanish',
-            'it': 'Italian',
-            'ru': 'Russian'
-          };
-
-          const targetLanguage = languageMap[lang] || 'English';
-
-          // Ürün adı çevirisi
-          const nameResponse = await fetch(`${API_BASE_URL}/api/translate`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+          // Çeviri API'sini kullan (DeepL)
+          if (item.name) {
+            const translatedName = await translateWithDeepL({
               text: item.name,
-              targetLanguage: targetLanguage
-            })
-          });
-
-          // Açıklama çevirisi (varsa)
-          let descResponse = null;
-          if (item.description) {
-            descResponse = await fetch(`${API_BASE_URL}/api/translate`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                text: item.description,
-                targetLanguage: targetLanguage
-              })
+              targetLanguage: lang
             });
+
+            let translatedDescription = '';
+            if (item.description) {
+              translatedDescription = await translateWithDeepL({
+                text: item.description,
+                targetLanguage: lang
+              });
+            }
+
+            newTranslations[lang] = {
+              name: translatedName || item.name,
+              description: translatedDescription || item.description || ''
+            };
+          } else {
+            newTranslations[lang] = {
+              name: item.name,
+              description: item.description || ''
+            };
           }
-
-          const nameData = await nameResponse.json();
-          const descData = descResponse ? await descResponse.json() : { translatedText: '' };
-
-          newTranslations[lang] = {
-            name: nameData.translatedText || item.name,
-            description: descData.translatedText || item.description || ''
-          };
         } catch (error) {
           console.error(`Çeviri hatası (${lang}):`, error);
           // Hata durumunda orijinal metni kullan
@@ -405,7 +383,7 @@ export default function MenuManagement() {
 
   const handleBulkDelete = async () => {
     if (selectedItems.length === 0) return;
-    
+
     if (confirm(`${selectedItems.length} ürünü silmek istediğinizden emin misiniz?`)) {
       try {
         if (currentRestaurantId) {
@@ -438,14 +416,14 @@ export default function MenuManagement() {
       if (currentRestaurantId) {
         const value = parseFloat(bulkPriceValue);
         let successCount = 0;
-        
+
         for (const itemId of selectedItems) {
           const item = items.find(i => i.id === itemId);
           if (item) {
             let newPrice = item.price;
-            
+
             console.log(`📊 Ürün ${item.name} - Eski fiyat: ₺${item.price}`);
-            
+
             if (bulkPriceType === 'percentage') {
               if (bulkPriceOperation === 'increase') {
                 newPrice = item.price * (1 + value / 100);
@@ -459,13 +437,13 @@ export default function MenuManagement() {
                 newPrice = item.price - value;
               }
             }
-            
+
             // Minimum fiyat kontrolü
             newPrice = Math.max(0.01, newPrice);
             const finalPrice = Math.round(newPrice * 100) / 100;
-            
+
             console.log(`💰 Yeni fiyat: ₺${finalPrice}`);
-            
+
             const updateData = {
               categoryId: item.categoryId,
               name: item.name,
@@ -475,15 +453,15 @@ export default function MenuManagement() {
               isAvailable: item.isAvailable,
               isPopular: item.isPopular
             };
-            
+
             console.log('📤 Update data:', updateData);
-            
+
             await updateMenuItem(currentRestaurantId, itemId, updateData);
             successCount++;
             console.log(`✅ ${item.name} başarıyla güncellendi`);
           }
         }
-        
+
         setSelectedItems([]);
         setShowBulkPriceModal(false);
         setBulkPriceValue('');
@@ -499,12 +477,12 @@ export default function MenuManagement() {
   // Kamera fonksiyonları
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
           facingMode: 'environment', // Arka kamera
           width: { ideal: 1280 },
           height: { ideal: 720 }
-        } 
+        }
       });
       setCameraStream(stream);
       setShowCameraModal(true);
@@ -526,12 +504,12 @@ export default function MenuManagement() {
     const video = document.getElementById('camera-video') as HTMLVideoElement;
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
-    
+
     if (video && context) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       context.drawImage(video, 0, 0);
-      
+
       // JPEG formatında, yüksek kalite ile kaydet
       const imageData = canvas.toDataURL('image/jpeg', 0.9);
       console.log('Kamera ile çekilen resim boyutu:', imageData.length);
@@ -539,7 +517,7 @@ export default function MenuManagement() {
       stopCamera();
     }
   };
-  
+
   // PNG'yi JPEG'e çevir
   const convertToJpeg = (base64: string): Promise<string> => {
     return new Promise((resolve) => {
@@ -600,6 +578,50 @@ export default function MenuManagement() {
     }));
   };
 
+  const handleItemAutoTranslate = async () => {
+    if (!translationLanguages.length) return;
+    if (!formData.name && !formData.description) {
+      setItemTranslationError('Çevirmek için önce ürün adı veya açıklama girin.');
+      return;
+    }
+    setItemTranslationError(null);
+    setIsTranslatingItem(true);
+    const updatedTranslations = { ...(formData.translations || {}) };
+    try {
+      for (const lang of translationLanguages) {
+        if (formData.name) {
+          const translatedName = await translateWithDeepL({
+            text: formData.name,
+            targetLanguage: lang
+          });
+          updatedTranslations[lang] = {
+            ...(updatedTranslations[lang] || {}),
+            name: translatedName
+          };
+        }
+        if (formData.description) {
+          const translatedDescription = await translateWithDeepL({
+            text: formData.description,
+            targetLanguage: lang
+          });
+          updatedTranslations[lang] = {
+            ...(updatedTranslations[lang] || {}),
+            description: translatedDescription
+          };
+        }
+      }
+      setFormData((prev) => ({
+        ...prev,
+        translations: updatedTranslations
+      }));
+    } catch (error) {
+      console.error('Ürün çevirisi hatası:', error);
+      setItemTranslationError('Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsTranslatingItem(false);
+    }
+  };
+
   const handleCategoryAutoTranslate = async () => {
     if (!translationLanguages.length) return;
     if (!categoryFormData.name && !categoryFormData.description) {
@@ -649,7 +671,7 @@ export default function MenuManagement() {
       try {
         if (currentRestaurantId) {
           await deleteMenuCategory(currentRestaurantId, categoryId);
-      console.log('Kategori silindi:', categoryId);
+          console.log('Kategori silindi:', categoryId);
           // Menüyü yeniden yükle
           await fetchRestaurantMenu(currentRestaurantId);
         }
@@ -669,20 +691,20 @@ export default function MenuManagement() {
       imageUrl: item.imageUrl,
       image: item.image
     });
-    
+
     // Güvenlik kontrolü - item.name ve item.description undefined olabilir
     const itemName = item.name || '';
     const itemDescription = item.description || '';
-    
+
     const matchesSearch = itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         itemDescription.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'available' && item.isAvailable !== false) ||
-                         (statusFilter === 'out-of-stock' && item.isAvailable === false);
-    
+      itemDescription.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = statusFilter === 'all' ||
+      (statusFilter === 'available' && item.isAvailable !== false) ||
+      (statusFilter === 'out-of-stock' && item.isAvailable === false);
+
     const showItem = showOutOfStock || item.isAvailable !== false;
-    
+
     return matchesSearch && matchesStatus && showItem;
   });
 
@@ -692,8 +714,8 @@ export default function MenuManagement() {
       <div className="absolute inset-0 opacity-40" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
       }}></div>
-      
-      <BusinessSidebar 
+
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -715,500 +737,492 @@ export default function MenuManagement() {
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl">
                   <FaUtensils className="text-2xl text-white" />
                 </div>
-            <div>
+                <div>
                   <h2 className="text-3xl font-black bg-gradient-to-r from-gray-900 via-purple-800 to-pink-800 bg-clip-text text-transparent">
                     Menü Yönetimi
                   </h2>
                   <p className="text-gray-600 text-lg font-semibold mt-1">Restoran menünüzü yönetin ve düzenleyin</p>
-            </div>
-            </div>
+                </div>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Content */}
         <div className="p-6 lg:p-12">
-      {/* Tabs Section */}
-      <div className="mb-8">
-        <div className="flex space-x-1 bg-white/80 backdrop-blur-lg rounded-2xl p-2 shadow-xl border border-white/20 w-fit">
-          <button
-            onClick={() => setActiveTab('items')}
-            className={`px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 flex items-center gap-2 ${
-              activeTab === 'items'
-                ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg scale-105'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <FaUtensils />
-            Ürünler ({items.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('categories')}
-            className={`px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 flex items-center gap-2 ${
-              activeTab === 'categories'
-                ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg scale-105'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <FaTag />
-            Kategoriler ({categories.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('stats')}
-            className={`px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 flex items-center gap-2 ${
-              activeTab === 'stats'
-                ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg scale-105'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <FaChartBar />
-            İstatistikler
-          </button>
-      </div>
-
-      {error && (
-        <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl backdrop-blur-sm">
-          {error}
-        </div>
-      )}
-
-        {/* Action Buttons */}
-        <div className="flex gap-4 mt-6 flex-wrap">
-          {/* Yeni Ürün Ekle */}
-          <button 
-            onClick={handleAddItem}
-            className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl hover:from-purple-600 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold"
-          >
-            <FaPlus className="text-white text-xl" />
-            <span className="font-bold">Yeni Ürün Ekle</span>
-          </button>
-
-          {/* Toplu Fiyat Düzenle */}
-              <button 
-                onClick={() => setShowBulkPriceModal(true)}
-            className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold"
+          {/* Tabs Section */}
+          <div className="mb-8">
+            <div className="flex space-x-1 bg-white/80 backdrop-blur-lg rounded-2xl p-2 shadow-xl border border-white/20 w-fit">
+              <button
+                onClick={() => setActiveTab('items')}
+                className={`px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 flex items-center gap-2 ${activeTab === 'items'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
               >
-            <span className="text-white text-xl">%</span>
-            <span className="font-bold">Toplu Fiyat Düzenle</span>
+                <FaUtensils />
+                Ürünler ({items.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('categories')}
+                className={`px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 flex items-center gap-2 ${activeTab === 'categories'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+              >
+                <FaTag />
+                Kategoriler ({categories.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('stats')}
+                className={`px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 flex items-center gap-2 ${activeTab === 'stats'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+              >
+                <FaChartBar />
+                İstatistikler
+              </button>
+            </div>
+
+            {error && (
+              <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl backdrop-blur-sm">
+                {error}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 mt-6 flex-wrap">
+              {/* Yeni Ürün Ekle */}
+              <button
+                onClick={handleAddItem}
+                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl hover:from-purple-600 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold"
+              >
+                <FaPlus className="text-white text-xl" />
+                <span className="font-bold">Yeni Ürün Ekle</span>
               </button>
 
-          {/* Toplu İçe Aktar (AI) */}
-              <button 
+              {/* Toplu Fiyat Düzenle */}
+              <button
+                onClick={() => setShowBulkPriceModal(true)}
+                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold"
+              >
+                <span className="text-white text-xl">%</span>
+                <span className="font-bold">Toplu Fiyat Düzenle</span>
+              </button>
+
+              {/* Toplu İçe Aktar (AI) */}
+              <button
                 onClick={() => setShowBulkImport(true)}
-            className="relative flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold"
-          >
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span>Toplu İçe Aktar</span>
-          </button>
-        </div>
-      </div>
+                className="relative flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold"
+              >
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>Toplu İçe Aktar</span>
+              </button>
+            </div>
+          </div>
 
-      {/* Loading State */}
+          {/* Loading State */}
 
-      {/* Loading State */}
-      {loading && (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-          <span className="ml-2 text-gray-600">Yükleniyor...</span>
-        </div>
-      )}
+          {/* Loading State */}
+          {loading && (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              <span className="ml-2 text-gray-600">Yükleniyor...</span>
+            </div>
+          )}
 
-      {/* Content */}
-      {!loading && activeTab === 'items' && (
-        <div className="space-y-6">
-          {/* Bulk Actions Toolbar */}
-          {selectedItems.length > 0 && (
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-purple-700">
-                    {selectedItems.length} ürün seçildi
-                  </span>
-                  <button
-                    onClick={() => setSelectedItems([])}
-                    className="text-sm text-purple-600 hover:text-purple-800"
-                  >
-                    Seçimi Temizle
-                  </button>
+          {/* Content */}
+          {!loading && activeTab === 'items' && (
+            <div className="space-y-6">
+              {/* Bulk Actions Toolbar */}
+              {selectedItems.length > 0 && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-medium text-purple-700">
+                        {selectedItems.length} ürün seçildi
+                      </span>
+                      <button
+                        onClick={() => setSelectedItems([])}
+                        className="text-sm text-purple-600 hover:text-purple-800"
+                      >
+                        Seçimi Temizle
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowBulkPriceModal(true)}
+                        className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
+                      >
+                        <FaMoneyBillWave className="text-xs" />
+                        Fiyat Düzenle
+                      </button>
+                      <button
+                        onClick={handleBulkDelete}
+                        className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 flex items-center gap-1"
+                      >
+                        <FaTrash className="text-xs" />
+                        Sil
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowBulkPriceModal(true)}
-                    className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
-                  >
-                    <FaMoneyBillWave className="text-xs" />
-                    Fiyat Düzenle
-                  </button>
-                  <button
-                    onClick={handleBulkDelete}
-                    className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 flex items-center gap-1"
-                  >
-                    <FaTrash className="text-xs" />
-                    Sil
-                  </button>
+              )}
+
+              {/* Search and Filters */}
+              <div className="bg-white rounded-lg shadow-sm border p-4 space-y-4">
+                <div className="relative">
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Ürün ara..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
                 </div>
+
+                {/* Filtreler */}
+                <div className="flex flex-wrap gap-4 items-center">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700">Durum:</label>
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value as any)}
+                      className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="all">Tümü</option>
+                      <option value="available">Mevcut</option>
+                      <option value="out-of-stock">Tükendi</option>
+                    </select>
+                  </div>
+
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={showOutOfStock}
+                      onChange={(e) => setShowOutOfStock(e.target.checked)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm text-gray-700">Tükenen ürünleri göster</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Items List - Responsive Table View */}
+              <div className="hidden md:block bg-white rounded-lg shadow-sm border">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[720px] table-auto">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.length === filteredItems.length && filteredItems.length > 0}
+                            onChange={handleSelectAll}
+                            className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                          />
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Ürün
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Kategori
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Fiyat
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Durum
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          İşlemler
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredItems.map(item => (
+                        <tr key={item.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <input
+                              type="checkbox"
+                              checked={selectedItems.includes(item.id)}
+                              onChange={() => handleSelectItem(item.id)}
+                              className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <img
+                                src={item.imageUrl || item.image ?
+                                  (item.imageUrl || item.image).startsWith('http') ?
+                                    (item.imageUrl || item.image) :
+                                    `https://masapp-backend.onrender.com${item.imageUrl || item.image}`
+                                  : '/placeholder-food.jpg'}
+                                alt={item.name}
+                                className="h-12 w-12 rounded-lg object-cover mr-4"
+                                onError={(e) => {
+                                  console.log('Resim yüklenemedi:', item.imageUrl || item.image);
+                                  e.currentTarget.src = '/placeholder-food.jpg';
+                                }}
+                                onLoad={() => {
+                                  console.log('Resim yüklendi:', item.imageUrl || item.image);
+                                }}
+                              />
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {item.name}
+                                  {item.isPopular && (
+                                    <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 border border-yellow-200">
+                                      <FaFire className="mr-1 text-yellow-600" />
+                                      Popüler
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-sm text-gray-500 line-clamp-1">
+                                  {item.description}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {categories.find(c => c.id === item.categoryId)?.name || 'Kategori Yok'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            ₺{item.price}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.isAvailable !== false
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                              }`}>
+                              <div className={`w-2 h-2 rounded-full mr-1 ${item.isAvailable !== false ? 'bg-green-500' : 'bg-red-500'
+                                }`}></div>
+                              {item.isAvailable !== false ? 'Mevcut' : 'Tükendi'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                onClick={() => handleViewTranslations(item)}
+                                className="text-blue-600 hover:text-blue-900"
+                                title="Çevirileri Gör"
+                              >
+                                <FaLanguage />
+                              </button>
+                              <button
+                                onClick={() => handleEditItem(item)}
+                                className="text-purple-600 hover:text-purple-900"
+                                title="Düzenle"
+                              >
+                                <FaEdit />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteItem(item.id)}
+                                className="text-red-600 hover:text-red-900"
+                                title="Sil"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-3">
+                {filteredItems.map(item => (
+                  <div key={item.id} className="bg-white rounded-lg shadow-sm border p-4">
+                    <div className="flex items-start gap-3">
+                      <img
+                        src={item.imageUrl || item.image ?
+                          (item.imageUrl || item.image).startsWith('http') ?
+                            (item.imageUrl || item.image) :
+                            `https://masapp-backend.onrender.com${item.imageUrl || item.image}`
+                          : '/placeholder-food.jpg'}
+                        alt={item.name}
+                        className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
+                        onError={(e) => {
+                          console.log('Mobile - Resim yüklenemedi:', item.imageUrl || item.image);
+                          e.currentTarget.src = '/placeholder-food.jpg';
+                        }}
+                        onLoad={() => {
+                          console.log('Mobile - Resim yüklendi:', item.imageUrl || item.image);
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-sm font-medium text-gray-900 truncate">
+                              {item.name}
+                            </h3>
+                            {item.isPopular && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 border border-yellow-200 mt-1">
+                                <FaFire className="mr-1 text-yellow-600" />
+                                Popüler
+                              </span>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              {item.description}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <span className="text-sm font-medium text-gray-900">
+                              ₺{item.price}
+                            </span>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${item.isAvailable !== false
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                              }`}>
+                              <div className={`w-2 h-2 rounded-full mr-1 ${item.isAvailable !== false ? 'bg-green-500' : 'bg-red-500'
+                                }`}></div>
+                              {item.isAvailable !== false ? 'Mevcut' : 'Tükendi'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-3">
+                          <span className="text-xs text-gray-500">
+                            {categories.find(c => c.id === item.categoryId)?.name || 'Kategori Yok'}
+                          </span>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleViewTranslations(item)}
+                              className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg"
+                              title="Çevirileri Gör"
+                            >
+                              <FaLanguage className="text-sm" />
+                            </button>
+                            <button
+                              onClick={() => handleEditItem(item)}
+                              className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-lg"
+                              title="Düzenle"
+                            >
+                              <FaEdit className="text-sm" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteItem(item.id)}
+                              className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg"
+                              title="Sil"
+                            >
+                              <FaTrash className="text-sm" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* Search and Filters */}
-          <div className="bg-white rounded-lg shadow-sm border p-4 space-y-4">
-            <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Ürün ara..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            
-            {/* Filtreler */}
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">Durum:</label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as any)}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
+          {!loading && activeTab === 'categories' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Kategoriler</h2>
+                <button
+                  onClick={handleAddCategory}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
                 >
-                  <option value="all">Tümü</option>
-                  <option value="available">Mevcut</option>
-                  <option value="out-of-stock">Tükendi</option>
-                </select>
+                  <FaPlus />
+                  Yeni Kategori Ekle
+                </button>
               </div>
-              
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={showOutOfStock}
-                  onChange={(e) => setShowOutOfStock(e.target.checked)}
-                  className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                />
-                <span className="text-sm text-gray-700">Tükenen ürünleri göster</span>
-              </label>
-            </div>
-          </div>
 
-          {/* Items List - Responsive Table View */}
-          <div className="hidden md:block bg-white rounded-lg shadow-sm border">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] table-auto">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.length === filteredItems.length && filteredItems.length > 0}
-                        onChange={handleSelectAll}
-                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                      />
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ürün
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Kategori
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fiyat
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Durum
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      İşlemler
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredItems.map(item => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={selectedItems.includes(item.id)}
-                          onChange={() => handleSelectItem(item.id)}
-                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <img
-                            src={item.imageUrl || item.image ? 
-                              (item.imageUrl || item.image).startsWith('http') ? 
-                                (item.imageUrl || item.image) : 
-                                `https://masapp-backend.onrender.com${item.imageUrl || item.image}` 
-                              : '/placeholder-food.jpg'}
-                            alt={item.name}
-                            className="h-12 w-12 rounded-lg object-cover mr-4"
-                            onError={(e) => {
-                              console.log('Resim yüklenemedi:', item.imageUrl || item.image);
-                              e.currentTarget.src = '/placeholder-food.jpg';
-                            }}
-                            onLoad={() => {
-                              console.log('Resim yüklendi:', item.imageUrl || item.image);
-                            }}
-                          />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {item.name}
-                              {item.isPopular && (
-                                <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 border border-yellow-200">
-                                  <FaFire className="mr-1 text-yellow-600" />
-                                  Popüler
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-sm text-gray-500 line-clamp-1">
-                              {item.description}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {categories.find(c => c.id === item.categoryId)?.name || 'Kategori Yok'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ₺{item.price}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          item.isAvailable !== false
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          <div className={`w-2 h-2 rounded-full mr-1 ${
-                            item.isAvailable !== false ? 'bg-green-500' : 'bg-red-500'
-                          }`}></div>
-                          {item.isAvailable !== false ? 'Mevcut' : 'Tükendi'}
+              {categories.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <FaFolderOpen className="mx-auto text-5xl" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Henüz kategori yok</h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Menü ürünlerinizi düzenlemek için kategoriler oluşturun
+                  </p>
+                  <button
+                    onClick={handleAddCategory}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                  >
+                    <FaPlus />
+                    İlk Kategoriyi Ekle
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {categories.map(category => (
+                    <div key={category.id} className="bg-white rounded-lg shadow-sm border p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="font-semibold text-lg">{category.name}</h3>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${category.isActive !== false
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                          }`}>
+                          {category.isActive !== false ? 'Aktif' : 'Pasif'}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex flex-wrap gap-2">
-                          <button 
-                            onClick={() => handleViewTranslations(item)}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Çevirileri Gör"
-                          >
-                            <FaLanguage />
-                          </button>
-                          <button 
-                            onClick={() => handleEditItem(item)}
-                            className="text-purple-600 hover:text-purple-900"
-                            title="Düzenle"
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-500 mb-4">
+                          {items.filter(i => i.categoryId === category.id).length} ürün
+                        </p>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditCategory(category)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
                           >
                             <FaEdit />
+                            Düzenle
                           </button>
-                          <button 
-                            onClick={() => handleDeleteItem(item.id)}
-                            className="text-red-600 hover:text-red-900"
-                            title="Sil"
+                          <button
+                            onClick={() => handleDeleteCategory(category.id)}
+                            className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
                           >
                             <FaTrash />
                           </button>
                         </div>
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Mobile Card View */}
-          <div className="md:hidden space-y-3">
-            {filteredItems.map(item => (
-              <div key={item.id} className="bg-white rounded-lg shadow-sm border p-4">
-                <div className="flex items-start gap-3">
-                  <img
-                    src={item.imageUrl || item.image ? 
-                      (item.imageUrl || item.image).startsWith('http') ? 
-                        (item.imageUrl || item.image) : 
-                        `https://masapp-backend.onrender.com${item.imageUrl || item.image}` 
-                      : '/placeholder-food.jpg'}
-                    alt={item.name}
-                    className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
-                    onError={(e) => {
-                      console.log('Mobile - Resim yüklenemedi:', item.imageUrl || item.image);
-                      e.currentTarget.src = '/placeholder-food.jpg';
-                    }}
-                    onLoad={() => {
-                      console.log('Mobile - Resim yüklendi:', item.imageUrl || item.image);
-                    }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-sm font-medium text-gray-900 truncate">
-                          {item.name}
-                        </h3>
-                        {item.isPopular && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 border border-yellow-200 mt-1">
-                            <FaFire className="mr-1 text-yellow-600" />
-                            Popüler
-                          </span>
-                        )}
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                          {item.description}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="text-sm font-medium text-gray-900">
-                          ₺{item.price}
-                        </span>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          item.isAvailable !== false
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          <div className={`w-2 h-2 rounded-full mr-1 ${
-                            item.isAvailable !== false ? 'bg-green-500' : 'bg-red-500'
-                          }`}></div>
-                          {item.isAvailable !== false ? 'Mevcut' : 'Tükendi'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-3">
-                      <span className="text-xs text-gray-500">
-                        {categories.find(c => c.id === item.categoryId)?.name || 'Kategori Yok'}
-                      </span>
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => handleViewTranslations(item)}
-                          className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg"
-                          title="Çevirileri Gör"
-                        >
-                          <FaLanguage className="text-sm" />
-                        </button>
-                        <button 
-                          onClick={() => handleEditItem(item)}
-                          className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-lg"
-                          title="Düzenle"
-                        >
-                          <FaEdit className="text-sm" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteItem(item.id)}
-                          className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg"
-                          title="Sil"
-                        >
-                          <FaTrash className="text-sm" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {!loading && activeTab === 'categories' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Kategoriler</h2>
-            <button 
-              onClick={handleAddCategory}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-            >
-              <FaPlus />
-              Yeni Kategori Ekle
-            </button>
-          </div>
-
-          {categories.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-              <div className="text-gray-400 mb-4">
-                <FaFolderOpen className="mx-auto text-5xl" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Henüz kategori yok</h3>
-              <p className="text-sm text-gray-500 mb-4">
-                Menü ürünlerinizi düzenlemek için kategoriler oluşturun
-              </p>
-              <button 
-                onClick={handleAddCategory}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
-              >
-                <FaPlus />
-                İlk Kategoriyi Ekle
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categories.map(category => (
-              <div key={category.id} className="bg-white rounded-lg shadow-sm border p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-semibold text-lg">{category.name}</h3>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    category.isActive !== false
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {category.isActive !== false ? 'Aktif' : 'Pasif'}
-                  </span>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-500 mb-4">
-                    {items.filter(i => i.categoryId === category.id).length} ürün
-                  </p>
-                  
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => handleEditCategory(category)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
-                    >
-                      <FaEdit />
-                      Düzenle
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteCategory(category.id)}
-                      className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      {!loading && activeTab === 'stats' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Menü İstatistikleri</h2>
-            <div className="text-xs text-gray-500">Backend verileri üzerinden hesaplanır</div>
-          </div>
-
-          {/* KPI Kartları */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {label:'Toplam Ürün', value: items.length, icon:<FaUtensils className='text-blue-600' />, bg:'bg-blue-100'},
-              {label:'Popüler Ürünler', value: items.filter(i=>i.isPopular).length, icon:<FaFire className='text-red-600' />, bg:'bg-red-100'},
-              {label:'Kategori Sayısı', value: categories.length, icon:<FaTag className='text-green-600' />, bg:'bg-green-100'},
-              {label:'Ortalama Fiyat', value:`₺${items.length>0? Math.round(items.reduce((s,i)=>s+i.price,0)/items.length):0}`, icon:<FaChartBar className='text-purple-600' />, bg:'bg-purple-100'}
-            ].map((kpi,idx)=> (
-              <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{kpi.label}</p>
-                    <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
-                  </div>
-                  <div className={`p-3 rounded-full ${kpi.bg}`}>{kpi.icon}</div>
-                </div>
+          {!loading && activeTab === 'stats' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold">Menü İstatistikleri</h2>
+                <div className="text-xs text-gray-500">Backend verileri üzerinden hesaplanır</div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+
+              {/* KPI Kartları */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { label: 'Toplam Ürün', value: items.length, icon: <FaUtensils className='text-blue-600' />, bg: 'bg-blue-100' },
+                  { label: 'Popüler Ürünler', value: items.filter(i => i.isPopular).length, icon: <FaFire className='text-red-600' />, bg: 'bg-red-100' },
+                  { label: 'Kategori Sayısı', value: categories.length, icon: <FaTag className='text-green-600' />, bg: 'bg-green-100' },
+                  { label: 'Ortalama Fiyat', value: `₺${items.length > 0 ? Math.round(items.reduce((s, i) => s + i.price, 0) / items.length) : 0}`, icon: <FaChartBar className='text-purple-600' />, bg: 'bg-purple-100' }
+                ].map((kpi, idx) => (
+                  <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">{kpi.label}</p>
+                        <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
+                      </div>
+                      <div className={`p-3 rounded-full ${kpi.bg}`}>{kpi.icon}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Modals */}
           {showItemForm && (
@@ -1228,32 +1242,32 @@ export default function MenuManagement() {
                 <div className="p-6 overflow-y-auto max-h-[70vh]">
                   <form className="space-y-6">
                     {/* Ürün Adı */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Ürün Adı *
-                        </label>
-                        <input
-                          type="text"
+                      </label>
+                      <input
+                        type="text"
                         value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="Örn: Bruschetta"
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Örn: Bruschetta"
                         required
                       />
                     </div>
 
                     {/* Açıklama */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Açıklama
-                        </label>
-                        <textarea
+                      </label>
+                      <textarea
                         value={formData.description}
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                          rows={3}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="Ürün açıklaması..."
-                        />
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Ürün açıklaması..."
+                      />
                     </div>
 
                     {translationLanguages.length > 0 && (
@@ -1321,7 +1335,7 @@ export default function MenuManagement() {
                         <input
                           type="number"
                           value={formData.price}
-                          onChange={(e) => setFormData({...formData, price: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           placeholder="45"
                           required
@@ -1331,9 +1345,9 @@ export default function MenuManagement() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Kategori *
                         </label>
-                        <select 
+                        <select
                           value={formData.category}
-                          onChange={(e) => setFormData({...formData, category: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           required
                         >
@@ -1363,7 +1377,7 @@ export default function MenuManagement() {
                         <input
                           type="number"
                           value={formData.calories}
-                          onChange={(e) => setFormData({...formData, calories: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           placeholder="250"
                         />
@@ -1375,7 +1389,7 @@ export default function MenuManagement() {
                         <input
                           type="number"
                           value={formData.preparationTime}
-                          onChange={(e) => setFormData({...formData, preparationTime: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, preparationTime: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           placeholder="15"
                         />
@@ -1383,31 +1397,31 @@ export default function MenuManagement() {
                     </div>
 
                     {/* Alt Kategori */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Alt Kategori
-                        </label>
+                      </label>
                       <input
                         type="text"
                         value={formData.subcategory}
-                        onChange={(e) => setFormData({...formData, subcategory: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         placeholder="Örn: Sıcak İçecekler, Ana Yemekler"
-                        />
-                      </div>
+                      />
+                    </div>
 
                     {/* Malzemeler */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Malzemeler
-                        </label>
-                        <textarea
+                      </label>
+                      <textarea
                         value={formData.ingredients}
-                        onChange={(e) => setFormData({...formData, ingredients: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
                         rows={3}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         placeholder="Malzemeleri virgülle ayırarak yazın (Örn: Domates, Mozzarella, Fesleğen)"
-                        />
+                      />
                     </div>
 
                     {/* Alerjenler */}
@@ -1427,11 +1441,11 @@ export default function MenuManagement() {
                                 if (e.target.checked) {
                                   const newAllergens = [...currentAllergens, allergen];
                                   console.log('Yeni alerjenler:', newAllergens);
-                                  setFormData({...formData, allergens: newAllergens});
+                                  setFormData({ ...formData, allergens: newAllergens });
                                 } else {
                                   const newAllergens = currentAllergens.filter(a => a !== allergen);
                                   console.log('Kaldırılan alerjenler:', newAllergens);
-                                  setFormData({...formData, allergens: newAllergens});
+                                  setFormData({ ...formData, allergens: newAllergens });
                                 }
                               }}
                               className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
@@ -1447,7 +1461,7 @@ export default function MenuManagement() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Ürün Fotoğrafı
                       </label>
-                      
+
                       {/* Fotoğraf Yükleme Seçenekleri */}
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         {/* Kameradan Çek */}
@@ -1468,66 +1482,66 @@ export default function MenuManagement() {
 
                         {/* Dosyadan Yükle */}
                         <label className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors text-center cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        console.log('Seçilen dosya:', file.name, 'Boyut:', file.size, 'Tip:', file.type);
-                        
-                        // Dosya boyutunu kontrol et (max 5MB)
-                        if (file.size > 5 * 1024 * 1024) {
-                          alert('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.');
-                          return;
-                        }
-                        
-                        // Dosya tipini kontrol et
-                        if (!file.type.startsWith('image/')) {
-                          alert('Lütfen sadece resim dosyası seçin.');
-                          return;
-                        }
-                        
-                        // Basit ve güvenilir resim yükleme sistemi
-                        try {
-                          console.log('📤 Resim yükleniyor:', file.name, file.size, 'bytes');
-                          
-                          const formData = new FormData();
-                          formData.append('image', file);
-                          
-                          console.log('📡 API URL:', process.env.NEXT_PUBLIC_API_URL);
-                          
-                          const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
-                            method: 'POST',
-                            body: formData,
-                          });
-                          
-                          console.log('📊 Response status:', response.status);
-                          console.log('📊 Response ok:', response.ok);
-                          
-                          if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                          }
-                          
-                          const result = await response.json();
-                          console.log('📊 Response data:', result);
-                          
-                          if (result.success) {
-                            console.log('✅ Resim başarıyla yüklendi:', result.data.imageUrl);
-                            setCapturedImage(result.data.imageUrl);
-                            alert('✅ Resim başarıyla yüklendi!');
-                          } else {
-                            console.error('❌ Upload failed:', result.message);
-                            alert('❌ Resim yüklenemedi: ' + result.message);
-                          }
-                        } catch (error) {
-                          console.error('❌ Resim yükleme hatası:', error);
-                          alert('❌ Resim yüklenirken hata oluştu: ' + error.message);
-                        }
-                      }
-                    }}
-                    className="hidden"
-                  />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                console.log('Seçilen dosya:', file.name, 'Boyut:', file.size, 'Tip:', file.type);
+
+                                // Dosya boyutunu kontrol et (max 5MB)
+                                if (file.size > 5 * 1024 * 1024) {
+                                  alert('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.');
+                                  return;
+                                }
+
+                                // Dosya tipini kontrol et
+                                if (!file.type.startsWith('image/')) {
+                                  alert('Lütfen sadece resim dosyası seçin.');
+                                  return;
+                                }
+
+                                // Basit ve güvenilir resim yükleme sistemi
+                                try {
+                                  console.log('📤 Resim yükleniyor:', file.name, file.size, 'bytes');
+
+                                  const formData = new FormData();
+                                  formData.append('image', file);
+
+                                  console.log('📡 API URL:', process.env.NEXT_PUBLIC_API_URL);
+
+                                  const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
+                                    method: 'POST',
+                                    body: formData,
+                                  });
+
+                                  console.log('📊 Response status:', response.status);
+                                  console.log('📊 Response ok:', response.ok);
+
+                                  if (!response.ok) {
+                                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                                  }
+
+                                  const result = await response.json();
+                                  console.log('📊 Response data:', result);
+
+                                  if (result.success) {
+                                    console.log('✅ Resim başarıyla yüklendi:', result.data.imageUrl);
+                                    setCapturedImage(result.data.imageUrl);
+                                    alert('✅ Resim başarıyla yüklendi!');
+                                  } else {
+                                    console.error('❌ Upload failed:', result.message);
+                                    alert('❌ Resim yüklenemedi: ' + result.message);
+                                  }
+                                } catch (error) {
+                                  console.error('❌ Resim yükleme hatası:', error);
+                                  alert('❌ Resim yüklenirken hata oluştu: ' + error.message);
+                                }
+                              }
+                            }}
+                            className="hidden"
+                          />
                           <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
                             <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -1548,7 +1562,7 @@ export default function MenuManagement() {
                           </div>
                           <h4 className="font-semibold text-gray-800">AI Görsel İşleme Aktif!</h4>
                         </div>
-                        
+
                         <ul className="space-y-2 text-sm text-gray-700">
                           <li className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -1567,7 +1581,7 @@ export default function MenuManagement() {
                             <span>Keskinlik artırma</span>
                           </li>
                         </ul>
-                        
+
                         <div className="mt-3 p-2 bg-yellow-100 rounded-lg">
                           <div className="flex items-center gap-2">
                             <span className="text-yellow-600">💡</span>
@@ -1614,7 +1628,7 @@ export default function MenuManagement() {
                                 name="status"
                                 value="available"
                                 checked={formData.isAvailable}
-                                onChange={(e) => setFormData({...formData, isAvailable: e.target.value === 'available'})}
+                                onChange={(e) => setFormData({ ...formData, isAvailable: e.target.value === 'available' })}
                                 className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
                               />
                               <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
@@ -1628,7 +1642,7 @@ export default function MenuManagement() {
                                 name="status"
                                 value="out-of-stock"
                                 checked={!formData.isAvailable}
-                                onChange={(e) => setFormData({...formData, isAvailable: e.target.value !== 'out-of-stock'})}
+                                onChange={(e) => setFormData({ ...formData, isAvailable: e.target.value !== 'out-of-stock' })}
                                 className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
                               />
                               <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
@@ -1643,7 +1657,7 @@ export default function MenuManagement() {
                             <input
                               type="checkbox"
                               checked={formData.isPopular}
-                              onChange={(e) => setFormData({...formData, isPopular: e.target.checked})}
+                              onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
                               className="w-5 h-5 text-yellow-600 border-yellow-300 rounded focus:ring-yellow-500"
                             />
                             <span className="ml-3 text-sm font-medium text-yellow-800 flex items-center gap-2">
@@ -1655,7 +1669,7 @@ export default function MenuManagement() {
                       </div>
                     </div>
                   </form>
-                  
+
                   <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
                     <button
                       onClick={() => setShowItemForm(false)}
@@ -1671,7 +1685,7 @@ export default function MenuManagement() {
                         console.log('Captured Image Preview:', capturedImage ? capturedImage.substring(0, 100) + '...' : 'null');
                         console.log('Editing Item:', editingItem);
                         console.log('Current Restaurant ID:', currentRestaurantId);
-                        
+
                         // Gerçek güncelleme işlemi
                         if (editingItem) {
                           // Ürün güncelleme
@@ -1680,20 +1694,20 @@ export default function MenuManagement() {
                               const updateData = {
                                 name: formData.name,
                                 description: formData.description,
-                            price: Number(formData.price),
-                            categoryId: formData.category,
-                            isAvailable: formData.isAvailable,
-                            isPopular: formData.isPopular,
+                                price: Number(formData.price),
+                                categoryId: formData.category,
+                                isAvailable: formData.isAvailable,
+                                isPopular: formData.isPopular,
                                 imageUrl: capturedImage || editingItem.imageUrl,
                                 allergens: formData.allergens
                               };
-                              
+
                               console.log('Update Data gönderiliyor:', updateData);
                               console.log('Alerjenler:', formData.allergens);
                               console.log('Resim URL uzunluğu:', updateData.imageUrl.length);
-                              
+
                               await updateMenuItem(currentRestaurantId, editingItem.id, updateData);
-                          console.log('Ürün güncellendi:', formData);
+                              console.log('Ürün güncellendi:', formData);
                               // Menüyü yeniden yükle
                               await fetchRestaurantMenu(currentRestaurantId);
                               alert('Ürün başarıyla güncellendi!');
@@ -1708,25 +1722,25 @@ export default function MenuManagement() {
                             alert('Lütfen ürün adı, fiyat ve kategori alanlarını doldurun!');
                             return;
                           }
-                          
+
                           try {
                             if (currentRestaurantId) {
                               const createData = {
-                            categoryId: formData.category,
+                                categoryId: formData.category,
                                 name: formData.name,
                                 description: formData.description,
-                            price: Number(formData.price),
+                                price: Number(formData.price),
                                 imageUrl: capturedImage || '/placeholder-food.jpg',
-                            order: items.length + 1,
-                            isAvailable: formData.isAvailable,
-                            isPopular: formData.isPopular,
+                                order: items.length + 1,
+                                isAvailable: formData.isAvailable,
+                                isPopular: formData.isPopular,
                                 allergens: formData.allergens
                               };
-                              
+
                               console.log('Create Data gönderiliyor:', createData);
                               console.log('Alerjenler:', formData.allergens);
                               console.log('Resim URL uzunluğu:', createData.imageUrl.length);
-                              
+
                               await createMenuItem(currentRestaurantId, createData);
                               console.log('Yeni ürün backend\'e kaydedildi:', formData);
                               // Menüyü yeniden yükle
@@ -1738,7 +1752,7 @@ export default function MenuManagement() {
                             alert('Ürün eklenirken bir hata oluştu: ' + error.message);
                           }
                         }
-                        
+
                         // Başarılı işlem sonrası temizlik
                         setShowItemForm(false);
                         setEditingItem(null);
@@ -1786,17 +1800,17 @@ export default function MenuManagement() {
                 <div className="p-6">
                   <form className="space-y-4">
                     {/* Kategori Adı */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Kategori Adı *
-                        </label>
-                        <input
-                          type="text"
+                      </label>
+                      <input
+                        type="text"
                         value={categoryFormData.name}
-                        onChange={(e) => setCategoryFormData({...categoryFormData, name: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         placeholder="Örn: Başlangıçlar, Ana Yemekler, Tatlılar"
-                          required
+                        required
                       />
                     </div>
 
@@ -1806,14 +1820,14 @@ export default function MenuManagement() {
                         <input
                           type="checkbox"
                           checked={categoryFormData.isActive}
-                          onChange={(e) => setCategoryFormData({...categoryFormData, isActive: e.target.checked})}
+                          onChange={(e) => setCategoryFormData({ ...categoryFormData, isActive: e.target.checked })}
                           className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                         />
                         <span className="ml-2 text-sm text-gray-700">Aktif</span>
                       </label>
                     </div>
                   </form>
-                  
+
                   <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
                     <button
                       onClick={() => setShowCategoryForm(false)}
@@ -1828,29 +1842,29 @@ export default function MenuManagement() {
                           alert('Lütfen kategori adını girin!');
                           return;
                         }
-                        
+
                         try {
-                        if (editingCategory) {
+                          if (editingCategory) {
                             if (currentRestaurantId) {
                               await updateMenuCategory(currentRestaurantId, editingCategory.id, {
                                 name: categoryFormData.name,
                                 description: categoryFormData.description,
-                            order: categoryFormData.order,
-                            isActive: categoryFormData.isActive
-                          });
-                          console.log('Kategori güncellendi:', editingCategory);
+                                order: categoryFormData.order,
+                                isActive: categoryFormData.isActive
+                              });
+                              console.log('Kategori güncellendi:', editingCategory);
                               // Menüyü yeniden yükle
                               await fetchRestaurantMenu(currentRestaurantId);
                             }
-                        } else {
+                          } else {
                             // Backend API'sine kaydet
                             if (currentRestaurantId) {
                               await createMenuCategory(currentRestaurantId, {
                                 name: categoryFormData.name,
                                 description: categoryFormData.description,
-                            order: categories.length,
-                            isActive: categoryFormData.isActive
-                          });
+                                order: categories.length,
+                                isActive: categoryFormData.isActive
+                              });
                               console.log('Yeni kategori backend\'e kaydedildi');
                               // Menüyü yeniden yükle
                               await fetchRestaurantMenu(currentRestaurantId);
@@ -1909,22 +1923,22 @@ export default function MenuManagement() {
                     <div className="absolute inset-0 border-2 border-white rounded-lg pointer-events-none">
                       <div className="absolute top-2 left-2 right-2 h-8 bg-black bg-opacity-50 rounded flex items-center justify-center">
                         <span className="text-white text-sm">Ürünü çerçeve içine alın</span>
-                </div>
-              </div>
-                </div>
+                      </div>
+                    </div>
+                  </div>
                   <div className="flex gap-3">
                     <button
                       onClick={stopCamera}
                       className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                  >
-                    İptal
-                  </button>
-                  <button
+                    >
+                      İptal
+                    </button>
+                    <button
                       onClick={capturePhoto}
                       className="flex-1 py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                     >
                       Fotoğraf Çek
-                  </button>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -2093,7 +2107,7 @@ export default function MenuManagement() {
                     <div className="space-y-6">
                       {Object.entries(translations).length > 0 ? (
                         Object.entries(translations).map(([lang, translation]) => {
-                          const languageNames: {[key: string]: string} = {
+                          const languageNames: { [key: string]: string } = {
                             'tr': 'Türkçe',
                             'en': 'English',
                             'ar': 'العربية',
@@ -2169,7 +2183,7 @@ export default function MenuManagement() {
                   <p className="text-sm text-gray-600">
                     {selectedItems.length} ürünün fiyatını güncelleyeceksiniz.
                   </p>
-                  
+
                   {/* Operation Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2178,21 +2192,19 @@ export default function MenuManagement() {
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => setBulkPriceOperation('increase')}
-                        className={`p-2 text-sm rounded-lg border ${
-                          bulkPriceOperation === 'increase'
-                            ? 'bg-green-50 border-green-300 text-green-700'
-                            : 'border-gray-300 text-gray-700'
-                        }`}
+                        className={`p-2 text-sm rounded-lg border ${bulkPriceOperation === 'increase'
+                          ? 'bg-green-50 border-green-300 text-green-700'
+                          : 'border-gray-300 text-gray-700'
+                          }`}
                       >
                         Arttır
                       </button>
                       <button
                         onClick={() => setBulkPriceOperation('decrease')}
-                        className={`p-2 text-sm rounded-lg border ${
-                          bulkPriceOperation === 'decrease'
-                            ? 'bg-red-50 border-red-300 text-red-700'
-                            : 'border-gray-300 text-gray-700'
-                        }`}
+                        className={`p-2 text-sm rounded-lg border ${bulkPriceOperation === 'decrease'
+                          ? 'bg-red-50 border-red-300 text-red-700'
+                          : 'border-gray-300 text-gray-700'
+                          }`}
                       >
                         Azalt
                       </button>
@@ -2207,22 +2219,20 @@ export default function MenuManagement() {
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => setBulkPriceType('percentage')}
-                        className={`p-2 text-sm rounded-lg border ${
-                          bulkPriceType === 'percentage'
-                            ? 'bg-blue-50 border-blue-300 text-blue-700'
-                            : 'border-gray-300 text-gray-700'
-                        }`}
+                        className={`p-2 text-sm rounded-lg border ${bulkPriceType === 'percentage'
+                          ? 'bg-blue-50 border-blue-300 text-blue-700'
+                          : 'border-gray-300 text-gray-700'
+                          }`}
                       >
                         <FaPercent className="inline mr-1" />
                         Yüzde
                       </button>
                       <button
                         onClick={() => setBulkPriceType('fixed')}
-                        className={`p-2 text-sm rounded-lg border ${
-                          bulkPriceType === 'fixed'
-                            ? 'bg-blue-50 border-blue-300 text-blue-700'
-                            : 'border-gray-300 text-gray-700'
-                        }`}
+                        className={`p-2 text-sm rounded-lg border ${bulkPriceType === 'fixed'
+                          ? 'bg-blue-50 border-blue-300 text-blue-700'
+                          : 'border-gray-300 text-gray-700'
+                          }`}
                       >
                         ₺ Sabit
                       </button>
@@ -2242,7 +2252,7 @@ export default function MenuManagement() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      {bulkPriceType === 'percentage' 
+                      {bulkPriceType === 'percentage'
                         ? `Fiyatları %${bulkPriceValue || '0'} ${bulkPriceOperation === 'increase' ? 'arttır' : 'azalt'}`
                         : `Fiyatlara ₺${bulkPriceValue || '0'} ${bulkPriceOperation === 'increase' ? 'ekle' : 'çıkar'}`
                       }
