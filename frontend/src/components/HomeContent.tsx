@@ -509,7 +509,7 @@ export default function HomeContent() {
                             <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
                                 <FaPhone className="text-3xl text-green-400 mb-4 mx-auto" />
                                 <div className="text-xl font-bold text-white mb-2">{t('phone')}</div>
-                                <div className="text-gray-300">+90 (555) 123 45 67</div>
+                                <div className="text-gray-300">{t('phoneNumber')}</div>
                             </div>
                             <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
                                 <FaWhatsapp className="text-3xl text-green-400 mb-4 mx-auto" />
