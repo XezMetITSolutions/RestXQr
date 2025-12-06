@@ -111,7 +111,7 @@ export default function HomeContent({ lng }: { lng: string }) {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-              <Link href="/isletme-giris" className="group relative px-12 py-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl text-xl font-bold shadow-2xl hover:shadow-green-500/50 transition-all duration-300 hover:scale-110 overflow-hidden">
+              <Link href="/business/login" className="group relative px-12 py-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl text-xl font-bold shadow-2xl hover:shadow-green-500/50 transition-all duration-300 hover:scale-110 overflow-hidden">
                 <span className="relative z-10 flex items-center justify-center">
                   <FaRocket className="mr-3 group-hover:animate-bounce" />
                   {t('hero.cta1')}
@@ -255,7 +255,7 @@ export default function HomeContent({ lng }: { lng: string }) {
                 {t('ai_section.cta_desc1')}<br/>
                 {t('ai_section.cta_desc2')}
               </p>
-              <Link href="/isletme-giris" className="inline-block px-12 py-6 bg-white text-purple-600 rounded-2xl text-xl font-black shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110">
+              <Link href="/business/login" className="inline-block px-12 py-6 bg-white text-purple-600 rounded-2xl text-xl font-black shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110">
                 {t('ai_section.cta_button')}
               </Link>
             </div>
@@ -522,7 +522,7 @@ export default function HomeContent({ lng }: { lng: string }) {
               <div className="text-2xl font-black mb-2">✅ {t('cta_section.guarantee')}</div>
             </div>
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-              <Link href="/isletme-giris" className="group relative px-12 py-6 bg-white text-purple-600 rounded-2xl text-xl font-black shadow-2xl hover:shadow-white/50 transition-all duration-300 hover:scale-110 overflow-hidden">
+              <Link href="/business/login" className="group relative px-12 py-6 bg-white text-purple-600 rounded-2xl text-xl font-black shadow-2xl hover:shadow-white/50 transition-all duration-300 hover:scale-110 overflow-hidden">
                 <span className="relative z-10 flex items-center justify-center">
                   <FaRocket className="mr-3 group-hover:animate-bounce" />
                   {t('cta_section.button1')}
