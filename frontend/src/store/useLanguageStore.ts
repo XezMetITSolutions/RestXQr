@@ -933,6 +933,430 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
     },
 
 
+
+    // Demo Panels
+    waiterPanel: {
+      en: 'Waiter Panel',
+      tr: 'Garson Paneli',
+      de: 'Kellner Panel',
+    },
+    kitchenPanel: {
+      en: 'Kitchen Panel',
+      tr: 'Mutfak Paneli',
+      de: 'Küchen Panel',
+    },
+    cashierPanel: {
+      en: 'Cashier Panel',
+      tr: 'Kasa Paneli',
+      de: 'Kassen Panel',
+    },
+    demoWaiterDesc: {
+      en: 'Manage tables and orders',
+      tr: 'Masaları ve siparişleri yönetin',
+      de: 'Tische und Bestellungen verwalten',
+    },
+    demoKitchenDesc: {
+      en: 'Track and prepare orders',
+      tr: 'Siparişleri takip edin ve hazırlayın',
+      de: 'Bestellungen verfolgen und zubereiten',
+    },
+    demoCashierDesc: {
+      en: 'Manage payments and reports',
+      tr: 'Ödemeleri ve raporları yönetin',
+      de: 'Zahlungen und Berichte verwalten',
+    },
+    openPanel: {
+      en: 'Open Panel',
+      tr: 'Paneli Aç',
+      de: 'Panel öffnen',
+    },
+
+    // Demo Waiter Panel
+    waiterPanelTitle: {
+      en: 'RestXQr Waiter',
+      tr: 'RestXQr Garson',
+      de: 'RestXQr Kellner',
+    },
+    waiterPanelSubtitle: {
+      en: 'RestXQr Restaurant • Live Status',
+      tr: 'RestXQr Restoranı • Canlı Durum',
+      de: 'RestXQr Restaurant • Live-Status',
+    },
+    refresh: {
+      en: 'REFRESH',
+      tr: 'YENİLE',
+      de: 'AKTUALISIEREN',
+    },
+    logout: {
+      en: 'Logout',
+      tr: 'Çıkış',
+      de: 'Abmelden',
+    },
+    all: {
+      en: 'All',
+      tr: 'Tümü',
+      de: 'Alle',
+    },
+    active: {
+      en: 'Active',
+      tr: 'Aktif',
+      de: 'Aktiv',
+    },
+    preparing: {
+      en: 'Preparing',
+      tr: 'Hazırlanıyor',
+      de: 'Wird zubereitet',
+    },
+    ready: {
+      en: 'Ready',
+      tr: 'Hazır',
+      de: 'Bereit',
+    },
+    completed: {
+      en: 'Completed',
+      tr: 'Tamamlandı',
+      de: 'Abgeschlossen',
+    },
+    cancelled: {
+      en: 'Cancelled',
+      tr: 'İptal',
+      de: 'Storniert',
+    },
+    loadingOrders: {
+      en: 'Loading orders...',
+      tr: 'Siparişler yükleniyor...',
+      de: 'Bestellungen werden geladen...',
+    },
+    noOrdersYet: {
+      en: 'No Orders Yet',
+      tr: 'Henüz Sipariş Yok',
+      de: 'Noch keine Bestellungen',
+    },
+    newOrdersWillAppearHere: {
+      en: 'New orders will appear here',
+      tr: 'Yeni siparişler burada görünecek',
+      de: 'Neue Bestellungen erscheinen hier',
+    },
+    table: {
+      en: 'Table',
+      tr: 'Masa',
+      de: 'Tisch',
+    },
+    time: {
+      en: 'Time',
+      tr: 'Saat',
+      de: 'Zeit',
+    },
+    items: {
+      en: 'items',
+      tr: 'ürün',
+      de: 'Artikel',
+    },
+    moreItems: {
+      en: 'more items',
+      tr: 'ürün daha',
+      de: 'weitere Artikel',
+    },
+    serve: {
+      en: 'Serve',
+      tr: 'Servis Et',
+      de: 'Servieren',
+    },
+    changeTable: {
+      en: 'Change Table',
+      tr: 'Masa Değiştir',
+      de: 'Tisch wechseln',
+    },
+    details: {
+      en: 'Details',
+      tr: 'Detay',
+      de: 'Details',
+    },
+    enterNewTableNumber: {
+      en: 'Enter new table number for Table',
+      tr: 'Masa için yeni masa numarası girin:',
+      de: 'Geben Sie die neue Tischnummer ein für Tisch',
+    },
+    newTableNumber: {
+      en: 'New Table Number',
+      tr: 'Yeni Masa Numarası',
+      de: 'Neue Tischnummer',
+    },
+    tableNumberPlaceholder: {
+      en: 'Table number...',
+      tr: 'Masa numarası...',
+      de: 'Tischnummer...',
+    },
+    quickSelect: {
+      en: 'Quick Select',
+      tr: 'Hızlı Seçim',
+      de: 'Schnellauswahl',
+    },
+    cancel: {
+      en: 'Cancel',
+      tr: 'İptal',
+      de: 'Abbrechen',
+    },
+    change: {
+      en: 'Change',
+      tr: 'Değiştir',
+      de: 'Ändern',
+    },
+    invalidTableNumber: {
+      en: 'Please enter a valid table number between 1-100!',
+      tr: 'Lütfen 1-100 arasında geçerli bir masa numarası girin!',
+      de: 'Bitte geben Sie eine gültige Tischnummer zwischen 1-100 ein!',
+    },
+    orderDetails: {
+      en: 'Order Details',
+      tr: 'Sipariş Detayları',
+      de: 'Bestelldetails',
+    },
+    orderInfo: {
+      en: 'Order Info',
+      tr: 'Sipariş Bilgileri',
+      de: 'Bestellinfo',
+    },
+    orderId: {
+      en: 'Order ID',
+      tr: 'Sipariş ID',
+      de: 'Bestell-ID',
+    },
+    status: {
+      en: 'Status',
+      tr: 'Durum',
+      de: 'Status',
+    },
+    total: {
+      en: 'Total',
+      tr: 'Toplam',
+      de: 'Gesamt',
+    },
+    orderItems: {
+      en: 'Order Items',
+      tr: 'Sipariş Ürünleri',
+      de: 'Bestellte Artikel',
+    },
+    orderNote: {
+      en: 'Order Note',
+      tr: 'Sipariş Notu',
+      de: 'Bestellnotiz',
+    },
+    orderStatus: {
+      en: 'Order Status',
+      tr: 'Sipariş Durumu',
+      de: 'Bestellstatus',
+    },
+    served: {
+      en: 'Served',
+      tr: 'Servis Edildi',
+      de: 'Serviert',
+    },
+    confirmCancelOrder: {
+      en: 'Are you sure you want to cancel this order?',
+      tr: 'Bu siparişi iptal etmek istediğinizden emin misiniz?',
+      de: 'Sind Sie sicher, dass Sie diese Bestellung stornieren möchten?',
+    },
+    cancelOrder: {
+      en: 'Cancel Order',
+      tr: 'İptal Et',
+      de: 'Bestellung stornieren',
+    },
+
+    // Demo Kitchen Panel
+    kitchenPanelTitle: {
+      en: 'Kitchen Panel',
+      tr: 'Mutfak Paneli',
+      de: 'Küchenpanel',
+    },
+    kitchenPanelSubtitle: {
+      en: 'Manage room service orders and menu items',
+      tr: 'Oda servisi siparişlerini ve menü ürünlerini yönetin',
+      de: 'Zimmerservice-Bestellungen und Menüpunkte verwalten',
+    },
+    menuManagement: {
+      en: 'Menu Management',
+      tr: 'Menü Yönetimi',
+      de: 'Menüverwaltung',
+    },
+    searchPlaceholder: {
+      en: 'Search table number or item...',
+      tr: 'Masa numarası veya ürün ara...',
+      de: 'Tischnummer oder Artikel suchen...',
+    },
+    pending: {
+      en: 'Pending',
+      tr: 'Bekliyor',
+      de: 'Ausstehend',
+    },
+    unknown: {
+      en: 'Unknown',
+      tr: 'Bilinmeyen',
+      de: 'Unbekannt',
+    },
+    loadingMenu: {
+      en: 'Loading menu...',
+      tr: 'Menü yükleniyor...',
+      de: 'Menü wird geladen...',
+    },
+    noItemsYet: {
+      en: 'No items yet',
+      tr: 'Henüz ürün yok',
+      de: 'Noch keine Artikel',
+    },
+    addItemsToMenu: {
+      en: 'Add items to the menu.',
+      tr: 'Menüye ürün ekleyin.',
+      de: 'Fügen Sie Artikel zum Menü hinzu.',
+    },
+    available: {
+      en: 'Available',
+      tr: 'Mevcut',
+      de: 'Verfügbar',
+    },
+    outOfStock: {
+      en: 'Out of Stock',
+      tr: 'Bitti',
+      de: 'Ausverkauft',
+    },
+    markOutOfStock: {
+      en: 'Mark Out of Stock',
+      tr: 'Bitti',
+      de: 'Als ausverkauft markieren',
+    },
+    markAvailable: {
+      en: 'Mark Available',
+      tr: 'Mevcut',
+      de: 'Als verfügbar markieren',
+    },
+    estimatedTime: {
+      en: 'Estimated Time',
+      tr: 'Tahmini Süre',
+      de: 'Geschätzte Zeit',
+    },
+    minutes: {
+      en: 'min',
+      tr: 'dk',
+      de: 'Min',
+    },
+    specialNote: {
+      en: 'Special Note',
+      tr: 'Özel Not',
+      de: 'Besonderer Hinweis',
+    },
+    startPreparing: {
+      en: 'Start Preparing',
+      tr: 'Hazırlığa Başla',
+      de: 'Zubereitung starten',
+    },
+    tableNumber: {
+      en: 'Table Number',
+      tr: 'Masa Numarası',
+      de: 'Tischnummer',
+    },
+    totalAmount: {
+      en: 'Total Amount',
+      tr: 'Toplam Tutar',
+      de: 'Gesamtbetrag',
+    },
+    orderTime: {
+      en: 'Order Time',
+      tr: 'Sipariş Zamanı',
+      de: 'Bestellzeit',
+    },
+    unitPrice: {
+      en: 'Unit Price',
+      tr: 'Birim',
+      de: 'Einzelpreis',
+    },
+    totalItemCount: {
+      en: 'Total Item Count',
+      tr: 'Toplam Ürün Sayısı',
+      de: 'Gesamtanzahl Artikel',
+    },
+    pieces: {
+      en: 'Pcs',
+      tr: 'Adet',
+      de: 'Stk',
+    },
+    close: {
+      en: 'Close',
+      tr: 'Kapat',
+      de: 'Schließen',
+    },
+
+    // Demo Cashier Panel
+    cashierPanelTitle: {
+      en: 'Cashier Panel',
+      tr: 'Kasa Paneli',
+      de: 'Kassenpanel',
+    },
+    cashierPanelSubtitle: {
+      en: 'RestXQr Restaurant',
+      tr: 'RestXQr Restoranı',
+      de: 'RestXQr Restaurant',
+    },
+    totalRevenue: {
+      en: 'Total Revenue',
+      tr: 'Toplam Gelir',
+      de: 'Gesamteinnahmen',
+    },
+    pendingPayment: {
+      en: 'Pending Payment',
+      tr: 'Bekleyen Ödeme',
+      de: 'Ausstehende Zahlung',
+    },
+    noPendingPayments: {
+      en: 'No Pending Payments',
+      tr: 'Ödeme Bekleyen Sipariş Yok',
+      de: 'Keine ausstehenden Zahlungen',
+    },
+    waitingForPayment: {
+      en: 'WAITING FOR PAYMENT',
+      tr: 'ÖDEME BEKLİYOR',
+      de: 'WARTET AUF ZAHLUNG',
+    },
+    paid: {
+      en: 'PAID',
+      tr: 'ÖDENDİ',
+      de: 'BEZAHLT',
+    },
+    takePayment: {
+      en: 'Take Payment',
+      tr: 'Ödeme Al',
+      de: 'Zahlung annehmen',
+    },
+    printReceipt: {
+      en: 'Print Receipt',
+      tr: 'Fiş Yazdır',
+      de: 'Beleg drucken',
+    },
+    viewReceipt: {
+      en: 'View Receipt',
+      tr: 'Fiş Görüntüle',
+      de: 'Beleg anzeigen',
+    },
+    confirmPayment: {
+      en: 'Confirm Payment',
+      tr: 'Ödeme Onayı',
+      de: 'Zahlung bestätigen',
+    },
+    confirmPaymentAction: {
+      en: 'Confirm Payment',
+      tr: 'Ödemeyi Onayla',
+      de: 'Zahlung bestätigen',
+    },
+    paymentSuccess: {
+      en: 'Payment received successfully!',
+      tr: 'Ödeme alındı!',
+      de: 'Zahlung erfolgreich erhalten!',
+    },
+    paymentFailed: {
+      en: 'Payment failed!',
+      tr: 'Ödeme işlemi başarısız!',
+      de: 'Zahlung fehlgeschlagen!',
+    },
+
   },
 
   t: (key) => {
