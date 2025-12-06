@@ -88,11 +88,12 @@ export function middleware(request: NextRequest) {
 
   // Redirect if there is no locale
   if (pathnameIsMissingLocale) {
-    // Exclude API, static files, and existing routes that shouldn't be localized if any
+    // Exclude API, static files, demo-paneller, and existing routes that shouldn't be localized
     if (
       pathname.startsWith('/api') ||
       pathname.startsWith('/_next') ||
       pathname.startsWith('/static') ||
+      pathname.startsWith('/demo-paneller') ||
       pathname.includes('.') // files
     ) {
       return NextResponse.next();
