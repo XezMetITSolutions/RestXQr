@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { aiTranslationService } from '@/lib/aiTranslation';
 
 type Language = 'en' | 'tr' | 'de';
 
@@ -609,6 +610,357 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Website',
       de: 'Webseite',
     },
+    // Panels Page Translations
+    backToHome: {
+      en: 'Back to Home',
+      tr: 'Ana Sayfaya Dön',
+      de: 'Zurück zur Startseite',
+    },
+    restxqrPanels: {
+      en: 'RestXQr Panels',
+      tr: 'RestXQr Panelleri',
+      de: 'RestXQr-Panels',
+    },
+    restaurantOperations: {
+      en: 'Restaurant Operations',
+      tr: 'Restoran Operasyonları',
+      de: 'Restaurantbetrieb',
+    },
+    manageSinglePlatform: {
+      en: 'Manage from a single platform',
+      tr: 'Tek platformdan yönetin',
+      de: 'Von einer einzigen Plattform aus verwalten',
+    },
+    managementPanels: {
+      en: 'Management Panels',
+      tr: 'Yönetim Panelleri',
+      de: 'Verwaltungspanels',
+    },
+    restaurantManagementPanels: {
+      en: 'Restaurant Management Panels',
+      tr: 'Restoran Yönetim Panelleri',
+      de: 'Restaurant-Management-Panels',
+    },
+    manageAllOperations: {
+      en: 'manage all your restaurant operations from a single platform.',
+      tr: 'ile restoranınızın tüm operasyonlarını tek platformdan yönetin.',
+      de: 'verwalten Sie alle Ihre Restaurantabläufe von einer einzigen Plattform aus.',
+    },
+    increaseEfficiency: {
+      en: 'Increase your efficiency with panels designed for every department.',
+      tr: 'Her departman için özel tasarlanmış paneller ile verimliliğinizi artırın.',
+      de: 'Steigern Sie Ihre Effizienz mit Panels, die für jede Abteilung entwickelt wurden.',
+    },
+    waiterPanel: {
+      en: 'Waiter Panel',
+      tr: 'Garson Paneli',
+      de: 'Kellner-Panel',
+    },
+    waiterPanelDesc: {
+      en: 'Manage orders and see customer calls',
+      tr: 'Siparişleri yönet ve müşteri çağrılarını gör',
+      de: 'Bestellungen verwalten und Kundenanrufe sehen',
+    },
+    realTimeOrderTracking: {
+      en: 'Real-time order tracking',
+      tr: 'Gerçek zamanlı sipariş takibi',
+      de: 'Echtzeit-Bestellverfolgung',
+    },
+    customerCallNotifications: {
+      en: 'Customer call notifications',
+      tr: 'Müşteri çağrı bildirimleri',
+      de: 'Kundenanruf-Benachrichtigungen',
+    },
+    orderStatusUpdate: {
+      en: 'Order status update',
+      tr: 'Sipariş durumu güncelleme',
+      de: 'Bestellstatus-Aktualisierung',
+    },
+    tableManagement: {
+      en: 'Table management',
+      tr: 'Masa yönetimi',
+      de: 'Tischverwaltung',
+    },
+    viewDemoPanel: {
+      en: 'View Demo Panel',
+      tr: 'Demo Paneli Görüntüle',
+      de: 'Demo-Panel anzeigen',
+    },
+    kitchenPanel: {
+      en: 'Kitchen Panel',
+      tr: 'Mutfak Paneli',
+      de: 'Küchen-Panel',
+    },
+    kitchenPanelDesc: {
+      en: 'Prepare orders and update statuses',
+      tr: 'Siparişleri hazırla ve durumları güncelle',
+      de: 'Bestellungen vorbereiten und Status aktualisieren',
+    },
+    orderQueueManagement: {
+      en: 'Order queue management',
+      tr: 'Sipariş kuyruğu yönetimi',
+      de: 'Bestellwarteschlangen-Verwaltung',
+    },
+    prepTimeTracking: {
+      en: 'Preparation time tracking',
+      tr: 'Hazırlık süresi takibi',
+      de: 'Zubereitungszeit-Verfolgung',
+    },
+    stockAlerts: {
+      en: 'Stock alerts',
+      tr: 'Stok uyarıları',
+      de: 'Lagerbestandswarnungen',
+    },
+    autoNotifications: {
+      en: 'Automatic notifications',
+      tr: 'Otomatik bildirimler',
+      de: 'Automatische Benachrichtigungen',
+    },
+    cashierPanel: {
+      en: 'Cashier Panel',
+      tr: 'Kasa Paneli',
+      de: 'Kassen-Panel',
+    },
+    cashierPanelDesc: {
+      en: 'Take payments and manage cashier operations',
+      tr: 'Ödemeleri al ve kasa işlemlerini yönet',
+      de: 'Zahlungen entgegennehmen und Kassenoperationen verwalten',
+    },
+    paymentProcessing: {
+      en: 'Payment processing',
+      tr: 'Hesap ödeme işlemleri',
+      de: 'Zahlungsabwicklung',
+    },
+    invoicePrinting: {
+      en: 'Invoice and receipt printing',
+      tr: 'Fatura ve makbuz yazdırma',
+      de: 'Rechnungs- und Belegdruck',
+    },
+    dailyReports: {
+      en: 'Daily cashier reports',
+      tr: 'Günlük kasa raporları',
+      de: 'Tägliche Kassenberichte',
+    },
+    paymentAnalysis: {
+      en: 'Payment method analysis',
+      tr: 'Ödeme yöntemi analizi',
+      de: 'Zahlungsmethoden-Analyse',
+    },
+    businessPanel: {
+      en: 'Business Panel',
+      tr: 'İşletme Paneli',
+      de: 'Geschäfts-Panel',
+    },
+    businessPanelDesc: {
+      en: 'Manage restaurant and see statistics',
+      tr: 'Restoranı yönet ve istatistikleri gör',
+      de: 'Restaurant verwalten und Statistiken einsehen',
+    },
+    detailedSalesAnalysis: {
+      en: 'Detailed sales analysis',
+      tr: 'Detaylı satış analizleri',
+      de: 'Detaillierte Verkaufsanalyse',
+    },
+    menuManagement: {
+      en: 'Menu management',
+      tr: 'Menü yönetimi',
+      de: 'Speisekartenverwaltung',
+    },
+    staffPerformance: {
+      en: 'Staff performance tracking',
+      tr: 'Personel performans takibi',
+      de: 'Personal-Leistungsverfolgung',
+    },
+    customerAnalytics: {
+      en: 'Customer analytics',
+      tr: 'Müşteri analitikleri',
+      de: 'Kundenanalytik',
+    },
+    demoMenu: {
+      en: 'Demo Menu',
+      tr: 'Demo Menü',
+      de: 'Demo-Speisekarte',
+    },
+    qrMenuSystem: {
+      en: 'QR Menu System',
+      tr: 'QR Menü Sistemi',
+      de: 'QR-Menü-System',
+    },
+    checkDemoMenuDesc: {
+      en: 'check our demo menu to see how the QR menu system works',
+      tr: 'QR menü sisteminin nasıl çalıştığını görmek için demo menümüzü inceleyin',
+      de: 'sehen Sie sich unser Demo-Menü an, um zu sehen, wie das QR-Menü-System funktioniert',
+    },
+    search: {
+      en: 'Search',
+      tr: 'Arama',
+      de: 'Suche',
+    },
+    searchDesc: {
+      en: 'Quick search in menu',
+      tr: 'Menüde hızlı arama',
+      de: 'Schnellsuche im Menü',
+    },
+    campaigns: {
+      en: 'Campaigns',
+      tr: 'Kampanyalar',
+      de: 'Kampagnen',
+    },
+    campaignsDesc: {
+      en: 'Daily special discounts',
+      tr: 'Günlük özel indirimler',
+      de: 'Tägliche Sonderrabatte',
+    },
+    soupOfTheDay: {
+      en: 'Soup of the Day',
+      tr: 'Günün Çorbası',
+      de: 'Suppe des Tages',
+    },
+    soupOfTheDayDesc: {
+      en: 'Different taste every day',
+      tr: 'Her gün farklı lezzet',
+      de: 'Jeden Tag ein anderer Geschmack',
+    },
+    reviews: {
+      en: 'Reviews',
+      tr: 'Değerlendirme',
+      de: 'Bewertungen',
+    },
+    reviewsDesc: {
+      en: 'Google reviews',
+      tr: 'Google yorumları',
+      de: 'Google-Bewertungen',
+    },
+    popular: {
+      en: 'Popular',
+      tr: 'Popüler',
+      de: 'Beliebt',
+    },
+    soupDesc: {
+      en: 'Ezogelin soup - Homemade taste',
+      tr: 'Ezogelin çorbası - Ev yapımı lezzet',
+      de: 'Ezogelin-Suppe - Hausgemachter Geschmack',
+    },
+    addToCart: {
+      en: 'Add to Cart',
+      tr: 'Sepete Ekle',
+      de: 'In den Warenkorb',
+    },
+    discount20: {
+      en: '20% Discount',
+      tr: '%20 İndirim',
+      de: '20% Rabatt',
+    },
+    specialToday: {
+      en: 'Special Today!',
+      tr: 'Bugüne Özel!',
+      de: 'Heute Spezial!',
+    },
+    specialTodayDesc: {
+      en: '20% discount on all desserts - Valid only today',
+      tr: 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli',
+      de: '20% Rabatt auf alle Desserts - Nur heute gültig',
+    },
+    rateOnGoogle: {
+      en: 'Rate on Google',
+      tr: "Google'da Değerlendir",
+      de: 'Auf Google bewerten',
+    },
+    makeComment: {
+      en: 'Make a Comment',
+      tr: 'Yorum Yap',
+      de: 'Kommentar abgeben',
+    },
+    free: {
+      en: 'Free',
+      tr: 'Ücretsiz',
+      de: 'Kostenlos',
+    },
+    rate: {
+      en: 'Rate',
+      tr: 'Değerlendir',
+      de: 'Bewerten',
+    },
+    viewDemoMenu: {
+      en: 'View Demo Menu',
+      tr: 'Demo Menüyü Görüntüle',
+      de: 'Demo-Menü anzeigen',
+    },
+    visitDemoPage: {
+      en: 'Visit our demo page for a real QR menu experience',
+      tr: 'Gerçek QR menü deneyimi için demo sayfamızı ziyaret edin',
+      de: 'Besuchen Sie unsere Demo-Seite für ein echtes QR-Menü-Erlebnis',
+    },
+    whyRestXQr: {
+      en: 'Why RestXQr?',
+      tr: 'Neden RestXQr?',
+      de: 'Warum RestXQr?',
+    },
+    whyRestXQrPanels: {
+      en: 'Why RestXQr Panels?',
+      tr: 'Neden RestXQr Panelleri?',
+      de: 'Warum RestXQr-Panels?',
+    },
+    multiUserSupport: {
+      en: 'Multi-User Support',
+      tr: 'Çoklu Kullanıcı Desteği',
+      de: 'Mehrbenutzer-Unterstützung',
+    },
+    multiUserSupportDesc: {
+      en: 'Secure multi-user management with separate authorization levels for each department',
+      tr: 'Her departman için ayrı yetki seviyeleri ile güvenli çoklu kullanıcı yönetimi',
+      de: 'Sichere Mehrbenutzerverwaltung mit separaten Berechtigungsstufen für jede Abteilung',
+    },
+    realTimeAnalytics: {
+      en: 'Real-Time Analytics',
+      tr: 'Gerçek Zamanlı Analitik',
+      de: 'Echtzeit-Analytik',
+    },
+    realTimeAnalyticsDesc: {
+      en: 'Make instant decisions and increase your performance with live data',
+      tr: 'Canlı veriler ile anlık kararlar alın ve performansınızı artırın',
+      de: 'Treffen Sie sofortige Entscheidungen und steigern Sie Ihre Leistung mit Live-Daten',
+    },
+    secureAndStable: {
+      en: 'Secure and Stable',
+      tr: 'Güvenli ve Stabil',
+      de: 'Sicher und Stabil',
+    },
+    secureAndStableDesc: {
+      en: 'Secure operation with SSL encryption and 99.9% uptime guarantee',
+      tr: 'SSL şifreleme ve 99.9% uptime garantisi ile güvenli operasyon',
+      de: 'Sicherer Betrieb mit SSL-Verschlüsselung und 99,9% Uptime-Garantie',
+    },
+    startNow: {
+      en: 'Start Now',
+      tr: 'Hemen Başlayın',
+      de: 'Jetzt starten',
+    },
+    tryFree14Days: {
+      en: 'panels try free for 14 days',
+      tr: 'panellerini 14 gün ücretsiz deneyin',
+      de: 'Panels 14 Tage kostenlos testen',
+    },
+    viewMenu: {
+      en: 'View Menu',
+      tr: 'Menüyü İncele',
+      de: 'Menü ansehen',
+    },
+    callNow: {
+      en: 'Call Now',
+      tr: 'Hemen Arayın',
+      de: 'Jetzt anrufen',
+    },
+    phone: {
+      en: 'Phone',
+      tr: 'Telefon',
+      de: 'Telefon',
+    },
+    website: {
+      en: 'Website',
+      tr: 'Website',
+      de: 'Webseite',
+    },
   },
 
   t: (key) => {
@@ -652,8 +1004,7 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       console.error('AI Translation error:', error);
       set({ isTranslating: false });
       return text; // Hata durumunda orijinal metni döndür
-    }
-  },
-}));
+    },
+  }));
 
 export default useLanguageStore;
