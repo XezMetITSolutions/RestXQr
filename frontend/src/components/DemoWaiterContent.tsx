@@ -28,7 +28,7 @@ interface Order {
 
 export default function DemoWaiterContent() {
     const router = useRouter();
-    const { t } = useLanguageStore();
+    const { t, language } = useLanguageStore();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [restaurantId, setRestaurantId] = useState<string>('');
@@ -69,8 +69,8 @@ export default function DemoWaiterContent() {
         fetchRestaurant();
     }, []);
 
-    // Demo veriler
-    const demoOrders: Order[] = [
+    // Demo veriler - TR
+    const demoOrdersTR: Order[] = [
         {
             id: '1',
             restaurantId: 'demo-restaurant',
@@ -138,6 +138,75 @@ export default function DemoWaiterContent() {
         }
     ];
 
+    // Demo veriler - DE (Avusturya Mutfağı)
+    const demoOrdersDE: Order[] = [
+        {
+            id: '1',
+            restaurantId: 'demo-restaurant',
+            tableNumber: 5,
+            customerName: 'Hans Müller',
+            status: 'pending',
+            totalAmount: 45.50,
+            notes: 'Eilig - Kunde wartet',
+            orderType: 'table',
+            created_at: new Date().toISOString(),
+            items: [
+                { id: '1', name: 'Wiener Schnitzel', quantity: 2, price: 18.50, notes: 'Mit Preiselbeeren' },
+                { id: '2', name: 'Almdudler', quantity: 2, price: 3.50, notes: 'Kalt' },
+                { id: '3', name: 'Apfelstrudel', quantity: 1, price: 5.50 }
+            ]
+        },
+        {
+            id: '2',
+            restaurantId: 'demo-restaurant',
+            tableNumber: 12,
+            customerName: 'Julia Weber',
+            status: 'ready',
+            totalAmount: 32.00,
+            notes: 'Zum Mitnehmen - Bereit zur Abholung',
+            orderType: 'takeaway',
+            created_at: new Date(Date.now() - 15 * 60000).toISOString(),
+            items: [
+                { id: '4', name: 'Käsespätzle', quantity: 2, price: 12.50 },
+                { id: '5', name: 'Mineralwasser', quantity: 2, price: 2.50, notes: 'Ohne Gas' },
+                { id: '6', name: 'Gemischter Salat', quantity: 1, price: 4.50, notes: 'Essig-Öl' }
+            ]
+        },
+        {
+            id: '3',
+            restaurantId: 'demo-restaurant',
+            tableNumber: 8,
+            customerName: 'Stefan Gruber',
+            status: 'preparing',
+            totalAmount: 85.00,
+            notes: 'Geburtstagstisch - Kuchen gewünscht',
+            orderType: 'table',
+            created_at: new Date(Date.now() - 5 * 60000).toISOString(),
+            items: [
+                { id: '7', name: 'Tafelspitz', quantity: 1, price: 22.00, notes: 'Mit Röstkartoffeln' },
+                { id: '8', name: 'Zwiebelrostbraten', quantity: 1, price: 24.00 },
+                { id: '9', name: 'Grüner Veltliner (0.75L)', quantity: 1, price: 28.00 },
+                { id: '10', name: 'Kaiserschmarrn', quantity: 2, price: 11.00, notes: 'Mit Zwetschgenröster' }
+            ]
+        },
+        {
+            id: '4',
+            restaurantId: 'demo-restaurant',
+            tableNumber: 3,
+            customerName: 'Markus Lang',
+            status: 'pending',
+            totalAmount: 28.50,
+            notes: 'Mittagessen - Schnell bitte',
+            orderType: 'table',
+            created_at: new Date(Date.now() - 30 * 60000).toISOString(),
+            items: [
+                { id: '11', name: 'Gulaschsuppe', quantity: 1, price: 8.50, notes: 'Scharf' },
+                { id: '12', name: 'Bier (0.5L)', quantity: 2, price: 4.50 },
+                { id: '13', name: 'Sachertorte', quantity: 1, price: 6.50, notes: 'Mit Schlagobers' }
+            ]
+        }
+    ];
+
     // Siparişleri çek
     const fetchOrders = async () => {
         if (!restaurantId) return;
@@ -145,7 +214,7 @@ export default function DemoWaiterContent() {
         try {
             setLoading(true);
             // Demo modda demo verileri kullan
-            setOrders(demoOrders);
+            setOrders(language === 'de' ? demoOrdersDE : demoOrdersTR);
         } catch (error) {
             console.error('Siparişler alınamadı:', error);
         } finally {
@@ -367,8 +436,8 @@ export default function DemoWaiterContent() {
                                         }}
                                         disabled={order.status !== 'ready'}
                                         className={`py-2 text-white rounded-lg font-bold text-xs transition-colors ${order.status === 'ready'
-                                                ? 'bg-green-500 hover:bg-green-600 cursor-pointer'
-                                                : 'bg-gray-300 cursor-not-allowed'
+                                            ? 'bg-green-500 hover:bg-green-600 cursor-pointer'
+                                            : 'bg-gray-300 cursor-not-allowed'
                                             }`}
                                     >
                                         ✓ {t('serve')}
@@ -460,8 +529,8 @@ export default function DemoWaiterContent() {
                                             key={num}
                                             onClick={() => setNewTableNumber(num.toString())}
                                             className={`py-2 px-4 rounded-lg font-semibold transition-all ${newTableNumber === num.toString()
-                                                    ? 'bg-orange-500 text-white scale-110'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-orange-100'
+                                                ? 'bg-orange-500 text-white scale-110'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-orange-100'
                                                 }`}
                                         >
                                             {num}

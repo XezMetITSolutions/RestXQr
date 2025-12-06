@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  FaCog, 
+import {
+  FaCog,
   FaChartLine,
   FaChartBar,
   FaQrcode,
@@ -63,13 +63,13 @@ const LANGUAGE_OPTIONS = [
 export default function SettingsPage() {
   const router = useRouter();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
-  
+
   // Sayfa yüklendiğinde auth'u initialize et
   useEffect(() => {
     initializeAuth();
   }, [initializeAuth]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
+
   // Restaurant-specific settings kullan
   const {
     settings,
@@ -98,7 +98,7 @@ export default function SettingsPage() {
     validateSubdomain
   } = useRestaurantSettings(authenticatedRestaurant?.id);
 
-  const [showPassword, setShowPassword] = useState<{[key: string]: boolean}>({});
+  const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({});
   const [showAnnModal, setShowAnnModal] = useState(false);
   const [subdomainValidation, setSubdomainValidation] = useState<{
     isValid: boolean;
@@ -153,7 +153,7 @@ export default function SettingsPage() {
       // Admin panelinden gelen restaurant bilgilerini settings'e aktar
       // Sadece boş olan alanları doldur, kullanıcı değiştirdiyse üzerine yazma
       const updates: any = {};
-      
+
       if (!settings.basicInfo.name && authenticatedRestaurant.name) {
         updates.name = authenticatedRestaurant.name;
       }
@@ -169,18 +169,18 @@ export default function SettingsPage() {
       if (!settings.basicInfo.email && authenticatedRestaurant.email) {
         updates.email = authenticatedRestaurant.email;
       }
-      
+
       if (Object.keys(updates).length > 0) {
         updateBasicInfo(updates);
       }
-      
+
       // Logo varsa ve settings'de logo yoksa branding'e ekle
       if (authenticatedRestaurant.logo && !settings.branding.logo) {
         updateBranding({
           logo: authenticatedRestaurant.logo
         });
       }
-      
+
       // Renkler varsa ve settings'de yoksa branding'e ekle
       if (authenticatedRestaurant.primaryColor && !settings.branding.primaryColor) {
         updateBranding({
@@ -224,7 +224,7 @@ export default function SettingsPage() {
     free: { name: 'Ücretsiz Plan', priceMonthly: 0, features: ['Temel menü', 'Sınırlı görüntüleme'], description: 'Başlamak için ideal' },
     premium: { name: 'Premium Paket', priceMonthly: 4980, features: ['Sınırsız kategori', 'Çoklu şube', 'Gelişmiş raporlar'], highlight: true },
   };
-  const BILLING: Record<BillingCycle, { months: number; discount: number; label: string }>= {
+  const BILLING: Record<BillingCycle, { months: number; discount: number; label: string }> = {
     monthly: { months: 1, discount: 0, label: 'Aylık' },
     semiannual: { months: 6, discount: 0.17, label: '6 Aylık' },
     annual: { months: 12, discount: 0.2, label: 'Yıllık' },
@@ -336,13 +336,13 @@ export default function SettingsPage() {
   const handleSave = async (section: string) => {
     setLoading(true);
     console.log(`💾 ${section} ayarları kaydediliyor...`);
-    
+
     try {
       // Zustand persist otomatik olarak localStorage'a kaydedecek
-    // Simulate API call
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    console.log(`✅ ${section} ayarları kaydedildi`);
+
+      console.log(`✅ ${section} ayarları kaydedildi`);
     } catch (error) {
       console.error('❌ Kaydetme hatası:', error);
     } finally {
@@ -353,11 +353,11 @@ export default function SettingsPage() {
   // Tek alan kaydetme fonksiyonu
   const handleSaveField = async (fieldName: string, value: any) => {
     console.log(`💾 ${fieldName} alanı kaydediliyor:`, value);
-    
+
     try {
       // Store'u güncelle - persist otomatik olarak localStorage'a kaydedecek
       updateBasicInfo({ [fieldName]: value });
-      
+
       console.log(`✅ ${fieldName} alanı kaydedildi`);
     } catch (error) {
       console.error('❌ Alan kaydetme hatası:', error);
@@ -371,7 +371,7 @@ export default function SettingsPage() {
     }
 
     setSubdomainValidation({ isValid: false, isChecking: true, message: 'Kontrol ediliyor...' });
-    
+
     try {
       const isValid = await validateSubdomain(subdomain);
       setSubdomainValidation({
@@ -432,7 +432,7 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -459,7 +459,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={() => setShowAnnModal(true)}
                 className="flex items-center gap-2 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
               >
@@ -485,11 +485,10 @@ export default function SettingsPage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${
-                          activeTab === tab.id
+                        className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${activeTab === tab.id
                             ? 'bg-purple-100 text-purple-700 border-l-4 border-purple-500'
                             : 'text-gray-600 hover:bg-gray-100'
-                        }`}
+                          }`}
                       >
                         <Icon className="mr-3" />
                         <span className="text-sm font-medium">{tab.name}</span>
@@ -531,7 +530,7 @@ export default function SettingsPage() {
                           >
                             <FaUtensils className="inline mr-1" /> Mutfak Paneli
                           </button>
-                          <button 
+                          <button
                             onClick={() => window.open('/business/waiter', '_blank')}
                             className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-200 transition-colors"
                           >
@@ -555,7 +554,7 @@ export default function SettingsPage() {
                         Kaydet
                       </button>
                     </div>
-                    
+
                     <div className="space-y-6">
                       {/* İşletme Adı */}
                       <div>
@@ -621,9 +620,8 @@ export default function SettingsPage() {
                           {!subdomainValidation.isChecking && !subdomainValidation.isValid && (
                             <FaTimes className="text-red-500" />
                           )}
-                          <span className={`text-sm ${
-                            subdomainValidation.isValid ? 'text-green-600' : 'text-red-600'
-                          }`}>
+                          <span className={`text-sm ${subdomainValidation.isValid ? 'text-green-600' : 'text-red-600'
+                            }`}>
                             {subdomainValidation.message}
                           </span>
                         </div>
@@ -713,10 +711,10 @@ export default function SettingsPage() {
                           WiFi Şifresi
                         </label>
                         <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={settings.basicInfo.wifiPassword || ''}
-                          onChange={(e) => updateBasicInfo({ wifiPassword: e.target.value })}
+                          <input
+                            type="text"
+                            value={settings.basicInfo.wifiPassword || ''}
+                            onChange={(e) => updateBasicInfo({ wifiPassword: e.target.value })}
                             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                           <button
@@ -750,11 +748,11 @@ export default function SettingsPage() {
                           Çalışma Saatleri (7 Gün)
                         </label>
                         <div className="flex gap-2">
-                        <textarea
-                          value={settings.basicInfo.workingHours || ''}
-                          onChange={(e) => updateBasicInfo({ workingHours: e.target.value })}
-                          rows={7}
-                          placeholder="Pazartesi: 08:00 - 22:00&#10;Salı: 08:00 - 22:00&#10;Çarşamba: 08:00 - 22:00&#10;Perşembe: 08:00 - 22:00&#10;Cuma: 08:00 - 23:00&#10;Cumartesi: 09:00 - 23:00&#10;Pazar: 09:00 - 22:00"
+                          <textarea
+                            value={settings.basicInfo.workingHours || ''}
+                            onChange={(e) => updateBasicInfo({ workingHours: e.target.value })}
+                            rows={7}
+                            placeholder="Pazartesi: 08:00 - 22:00&#10;Salı: 08:00 - 22:00&#10;Çarşamba: 08:00 - 22:00&#10;Perşembe: 08:00 - 22:00&#10;Cuma: 08:00 - 23:00&#10;Cumartesi: 09:00 - 23:00&#10;Pazar: 09:00 - 22:00"
                             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                           <button
@@ -765,7 +763,7 @@ export default function SettingsPage() {
                             <FaSave size={14} />
                           </button>
                         </div>
-                        
+
                         <div className="mt-6 flex items-center gap-2 p-4 bg-blue-50 rounded-xl">
                           <input
                             type="checkbox"
@@ -793,7 +791,7 @@ export default function SettingsPage() {
                           Menü Özel İçerikler
                         </h4>
                         <p className="text-sm text-gray-600 mb-6">Müşteri menüsünde gösterilen günlük duyurular ve özel içerikler</p>
-                        
+
                         {/* Bugüne Özel Duyuru */}
                         <div className="mb-6">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -885,10 +883,10 @@ export default function SettingsPage() {
                             Instagram
                           </label>
                           <div className="flex gap-2">
-                          <input
-                            type="url"
-                            value={settings.basicInfo.instagram || ''}
-                            onChange={(e) => updateBasicInfo({ instagram: e.target.value })}
+                            <input
+                              type="url"
+                              value={settings.basicInfo.instagram || ''}
+                              onChange={(e) => updateBasicInfo({ instagram: e.target.value })}
                               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                             <button
@@ -1040,7 +1038,7 @@ export default function SettingsPage() {
                           <p className="text-sm text-gray-500 mb-4">
                             Seçtiğiniz renkler menü tasarımında butonlar, kategoriler ve vurgular için kullanılır.
                           </p>
-                          
+
                           {/* Ana Renk */}
                           <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Ana Renk</label>
@@ -1097,7 +1095,7 @@ export default function SettingsPage() {
                             <span className="text-purple-600">A</span>
                             Font Ayarları
                           </h4>
-                          
+
                           {/* Font Ailesi */}
                           <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Font Ailesi</label>
@@ -1130,11 +1128,10 @@ export default function SettingsPage() {
                                 <button
                                   key={size.id}
                                   onClick={() => updateBranding({ fontSize: size.id as any })}
-                                  className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
-                                    settings.branding.fontSize === size.id
+                                  className={`px-3 py-2 text-sm rounded-lg border transition-colors ${settings.branding.fontSize === size.id
                                       ? 'border-purple-500 bg-purple-50 text-purple-700'
                                       : 'border-gray-300 hover:border-gray-400'
-                                  }`}
+                                    }`}
                                 >
                                   {size.name} ({size.size})
                                 </button>
@@ -1150,7 +1147,7 @@ export default function SettingsPage() {
                             <FaPalette className="text-purple-600" />
                             Stil Ayarları
                           </h4>
-                          
+
                           {/* Header Stili */}
                           <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Header Stili</label>
@@ -1164,11 +1161,10 @@ export default function SettingsPage() {
                                 <button
                                   key={style.id}
                                   onClick={() => updateBranding({ headerStyle: style.id as any })}
-                                  className={`p-3 text-left rounded-lg border transition-colors ${
-                                    settings.branding.headerStyle === style.id
+                                  className={`p-3 text-left rounded-lg border transition-colors ${settings.branding.headerStyle === style.id
                                       ? 'border-purple-500 bg-purple-50 text-purple-700'
                                       : 'border-gray-300 hover:border-gray-400'
-                                  }`}
+                                    }`}
                                 >
                                   <div className="font-medium text-sm">{style.name}</div>
                                   <div className="text-xs text-gray-500">{style.desc}</div>
@@ -1196,7 +1192,7 @@ export default function SettingsPage() {
                               </p>
                             </div>
                             <div className="flex gap-2">
-                              <button 
+                              <button
                                 onClick={() => window.open('/menu', '_blank')}
                                 className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center gap-2 font-medium"
                                 title="Yeni Sekmede Aç"
@@ -1204,7 +1200,7 @@ export default function SettingsPage() {
                                 <FaEye className="text-sm" />
                                 <span className="text-sm">Aç</span>
                               </button>
-                              <button 
+                              <button
                                 onClick={() => window.location.reload()}
                                 className="px-4 py-2 bg-white text-gray-700 rounded-xl shadow-md hover:shadow-lg transition-all hover:scale-105 flex items-center gap-2 font-medium border border-gray-200"
                                 title="Yenile"
@@ -1214,20 +1210,20 @@ export default function SettingsPage() {
                               </button>
                             </div>
                           </div>
-                          
+
                           {/* Modern Telefon Önizleme */}
                           <div className="relative flex items-center justify-center">
                             {/* Animated Background Gradient */}
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-200/40 via-blue-200/40 to-pink-200/40 rounded-3xl blur-3xl animate-pulse"></div>
-                            
+
                             {/* Glow Effect */}
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-blue-400/20 to-pink-400/20 rounded-3xl"></div>
-                            
+
                             {/* Phone Frame Container */}
                             <div className="relative z-10 p-12">
                               {/* Phone Shadow */}
                               <div className="absolute inset-0 bg-gradient-to-br from-gray-900/20 to-gray-800/20 rounded-[4rem] blur-2xl transform scale-90"></div>
-                              
+
                               {/* Modern Phone Frame */}
                               <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-[4rem] shadow-2xl p-3 mx-auto max-w-sm transform hover:scale-105 transition-transform duration-300">
                                 {/* Top Bezel with Dynamic Island */}
@@ -1236,7 +1232,7 @@ export default function SettingsPage() {
                                   <div className="w-16 h-5 bg-black rounded-full"></div>
                                   <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
                                 </div>
-                                
+
                                 {/* Screen with Glass Effect */}
                                 <div className="bg-gradient-to-br from-gray-50 to-white rounded-[3.5rem] overflow-hidden h-[650px] relative shadow-inner border-2 border-gray-200/50">
                                   {/* Modern Status Bar */}
@@ -1253,16 +1249,16 @@ export default function SettingsPage() {
                                       </div>
                                     </div>
                                   </div>
-                                  
+
                                   {/* Content with Smooth Scroll */}
                                   <div className="p-4 overflow-y-auto h-[calc(100%-3.5rem)]" style={{ scrollbarWidth: 'thin', scrollbarColor: '#c084fc #f3f4f6' }}>
                                     <PhonePreview className="w-full" />
                                   </div>
                                 </div>
-                                
+
                                 {/* Modern Home Indicator */}
                                 <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 w-36 h-1.5 bg-gray-900 rounded-full shadow-lg"></div>
-                                
+
                                 {/* Side Buttons */}
                                 <div className="absolute left-0 top-24 w-1 h-16 bg-gray-700 rounded-r-full"></div>
                                 <div className="absolute left-0 top-44 w-1 h-10 bg-gray-700 rounded-r-full"></div>
@@ -1270,7 +1266,7 @@ export default function SettingsPage() {
                               </div>
                             </div>
                           </div>
-                          
+
                           {/* Info Footer */}
                           <div className="mt-8 text-center space-y-2">
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full">
@@ -1326,9 +1322,8 @@ export default function SettingsPage() {
                         return (
                           <div
                             key={language.code}
-                            className={`border rounded-2xl p-4 flex items-center justify-between transition-all ${
-                              isActive ? 'border-purple-400 bg-purple-50 shadow-sm' : 'border-gray-200 hover:border-purple-200'
-                            }`}
+                            className={`border rounded-2xl p-4 flex items-center justify-between transition-all ${isActive ? 'border-purple-400 bg-purple-50 shadow-sm' : 'border-gray-200 hover:border-purple-200'
+                              }`}
                           >
                             <div>
                               <div className="flex items-center gap-2">
@@ -1342,17 +1337,50 @@ export default function SettingsPage() {
                             </div>
                             <button
                               onClick={() => toggleLanguage(language.code)}
-                              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                                isActive
+                              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive
                                   ? 'bg-green-100 text-green-700 border border-green-200'
                                   : 'bg-gray-100 text-gray-600 border border-gray-200'
-                              }`}
+                                }`}
                             >
                               {isActive ? 'Aktif' : 'Aktifleştir'}
                             </button>
                           </div>
                         );
                       })}
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+                      <h3 className="text-xl font-semibold text-gray-800 mb-4">Varsayılan Dil</h3>
+                      <p className="text-sm text-gray-500 mb-4">
+                        Müşteriler menüyü açtığında ilk görecekleri dili seçin.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {LANGUAGE_OPTIONS.filter(lang => selectedLanguages.includes(lang.code)).map((language) => (
+                          <button
+                            key={language.code}
+                            onClick={() => {
+                              updateMenuSettings({ defaultLanguage: language.code });
+                            }}
+                            className={`border rounded-2xl p-4 flex items-center justify-between transition-all ${settings.menuSettings.defaultLanguage === language.code
+                                ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
+                                : 'border-gray-200 hover:border-purple-200'
+                              }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">{language.flag}</span>
+                              <div className="text-left">
+                                <p className="text-sm font-semibold text-gray-900">{language.label}</p>
+                                {settings.menuSettings.defaultLanguage === language.code && (
+                                  <span className="text-xs text-purple-600 font-medium">Varsayılan</span>
+                                )}
+                              </div>
+                            </div>
+                            {settings.menuSettings.defaultLanguage === language.code && (
+                              <FaCheckCircle className="text-purple-600 text-xl" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div className="mt-6 bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
                       💡 Dil çevirileri otomatik olarak oluşturulur. Menüde seçtiğiniz diller arasında geçiş yapılabilir.
@@ -1380,42 +1408,42 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <div className="bg-white rounded-lg shadow-sm p-6">
                     <h3 className="text-xl font-semibold text-gray-800 mb-6">Entegrasyonlar</h3>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {[
-                        { 
-                          name: 'POS Sistemleri', 
-                          icon: FaCreditCard, 
+                        {
+                          name: 'POS Sistemleri',
+                          icon: FaCreditCard,
                           status: 'available',
                           desc: 'Yazar kasa ve POS sistemleri ile entegrasyon'
                         },
-                        { 
-                          name: 'Muhasebe', 
-                          icon: FaSync, 
+                        {
+                          name: 'Muhasebe',
+                          icon: FaSync,
                           status: 'available',
                           desc: 'Muhasebe programları ile otomatik senkronizasyon'
                         },
-                        { 
-                          name: 'Online Ödeme', 
-                          icon: FaCreditCard, 
+                        {
+                          name: 'Online Ödeme',
+                          icon: FaCreditCard,
                           status: 'active',
                           desc: 'Kredi kartı ve online ödeme sistemleri'
                         },
-                        { 
-                          name: 'Stok Yönetimi', 
-                          icon: FaSync, 
+                        {
+                          name: 'Stok Yönetimi',
+                          icon: FaSync,
                           status: 'coming',
                           desc: 'Stok takip sistemleri ile entegrasyon'
                         },
-                        { 
-                          name: 'CRM Sistemleri', 
-                          icon: FaUsers, 
+                        {
+                          name: 'CRM Sistemleri',
+                          icon: FaUsers,
                           status: 'coming',
                           desc: 'Müşteri ilişkileri yönetimi'
                         },
-                        { 
-                          name: 'Rezervasyon', 
-                          icon: FaSync, 
+                        {
+                          name: 'Rezervasyon',
+                          icon: FaSync,
                           status: 'coming',
                           desc: 'Rezervasyon sistemleri ile entegrasyon'
                         }

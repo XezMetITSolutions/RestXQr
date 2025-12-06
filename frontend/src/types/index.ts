@@ -241,6 +241,7 @@ export interface BusinessSettings {
   menuSettings: {
     theme: 'modern' | 'classic' | 'minimal' | 'elegant';
     language: string[];
+    defaultLanguage?: string;
     allowTableSelection: boolean;
     requireCustomerInfo: boolean;
     showPreparationTime: boolean;

@@ -19,7 +19,7 @@ interface LanguageState {
 }
 
 const useLanguageStore = create<LanguageState>()((set, get) => ({
-  language: 'tr', // Default language changed to Turkish as per requirement
+  language: 'de', // Default language changed to German as per requirement
   isTranslating: false,
 
   setLanguage: (language) => {

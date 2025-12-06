@@ -37,7 +37,7 @@ interface MenuItem {
 
 export default function DemoKitchenContent() {
     const router = useRouter();
-    const { t } = useLanguageStore();
+    const { t, language } = useLanguageStore();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [restaurantId, setRestaurantId] = useState<string>('');
@@ -77,8 +77,8 @@ export default function DemoKitchenContent() {
         fetchRestaurant();
     }, []);
 
-    // Demo veriler
-    const demoOrders: Order[] = [
+    // Demo veriler - TR
+    const demoOrdersTR: Order[] = [
         {
             id: '1',
             restaurantId: 'demo-restaurant',
@@ -144,6 +144,73 @@ export default function DemoKitchenContent() {
         }
     ];
 
+    // Demo veriler - DE (Avusturya Mutfağı)
+    const demoOrdersDE: Order[] = [
+        {
+            id: '1',
+            restaurantId: 'demo-restaurant',
+            tableNumber: 5,
+            customerName: 'Hans Müller',
+            status: 'pending',
+            totalAmount: 45.50,
+            notes: 'Eilig - Kunde wartet',
+            orderType: 'table',
+            created_at: new Date().toISOString(),
+            items: [
+                { id: '1', name: 'Wiener Schnitzel', quantity: 2, price: 18.50 },
+                { id: '2', name: 'Almdudler', quantity: 2, price: 3.50 },
+                { id: '3', name: 'Apfelstrudel', quantity: 1, price: 5.50 }
+            ]
+        },
+        {
+            id: '2',
+            restaurantId: 'demo-restaurant',
+            tableNumber: 12,
+            customerName: 'Julia Weber',
+            status: 'preparing',
+            totalAmount: 32.00,
+            orderType: 'takeaway',
+            created_at: new Date(Date.now() - 15 * 60000).toISOString(),
+            items: [
+                { id: '4', name: 'Käsespätzle', quantity: 2, price: 12.50 },
+                { id: '5', name: 'Mineralwasser', quantity: 2, price: 2.50 },
+                { id: '6', name: 'Gemischter Salat', quantity: 1, price: 4.50 }
+            ]
+        },
+        {
+            id: '3',
+            restaurantId: 'demo-restaurant',
+            tableNumber: 8,
+            customerName: 'Stefan Gruber',
+            status: 'preparing',
+            totalAmount: 85.00,
+            notes: 'Geburtstagstisch - Kuchen gewünscht',
+            orderType: 'table',
+            created_at: new Date(Date.now() - 5 * 60000).toISOString(),
+            items: [
+                { id: '7', name: 'Tafelspitz', quantity: 1, price: 22.00 },
+                { id: '8', name: 'Zwiebelrostbraten', quantity: 1, price: 24.00 },
+                { id: '9', name: 'Grüner Veltliner (0.75L)', quantity: 1, price: 28.00 },
+                { id: '10', name: 'Kaiserschmarrn', quantity: 2, price: 11.00 }
+            ]
+        },
+        {
+            id: '4',
+            restaurantId: 'demo-restaurant',
+            tableNumber: 3,
+            customerName: 'Markus Lang',
+            status: 'pending',
+            totalAmount: 28.50,
+            orderType: 'table',
+            created_at: new Date(Date.now() - 30 * 60000).toISOString(),
+            items: [
+                { id: '11', name: 'Gulaschsuppe', quantity: 1, price: 8.50 },
+                { id: '12', name: 'Bier (0.5L)', quantity: 2, price: 4.50 },
+                { id: '13', name: 'Sachertorte', quantity: 1, price: 6.50 }
+            ]
+        }
+    ];
+
     // Siparişleri çek
     const fetchOrders = async (showLoading = true) => {
         if (!restaurantId) return;
@@ -153,7 +220,7 @@ export default function DemoKitchenContent() {
                 setLoading(true);
             }
             // Demo modda demo verileri kullan
-            setOrders(demoOrders);
+            setOrders(language === 'de' ? demoOrdersDE : demoOrdersTR);
         } catch (error) {
             console.error('Siparişler alınamadı:', error);
         } finally {
@@ -372,8 +439,8 @@ export default function DemoKitchenContent() {
                         <button
                             onClick={() => setActiveTab('all')}
                             className={`px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'all'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                                ? 'bg-green-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
                             {t('all')} ({orderCounts.all})
@@ -381,8 +448,8 @@ export default function DemoKitchenContent() {
                         <button
                             onClick={() => setActiveTab('pending')}
                             className={`px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'pending'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                                ? 'bg-green-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
                             {t('pending')} ({orderCounts.pending})
@@ -390,8 +457,8 @@ export default function DemoKitchenContent() {
                         <button
                             onClick={() => setActiveTab('preparing')}
                             className={`px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'preparing'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                                ? 'bg-green-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
                             {t('preparing')} ({orderCounts.preparing})
@@ -399,8 +466,8 @@ export default function DemoKitchenContent() {
                         <button
                             onClick={() => setActiveTab('ready')}
                             className={`px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'ready'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                                ? 'bg-green-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
                             {t('ready')} ({orderCounts.ready})
@@ -408,8 +475,8 @@ export default function DemoKitchenContent() {
                         <button
                             onClick={() => setActiveTab('completed')}
                             className={`px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'completed'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                                ? 'bg-green-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
                             {t('completed')} ({orderCounts.completed})
@@ -417,8 +484,8 @@ export default function DemoKitchenContent() {
                         <button
                             onClick={() => setActiveTab('cancelled')}
                             className={`px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'cancelled'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                                ? 'bg-green-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
                             {t('cancelled')} ({orderCounts.cancelled})
@@ -569,8 +636,8 @@ export default function DemoKitchenContent() {
                                                     <div className="flex items-center gap-3">
                                                         <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
                                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${item.isAvailable
-                                                                ? 'bg-green-100 text-green-800'
-                                                                : 'bg-red-100 text-red-800'
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : 'bg-red-100 text-red-800'
                                                             }`}>
                                                             {item.isAvailable ? `✓ ${t('available')}` : `✗ ${t('outOfStock')}`}
                                                         </span>
@@ -658,11 +725,11 @@ export default function DemoKitchenContent() {
                                     <div
                                         className="inline-block px-4 py-2 rounded-full text-sm font-bold"
                                         style={{
-                                            backgroundColor: getStatusColor(selectedOrder.status).bg,
-                                            color: getStatusColor(selectedOrder.status).color
+                                            backgroundColor: getStatusInfo(selectedOrder.status).bg,
+                                            color: getStatusInfo(selectedOrder.status).color
                                         }}
                                     >
-                                        {getStatusColor(selectedOrder.status).text}
+                                        {getStatusInfo(selectedOrder.status).text}
                                     </div>
                                 </div>
                                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">

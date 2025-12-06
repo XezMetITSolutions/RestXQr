@@ -86,7 +86,7 @@ export default function HomeContent() {
                     </div>
 
                     {/* Main Title */}
-                    <h1 className="text-6xl md:text-8xl font-black mb-8 leading-tight">
+                    <h1 className="text-4xl md:text-6xl lg:text-8xl font-black mb-8 leading-tight">
                         <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                             {t('heroTitle1')}
                         </span>
@@ -108,12 +108,12 @@ export default function HomeContent() {
                     </p>
 
                     {/* CTA Buttons */}
-                    <div className="flex flex-col sm:flex-row justify-center gap-8 max-w-3xl mx-auto mb-16">
-                        <Link href="/panels" className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-12 py-6 rounded-3xl text-xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 hover:from-blue-500 hover:to-purple-500">
+                    <div className="flex flex-col sm:flex-row justify-center gap-4 md:gap-8 max-w-3xl mx-auto mb-16">
+                        <Link href="/panels" className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 hover:from-blue-500 hover:to-purple-500">
                             <FaUsers className="text-2xl group-hover:animate-bounce" />
                             <span>{t('viewPanels')}</span>
                         </Link>
-                        <Link href="/panels" className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-12 py-6 rounded-3xl text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105">
+                        <Link href="/panels" className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105">
                             <FaRocket className="inline mr-4 text-2xl group-hover:animate-bounce" />
                             <span>{t('viewDemo')}</span>
                         </Link>
@@ -146,7 +146,7 @@ export default function HomeContent() {
                             <FaBrain className="mr-3 animate-pulse" />
                             {t('aiBadge')}
                         </div>
-                        <h2 className="text-6xl font-black text-gray-900 mb-8">
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-8">
                             <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
                                 {t('aiTitle')}
                             </span>
@@ -160,7 +160,7 @@ export default function HomeContent() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                             {/* ÖNCESİ - Amatör (ai-after.jpg) */}
                             <div className="text-center group">
-                                <div className="bg-white p-10 rounded-3xl shadow-2xl border-4 border-red-200 group-hover:border-red-300 transition-all duration-300 group-hover:shadow-3xl group-hover:scale-105">
+                                <div className="bg-white p-6 md:p-10 rounded-3xl shadow-2xl border-4 border-red-200 group-hover:border-red-300 transition-all duration-300 group-hover:shadow-3xl group-hover:scale-105">
                                     <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-full text-xl font-black mb-8 inline-block shadow-lg">
                                         ❌ {t('before')}
                                     </div>
@@ -185,7 +185,7 @@ export default function HomeContent() {
 
                             {/* SONRASI - Profesyonel (ai-before.jpg) */}
                             <div className="text-center group">
-                                <div className="bg-white p-10 rounded-3xl shadow-2xl border-4 border-green-200 group-hover:border-green-300 transition-all duration-300 group-hover:shadow-3xl group-hover:scale-105">
+                                <div className="bg-white p-6 md:p-10 rounded-3xl shadow-2xl border-4 border-green-200 group-hover:border-green-300 transition-all duration-300 group-hover:shadow-3xl group-hover:scale-105">
                                     <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-full text-xl font-black mb-8 inline-block shadow-lg">
                                         ✅ {t('after')}
                                     </div>
@@ -267,7 +267,7 @@ export default function HomeContent() {
                             <FaGem className="mr-3" />
                             {t('premiumServices')}
                         </div>
-                        <h2 className="text-6xl font-black text-gray-900 mb-8">
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-8">
                             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                                 {t('ourServices')}
                             </span>
@@ -349,7 +349,7 @@ export default function HomeContent() {
                             <FaFire className="mr-3 text-orange-400" />
                             {t('benefits')}
                         </div>
-                        <h2 className="text-6xl font-black mb-8">
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-8">
                             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                                 {t('whyRestXQr')}
                             </span>
@@ -420,7 +420,7 @@ export default function HomeContent() {
                             <FaLightbulb className="mr-3" />
                             {t('faq')}
                         </div>
-                        <h2 className="text-6xl font-black text-gray-900 mb-8">
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-8">
                             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                                 {t('curiosities')}
                             </span>
@@ -483,7 +483,7 @@ export default function HomeContent() {
                             {t('startNow')}
                         </div>
 
-                        <h2 className="text-6xl font-black mb-8">
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-8">
                             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                                 {t('digitizeRestaurant')}
                             </span>
@@ -493,12 +493,12 @@ export default function HomeContent() {
                             {t('startToday')}
                         </p>
 
-                        <div className="flex flex-col sm:flex-row justify-center gap-8 mb-16">
-                            <Link href="/panels" className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-12 py-6 rounded-3xl text-xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 hover:from-blue-500 hover:to-purple-500">
+                        <div className="flex flex-col sm:flex-row justify-center gap-4 md:gap-8 mb-16">
+                            <Link href="/panels" className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 hover:from-blue-500 hover:to-purple-500">
                                 <FaUsers className="text-2xl group-hover:animate-bounce" />
                                 <span>{t('freeDemo')}</span>
                             </Link>
-                            <Link href="/panels" className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-12 py-6 rounded-3xl text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105">
+                            <Link href="/panels" className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105">
                                 <FaPhone className="inline mr-4 text-2xl group-hover:animate-bounce" />
                                 <span>{t('contactNow')}</span>
                             </Link>

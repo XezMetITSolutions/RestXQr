@@ -8,12 +8,12 @@ interface BusinessSettingsState {
   settings: BusinessSettings;
   accountInfo: AccountInfo;
   stats: BusinessStats;
-  
+
   // UI State
   isLoading: boolean;
   activeTab: string;
   expandedSections: { [key: string]: boolean };
-  
+
   // Actions
   updateSettings: (updates: Partial<BusinessSettings>) => void;
   updateBasicInfo: (updates: Partial<BusinessSettings['basicInfo']>) => void;
@@ -29,12 +29,12 @@ interface BusinessSettingsState {
   updateSecuritySettings: (updates: Partial<BusinessSettings['securitySettings']>) => void;
   updateBackupSettings: (updates: Partial<BusinessSettings['backupSettings']>) => void;
   updateAccountInfo: (updates: Partial<AccountInfo>) => void;
-  
+
   // UI Actions
   setActiveTab: (tab: string) => void;
   toggleSection: (section: string) => void;
   setLoading: (loading: boolean) => void;
-  
+
   // Utility Actions
   resetSettings: () => void;
   exportSettings: () => void;
@@ -82,6 +82,7 @@ const defaultSettings: BusinessSettings = {
   menuSettings: {
     theme: 'modern',
     language: ['tr'],
+    defaultLanguage: 'tr',
     allowTableSelection: true,
     requireCustomerInfo: false,
     showPreparationTime: true,
@@ -242,14 +243,14 @@ export const useBusinessSettingsStore = create<BusinessSettingsState>()(
 
       generateStaffCredentials: (staffId, role) => {
         const randomId = Math.random().toString(36).substring(2, 8);
-        const username = role === 'kitchen' ? `mutfak_${randomId}` : 
-                        role === 'waiter' ? `garson_${randomId}` : 
-                        `kasa_${randomId}`;
+        const username = role === 'kitchen' ? `mutfak_${randomId}` :
+          role === 'waiter' ? `garson_${randomId}` :
+            `kasa_${randomId}`;
         const password = Math.random().toString(36).substring(2, 10);
         const panelUrl = role === 'kitchen' ? '/business/kitchen' :
-                        role === 'waiter' ? '/business/waiter' :
-                        '/business/cashier';
-        
+          role === 'waiter' ? '/business/waiter' :
+            '/business/cashier';
+
         set((state) => ({
           settings: {
             ...state.settings,
@@ -339,7 +340,7 @@ export const useBusinessSettingsStore = create<BusinessSettingsState>()(
 
       // UI Actions
       setActiveTab: (tab) => set({ activeTab: tab }),
-      
+
       toggleSection: (section) => set((state) => ({
         expandedSections: {
           ...state.expandedSections,
@@ -358,10 +359,10 @@ export const useBusinessSettingsStore = create<BusinessSettingsState>()(
       exportSettings: () => {
         const { settings } = get();
         const dataStr = JSON.stringify(settings, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
         const exportFileDefaultName = `masapp-settings-${new Date().toISOString().split('T')[0]}.json`;
-        
+
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', dataUri);
         linkElement.setAttribute('download', exportFileDefaultName);
@@ -373,7 +374,7 @@ export const useBusinessSettingsStore = create<BusinessSettingsState>()(
       validateSubdomain: async (subdomain) => {
         // Simulated API call
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         // Basic validation rules
         const validPattern = /^[a-z0-9-]+$/;
         const isValidFormat = validPattern.test(subdomain);
@@ -381,13 +382,13 @@ export const useBusinessSettingsStore = create<BusinessSettingsState>()(
         const startsWithLetter = /^[a-z]/.test(subdomain);
         const noConsecutiveHyphens = !/--/.test(subdomain);
         const noStartEndHyphen = !subdomain.startsWith('-') && !subdomain.endsWith('-');
-        
+
         const isValid = isValidFormat && isValidLength && startsWithLetter && noConsecutiveHyphens && noStartEndHyphen;
-        
+
         if (!isValid) {
           return false;
         }
-        
+
         // Simulate some subdomains being taken
         const takenSubdomains = [
           'admin', 'api', 'www', 'mail', 'ftp', 'demo', 'test', 'app', 'mobile', 'web',
@@ -541,9 +542,9 @@ export const useBusinessSettingsStore = create<BusinessSettingsState>()(
           'milli', 'millis', 'micro', 'micros', 'nano', 'nanos', 'pico', 'picos',
           'femto', 'femtos', 'atto', 'attos', 'zepto', 'zeptos', 'yocto', 'yoctos'
         ];
-        
+
         const isAvailable = !takenSubdomains.includes(subdomain.toLowerCase());
-        
+
         return isValid && isAvailable;
       }
     }),

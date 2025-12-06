@@ -21,17 +21,17 @@ function MenuPageContent() {
   const cartItems = useCartStore(state => state.items);
   const tableNumber = useCartStore(state => state.tableNumber);
   const setTableNumber = useCartStore(state => state.setTableNumber);
-  
+
   // Restaurant store - backend'den gerçek veriler
-  const { 
-    restaurants, 
-    categories, 
-    menuItems, 
-    fetchRestaurants, 
+  const {
+    restaurants,
+    categories,
+    menuItems,
+    fetchRestaurants,
     fetchRestaurantMenu,
-    loading 
+    loading
   } = useRestaurantStore();
-  
+
   // Local states
   const [activeCategory, setActiveCategory] = useState('popular');
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
@@ -48,19 +48,19 @@ function MenuPageContent() {
   const [showDebugModal, setShowDebugModal] = useState(false);
   const primary = settings.branding.primaryColor;
   const secondary = settings.branding.secondaryColor || settings.branding.primaryColor;
-  
+
   // Subdomain'den restaurant bulma - Demo için Aksaray restoranını kullan
   const getCurrentRestaurant = () => {
     if (typeof window === 'undefined') return null;
     const hostname = window.location.hostname;
     const subdomain = hostname.split('.')[0];
     const mainDomains = ['localhost', 'www', 'guzellestir', 'restxqr'];
-    
+
     // Ana domain veya demo için Aksaray restoranını kullan
     if (mainDomains.includes(subdomain)) {
       return restaurants.find((r: any) => r.username === 'aksaray');
     }
-    
+
     // Subdomain'e göre restoran bul
     return restaurants.find((r: any) => r.username === subdomain);
   };
@@ -68,10 +68,10 @@ function MenuPageContent() {
   const currentRestaurant = getCurrentRestaurant();
 
   // Restaurant'a göre kategoriler ve ürünler filtreleme
-  const items = currentRestaurant?.id 
+  const items = currentRestaurant?.id
     ? menuItems.filter((item: any) => item.restaurantId === currentRestaurant.id)
     : [];
-  const filteredCategories = currentRestaurant?.id 
+  const filteredCategories = currentRestaurant?.id
     ? categories.filter((cat: any) => cat.restaurantId === currentRestaurant.id)
     : [];
 
@@ -79,26 +79,26 @@ function MenuPageContent() {
   useEffect(() => {
     const detectTableAndToken = async () => {
       if (typeof window === 'undefined') return;
-      
+
       const urlParams = new URLSearchParams(window.location.search);
       const tableParam = urlParams.get('table');
       const tokenParam = urlParams.get('token');
-      
+
       // Token varsa doğrula
       if (tokenParam) {
         try {
           const response = await apiService.verifyQRToken(tokenParam);
-          
+
           if (response.success && response.data?.isActive) {
             setTokenValid(true);
             setTokenMessage('QR kod geçerli. Menüye erişebilirsiniz.');
-            
+
             // Token'dan gelen masa numarasını ayarla
             if (response.data?.tableNumber) {
               setTableNumber(response.data.tableNumber);
               console.log('✅ Masa numarası token\'dan alındı:', response.data.tableNumber);
             }
-            
+
             // Token'ı sessionStorage'a kaydet
             sessionStorage.setItem('qr_token', tokenParam);
             console.log('✅ Token doğrulandı:', tokenParam);
@@ -136,7 +136,7 @@ function MenuPageContent() {
                 console.error('Yeni token oluşturma hatası:', error);
               }
             }
-            
+
             // Oturum devamlılığı için, masa parametresi varsa yeni token üretelim
             if (currentRestaurant?.id && tableParam) {
               try {
@@ -159,7 +159,7 @@ function MenuPageContent() {
                     setTableNumber(parseInt(tableParam));
                     console.log('✅ Masa numarası yeni token ile ayarlandı:', tableParam);
                   }
-        } else {
+                } else {
                   setTokenValid(false);
                   setTokenMessage('QR kod geçersiz veya süresi dolmuş. Lütfen yeni bir QR kod tarayın.');
                   return;
@@ -169,7 +169,7 @@ function MenuPageContent() {
                 setTokenMessage('QR kod doğrulanamadı. Lütfen yeni bir QR kod tarayın.');
                 return;
               }
-    } else {
+            } else {
               setTokenValid(false);
               setTokenMessage('QR kod geçersiz veya süresi dolmuş. Lütfen yeni bir QR kod tarayın.');
               return; // Token geçersizse devam etme
@@ -182,16 +182,16 @@ function MenuPageContent() {
           return;
         }
       }
-      
+
       // Masa numarası kontrolü
       if (tableParam) {
         const tableNum = parseInt(tableParam);
-        
+
         if (!isNaN(tableNum) && tableNum > 0) {
           // Masa numarasını her durumda set et
           setTableNumber(tableNum);
           console.log('✅ Masa numarası URL parametresinden ayarlandı:', tableNum);
-          
+
           // Token yoksa yeni QR token oluştur (eski sistem için)
           if (!tokenParam) {
             try {
@@ -205,16 +205,16 @@ function MenuPageContent() {
                     duration: 2 // 2 saat
                   })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                   console.log('Masa oturumu başlatıldı:', {
                     masa: tableNum,
                     token: data.data.token,
                     süre: '2 saat'
                   });
-                  
+
                   // Token'ı sessionStorage'a kaydet (sayfa yenilenirse tekrar oluşturma)
                   sessionStorage.setItem('qr-session-token', data.data.token);
                 }
@@ -226,7 +226,7 @@ function MenuPageContent() {
         }
       }
     };
-    
+
     detectTableAndToken();
   }, [setTableNumber, currentRestaurant]);
 
@@ -248,7 +248,7 @@ function MenuPageContent() {
         sessionStorage.setItem('menuVisitedOnce', '1');
         setTimeout(() => setShowSplash(false), 1600);
       }
-    } catch {}
+    } catch { }
   }, [restaurants.length, currentRestaurant?.id, fetchRestaurants, fetchRestaurantMenu]);
 
   // Update search placeholder based on language
@@ -262,8 +262,8 @@ function MenuPageContent() {
           const translated = await translate('Menüde ara...');
           setSearchPlaceholder(translated);
         } catch (error) {
-      setSearchPlaceholder('Search menu...');
-    }
+          setSearchPlaceholder('Search menu...');
+        }
       };
       translatePlaceholder();
     }
@@ -296,20 +296,20 @@ function MenuPageContent() {
   }, [isClient, cartItems]);
 
   // Get language code for menu data
-  const language = currentLanguage === 'Turkish' ? 'tr' : 'en';
-  
+  const language = currentLanguage === 'Turkish' ? 'tr' : (currentLanguage === 'German' ? 'de' : 'en');
+
   // Get menu categories (backend format)
   const menuCategories = [
-    { id: 'popular', name: currentLanguage === 'Turkish' ? 'Popüler' : 'Popular' },
+    { id: 'popular', name: currentLanguage === 'Turkish' ? 'Popüler' : (currentLanguage === 'German' ? 'Beliebt' : 'Popular') },
     ...filteredCategories.map((cat: any) => ({
       id: cat.id,
-      name: typeof cat.name === 'string' ? cat.name : (cat.name?.tr || cat.name?.en || 'Kategori')
+      name: typeof cat.name === 'string' ? cat.name : (cat.name?.[language] || cat.name?.tr || cat.name?.en || 'Kategori')
     }))
   ];
 
   // Get subcategories for active category
   const activeSubcategories = activeCategory === 'popular' ? [] : getSubcategoriesByParent(activeCategory);
-  
+
   // Get filtered items
   let filteredItems = activeCategory === 'popular'
     ? getPopularItems()
@@ -319,10 +319,10 @@ function MenuPageContent() {
 
   if (search.trim() !== '') {
     filteredItems = filteredItems.filter((item: any) => {
-      const itemName = typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || '');
-      const itemDesc = typeof item.description === 'string' ? item.description : (item.description?.tr || item.description?.en || '');
+      const itemName = typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || '');
+      const itemDesc = typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || '');
       return itemName.toLowerCase().includes(search.toLowerCase()) ||
-             itemDesc.toLowerCase().includes(search.toLowerCase());
+        itemDesc.toLowerCase().includes(search.toLowerCase());
     });
   }
 
@@ -346,7 +346,7 @@ function MenuPageContent() {
         image: item.image,
         preparationTime: item.preparationTime
       };
-      
+
       console.log('🛒 SEPETE EKLEME:', {
         timestamp: new Date().toLocaleString(),
         ürün: item.name,
@@ -357,12 +357,12 @@ function MenuPageContent() {
         masaNo: tableNumber,
         cartItem
       });
-      
+
       addItem(cartItem);
       setToastVisible(true);
-      
+
       console.log('✅ Sepete eklendi! Toplam ürün:', cartItems.length + 1);
-      
+
       // Auto hide toast after 3 seconds
       setTimeout(() => setToastVisible(false), 3000);
     } catch (error) {
@@ -404,7 +404,7 @@ function MenuPageContent() {
         categories: filteredCategories.length
       }
     };
-    
+
     console.log('🐛 DEBUG BİLGİLERİ:', debugData);
     alert(JSON.stringify(debugData, null, 2));
   };
@@ -426,7 +426,7 @@ function MenuPageContent() {
               <p className="text-gray-600 mb-4">{tokenMessage}</p>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                 <p className="text-sm text-yellow-800">
-                  Bu QR kod ödeme tamamlandıktan sonra geçersiz hale gelir. 
+                  Bu QR kod ödeme tamamlandıktan sonra geçersiz hale gelir.
                   Yeni bir QR kod tarayarak menüye erişebilirsiniz.
                 </p>
               </div>
@@ -455,7 +455,7 @@ function MenuPageContent() {
                 <img src={settings.branding.logo} alt="Logo" className="h-20 w-20 object-contain rounded-md shadow-sm" />
               ) : (
                 <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'var(--brand-primary)' }}>
-                  {(settings.basicInfo.name || 'Işletme').slice(0,1)}
+                  {(settings.basicInfo.name || 'Işletme').slice(0, 1)}
                 </div>
               )}
             </div>
@@ -466,8 +466,8 @@ function MenuPageContent() {
             <div className="mt-4 mx-auto h-[1px] w-40 bg-gray-200" />
             <div className="mt-3 w-40 h-1 bg-gray-100 rounded overflow-hidden mx-auto">
               <div className="h-full bg-brand animate-progress" />
-                </div>
-              </div>
+            </div>
+          </div>
           <style jsx>{`
             @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
             @keyframes scaleIn { from { transform: scale(.96); opacity: .4 } to { transform: scale(1); opacity: 1 } }
@@ -488,22 +488,22 @@ function MenuPageContent() {
                 <TranslatedText>Menü</TranslatedText>
               </h1>
               {tableNumber > 0 && (
-              <div className="ml-2 px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
-                {currentRestaurant?.name || 'Restoran'} Masa {tableNumber}
+                <div className="ml-2 px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
+                  {currentRestaurant?.name || 'Restoran'} Masa {tableNumber}
+                </div>
+              )}
             </div>
-              )}
+            <div className="flex items-center gap-2">
+              <Link href="/cart" className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <FaShoppingCart className="text-xl" style={{ color: primary }} />
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" style={{ backgroundColor: primary }}>
+                    {cartItems.length}
+                  </span>
+                )}
+              </Link>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Link href="/cart" className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <FaShoppingCart className="text-xl" style={{ color: primary }} />
-              {cartItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" style={{ backgroundColor: primary }}>
-                  {cartItems.length}
-                </span>
-              )}
-            </Link>
-          </div>
-        </div>
         </header>
 
         {/* Search */}
@@ -568,11 +568,10 @@ function MenuPageContent() {
             {menuCategories.map((category) => (
               <button
                 key={category.id}
-                className={`px-3 py-1.5 rounded-full whitespace-nowrap text-dynamic-sm ${
-                  activeCategory === category.id
+                className={`px-3 py-1.5 rounded-full whitespace-nowrap text-dynamic-sm ${activeCategory === category.id
                     ? 'btn-gradient'
                     : 'bg-brand-surface text-gray-700'
-                }`}
+                  }`}
                 onClick={() => handleCategoryChange(category.id)}
               >
                 {category.name}
@@ -590,12 +589,12 @@ function MenuPageContent() {
               <div key={item.id} className="bg-white rounded-lg shadow-sm border p-3 flex max-w-full">
                 <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
                   <Image
-                    src={item.imageUrl ? 
-                      (item.imageUrl.startsWith('http') ? 
-                        item.imageUrl : 
-                        `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}`) 
-                      : '/placeholder-food.jpg'} 
-                    alt={typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Menu item')} 
+                    src={item.imageUrl ?
+                      (item.imageUrl.startsWith('http') ?
+                        item.imageUrl :
+                        `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}`)
+                      : '/placeholder-food.jpg'}
+                    alt={typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Menu item')}
                     width={80}
                     height={80}
                     className="object-cover w-full h-full rounded-lg"
@@ -609,11 +608,11 @@ function MenuPageContent() {
                 </div>
                 <div className="ml-3 flex-grow min-w-0">
                   <div className="flex justify-between items-start">
-                    <h3 className="font-semibold text-dynamic-sm truncate">{typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün')}</h3>
+                    <h3 className="font-semibold text-dynamic-sm truncate">{typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün')}</h3>
                     <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: primary }}>{item.price} ₺</span>
                   </div>
                   <p className="text-xs text-gray-600 line-clamp-2 mb-2 break-words">
-                    {typeof item.description === 'string' ? item.description : (item.description?.tr || item.description?.en || '')}
+                    {typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || '')}
                   </p>
 
                   {/* Allergens */}
@@ -626,14 +625,14 @@ function MenuPageContent() {
                       ))}
                     </div>
                   )}
-                  
+
                   {/* Debug: Allergens */}
                   {process.env.NODE_ENV === 'development' && item.allergens && (
                     <div className="text-xs text-gray-400">
                       Debug: {JSON.stringify(item.allergens)}
                     </div>
                   )}
-                        
+
                   <div className="flex justify-between items-center">
                     <button
                       onClick={() => openModal(item)}
@@ -663,17 +662,17 @@ function MenuPageContent() {
             <div className="grid grid-cols-1 gap-3">
               {/* WiFi Info */}
               {settings.basicInfo.showWifiInMenu && (
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
-                <div className="flex items-center">
-                  <span className="text-lg mr-3">📶</span>
-                  <span className="text-sm font-medium text-gray-700">
-                    <TranslatedText>WiFi Şifresi</TranslatedText>
-                  </span>
-                </div>
+                <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
+                  <div className="flex items-center">
+                    <span className="text-lg mr-3">📶</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      <TranslatedText>WiFi Şifresi</TranslatedText>
+                    </span>
+                  </div>
                   <span className="text-sm font-bold px-2 py-1 rounded" style={{ color: 'var(--brand-strong)', backgroundColor: 'var(--brand-surface)' }}>
                     {settings.basicInfo.wifiPassword || 'restoran2024'}
                   </span>
-              </div>
+                </div>
               )}
               {/* Google Review Button */}
               <a
@@ -695,66 +694,66 @@ function MenuPageContent() {
               </a>
               {/* Working Hours */}
               {settings.basicInfo.showHoursInMenu && (
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
-                <div className="flex items-center">
-                  <span className="text-lg mr-3">🕒</span>
-                  <span className="text-sm font-medium text-gray-700">
-                    <TranslatedText>Çalışma Saatleri</TranslatedText>
-                  </span>
-                </div>
+                <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
+                  <div className="flex items-center">
+                    <span className="text-lg mr-3">🕒</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      <TranslatedText>Çalışma Saatleri</TranslatedText>
+                    </span>
+                  </div>
                   <span className="text-sm font-bold" style={{ color: 'var(--brand-strong)' }}>
                     {settings.basicInfo.workingHours || '09:00 - 23:00'}
                   </span>
-              </div>
+                </div>
               )}
               {/* Instagram Button */}
               {settings.basicInfo.showInstagramInMenu && (
-              <a
+                <a
                   href={settings.basicInfo.instagram || "https://instagram.com/restoranadi"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-tone3"
-                style={{ textDecoration: 'none' }}
-              >
-                <div className="flex items-center">
-                  <span className="text-lg mr-3">📱</span>
-                  <span className="text-sm font-medium text-gray-800">
-                    <TranslatedText>Instagram'da Takip Et</TranslatedText>
-                  </span>
-                </div>
-                <button className="text-sm font-bold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-primary">
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-tone3"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <div className="flex items-center">
+                    <span className="text-lg mr-3">📱</span>
+                    <span className="text-sm font-medium text-gray-800">
+                      <TranslatedText>Instagram'da Takip Et</TranslatedText>
+                    </span>
+                  </div>
+                  <button className="text-sm font-bold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-primary">
                     @{settings.basicInfo.instagram?.replace('https://instagram.com/', '').replace('https://www.instagram.com/', '') || 'restoranadi'}
-                </button>
-              </a>
+                  </button>
+                </a>
               )}
             </div>
           </div>
         </div>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 shadow-lg z-30">
-        <div className="container mx-auto flex justify-around max-w-full px-2">
+        {/* Bottom Navigation */}
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 shadow-lg z-30">
+          <div className="container mx-auto flex justify-around max-w-full px-2">
             <Link href="/menu" className="flex flex-col items-center" style={{ color: primary }}>
-            <FaUtensils className="mb-0.5" size={16} />
-            <span className="text-[10px]"><TranslatedText>Menü</TranslatedText></span>
+              <FaUtensils className="mb-0.5" size={16} />
+              <span className="text-[10px]"><TranslatedText>Menü</TranslatedText></span>
             </Link>
-          <Link href="/cart" className="flex flex-col items-center" style={{ color: primary }}>
-            <div className="relative">
-              <FaShoppingCart className="mb-0.5" size={16} />
+            <Link href="/cart" className="flex flex-col items-center" style={{ color: primary }}>
+              <div className="relative">
+                <FaShoppingCart className="mb-0.5" size={16} />
                 {isClient && cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center">
                     {cartCount}
-                </span>
-              )}
-            </div>
-            <span className="text-[10px]"><TranslatedText>Sepet</TranslatedText></span>
-          </Link>
-            <Link href="/garson-cagir" className="flex flex-col items-center" style={{ color: primary }}>
-            <FaBell className="mb-0.5" size={16} />
-            <span className="text-[10px]"><TranslatedText>Garson Çağır</TranslatedText></span>
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px]"><TranslatedText>Sepet</TranslatedText></span>
             </Link>
-        </div>
-      </nav>
+            <Link href="/garson-cagir" className="flex flex-col items-center" style={{ color: primary }}>
+              <FaBell className="mb-0.5" size={16} />
+              <span className="text-[10px]"><TranslatedText>Garson Çağır</TranslatedText></span>
+            </Link>
+          </div>
+        </nav>
       </main>
 
       {/* Menu Item Modal */}

@@ -28,7 +28,7 @@ interface Order {
 
 export default function DemoCashierContent() {
     const router = useRouter();
-    const { t } = useLanguageStore();
+    const { t, language } = useLanguageStore();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [restaurantId, setRestaurantId] = useState<string>('');
@@ -63,8 +63,8 @@ export default function DemoCashierContent() {
         fetchRestaurant();
     }, []);
 
-    // Demo veriler
-    const demoOrders: Order[] = [
+    // Demo veriler - TR
+    const demoOrdersTR: Order[] = [
         {
             id: '1',
             restaurantId: 'demo-restaurant',
@@ -115,6 +115,58 @@ export default function DemoCashierContent() {
         }
     ];
 
+    // Demo veriler - DE (Avusturya Mutfağı)
+    const demoOrdersDE: Order[] = [
+        {
+            id: '1',
+            restaurantId: 'demo-restaurant',
+            tableNumber: 5,
+            customerName: 'Hans Müller',
+            status: 'ready',
+            totalAmount: 45.50,
+            notes: 'Eilig - Kunde wartet',
+            orderType: 'table',
+            created_at: new Date(Date.now() - 20 * 60000).toISOString(),
+            items: [
+                { id: '1', name: 'Wiener Schnitzel', quantity: 2, price: 18.50 },
+                { id: '2', name: 'Almdudler', quantity: 2, price: 3.50 },
+                { id: '3', name: 'Apfelstrudel', quantity: 1, price: 5.50 }
+            ]
+        },
+        {
+            id: '2',
+            restaurantId: 'demo-restaurant',
+            tableNumber: 12,
+            customerName: 'Julia Weber',
+            status: 'completed',
+            totalAmount: 32.00,
+            orderType: 'takeaway',
+            created_at: new Date(Date.now() - 50 * 60000).toISOString(),
+            items: [
+                { id: '4', name: 'Käsespätzle', quantity: 2, price: 12.50 },
+                { id: '5', name: 'Mineralwasser', quantity: 2, price: 2.50 },
+                { id: '6', name: 'Gemischter Salat', quantity: 1, price: 4.50 }
+            ]
+        },
+        {
+            id: '3',
+            restaurantId: 'demo-restaurant',
+            tableNumber: 8,
+            customerName: 'Stefan Gruber',
+            status: 'ready',
+            totalAmount: 85.00,
+            notes: 'Geburtstagstisch - Kuchen gewünscht',
+            orderType: 'table',
+            created_at: new Date(Date.now() - 30 * 60000).toISOString(),
+            items: [
+                { id: '7', name: 'Tafelspitz', quantity: 1, price: 22.00 },
+                { id: '8', name: 'Zwiebelrostbraten', quantity: 1, price: 24.00 },
+                { id: '9', name: 'Grüner Veltliner (0.75L)', quantity: 1, price: 28.00 },
+                { id: '10', name: 'Kaiserschmarrn', quantity: 2, price: 11.00 }
+            ]
+        }
+    ];
+
     // Siparişleri çek (sadece ready ve completed)
     const fetchOrders = async () => {
         if (!restaurantId) return;
@@ -122,7 +174,8 @@ export default function DemoCashierContent() {
         try {
             setLoading(true);
             // Demo modda demo verileri kullan
-            const paymentOrders = demoOrders.filter(
+            const currentDemoOrders = language === 'de' ? demoOrdersDE : demoOrdersTR;
+            const paymentOrders = currentDemoOrders.filter(
                 (order: Order) => order.status === 'ready' || order.status === 'completed'
             );
             setOrders(paymentOrders);
@@ -234,8 +287,8 @@ export default function DemoCashierContent() {
                             <div
                                 key={order.id}
                                 className={`rounded-lg shadow-lg p-6 ${order.status === 'ready'
-                                        ? 'bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-500'
-                                        : 'bg-white border-2 border-gray-200'
+                                    ? 'bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-500'
+                                    : 'bg-white border-2 border-gray-200'
                                     }`}
                             >
                                 {/* Order Header */}
