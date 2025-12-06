@@ -781,11 +781,7 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Demo Menü',
       de: 'Demo-Speisekarte',
     },
-    qrMenuSystem: {
-      en: 'QR Menu System',
-      tr: 'QR Menü Sistemi',
-      de: 'QR-Menü-System',
-    },
+
     checkDemoMenuDesc: {
       en: 'check our demo menu to see how the QR menu system works',
       tr: 'QR menü sisteminin nasıl çalıştığını görmek için demo menümüzü inceleyin',
@@ -831,21 +827,13 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Google yorumları',
       de: 'Google-Bewertungen',
     },
-    popular: {
-      en: 'Popular',
-      tr: 'Popüler',
-      de: 'Beliebt',
-    },
+
     soupDesc: {
       en: 'Ezogelin soup - Homemade taste',
       tr: 'Ezogelin çorbası - Ev yapımı lezzet',
       de: 'Ezogelin-Suppe - Hausgemachter Geschmack',
     },
-    addToCart: {
-      en: 'Add to Cart',
-      tr: 'Sepete Ekle',
-      de: 'In den Warenkorb',
-    },
+
     discount20: {
       en: '20% Discount',
       tr: '%20 İndirim',
@@ -891,11 +879,7 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Gerçek QR menü deneyimi için demo sayfamızı ziyaret edin',
       de: 'Besuchen Sie unsere Demo-Seite für ein echtes QR-Menü-Erlebnis',
     },
-    whyRestXQr: {
-      en: 'Why RestXQr?',
-      tr: 'Neden RestXQr?',
-      de: 'Warum RestXQr?',
-    },
+
     whyRestXQrPanels: {
       en: 'Why RestXQr Panels?',
       tr: 'Neden RestXQr Panelleri?',
@@ -931,11 +915,7 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'SSL şifreleme ve 99.9% uptime garantisi ile güvenli operasyon',
       de: 'Sicherer Betrieb mit SSL-Verschlüsselung und 99,9% Uptime-Garantie',
     },
-    startNow: {
-      en: 'Start Now',
-      tr: 'Hemen Başlayın',
-      de: 'Jetzt starten',
-    },
+
     tryFree14Days: {
       en: 'panels try free for 14 days',
       tr: 'panellerini 14 gün ücretsiz deneyin',
@@ -951,16 +931,8 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Hemen Arayın',
       de: 'Jetzt anrufen',
     },
-    phone: {
-      en: 'Phone',
-      tr: 'Telefon',
-      de: 'Telefon',
-    },
-    website: {
-      en: 'Website',
-      tr: 'Website',
-      de: 'Webseite',
-    },
+
+
   },
 
   t: (key) => {
@@ -1004,7 +976,8 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       console.error('AI Translation error:', error);
       set({ isTranslating: false });
       return text; // Hata durumunda orijinal metni döndür
-    },
-  }));
+    }
+  },
+}));
 
 export default useLanguageStore;
