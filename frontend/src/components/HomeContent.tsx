@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { FaQrcode, FaUtensils, FaShoppingCart, FaBell, FaMagic, FaChartLine, FaUsers, FaClock, FaCheckCircle, FaRocket, FaShieldAlt, FaStar, FaPhone, FaWhatsapp, FaChevronDown, FaChevronUp, FaBrain, FaCamera, FaLightbulb, FaGem, FaFire, FaHeart, FaGlobe, FaMobile, FaTablet, FaDesktop } from 'react-icons/fa';
-import { LanguageProvider } from '@/context/LanguageContext';
-import TranslatedText from '@/components/TranslatedText';
+import { useTranslation } from '@/i18n/client';
 
-function HomeContent() {
+export default function HomeContent({ lng }: { lng: string }) {
+  const { t } = useTranslation(lng, 'common');
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
   const toggleFAQ = (index: number) => {
@@ -81,45 +81,45 @@ function HomeContent() {
           <div className="inline-flex items-center px-8 py-4 bg-white/10 rounded-full shadow-2xl mb-8 text-xl font-bold backdrop-blur-xl border border-white/20 hover:bg-white/20 transition-all duration-300">
             <FaStar className="text-yellow-300 mr-3 animate-spin" /> 
             <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
-              RestXQr ile Dijital Dönüşüm
+              {t('hero.badge', 'RestXQr ile Dijital Dönüşüm')}
             </span>
           </div>
           
           {/* Main Title */}
           <h1 className="text-6xl md:text-8xl font-black mb-8 leading-tight">
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Restoranınız
+              {t('hero.title1', 'Restoranınız')}
             </span>
             <br/>
             <span className="text-white">
-              Dijital Çağa
+              {t('hero.title2', 'Dijital Çağa')}
             </span>
             <br/>
             <span className="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
-              Hazır mı?
+              {t('hero.title3', 'Hazır mı?')}
             </span>
           </h1>
           
           {/* Subtitle */}
           <p className="text-2xl md:text-3xl mb-12 text-gray-200 leading-relaxed max-w-5xl mx-auto font-medium">
-            🚀 <span className="text-white font-bold">Türkiye'nin en gelişmiş</span> QR menü ve sipariş yönetim sistemi ile
+            🚀 <span className="text-white font-bold">{t('hero.subtitle1', "Türkiye'nin en gelişmiş")}</span> {t('hero.subtitle2', 'QR menü ve sipariş yönetim sistemi ile')}
             <br/>
             <span className="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent font-black text-4xl">
-              satışlarınızı %300 artırın!
+              {t('hero.subtitle3', 'satışlarınızı %300 artırın!')}
             </span>
             <br/>
-            <span className="text-gray-300">Rakiplerinizi geride bırakın.</span>
+            <span className="text-gray-300">{t('hero.subtitle4', 'Rakiplerinizi geride bırakın.')}</span>
           </p>
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row justify-center gap-8 max-w-3xl mx-auto mb-16">
             <Link href="/panels" className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-12 py-6 rounded-3xl text-xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 hover:from-blue-500 hover:to-purple-500">
               <FaUsers className="text-2xl group-hover:animate-bounce" /> 
-              <span>Panelleri Görüntüle</span>
+              <span>{t('hero.cta1', 'Panelleri Görüntüle')}</span>
             </Link>
             <Link href="/panels" className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-12 py-6 rounded-3xl text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105">
               <FaRocket className="inline mr-4 text-2xl group-hover:animate-bounce" /> 
-              <span>Demo İncele</span>
+              <span>{t('hero.cta2', 'Demo İncele')}</span>
             </Link>
           </div>
 
@@ -127,15 +127,15 @@ function HomeContent() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
               <div className="text-4xl font-black text-green-400 mb-2">%300</div>
-              <div className="text-lg text-gray-200">Satış Artışı</div>
+              <div className="text-lg text-gray-200">{t('hero.stats1', 'Satış Artışı')}</div>
             </div>
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
               <div className="text-4xl font-black text-blue-400 mb-2">AI</div>
-              <div className="text-lg text-gray-200">Fotoğraf Optimizasyonu</div>
+              <div className="text-lg text-gray-200">{t('hero.stats2', 'Fotoğraf Optimizasyonu')}</div>
             </div>
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
               <div className="text-4xl font-black text-purple-400 mb-2">24/7</div>
-              <div className="text-lg text-gray-200">Destek</div>
+              <div className="text-lg text-gray-200">{t('hero.stats3', 'Destek')}</div>
             </div>
           </div>
         </div>
@@ -571,13 +571,5 @@ function HomeContent() {
         </div>
       </section>
     </main>
-  );
-}
-
-export default function Home() {
-  return (
-    <LanguageProvider>
-      <HomeContent />
-    </LanguageProvider>
   );
 }
