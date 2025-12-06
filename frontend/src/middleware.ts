@@ -69,7 +69,7 @@ export function middleware(request: NextRequest) {
       url.searchParams.set('table', tableNumber !== undefined ? tableNumber : '1');
 
       // Mevcut token'ı koru
-      const token = searchParams.searchParams.get('token');
+      const token = searchParams.get('token');
       if (token) {
         url.searchParams.set('token', token);
       }
@@ -112,7 +112,8 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Skip all internal paths (_next)
+    // Match root and all paths except internal ones
+    '/',
     '/((?!api|_next/static|_next/image|favicon.ico|business).*)',
   ],
 };
