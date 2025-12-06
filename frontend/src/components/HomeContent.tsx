@@ -118,7 +118,7 @@ export default function HomeContent({ lng }: { lng: string }) {
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
               </Link>
-              <Link href="#demo" className="px-12 py-6 bg-white/10 backdrop-blur-xl text-white rounded-2xl text-xl font-bold border-2 border-white/30 hover:bg-white/20 transition-all duration-300 hover:scale-110 flex items-center justify-center">
+              <Link href="/business/login" className="px-12 py-6 bg-white/10 backdrop-blur-xl text-white rounded-2xl text-xl font-bold border-2 border-white/30 hover:bg-white/20 transition-all duration-300 hover:scale-110 flex items-center justify-center">
                 <FaMagic className="mr-3" />
                 {t('hero.cta2')}
               </Link>
