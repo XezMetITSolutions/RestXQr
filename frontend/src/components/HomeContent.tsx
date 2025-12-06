@@ -17,50 +17,50 @@ export default function HomeContent({ lng }: { lng: string }) {
     {
       icon: FaQrcode,
       color: "orange-500",
-      question: "restXqr nedir?",
-      answer: "restXqr, menüden siparişe, personelden muhasebeye kadar tüm operasyonu tek platformda yöneten restoran işletim sistemidir. AI ile görsellerinizi profesyonelleştirir, menüyü optimize eder ve satışları artırır; POS ve muhasebe sistemlerinizle sorunsuz entegre olur."
+      question: t('faq.q1'),
+      answer: t('faq.a1')
     },
     {
       icon: FaRocket,
       color: "blue-500",
-      question: "Kurulum süreci nasıl işliyor?",
-      answer: "6 ay ve üzeri planlar için kurulum tamamen ücretsizdir. Uzman teknik ekibimiz restoranınıza gelir, sistemi kurar ve tüm personellerinizi eğitir. Kurulum süreci 1-2 gün sürer ve hemen kullanmaya başlayabilirsiniz."
+      question: t('faq.q2'),
+      answer: t('faq.a2')
     },
     {
       icon: FaShieldAlt,
       color: "green-500",
-      question: "İade garantisi nasıl çalışır?",
-      answer: "30 gün içinde herhangi bir sebeple memnun kalmazsanız, ücretinizi tam olarak iade ediyoruz. Kurulum yapılmış ise sadece kurulum maliyeti kesilerek kalan tutar iade edilir. Risk almadan deneyin!"
+      question: t('faq.q3'),
+      answer: t('faq.a3')
     },
     {
       icon: FaShoppingCart,
       color: "purple-500",
-      question: "Hangi ödeme yöntemlerini kabul ediyorsunuz?",
-      answer: "Kredi kartı, banka kartı, havale/EFT ve tüm mobil ödeme seçeneklerini kabul ediyoruz. 6 aylık ve yıllık ödemeler için büyük indirimler sunuyoruz. Taksit seçenekleri de mevcuttur."
+      question: t('faq.q4'),
+      answer: t('faq.a4')
     },
     {
       icon: FaPhone,
       color: "red-500",
-      question: "Teknik destek sağlıyor musunuz?",
-      answer: "Elbette! Premium pakette WhatsApp ve öncelikli destek, Kurumsal pakette 7/24 telefon desteği sunuyoruz. Ayrıca tüm müşterilerimiz için online eğitim videoları ve dokümantasyon sağlıyoruz."
+      question: t('faq.q5'),
+      answer: t('faq.a5')
     },
     {
       icon: FaClock,
       color: "yellow-500",
-      question: "Sistemi öğrenmek ne kadar sürer?",
-      answer: "restXqr çok kullanıcı dostu tasarlandı. Personelleriniz 1-2 saatte sistemi öğrenebilir. Kurulum sırasında detaylı eğitim veriyoruz ve sürekli destek sağlıyoruz."
+      question: t('faq.q6'),
+      answer: t('faq.a6')
     },
     {
       icon: FaUtensils,
       color: "indigo-500",
-      question: "Mevcut POS sistemimle uyumlu mu?",
-      answer: "restXqr bağımsız çalışır ancak mevcut POS sistemlerinizle entegre edilebilir. Kurumsal pakette API entegrasyonları ile tüm sistemlerinizi birbirine bağlayabilirsiniz."
+      question: t('faq.q7'),
+      answer: t('faq.a7')
     },
     {
       icon: FaChartLine,
       color: "pink-500",
-      question: "Raporlama özellikleri neler?",
-      answer: "Günlük/haftalık/aylık satış raporları, en çok satan ürünler, masa verimliliği, personel performansı ve müşteri analitikleri gibi detaylı raporlar alabilirsiniz."
+      question: t('faq.q8'),
+      answer: t('faq.a8')
     }
   ];
 
@@ -102,7 +102,7 @@ export default function HomeContent({ lng }: { lng: string }) {
           
           {/* Subtitle */}
           <p className="text-2xl md:text-3xl mb-12 text-gray-200 leading-relaxed max-w-5xl mx-auto font-medium">
-            🚀 <span className="text-white font-bold">{t('hero.subtitle1', "Türkiye'nin en gelişmiş")}</span> {t('hero.subtitle2', 'QR menü ve sipariş yönetim sistemi ile')}
+            🚀 <span className="text-white font-bold">{t('hero.subtitle1')}</span> {t('hero.subtitle2')}
             <br/>
             <span className="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent font-black text-4xl">
               {t('hero.subtitle3', 'satışlarınızı %300 artırın!')}
@@ -392,11 +392,11 @@ export default function HomeContent({ lng }: { lng: string }) {
             </div>
             <h2 className="text-6xl font-black mb-8">
               <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Neden restXqr?
+                {t('benefits.title')}
               </span>
             </h2>
             <p className="text-2xl text-gray-300 max-w-4xl mx-auto font-medium leading-relaxed">
-              <span className="text-white font-bold">Türkiye'nin en gelişmiş</span> restoran yönetim sistemi ile işinizi büyütün
+              {t('benefits.subtitle1')} <span className="text-white font-bold">{t('benefits.subtitle_highlight')}</span> {t('benefits.subtitle2')}
             </p>
           </div>
 
