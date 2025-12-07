@@ -144,12 +144,23 @@ export default function MenuDebugPage() {
 
             if (suggestion) {
                 try {
-                    addLog(`Updating ${name} with: ${suggestion.join(', ')}`);
-                    await updateMenuItem(currentRestaurant.id, item.id, {
-                        ingredients: suggestion
-                    });
-                    updatedCount++;
-                    addLog(`Success: ${name}`);
+                    addLog(`Updating ${name} with array: ${suggestion.join(', ')}`);
+                    // Try sending as array first
+                    try {
+                        await updateMenuItem(currentRestaurant.id, item.id, {
+                            ingredients: suggestion
+                        });
+                        updatedCount++;
+                        addLog(`Success (Array): ${name}`);
+                    } catch (err: any) {
+                        addLog(`Array update failed. Trying string format...`);
+                        // Fallback: Try sending as comma-separated string
+                        await updateMenuItem(currentRestaurant.id, item.id, {
+                            ingredients: suggestion.join(', ')
+                        });
+                        updatedCount++;
+                        addLog(`Success (String): ${name}`);
+                    }
                 } catch (e: any) {
                     addLog(`Failed to update ${name}: ${e.message}`);
                 }
