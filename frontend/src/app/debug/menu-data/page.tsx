@@ -37,25 +37,33 @@ export default function MenuDebugPage() {
     const [username, setUsername] = useState('aksaray');
     const [status, setStatus] = useState<string>('');
     const [error, setError] = useState<string>('');
+    const [logs, setLogs] = useState<string[]>([]);
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
+    const addLog = (msg: string) => {
+        console.log(msg);
+        setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev]);
+    };
+
     const handleFetch = async () => {
         if (!username) return;
         setStatus('Fetching restaurant...');
         setError('');
+        setLogs([]);
 
         try {
-            console.log('Fetching for username:', username);
+            addLog(`Fetching for username: ${username}`);
             const restaurant = await fetchRestaurantByUsername(username);
-            console.log('Fetch result:', restaurant);
+            addLog(`Fetch result: ${restaurant ? 'Found' : 'Null'}`);
 
             if (restaurant) {
                 setStatus(`Found restaurant: ${restaurant.name} (${restaurant.id}). Fetching menu...`);
                 await fetchRestaurantMenu(restaurant.id);
                 setStatus('Menu fetched successfully.');
+                addLog(`Menu fetched. Items: ${(menuItems || []).length}`);
             } else {
                 setError('Restaurant not found (returned null). Check console for details.');
                 setStatus('Failed.');
@@ -64,12 +72,14 @@ export default function MenuDebugPage() {
             console.error(e);
             setError(`Error: ${e.message || 'Unknown error'}`);
             setStatus('Error occurred.');
+            addLog(`Error during fetch: ${e.message}`);
         }
     };
 
     const handleRemoveDuplicates = async () => {
         if (!currentRestaurant) return;
         setStatus('Scanning for duplicates...');
+        addLog('Starting duplicate scan...');
 
         const itemsByName: Record<string, any[]> = {};
 
@@ -86,7 +96,7 @@ export default function MenuDebugPage() {
         for (const name in itemsByName) {
             const group = itemsByName[name];
             if (group.length > 1) {
-                console.log(`Found duplicate group: ${name} (${group.length} items)`);
+                addLog(`Found duplicate group: ${name} (${group.length} items)`);
                 // Sort by completeness (prefer item with ingredients/allergens)
                 group.sort((a, b) => {
                     const aScore = (Array.isArray(a.ingredients) ? a.ingredients.length : 0) + (Array.isArray(a.allergens) ? a.allergens.length : 0);
@@ -100,47 +110,56 @@ export default function MenuDebugPage() {
 
                 for (const item of toDelete) {
                     try {
-                        console.log(`Deleting duplicate: ${item.name} (${item.id})`);
+                        addLog(`Deleting duplicate: ${item.name} (${item.id})`);
                         await deleteMenuItem(currentRestaurant.id, item.id);
                         deletedCount++;
-                    } catch (e) {
-                        console.error(`Failed to delete ${item.id}`, e);
+                    } catch (e: any) {
+                        addLog(`Failed to delete ${item.id}: ${e.message}`);
                     }
                 }
             }
         }
 
         setStatus(`Duplicates removed. Deleted ${deletedCount} items. Refreshing...`);
+        addLog(`Duplicate removal complete. Deleted: ${deletedCount}`);
         await fetchRestaurantMenu(currentRestaurant.id);
     };
 
     const handlePopulateIngredients = async () => {
         if (!currentRestaurant) return;
         setStatus('Populating ingredients...');
+        addLog('Starting ingredient population...');
         let updatedCount = 0;
 
         for (const item of menuItems) {
             // Check if ingredients are empty
             const hasIngredients = Array.isArray(item.ingredients) && item.ingredients.length > 0;
-            if (hasIngredients) continue;
+            if (hasIngredients) {
+                // addLog(`Skipping ${item.name} (already has ingredients)`);
+                continue;
+            }
 
             const name = (typeof item.name === 'string' ? item.name : item.name?.tr || '').toLowerCase().trim();
             const suggestion = INGREDIENT_MAP[name];
 
             if (suggestion) {
                 try {
-                    console.log(`Updating ${name} with ingredients:`, suggestion);
+                    addLog(`Updating ${name} with: ${suggestion.join(', ')}`);
                     await updateMenuItem(currentRestaurant.id, item.id, {
                         ingredients: suggestion
                     });
                     updatedCount++;
-                } catch (e) {
-                    console.error(`Failed to update ${name}`, e);
+                    addLog(`Success: ${name}`);
+                } catch (e: any) {
+                    addLog(`Failed to update ${name}: ${e.message}`);
                 }
+            } else {
+                // addLog(`No match found for: ${name}`);
             }
         }
 
         setStatus(`Ingredients populated for ${updatedCount} items. Refreshing...`);
+        addLog(`Population complete. Updated: ${updatedCount}`);
         await fetchRestaurantMenu(currentRestaurant.id);
     };
 
@@ -149,7 +168,10 @@ export default function MenuDebugPage() {
 
     return (
         <div className="p-4 bg-white min-h-screen text-black">
-            <h1 className="text-2xl font-bold mb-4">Menu Data Debugger & Tools</h1>
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl font-bold">Menu Data Debugger & Tools</h1>
+                <span className="bg-gray-200 px-2 py-1 rounded text-sm font-mono">v1.2 (Store Fix Applied)</span>
+            </div>
 
             <div className="mb-6 border p-4 rounded bg-gray-50">
                 <h2 className="text-xl font-semibold mb-2">Fetch Data</h2>
@@ -175,31 +197,41 @@ export default function MenuDebugPage() {
                 {error && <div className="text-red-600 font-bold mt-2">{error}</div>}
             </div>
 
-            <div className="mb-6 border p-4 rounded bg-gray-50">
-                <h2 className="text-xl font-semibold mb-2">Tools</h2>
-                <div className="flex gap-4">
-                    <button
-                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition flex items-center gap-2"
-                        onClick={() => {
-                            if (confirm('Are you sure you want to delete duplicate items? This cannot be undone.')) {
-                                handleRemoveDuplicates();
-                            }
-                        }}
-                        disabled={!currentRestaurant}
-                    >
-                        🗑️ Remove Duplicates
-                    </button>
-                    <button
-                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center gap-2"
-                        onClick={() => {
-                            if (confirm('This will overwrite empty ingredients for known dishes. Continue?')) {
-                                handlePopulateIngredients();
-                            }
-                        }}
-                        disabled={!currentRestaurant}
-                    >
-                        🥗 Populate Ingredients
-                    </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="border p-4 rounded bg-gray-50">
+                    <h2 className="text-xl font-semibold mb-2">Tools</h2>
+                    <div className="flex flex-col gap-2">
+                        <button
+                            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition flex items-center gap-2"
+                            onClick={() => {
+                                if (confirm('Are you sure you want to delete duplicate items? This cannot be undone.')) {
+                                    handleRemoveDuplicates();
+                                }
+                            }}
+                            disabled={!currentRestaurant}
+                        >
+                            🗑️ Remove Duplicates
+                        </button>
+                        <button
+                            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center gap-2"
+                            onClick={() => {
+                                if (confirm('This will overwrite empty ingredients for known dishes. Continue?')) {
+                                    handlePopulateIngredients();
+                                }
+                            }}
+                            disabled={!currentRestaurant}
+                        >
+                            🥗 Populate Ingredients
+                        </button>
+                    </div>
+                </div>
+
+                <div className="border p-4 rounded bg-gray-900 text-green-400 font-mono text-xs h-64 overflow-y-auto">
+                    <h2 className="text-white text-sm font-semibold mb-2 sticky top-0 bg-gray-900 pb-2 border-b border-gray-700">Action Log</h2>
+                    {logs.length === 0 && <span className="text-gray-500">Waiting for actions...</span>}
+                    {logs.map((log, i) => (
+                        <div key={i} className="mb-1">{log}</div>
+                    ))}
                 </div>
             </div>
 
