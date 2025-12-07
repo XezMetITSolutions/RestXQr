@@ -445,16 +445,16 @@ export default function BusinessDashboard() {
                       <FaUsers className="text-2xl text-white" />
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded-full">{stats.activeTables} aktif</div>
+                      <div className="text-sm font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded-full">{stats.activeTables} <TranslatedText>aktif</TranslatedText></div>
                     </div>
                   </div>
                   <h3 className="text-4xl font-black bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent mb-2">
                     {authenticatedRestaurant?.tableCount || 0}
                   </h3>
-                  <p className="text-gray-600 text-lg font-bold">Toplam Masa</p>
+                  <p className="text-gray-600 text-lg font-bold"><TranslatedText>Toplam Masa</TranslatedText></p>
                   <div className="mt-4 flex items-center text-sm text-orange-600 font-bold">
                     <span className="w-2 h-2 bg-orange-500 rounded-full mr-2 animate-pulse"></span>
-                    Masa yönetimi aktif
+                    <TranslatedText>Masa yönetimi aktif</TranslatedText>
                   </div>
                 </div>
               </div>
@@ -474,11 +474,11 @@ export default function BusinessDashboard() {
                         <FaShoppingCart className="text-xl text-white" />
                       </div>
                       <h3 className="text-2xl font-black bg-gradient-to-r from-gray-900 via-purple-800 to-pink-800 bg-clip-text text-transparent">
-                        Aktif Siparişler
+                        <TranslatedText>Aktif Siparişler</TranslatedText>
                       </h3>
                     </div>
                     <Link href="/business/orders" className="text-purple-600 hover:text-purple-700 text-sm font-bold bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-2 rounded-full hover:from-purple-200 hover:to-pink-200 transition-all duration-300 hover:scale-105">
-                      Tümünü Gör →
+                      <TranslatedText>Tümünü Gör →</TranslatedText>
                     </Link>
                   </div>
                   <div className="space-y-6">
