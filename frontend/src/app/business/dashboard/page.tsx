@@ -519,7 +519,7 @@ export default function BusinessDashboard() {
                       <FaRocket className="text-xl text-white" />
                     </div>
                     <h3 className="text-2xl font-black bg-gradient-to-r from-gray-900 via-blue-800 to-green-800 bg-clip-text text-transparent">
-                      Hızlı İşlemler
+                      <TranslatedText>Hızlı İşlemler</TranslatedText>
                     </h3>
                   </div>
                   <div className="grid grid-cols-2 gap-6">
@@ -527,25 +527,25 @@ export default function BusinessDashboard() {
                       <div className="h-16 w-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl group-hover/btn:shadow-2xl transition-all duration-300">
                         <FaPlus className="text-2xl text-white" />
                       </div>
-                      <span className="text-base font-black text-purple-800">Yeni Ürün</span>
+                      <span className="text-base font-black text-purple-800"><TranslatedText>Yeni Ürün</TranslatedText></span>
                     </Link>
                     <Link href="/business/orders" className="group/btn p-8 bg-gradient-to-br from-blue-50/80 to-blue-100/80 rounded-2xl hover:from-blue-100 hover:to-blue-200 transition-all duration-300 flex flex-col items-center justify-center gap-4 border border-blue-200/50 hover:shadow-xl hover:scale-105 backdrop-blur-sm">
                       <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl group-hover/btn:shadow-2xl transition-all duration-300">
                         <FaEye className="text-2xl text-white" />
                       </div>
-                      <span className="text-base font-black text-blue-800">Siparişleri Gör</span>
+                      <span className="text-base font-black text-blue-800"><TranslatedText>Siparişleri Gör</TranslatedText></span>
                     </Link>
                     <Link href="/business/menu" className="group/btn p-8 bg-gradient-to-br from-green-50/80 to-green-100/80 rounded-2xl hover:from-green-100 hover:to-green-200 transition-all duration-300 flex flex-col items-center justify-center gap-4 border border-green-200/50 hover:shadow-xl hover:scale-105 backdrop-blur-sm">
                       <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-xl group-hover/btn:shadow-2xl transition-all duration-300">
                         <FaEdit className="text-2xl text-white" />
                       </div>
-                      <span className="text-base font-black text-green-800">Menüyü Düzenle</span>
+                      <span className="text-base font-black text-green-800"><TranslatedText>Menüyü Düzenle</TranslatedText></span>
                     </Link>
                     <button data-open-announcements onClick={() => setShowAnnModal(true)} className="group/btn p-8 bg-gradient-to-br from-yellow-50/80 to-yellow-100/80 rounded-2xl hover:from-yellow-100 hover:to-yellow-200 transition-all duration-300 flex flex-col items-center justify-center gap-4 border border-yellow-200/50 hover:shadow-xl hover:scale-105 backdrop-blur-sm">
                       <div className="h-16 w-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center shadow-xl group-hover/btn:shadow-2xl transition-all duration-300">
                         <FaBullhorn className="text-2xl text-white" />
                       </div>
-                      <span className="text-base font-black text-yellow-800">Duyurular (Aktif)</span>
+                      <span className="text-base font-black text-yellow-800"><TranslatedText>Duyurular (Aktif)</TranslatedText></span>
                     </button>
                   </div>
                 </div>
@@ -576,9 +576,9 @@ export default function BusinessDashboard() {
                       <FaChartLine className="text-3xl text-white" />
                     </div>
                     <div>
-                      <h3 className="text-4xl font-black mb-4">Aylık Performans</h3>
+                      <h3 className="text-4xl font-black mb-4"><TranslatedText>Aylık Performans</TranslatedText></h3>
                       <p className="text-purple-200 text-xl font-bold">
-                        {stats.monthlyOrders > 0 ? 'Bu ay harika gidiyorsunuz! 🚀' : 'Henüz veri bulunmuyor 📊'}
+                        {stats.monthlyOrders > 0 ? <TranslatedText>Bu ay harika gidiyorsunuz! 🚀</TranslatedText> : <TranslatedText>Henüz veri bulunmuyor 📊</TranslatedText>}
                       </p>
                     </div>
                   </div>
@@ -589,10 +589,10 @@ export default function BusinessDashboard() {
                       <div className="h-12 w-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
                         <FaMoneyBillWave className="text-xl text-white" />
                       </div>
-                      <div className="text-green-200 text-sm font-bold bg-green-500/20 px-3 py-1 rounded-full">Ciro</div>
+                      <div className="text-green-200 text-sm font-bold bg-green-500/20 px-3 py-1 rounded-full"><TranslatedText>Ciro</TranslatedText></div>
                     </div>
                     <p className="text-5xl font-black mb-2">₺{stats.monthlyRevenue.toLocaleString('tr-TR')}</p>
-                    <p className="text-purple-200 text-lg font-bold">Aylık Ciro</p>
+                    <p className="text-purple-200 text-lg font-bold"><TranslatedText>Aylık Ciro</TranslatedText></p>
                   </div>
                   <div className="group/metric bg-white/15 backdrop-blur-xl rounded-2xl p-8 hover:bg-white/25 transition-all duration-500 hover:scale-105 hover:shadow-2xl border border-white/20">
                     <div className="flex items-center gap-4 mb-4">
