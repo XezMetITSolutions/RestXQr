@@ -34,6 +34,7 @@ import { useFeature } from '@/hooks/useFeature';
 import LanguageSelector from '@/components/LanguageSelector';
 import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
 import { LanguageProvider } from '@/context/LanguageContext';
+import TranslatedText from '@/components/TranslatedText';
 
 export default function BusinessDashboard() {
   const router = useRouter();
