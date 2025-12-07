@@ -130,7 +130,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
           categories: Array.isArray(restaurantData?.categories) ? restaurantData.categories : [],
           menuItems: Array.isArray(allMenuItems) ? allMenuItems.map((item: any) => ({
             ...item,
-            allergens: Array.isArray(item.allergens) ? item.allergens : (typeof item.allergens === 'string' ? item.allergens.split(',') : [])
+            allergens: Array.isArray(item.allergens) ? item.allergens : (typeof item.allergens === 'string' ? item.allergens.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+            ingredients: Array.isArray(item.ingredients) ? item.ingredients : (typeof item.ingredients === 'string' ? item.ingredients.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
           })) : [],
           loading: false
         }));
@@ -443,7 +444,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
           isPopular: item.isPopular || false,
           calories: item.calories,
           preparationTime: item.preparationTime,
-          allergens: Array.isArray(item.allergens) ? item.allergens : (typeof item.allergens === 'string' ? item.allergens.split(',') : [])
+          ingredients: Array.isArray(item.ingredients) ? item.ingredients : (typeof item.ingredients === 'string' ? item.ingredients.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+          allergens: Array.isArray(item.allergens) ? item.allergens : (typeof item.allergens === 'string' ? item.allergens.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
         }));
 
         console.log('✅ Transformed categories:', transformedCategories.length);

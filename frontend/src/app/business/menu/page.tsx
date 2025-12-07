@@ -255,8 +255,16 @@ export default function MenuManagement() {
       subcategory: item.subcategory || '',
       preparationTime: item.preparationTime?.toString() || '',
       calories: item.calories?.toString() || '',
-      ingredients: item.ingredients || '',
-      allergens: Array.isArray(item.allergens) ? item.allergens : [],
+      ingredients: Array.isArray(item.ingredients)
+        ? item.ingredients
+        : typeof item.ingredients === 'string'
+          ? item.ingredients.split(',').map((i: string) => i.trim()).filter(Boolean)
+          : [],
+      allergens: Array.isArray(item.allergens)
+        ? item.allergens
+        : typeof item.allergens === 'string'
+          ? item.allergens.split(',').map((a: string) => a.trim()).filter(Boolean)
+          : [],
       portion: item.portion || '',
       isAvailable: item.isAvailable !== false,
       isPopular: item.isPopular || false,
