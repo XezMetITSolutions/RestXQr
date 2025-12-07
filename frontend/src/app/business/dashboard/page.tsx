@@ -1031,6 +1031,7 @@ export default function BusinessDashboard() {
           onPaymentComplete={handlePaymentComplete}
         />
       </div>
-      );
+    </LanguageProvider>
+  );
 }
 
