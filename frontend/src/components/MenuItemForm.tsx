@@ -365,7 +365,7 @@ export default function MenuItemForm({
             </span>
           )}
         </div>
-        
+
         {hasVideoMenu ? (
           <div className="space-y-4">
             <div>
@@ -432,7 +432,7 @@ export default function MenuItemForm({
             <FaVideo className="text-4xl text-purple-300 mx-auto mb-3" />
             <h4 className="font-semibold text-gray-800 mb-2">Video Menü Özelliği</h4>
             <p className="text-sm text-gray-600 mb-4">
-              Ürünlerinize video ekleyerek müşterilerinize daha iyi bir deneyim sunun. 
+              Ürünlerinize video ekleyerek müşterilerinize daha iyi bir deneyim sunun.
               Yemeklerin hazırlanışını, sunumunu ve detaylarını videolarla gösterin.
             </p>
             <button
@@ -547,7 +547,7 @@ export default function MenuItemForm({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {formData.allergens?.map((allergen: string, index: number) => (
+            {Array.isArray(formData.allergens) && formData.allergens.map((allergen: string, index: number) => (
               <span
                 key={index}
                 className="inline-flex items-center gap-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm"

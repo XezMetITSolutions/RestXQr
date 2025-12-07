@@ -63,7 +63,7 @@ interface MenuState {
   subcategories: MenuSubcategory[];
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   fetchMenu: (restaurantId?: string) => Promise<void>;
   getItemsByCategory: (categoryId: string) => MenuItem[];
@@ -73,7 +73,7 @@ interface MenuState {
   getSubcategoriesByParent: (parentId: string) => MenuSubcategory[];
   updateItemPrice: (itemId: string, newPrice: number) => void;
   bulkUpdatePrices: (categoryId: string | 'all', operation: 'increase' | 'decrease', type: 'percentage' | 'fixed', value: number) => void;
-  
+
   // PostgreSQL API functions
   createCategory: (restaurantId: string, categoryData: any) => Promise<any>;
   createMenuItem: (restaurantId: string, itemData: any) => Promise<any>;
@@ -95,31 +95,31 @@ const useMenuStore = create<MenuState>()((set, get) => ({
   subcategories: sampleSubcategories,
   isLoading: false,
   error: null,
-  
+
   fetchMenu: async (restaurantId?: string) => {
     set({ isLoading: true, error: null });
-    
+
     try {
       if (!restaurantId) {
         // Fallback to sample data if no restaurant ID
-        set({ 
+        set({
           items: sampleItems,
           categories: sampleCategories,
           subcategories: sampleSubcategories,
-          isLoading: false 
+          isLoading: false
         });
         return;
       }
 
       // Fetch from PostgreSQL API
       const response = await fetch(`https://masapp-backend.onrender.com/api/restaurants/${restaurantId}/menu/categories`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         // Transform backend data to frontend format
         const categories = result.data.map((cat: any) => ({
@@ -130,9 +130,9 @@ const useMenuStore = create<MenuState>()((set, get) => ({
           isActive: cat.isActive,
           restaurantId: cat.restaurantId
         }));
-        
+
         // Extract items from categories
-        const items = result.data.flatMap((cat: any) => 
+        const items = result.data.flatMap((cat: any) =>
           cat.items?.map((item: any) => ({
             id: item.id,
             name: item.name,
@@ -143,25 +143,25 @@ const useMenuStore = create<MenuState>()((set, get) => ({
             displayOrder: item.displayOrder,
             isActive: item.isActive,
             isAvailable: item.isAvailable,
-            allergens: item.allergens || [],
+            allergens: Array.isArray(item.allergens) ? item.allergens : (typeof item.allergens === 'string' ? item.allergens.split(',') : []),
             ingredients: item.ingredients || [],
             nutritionInfo: item.nutritionInfo || {}
           })) || []
         );
-        
-        set({ 
+
+        set({
           categories,
           items,
           subcategories: [], // Backend doesn't have subcategories yet
-          isLoading: false 
+          isLoading: false
         });
       } else {
         throw new Error(result.message || 'Failed to fetch menu');
       }
     } catch (error) {
-      set({ 
+      set({
         error: 'Failed to fetch menu data',
-        isLoading: false 
+        isLoading: false
       });
     }
   },
@@ -176,13 +176,13 @@ const useMenuStore = create<MenuState>()((set, get) => ({
         },
         body: JSON.stringify(categoryData)
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         // Add to local state immediately
         const newCategory = {
@@ -193,11 +193,11 @@ const useMenuStore = create<MenuState>()((set, get) => ({
           isActive: result.data.isActive,
           restaurantId: result.data.restaurantId
         };
-        
+
         set((state) => ({
           categories: [...state.categories, newCategory]
         }));
-        
+
         return result.data;
       } else {
         throw new Error(result.message || 'Failed to create category');
@@ -217,13 +217,13 @@ const useMenuStore = create<MenuState>()((set, get) => ({
         },
         body: JSON.stringify(itemData)
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         // Add to local state immediately
         const newItem = {
@@ -236,15 +236,15 @@ const useMenuStore = create<MenuState>()((set, get) => ({
           displayOrder: result.data.displayOrder,
           isActive: result.data.isActive,
           isAvailable: result.data.isAvailable,
-          allergens: result.data.allergens || [],
+          allergens: Array.isArray(result.data.allergens) ? result.data.allergens : (typeof result.data.allergens === 'string' ? result.data.allergens.split(',') : []),
           ingredients: result.data.ingredients || [],
           nutritionInfo: result.data.nutritionInfo || {}
         };
-        
+
         set((state) => ({
           items: [...state.items, newItem]
         }));
-        
+
         return result.data;
       } else {
         throw new Error(result.message || 'Failed to create menu item');
@@ -264,13 +264,13 @@ const useMenuStore = create<MenuState>()((set, get) => ({
         },
         body: JSON.stringify(itemData)
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         // Refresh menu data
         await get().fetchMenu(restaurantId);
@@ -289,13 +289,13 @@ const useMenuStore = create<MenuState>()((set, get) => ({
       const response = await fetch(`https://masapp-backend.onrender.com/api/restaurants/${restaurantId}/menu/items/${itemId}`, {
         method: 'DELETE'
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         // Refresh menu data
         await get().fetchMenu(restaurantId);
@@ -308,30 +308,30 @@ const useMenuStore = create<MenuState>()((set, get) => ({
       throw error;
     }
   },
-  
+
   getItemsByCategory: (categoryId) => {
     return get().items.filter(item => item.categoryId === categoryId || item.category === categoryId);
   },
-  
+
   getItemsBySubcategory: (subcategoryId) => {
     return get().items.filter(item => item.subcategory === subcategoryId);
   },
-  
+
   getPopularItems: () => {
     return get().items.filter(item => item.popular);
   },
-  
+
   getItemById: (id) => {
     return get().items.find(item => item.id === id);
   },
-  
+
   getSubcategoriesByParent: (parentId) => {
     return get().subcategories.filter(subcategory => subcategory.parentId === parentId);
   },
 
   updateItemPrice: (itemId, newPrice) => {
     const state = get();
-    const updatedItems = state.items.map(item => 
+    const updatedItems = state.items.map(item =>
       item.id === itemId ? { ...item, price: newPrice } : item
     );
     set({ items: updatedItems });
@@ -340,8 +340,8 @@ const useMenuStore = create<MenuState>()((set, get) => ({
   bulkUpdatePrices: (categoryId, operation, type, value) => {
     const state = get();
     const items = [...state.items];
-    const itemsToUpdate = categoryId === 'all' 
-      ? items 
+    const itemsToUpdate = categoryId === 'all'
+      ? items
       : items.filter(item => item.category === categoryId);
 
     const updatedItems = items.map(item => {
@@ -350,7 +350,7 @@ const useMenuStore = create<MenuState>()((set, get) => ({
       }
 
       let newPrice = item.price;
-      
+
       if (type === 'percentage') {
         const percentage = value / 100;
         if (operation === 'increase') {
@@ -365,7 +365,7 @@ const useMenuStore = create<MenuState>()((set, get) => ({
           newPrice = Math.max(0, item.price - value);
         }
       }
-      
+
       return { ...item, price: Math.round(newPrice * 100) / 100 }; // 2 decimal places
     });
 
@@ -387,7 +387,7 @@ const useMenuStore = create<MenuState>()((set, get) => ({
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         // Remove from local state
         set((state) => ({

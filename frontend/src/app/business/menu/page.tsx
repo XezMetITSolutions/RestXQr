@@ -1104,7 +1104,7 @@ export default function MenuManagement() {
                                 </span>
                               )}
                               <div className="flex gap-1 mt-1">
-                                {item.allergens && item.allergens.length > 0 && (
+                                {item.allergens && Array.isArray(item.allergens) && item.allergens.length > 0 && (
                                   <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium" title={`Alerjenler: ${item.allergens.join(', ')}`}>
                                     {item.allergens.length} Alerjen
                                   </span>

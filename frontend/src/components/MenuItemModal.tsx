@@ -19,7 +19,7 @@ export default function MenuItemModal({ item, isOpen, onClose }: MenuItemModalPr
   const handleAddToCart = useCallback(() => {
     addItem({
       itemId: item.id,
-      name: item.name,
+      name: typeof item.name === 'string' ? { en: item.name, tr: item.name } : item.name,
       price: item.price,
       quantity,
       image: item.image,
@@ -35,11 +35,11 @@ export default function MenuItemModal({ item, isOpen, onClose }: MenuItemModalPr
   const getDescription = () => typeof item.description === 'string' ? item.description : (item.description?.tr || '');
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -83,13 +83,13 @@ export default function MenuItemModal({ item, isOpen, onClose }: MenuItemModalPr
         {/* Content */}
         <div className="p-4">
           <p className="text-gray-600 mb-4">{getDescription()}</p>
-          
+
           <div className="text-2xl font-bold mb-4" style={{ color: 'var(--brand-strong)' }}>
             {item.price} ₺
           </div>
 
           {/* Allergens */}
-          {item.allergens && item.allergens.length > 0 && (
+          {item.allergens && Array.isArray(item.allergens) && item.allergens.length > 0 && (
             <div className="mb-4">
               <h3 className="font-semibold mb-2">Alerjenler</h3>
               <div className="flex flex-wrap gap-1">
