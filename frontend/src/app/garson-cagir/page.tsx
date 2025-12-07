@@ -17,7 +17,7 @@ function GarsonCagirContent() {
   const { settings } = useBusinessSettingsStore();
   const primary = settings.branding.primaryColor;
   const [isClient, setIsClient] = useState(false);
-  
+
   const [specialRequest, setSpecialRequest] = useState('');
   const [activeRequests, setActiveRequests] = useState<any[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -34,30 +34,30 @@ function GarsonCagirContent() {
       type,
       timestamp: new Date().toISOString()
     };
-    
+
     setActiveRequests(prev => [...prev, newRequest]);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2000);
-    
+
     // TODO: Backend'e gönder
     console.log('Garson talebi gönderildi:', type);
   };
 
   const handleSpecialRequest = () => {
     if (!specialRequest.trim()) return;
-    
+
     const newRequest = {
       id: Date.now(),
       type: 'custom',
       message: specialRequest,
       timestamp: new Date().toISOString()
     };
-    
+
     setActiveRequests(prev => [...prev, newRequest]);
     setSpecialRequest('');
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2000);
-    
+
     // TODO: Backend'e gönder
     console.log('Özel istek gönderildi:', specialRequest);
   };
@@ -71,7 +71,7 @@ function GarsonCagirContent() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
-          <Link 
+          <Link
             href="/menu"
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
@@ -113,7 +113,7 @@ function GarsonCagirContent() {
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <h2 className="text-xl font-bold mb-4 text-gray-800">Hızlı İstekler</h2>
           <div className="grid grid-cols-2 gap-4">
-            <button 
+            <button
               onClick={() => handleQuickRequest('water')}
               className="flex flex-col items-center justify-center gap-3 py-6 rounded-2xl shadow-sm hover:shadow-lg active:scale-95 transition-all duration-200"
               style={{ backgroundColor: primary, color: 'white' }}
@@ -121,7 +121,7 @@ function GarsonCagirContent() {
               <FaGlassWhiskey size={32} />
               <span className="text-sm font-semibold">Su Getir</span>
             </button>
-            <button 
+            <button
               onClick={() => handleQuickRequest('bill')}
               className="flex flex-col items-center justify-center gap-3 py-6 rounded-2xl shadow-sm hover:shadow-lg active:scale-95 transition-all duration-200"
               style={{ backgroundColor: primary, color: 'white' }}
@@ -129,7 +129,7 @@ function GarsonCagirContent() {
               <FaFileInvoiceDollar size={32} />
               <span className="text-sm font-semibold">Hesap İste</span>
             </button>
-            <button 
+            <button
               onClick={() => handleQuickRequest('clean')}
               className="flex flex-col items-center justify-center gap-3 py-6 rounded-2xl shadow-sm hover:shadow-lg active:scale-95 transition-all duration-200"
               style={{ backgroundColor: primary, color: 'white' }}
@@ -137,7 +137,7 @@ function GarsonCagirContent() {
               <FaSprayCan size={32} />
               <span className="text-sm font-semibold">Masayı Temizle</span>
             </button>
-            <button 
+            <button
               onClick={() => handleQuickRequest('help')}
               className="flex flex-col items-center justify-center gap-3 py-6 rounded-2xl shadow-sm hover:shadow-lg active:scale-95 transition-all duration-200"
               style={{ backgroundColor: primary, color: 'white' }}
@@ -151,14 +151,14 @@ function GarsonCagirContent() {
         {/* Özel İstek */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <h2 className="text-xl font-bold mb-4 text-gray-800">Özel İstek</h2>
-          <textarea 
+          <textarea
             value={specialRequest}
             onChange={(e) => setSpecialRequest(e.target.value)}
             placeholder="İsteğinizi buraya yazın..."
             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 resize-none transition-all"
             rows={5}
           />
-          <button 
+          <button
             onClick={handleSpecialRequest}
             disabled={!specialRequest.trim()}
             className="w-full mt-4 py-4 rounded-xl font-semibold shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -187,7 +187,7 @@ function GarsonCagirContent() {
                       {new Date(request.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => removeRequest(request.id)}
                     className="ml-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors font-medium"
                   >
@@ -202,7 +202,7 @@ function GarsonCagirContent() {
         {/* Bilgilendirme */}
         <div className="bg-blue-50 rounded-2xl p-4 border-2 border-blue-100">
           <p className="text-sm text-blue-800 text-center">
-            ℹ️ İsteğiniz garson ekibimize iletilecektir. En kısa sürede size yardımcı olacağız.
+            ℹ️ <TranslatedText>İsteğiniz garson ekibimize iletilecektir. En kısa sürede size yardımcı olacağız.</TranslatedText>
           </p>
         </div>
       </div>
