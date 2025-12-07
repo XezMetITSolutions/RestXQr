@@ -599,30 +599,30 @@ export default function BusinessDashboard() {
                       <div className="h-12 w-12 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
                         <FaShoppingCart className="text-xl text-white" />
                       </div>
-                      <div className="text-blue-200 text-sm font-bold bg-blue-500/20 px-3 py-1 rounded-full">Sipariş</div>
+                      <div className="text-blue-200 text-sm font-bold bg-blue-500/20 px-3 py-1 rounded-full"><TranslatedText>Sipariş</TranslatedText></div>
                     </div>
                     <p className="text-5xl font-black mb-2">{stats.monthlyOrders}</p>
-                    <p className="text-purple-200 text-lg font-bold">Toplam Sipariş</p>
+                    <p className="text-purple-200 text-lg font-bold"><TranslatedText>Toplam Sipariş</TranslatedText></p>
                   </div>
                   <div className="group/metric bg-white/15 backdrop-blur-xl rounded-2xl p-8 hover:bg-white/25 transition-all duration-500 hover:scale-105 hover:shadow-2xl border border-white/20">
                     <div className="flex items-center gap-4 mb-4">
                       <div className="h-12 w-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
                         <FaChartBar className="text-xl text-white" />
                       </div>
-                      <div className="text-yellow-200 text-sm font-bold bg-yellow-500/20 px-3 py-1 rounded-full">Puan</div>
+                      <div className="text-yellow-200 text-sm font-bold bg-yellow-500/20 px-3 py-1 rounded-full"><TranslatedText>Puan</TranslatedText></div>
                     </div>
                     <p className="text-5xl font-black mb-2">{stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '-'}</p>
-                    <p className="text-purple-200 text-lg font-bold">Ortalama Puan</p>
+                    <p className="text-purple-200 text-lg font-bold"><TranslatedText>Ortalama Puan</TranslatedText></p>
                   </div>
                   <div className="group/metric bg-white/15 backdrop-blur-xl rounded-2xl p-8 hover:bg-white/25 transition-all duration-500 hover:scale-105 hover:shadow-2xl border border-white/20">
                     <div className="flex items-center gap-4 mb-4">
                       <div className="h-12 w-12 bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl flex items-center justify-center shadow-lg">
                         <FaUsers className="text-xl text-white" />
                       </div>
-                      <div className="text-pink-200 text-sm font-bold bg-pink-500/20 px-3 py-1 rounded-full">Memnuniyet</div>
+                      <div className="text-pink-200 text-sm font-bold bg-pink-500/20 px-3 py-1 rounded-full"><TranslatedText>Memnuniyet</TranslatedText></div>
                     </div>
                     <p className="text-5xl font-black mb-2">{stats.customerSatisfaction > 0 ? `${stats.customerSatisfaction}%` : '-'}</p>
-                    <p className="text-purple-200 text-lg font-bold">Müşteri Memnuniyeti</p>
+                    <p className="text-purple-200 text-lg font-bold"><TranslatedText>Müşteri Memnuniyeti</TranslatedText></p>
                   </div>
                 </div>
               </div>
