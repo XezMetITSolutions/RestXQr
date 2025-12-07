@@ -106,6 +106,7 @@ export interface MenuItem {
   description: string; // Sadece Türkçe
   price: number;
   image?: string;
+  imageUrl?: string; // Alternatif görsel alanı
   videoUrl?: string; // Video menü URL'i
   videoThumbnail?: string; // Video önizleme resmi
   videoDuration?: string; // Video süresi (örn: "0:45")

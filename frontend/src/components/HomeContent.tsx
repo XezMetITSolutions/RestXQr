@@ -6,7 +6,7 @@ import { FaQrcode, FaUtensils, FaShoppingCart, FaBell, FaMagic, FaChartLine, FaU
 import useLanguageStore from '@/store/useLanguageStore';
 
 export default function HomeContent() {
-    const { t } = useLanguageStore();
+    const { t, language } = useLanguageStore();
     const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
     const toggleFAQ = (index: number) => {
@@ -113,7 +113,7 @@ export default function HomeContent() {
                             <FaUsers className="text-2xl group-hover:animate-bounce" />
                             <span>{t('viewPanels')}</span>
                         </Link>
-                        <Link href="/panels" className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105">
+                        <Link href={language === 'tr' ? "https://aksaray.restxqr.com/menu" : "/panels"} className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105">
                             <FaRocket className="inline mr-4 text-2xl group-hover:animate-bounce" />
                             <span>{t('viewDemo')}</span>
                         </Link>

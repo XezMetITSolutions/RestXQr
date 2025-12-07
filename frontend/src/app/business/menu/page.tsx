@@ -33,7 +33,8 @@ import {
   FaMoneyBillWave,
   FaGlobe,
   FaMagic,
-  FaLanguage
+  FaLanguage,
+  FaClock
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
@@ -160,7 +161,7 @@ export default function MenuManagement() {
     preparationTime: '',
     calories: '',
     ingredients: '',
-    allergens: [],
+    allergens: [] as string[],
     portion: '',
     isAvailable: true,
     isPopular: false,
@@ -235,7 +236,7 @@ export default function MenuManagement() {
       preparationTime: '',
       calories: '',
       ingredients: '',
-      allergens: [],
+      allergens: [] as string[],
       portion: '',
       isAvailable: true,
       isPopular: false,
@@ -571,7 +572,7 @@ export default function MenuManagement() {
       translations: {
         ...(prev.translations || {}),
         [lang]: {
-          ...(prev.translations?.[lang] || {}),
+          ...((prev.translations as any)?.[lang] || {}),
           [field]: value
         }
       }
@@ -586,7 +587,7 @@ export default function MenuManagement() {
     }
     setItemTranslationError(null);
     setIsTranslatingItem(true);
-    const updatedTranslations = { ...(formData.translations || {}) };
+    const updatedTranslations: any = { ...(formData.translations || {}) };
     try {
       for (const lang of translationLanguages) {
         if (formData.name) {
@@ -614,11 +615,92 @@ export default function MenuManagement() {
         ...prev,
         translations: updatedTranslations
       }));
+      setFormData((prev) => ({
+        ...prev,
+        translations: updatedTranslations
+      }));
     } catch (error) {
       console.error('Ürün çevirisi hatası:', error);
       setItemTranslationError('Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setIsTranslatingItem(false);
+    }
+  };
+
+  const [isBulkTranslating, setIsBulkTranslating] = useState(false);
+
+  const updateItemTranslationField = (
+    lang: string,
+    field: 'name' | 'description',
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      translations: {
+        ...(prev.translations || {}),
+        [lang]: {
+          ...((prev.translations as any)?.[lang] || {}),
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  const handleBulkTranslate = async () => {
+    if (!confirm('Tüm ürünler Almancaya çevrilecek. Bu işlem biraz zaman alabilir. Devam etmek istiyor musunuz?')) return;
+
+    setIsBulkTranslating(true);
+    let successCount = 0;
+
+    try {
+      if (currentRestaurantId) {
+        for (const item of items) {
+          // Eğer zaten Almanca çevirisi varsa atla (isteğe bağlı, şimdilik hepsini çevirelim veya kontrol edelim)
+          // Ancak item yapısında translations alanı yoksa API'den çekip güncellememiz gerekebilir.
+          // Basitlik için her ürünü güncelleyeceğiz.
+
+          try {
+            const translatedName = await translateWithDeepL({
+              text: item.name,
+              targetLanguage: 'de'
+            });
+
+            let translatedDescription = '';
+            if (item.description) {
+              translatedDescription = await translateWithDeepL({
+                text: item.description,
+                targetLanguage: 'de'
+              });
+            }
+
+            // Mevcut çevirileri koru
+            const currentTranslations = (item as any).translations || {};
+            const newTranslations = {
+              ...currentTranslations,
+              'de': {
+                name: translatedName,
+                description: translatedDescription
+              }
+            };
+
+            await updateMenuItem(currentRestaurantId, item.id, {
+              translations: newTranslations
+            });
+
+            successCount++;
+          } catch (err) {
+            console.error(`Ürün çeviri hatası (${item.name}):`, err);
+          }
+        }
+
+        await fetchRestaurantMenu(currentRestaurantId);
+        alert(`${successCount} ürün başarıyla Almancaya çevrildi.`);
+      }
+    } catch (error) {
+      console.error('Toplu çeviri hatası:', error);
+      alert('Toplu çeviri sırasında bir hata oluştu.');
+    } finally {
+      setIsBulkTranslating(false);
     }
   };
 
@@ -630,7 +712,7 @@ export default function MenuManagement() {
     }
     setCategoryTranslationError(null);
     setIsTranslatingCategory(true);
-    const updatedTranslations = { ...(categoryFormData.translations || {}) };
+    const updatedTranslations: any = { ...(categoryFormData.translations || {}) };
     try {
       for (const lang of translationLanguages) {
         if (categoryFormData.name) {
@@ -821,6 +903,19 @@ export default function MenuManagement() {
                 </svg>
                 <span>Toplu İçe Aktar</span>
               </button>
+
+              {/* Toplu Çeviri (Almanca) */}
+              <button
+                onClick={handleBulkTranslate}
+                disabled={isBulkTranslating}
+                className={`flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-xl hover:from-yellow-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold ${isBulkTranslating ? 'opacity-70 cursor-not-allowed' : ''
+                  }`}
+              >
+                <FaLanguage className="text-white text-xl" />
+                <span className="font-bold">
+                  {isBulkTranslating ? 'Çevriliyor...' : 'Tümünü Almancaya Çevir'}
+                </span>
+              </button>
             </div>
           </div>
 
@@ -933,6 +1028,9 @@ export default function MenuManagement() {
                           Kategori
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Detaylar
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Fiyat
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -957,11 +1055,13 @@ export default function MenuManagement() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <img
-                                src={item.imageUrl || item.image ?
-                                  (item.imageUrl || item.image).startsWith('http') ?
-                                    (item.imageUrl || item.image) :
-                                    `https://masapp-backend.onrender.com${item.imageUrl || item.image}`
-                                  : '/placeholder-food.jpg'}
+                                src={
+                                  (item.imageUrl || item.image)
+                                    ? (item.imageUrl || item.image)?.startsWith('http')
+                                      ? (item.imageUrl || item.image)
+                                      : `https://masapp-backend.onrender.com${item.imageUrl || item.image}`
+                                    : '/placeholder-food.jpg'
+                                }
                                 alt={item.name}
                                 className="h-12 w-12 rounded-lg object-cover mr-4"
                                 onError={(e) => {
@@ -990,6 +1090,32 @@ export default function MenuManagement() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {categories.find(c => c.id === item.categoryId)?.name || 'Kategori Yok'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex flex-col gap-1">
+                              {item.calories && (
+                                <span className="flex items-center gap-1 text-xs" title="Kalori">
+                                  <FaFire className="text-orange-400" /> {item.calories} kcal
+                                </span>
+                              )}
+                              {item.preparationTime && (
+                                <span className="flex items-center gap-1 text-xs" title="Hazırlık Süresi">
+                                  <FaClock className="text-blue-400" /> {item.preparationTime} dk
+                                </span>
+                              )}
+                              <div className="flex gap-1 mt-1">
+                                {item.allergens && item.allergens.length > 0 && (
+                                  <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium" title={`Alerjenler: ${item.allergens.join(', ')}`}>
+                                    {item.allergens.length} Alerjen
+                                  </span>
+                                )}
+                                {item.ingredients && (
+                                  <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-medium" title={`Malzemeler: ${item.ingredients}`}>
+                                    Malzemeler
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             ₺{item.price}
@@ -1042,11 +1168,13 @@ export default function MenuManagement() {
                   <div key={item.id} className="bg-white rounded-lg shadow-sm border p-4">
                     <div className="flex items-start gap-3">
                       <img
-                        src={item.imageUrl || item.image ?
-                          (item.imageUrl || item.image).startsWith('http') ?
-                            (item.imageUrl || item.image) :
-                            `https://masapp-backend.onrender.com${item.imageUrl || item.image}`
-                          : '/placeholder-food.jpg'}
+                        src={
+                          (item.imageUrl || item.image)
+                            ? (item.imageUrl || item.image)?.startsWith('http')
+                              ? (item.imageUrl || item.image)
+                              : `https://masapp-backend.onrender.com${item.imageUrl || item.image}`
+                            : '/placeholder-food.jpg'
+                        }
                         alt={item.name}
                         className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
                         onError={(e) => {
@@ -1304,7 +1432,7 @@ export default function MenuManagement() {
                                 </label>
                                 <input
                                   type="text"
-                                  value={formData.translations?.[lang]?.name || ''}
+                                  value={(formData.translations as any)?.[lang]?.name || ''}
                                   onChange={(e) => updateItemTranslationField(lang, 'name', e.target.value)}
                                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                                 />
@@ -1315,7 +1443,7 @@ export default function MenuManagement() {
                                 </label>
                                 <textarea
                                   rows={2}
-                                  value={formData.translations?.[lang]?.description || ''}
+                                  value={(formData.translations as any)?.[lang]?.description || ''}
                                   onChange={(e) => updateItemTranslationField(lang, 'description', e.target.value)}
                                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                                 />
@@ -1536,7 +1664,7 @@ export default function MenuManagement() {
                                   }
                                 } catch (error) {
                                   console.error('❌ Resim yükleme hatası:', error);
-                                  alert('❌ Resim yüklenirken hata oluştu: ' + error.message);
+                                  alert('❌ Resim yüklenirken hata oluştu: ' + (error as any).message);
                                 }
                               }
                             }}
@@ -1749,7 +1877,7 @@ export default function MenuManagement() {
                             }
                           } catch (error) {
                             console.error('Ürün eklenirken hata:', error);
-                            alert('Ürün eklenirken bir hata oluştu: ' + error.message);
+                            alert('Ürün eklenirken bir hata oluştu: ' + (error as any).message);
                           }
                         }
 
@@ -1767,10 +1895,11 @@ export default function MenuManagement() {
                           preparationTime: '',
                           calories: '',
                           ingredients: '',
-                          allergens: [],
+                          allergens: [] as string[],
                           portion: '',
                           isAvailable: true,
-                          isPopular: false
+                          isPopular: false,
+                          translations: {}
                         });
                       }}
                       className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
@@ -1872,7 +2001,7 @@ export default function MenuManagement() {
                           }
                         } catch (error) {
                           console.error('Kategori işlemi sırasında hata:', error);
-                          alert('Kategori işlemi sırasında bir hata oluştu');
+                          alert('Kategori işlemi sırasında bir hata oluştu: ' + (error as any).message);
                         }
                         setShowCategoryForm(false);
                         setEditingCategory(null);
@@ -1881,7 +2010,8 @@ export default function MenuManagement() {
                           name: '',
                           description: '',
                           order: 0,
-                          isActive: true
+                          isActive: true,
+                          translations: {}
                         });
                       }}
                       className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
