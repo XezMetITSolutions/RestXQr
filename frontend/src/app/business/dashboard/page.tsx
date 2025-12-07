@@ -349,7 +349,7 @@ export default function BusinessDashboard() {
                     }`}
                 >
                   <span className="hidden sm:inline">
-                    {(authenticatedRestaurant?.subscription?.plan || 'premium') === 'premium' ? 'Premium' : 'Premium'} Plan
+                    {(authenticatedRestaurant?.subscription?.plan || 'premium') === 'premium' ? <TranslatedText>Premium Plan</TranslatedText> : <TranslatedText>Premium Plan</TranslatedText>}
                   </span>
                   <span className="sm:hidden">
                     {(authenticatedRestaurant?.subscription?.plan || 'premium') === 'premium' ? 'P' : 'P'}
@@ -403,10 +403,10 @@ export default function BusinessDashboard() {
                   <h3 className="text-4xl font-black bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
                     ₺{stats.todayRevenue.toLocaleString('tr-TR')}
                   </h3>
-                  <p className="text-gray-600 text-lg font-bold">Bugünkü Ciro</p>
+                  <p className="text-gray-600 text-lg font-bold"><TranslatedText>Bugünkü Ciro</TranslatedText></p>
                   <div className="mt-4 flex items-center text-sm text-green-600 font-bold">
                     <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                    Artış trendi
+                    <TranslatedText>Artış trendi</TranslatedText>
                   </div>
                 </div>
               </div>
@@ -421,16 +421,16 @@ export default function BusinessDashboard() {
                       <FaUtensils className="text-2xl text-white" />
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-purple-600 bg-purple-100 px-3 py-1 rounded-full">{stats.activeCategories} kategori</div>
+                      <div className="text-sm font-bold text-purple-600 bg-purple-100 px-3 py-1 rounded-full">{stats.activeCategories} <TranslatedText>kategori</TranslatedText></div>
                     </div>
                   </div>
                   <h3 className="text-4xl font-black bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 bg-clip-text text-transparent mb-2">
                     {stats.totalMenuItems}
                   </h3>
-                  <p className="text-gray-600 text-lg font-bold">Menü Ürünleri</p>
+                  <p className="text-gray-600 text-lg font-bold"><TranslatedText>Menü Ürünleri</TranslatedText></p>
                   <div className="mt-4 flex items-center text-sm text-purple-600 font-bold">
                     <span className="w-2 h-2 bg-purple-500 rounded-full mr-2 animate-pulse"></span>
-                    {stats.activeCategories} aktif kategori
+                    {stats.activeCategories} <TranslatedText>aktif kategori</TranslatedText>
                   </div>
                 </div>
               </div>
