@@ -270,6 +270,20 @@ export default function MenuManagement() {
       isPopular: item.isPopular || false,
       translations: item.translations || {}
     });
+
+    console.log('📝 handleEditItem - Original Item:', {
+      id: item.id,
+      name: item.name,
+      ingredients: item.ingredients,
+      allergens: item.allergens,
+      typeOfAllergens: typeof item.allergens,
+      isArrayAllergens: Array.isArray(item.allergens)
+    });
+
+    console.log('📝 handleEditItem - Processed for Form:', {
+      ingredients: Array.isArray(item.ingredients) ? item.ingredients : typeof item.ingredients === 'string' ? item.ingredients.split(',') : [],
+      allergens: Array.isArray(item.allergens) ? item.allergens : typeof item.allergens === 'string' ? item.allergens.split(',') : []
+    });
     // Resmi de yükle (imageUrl veya image field'ını kontrol et)
     const imageToLoad = item.imageUrl || item.image;
     if (imageToLoad) {

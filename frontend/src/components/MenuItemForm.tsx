@@ -29,6 +29,12 @@ export default function MenuItemForm({
   const [translationError, setTranslationError] = useState<string | null>(null);
   const hasVideoMenu = useFeature('video_menu');
   const activeLanguages = useMemo(() => (languages?.length ? languages : ['tr']), [languages]);
+  console.log('📝 MenuItemForm Rendered', {
+    formDataAllergens: formData.allergens,
+    isArray: Array.isArray(formData.allergens),
+    formDataIngredients: formData.ingredients
+  });
+
   const translationLanguages = useMemo(
     () => activeLanguages.filter((lang) => lang !== 'tr'),
     [activeLanguages]
