@@ -92,7 +92,7 @@ function GarsonCagirContent() {
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
           <div className="bg-green-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2">
             <FaCheckCircle size={20} />
-            <span className="font-semibold">İstek gönderildi!</span>
+            <span className="font-semibold"><TranslatedText>İstek gönderildi!</TranslatedText></span>
           </div>
         </div>
       )}
@@ -102,7 +102,7 @@ function GarsonCagirContent() {
         {/* Masa Numarası */}
         <div className="bg-white rounded-2xl shadow-sm p-4 border-2" style={{ borderColor: primary + '20' }}>
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 font-medium">Masa Numaranız</span>
+            <span className="text-gray-600 font-medium"><TranslatedText>Masa Numaranız</TranslatedText></span>
             <div className="px-4 py-2 rounded-full font-bold text-lg" style={{ backgroundColor: primary + '20', color: primary }}>
               #{tableNumber || 'Bilinmiyor'}
             </div>
@@ -111,7 +111,7 @@ function GarsonCagirContent() {
 
         {/* Hızlı İstekler */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">Hızlı İstekler</h2>
+          <h2 className="text-xl font-bold mb-4 text-gray-800"><TranslatedText>Hızlı İstekler</TranslatedText></h2>
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => handleQuickRequest('water')}
@@ -150,7 +150,7 @@ function GarsonCagirContent() {
 
         {/* Özel İstek */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">Özel İstek</h2>
+          <h2 className="text-xl font-bold mb-4 text-gray-800"><TranslatedText>Özel İstek</TranslatedText></h2>
           <textarea
             value={specialRequest}
             onChange={(e) => setSpecialRequest(e.target.value)}
@@ -164,23 +164,23 @@ function GarsonCagirContent() {
             className="w-full mt-4 py-4 rounded-xl font-semibold shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: primary, color: 'white' }}
           >
-            İstek Gönder
+            <TranslatedText>İstek Gönder</TranslatedText>
           </button>
         </div>
 
         {/* Aktif İstekler */}
         {activeRequests.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="text-xl font-bold mb-4" style={{ color: primary }}>Aktif İstekler</h2>
+            <h2 className="text-xl font-bold mb-4" style={{ color: primary }}><TranslatedText>Aktif İstekler</TranslatedText></h2>
             <div className="space-y-3">
               {activeRequests.map(request => (
                 <div key={request.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border-2 border-gray-100">
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">
-                      {request.type === 'water' && '💧 Su Getir'}
-                      {request.type === 'bill' && '💰 Hesap İste'}
-                      {request.type === 'clean' && '🧹 Masayı Temizle'}
-                      {request.type === 'help' && '🤝 Yardım Gerekiyor'}
+                      {request.type === 'water' && <span>💧 <TranslatedText>Su Getir</TranslatedText></span>}
+                      {request.type === 'bill' && <span>💰 <TranslatedText>Hesap İste</TranslatedText></span>}
+                      {request.type === 'clean' && <span>🧹 <TranslatedText>Masayı Temizle</TranslatedText></span>}
+                      {request.type === 'help' && <span>🤝 <TranslatedText>Yardım Gerekiyor</TranslatedText></span>}
                       {request.type === 'custom' && `📝 ${request.message}`}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
@@ -191,7 +191,7 @@ function GarsonCagirContent() {
                     onClick={() => removeRequest(request.id)}
                     className="ml-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors font-medium"
                   >
-                    Kaldır
+                    <TranslatedText>Kaldır</TranslatedText>
                   </button>
                 </div>
               ))}
