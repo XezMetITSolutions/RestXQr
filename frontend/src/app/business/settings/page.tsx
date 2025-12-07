@@ -48,21 +48,41 @@ import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
 import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
 import BusinessSidebar from '@/components/BusinessSidebar';
 
-const LANGUAGE_OPTIONS = [
-  { code: 'tr', label: 'Türkçe', flag: '🇹🇷', description: 'Varsayılan dil' },
-  { code: 'en', label: 'English', flag: '🇺🇸', description: 'Global müşteriler için' },
-  { code: 'de', label: 'Deutsch', flag: '🇩🇪', description: 'Almanca menü' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷', description: 'Fransızca menü' },
-  { code: 'es', label: 'Español', flag: '🇪🇸', description: 'İspanyolca menü' },
-  { code: 'it', label: 'Italiano', flag: '🇮🇹', description: 'İtalyanca menü' },
-  { code: 'ru', label: 'Русский', flag: '🇷🇺', description: 'Rusça menü' },
-  { code: 'ar', label: 'العربية', flag: '🇸🇦', description: 'Arapça menü' },
-  { code: 'zh', label: '中文', flag: '🇨🇳', description: 'Çince menü' }
-];
+import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { translate: t, currentLanguage } = useLanguage();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
+
+  const getStatic = (text: string) => {
+    const langCode = currentLanguage === 'German' ? 'de' :
+      (currentLanguage === 'English' ? 'en' :
+        (currentLanguage === 'Turkish' ? 'tr' :
+          (currentLanguage === 'Arabic' ? 'ar' :
+            (currentLanguage === 'Russian' ? 'ru' :
+              (currentLanguage === 'French' ? 'fr' :
+                (currentLanguage === 'Spanish' ? 'es' :
+                  (currentLanguage === 'Italian' ? 'it' : 'en')))))));
+
+    if (staticDictionary[text] && staticDictionary[text][langCode]) {
+      return staticDictionary[text][langCode];
+    }
+    return text;
+  };
+
+  const LANGUAGE_OPTIONS = [
+    { code: 'tr', label: 'Türkçe', flag: '🇹🇷', description: getStatic('Varsayılan dil') },
+    { code: 'en', label: 'English', flag: '🇺🇸', description: getStatic('Global müşteriler için') },
+    { code: 'de', label: 'Deutsch', flag: '🇩🇪', description: getStatic('Almanca menü') },
+    { code: 'fr', label: 'Français', flag: '🇫🇷', description: getStatic('Fransızca menü') },
+    { code: 'es', label: 'Español', flag: '🇪🇸', description: getStatic('İspanyolca menü') },
+    { code: 'it', label: 'Italiano', flag: '🇮🇹', description: getStatic('İtalyanca menü') },
+    { code: 'ru', label: 'Русский', flag: '🇷🇺', description: getStatic('Rusça menü') },
+    { code: 'ar', label: 'العربية', flag: '🇸🇦', description: getStatic('Arapça menü') },
+    { code: 'zh', label: '中文', flag: '🇨🇳', description: getStatic('Çince menü') }
+  ];
 
   // Sayfa yüklendiğinde auth'u initialize et
   useEffect(() => {
@@ -132,7 +152,7 @@ export default function SettingsPage() {
     const current = settings.menuSettings.language || ['tr'];
     if (current.includes(code)) {
       if (current.length === 1) {
-        alert('En az bir dil aktif olmalı.');
+        alert(getStatic('En az bir dil aktif olmalı.'));
         return;
       }
       updateMenuSettings({ language: current.filter(lang => lang !== code) });
@@ -221,38 +241,38 @@ export default function SettingsPage() {
   type IntegrationServiceId = 'posIntegration' | 'accountingIntegration';
 
   const PLANS: Record<PlanId, { name: string; priceMonthly: number; features: string[]; description?: string; highlight?: boolean }> = {
-    free: { name: 'Ücretsiz Plan', priceMonthly: 0, features: ['Temel menü', 'Sınırlı görüntüleme'], description: 'Başlamak için ideal' },
-    premium: { name: 'Premium Paket', priceMonthly: 4980, features: ['Sınırsız kategori', 'Çoklu şube', 'Gelişmiş raporlar'], highlight: true },
+    free: { name: getStatic('Ücretsiz Plan'), priceMonthly: 0, features: [getStatic('Temel menü'), getStatic('Sınırlı görüntüleme')], description: getStatic('Başlamak için ideal') },
+    premium: { name: getStatic('Premium Paket'), priceMonthly: 4980, features: [getStatic('Sınırsız kategori'), getStatic('Çoklu şube'), getStatic('Gelişmiş raporlar')], highlight: true },
   };
   const BILLING: Record<BillingCycle, { months: number; discount: number; label: string }> = {
-    monthly: { months: 1, discount: 0, label: 'Aylık' },
-    semiannual: { months: 6, discount: 0.17, label: '6 Aylık' },
-    annual: { months: 12, discount: 0.2, label: 'Yıllık' },
+    monthly: { months: 1, discount: 0, label: getStatic('Aylık') },
+    semiannual: { months: 6, discount: 0.17, label: getStatic('6 Aylık') },
+    annual: { months: 12, discount: 0.2, label: getStatic('Yıllık') },
   };
 
   // Service definitions
   const EXTRAS: Record<ExtraId, { name: string; desc: string; priceMonthly: number }> = {
-    extraUsers: { name: 'Ek Kullanıcı', desc: 'Her 5 kullanıcı için', priceMonthly: 500 },
-    aiMenuTranslate: { name: 'AI Menü Çevirisi', desc: 'Otomatik çoklu dil desteği', priceMonthly: 200 },
-    prioritySupport: { name: 'Öncelikli Destek', desc: '7/24 öncelikli müşteri desteği', priceMonthly: 300 },
-    customDomain: { name: 'Özel Domain', desc: 'Kendi domain adresiniz', priceMonthly: 100 },
-    apiAccess: { name: 'API Erişimi', desc: 'Gelişmiş API entegrasyonları', priceMonthly: 400 },
+    extraUsers: { name: getStatic('Ek Kullanıcı'), desc: getStatic('Her 5 kullanıcı için'), priceMonthly: 500 },
+    aiMenuTranslate: { name: getStatic('AI Menü Çevirisi'), desc: getStatic('Otomatik çoklu dil desteği'), priceMonthly: 200 },
+    prioritySupport: { name: getStatic('Öncelikli Destek'), desc: getStatic('7/24 öncelikli müşteri desteği'), priceMonthly: 300 },
+    customDomain: { name: getStatic('Özel Domain'), desc: getStatic('Kendi domain adresiniz'), priceMonthly: 100 },
+    apiAccess: { name: getStatic('API Erişimi'), desc: getStatic('Gelişmiş API entegrasyonları'), priceMonthly: 400 },
   };
 
   const MONTHLY_SERVICES: Record<MonthlyServiceId, { name: string; priceMonthly: number; desc: string; icon: any }> = {
-    extraUsers: { name: 'Ek Kullanıcı', priceMonthly: 500, desc: '+10 kullanıcı', icon: '👥' },
-    aiMenuTranslate: { name: 'AI Menü Çevirisi', priceMonthly: 200, desc: 'Sınırsız çeviri', icon: '🤖' },
-    prioritySupport: { name: 'Öncelikli Destek', priceMonthly: 300, desc: '7/24 destek', icon: '🎧' },
+    extraUsers: { name: getStatic('Ek Kullanıcı'), priceMonthly: 500, desc: getStatic('+10 kullanıcı'), icon: '👥' },
+    aiMenuTranslate: { name: getStatic('AI Menü Çevirisi'), priceMonthly: 200, desc: getStatic('Sınırsız çeviri'), icon: '🤖' },
+    prioritySupport: { name: getStatic('Öncelikli Destek'), priceMonthly: 300, desc: getStatic('7/24 destek'), icon: '🎧' },
   };
 
   const ONETIME_SERVICES: Record<OneTimeServiceId, { name: string; basePrice: number; changePrice: number; desc: string; icon: any }> = {
-    customDomain: { name: 'Özel Domain', basePrice: 1000, changePrice: 0, desc: 'Kendi domain adresiniz', icon: '🌐' },
-    apiAccess: { name: 'API Erişimi', basePrice: 2000, changePrice: 0, desc: 'Gelişmiş API entegrasyonları', icon: '🔌' },
+    customDomain: { name: getStatic('Özel Domain'), basePrice: 1000, changePrice: 0, desc: getStatic('Kendi domain adresiniz'), icon: '🌐' },
+    apiAccess: { name: getStatic('API Erişimi'), basePrice: 2000, changePrice: 0, desc: getStatic('Gelişmiş API entegrasyonları'), icon: '🔌' },
   };
 
   const INTEGRATION_SERVICES: Record<IntegrationServiceId, { name: string; price: number; desc: string; icon: any }> = {
-    posIntegration: { name: 'POS Entegrasyonu', price: 1500, desc: 'Sunmi/Ingenico vb.', icon: '💳' },
-    accountingIntegration: { name: 'Muhasebe Entegrasyonu', price: 1200, desc: 'Logo/Netsis/Mikro', icon: '📊' },
+    posIntegration: { name: getStatic('POS Entegrasyonu'), price: 1500, desc: getStatic('Sunmi/Ingenico vb.'), icon: '💳' },
+    accountingIntegration: { name: getStatic('Muhasebe Entegrasyonu'), price: 1200, desc: getStatic('Logo/Netsis/Mikro'), icon: '📊' },
   };
 
   const [selectedPlan, setSelectedPlan] = useState<PlanId>('premium');
@@ -366,33 +386,33 @@ export default function SettingsPage() {
 
   const handleSubdomainChange = async (subdomain: string) => {
     if (subdomain.length < 3) {
-      setSubdomainValidation({ isValid: false, isChecking: false, message: 'Subdomain en az 3 karakter olmalıdır' });
+      setSubdomainValidation({ isValid: false, isChecking: false, message: getStatic('Subdomain en az 3 karakter olmalıdır') });
       return;
     }
 
-    setSubdomainValidation({ isValid: false, isChecking: true, message: 'Kontrol ediliyor...' });
+    setSubdomainValidation({ isValid: false, isChecking: true, message: getStatic('Kontrol ediliyor...') });
 
     try {
       const isValid = await validateSubdomain(subdomain);
       setSubdomainValidation({
         isValid,
         isChecking: false,
-        message: isValid ? 'Subdomain kullanılabilir' : 'Bu subdomain zaten kullanımda'
+        message: isValid ? getStatic('Subdomain kullanılabilir') : getStatic('Bu subdomain zaten kullanımda')
       });
     } catch (error) {
       setSubdomainValidation({
         isValid: false,
         isChecking: false,
-        message: 'Kontrol sırasında hata oluştu'
+        message: t('Kontrol sırasında hata oluştu')
       });
     }
   };
 
 
   const tabs = [
-    { id: 'general', name: 'Genel Ayarlar', icon: FaCog },
-    { id: 'branding', name: 'Görsel Kimlik', icon: FaPalette },
-    { id: 'languages', name: 'Diller', icon: FaGlobe }
+    { id: 'general', name: t('Genel Ayarlar'), icon: FaCog },
+    { id: 'branding', name: t('Görsel Kimlik'), icon: FaPalette },
+    { id: 'languages', name: t('Diller'), icon: FaGlobe }
     // Ödeme & Abonelik, Entegrasyonlar, Bildirimler - Kaldırıldı
   ];
 
@@ -454,8 +474,8 @@ export default function SettingsPage() {
                 <FaCog className="text-xl text-gray-600" />
               </button>
               <div>
-                <h2 className="text-lg sm:text-2xl font-semibold text-gray-800">Ayarlar</h2>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1 hidden sm:block">İşletme ayarlarınızı yönetin</p>
+                <h2 className="text-lg sm:text-2xl font-semibold text-gray-800"><TranslatedText>Ayarlar</TranslatedText></h2>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1 hidden sm:block"><TranslatedText>İşletme ayarlarınızı yönetin</TranslatedText></p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -464,7 +484,7 @@ export default function SettingsPage() {
                 className="flex items-center gap-2 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
               >
                 <span>📰</span>
-                Duyurular
+                <TranslatedText>Duyurular</TranslatedText>
               </button>
             </div>
           </div>
@@ -477,7 +497,7 @@ export default function SettingsPage() {
             {/* Sol Kolon - Tab Navigation */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-sm p-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Ayarlar</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4"><TranslatedText>Ayarlar</TranslatedText></h3>
                 <nav className="space-y-2">
                   {tabs.map((tab) => {
                     const Icon = tab.icon;
@@ -486,8 +506,8 @@ export default function SettingsPage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${activeTab === tab.id
-                            ? 'bg-purple-100 text-purple-700 border-l-4 border-purple-500'
-                            : 'text-gray-600 hover:bg-gray-100'
+                          ? 'bg-purple-100 text-purple-700 border-l-4 border-purple-500'
+                          : 'text-gray-600 hover:bg-gray-100'
                           }`}
                       >
                         <Icon className="mr-3" />
@@ -513,28 +533,28 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-purple-800 mb-2">MasApp'e Hoş Geldiniz!</h3>
+                        <h3 className="text-lg font-semibold text-purple-800 mb-2"><TranslatedText>MasApp'e Hoş Geldiniz!</TranslatedText></h3>
                         <p className="text-purple-700 text-sm mb-4">
-                          İşletmenizi MasApp ile dijitalleştirin. QR kod menü sistemi, mutfak paneli, garson hizmetleri ve ödeme sistemi ile müşteri deneyimini geliştirin.
+                          <TranslatedText>İşletmenizi MasApp ile dijitalleştirin.</TranslatedText>
                         </p>
                         <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => window.open('/menu', '_blank')}
                             className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200 transition-colors"
                           >
-                            <FaQrcode className="inline mr-1" /> QR Kod Menü
+                            <FaQrcode className="inline mr-1" /> <TranslatedText>QR Kod Menü</TranslatedText>
                           </button>
                           <button
                             onClick={() => window.open('/business/kitchen', '_blank')}
                             className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium hover:bg-orange-200 transition-colors"
                           >
-                            <FaUtensils className="inline mr-1" /> Mutfak Paneli
+                            <FaUtensils className="inline mr-1" /> <TranslatedText>Mutfak Paneli</TranslatedText>
                           </button>
                           <button
                             onClick={() => window.open('/business/waiter', '_blank')}
                             className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-200 transition-colors"
                           >
-                            <FaUsers className="inline mr-1" /> Garson Paneli
+                            <FaUsers className="inline mr-1" /> <TranslatedText>Garson Paneli</TranslatedText>
                           </button>
                         </div>
                       </div>
@@ -544,188 +564,194 @@ export default function SettingsPage() {
                   {/* İşletme Bilgileri */}
                   <div className="bg-white rounded-lg shadow-sm p-6">
                     <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-semibold text-gray-800">İşletme Bilgileri</h3>
+                      <h3 className="text-xl font-semibold text-gray-800"><TranslatedText>İşletme Bilgileri</TranslatedText></h3>
                       <button
                         onClick={() => handleSave('basicInfo')}
                         disabled={isLoading}
                         className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
                       >
                         {isLoading ? <FaSpinner className="animate-spin" /> : <FaSave />}
-                        Kaydet
+                        <TranslatedText>Kaydet</TranslatedText>
                       </button>
                     </div>
 
                     <div className="space-y-6">
-                      {/* İşletme Adı */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          İşletme Adı *
-                        </label>
-                        <input
-                          type="text"
-                          value={settings.basicInfo.name}
-                          onChange={(e) => updateBasicInfo({ name: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        />
-                      </div>
-
-                      {/* İşletme Türü */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          İşletme Türü *
-                        </label>
-                        <select
-                          value={settings.basicInfo.businessType}
-                          onChange={(e) => updateBasicInfo({ businessType: e.target.value as any })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        >
-                          <option value="cafe">Cafe & Kahvehane</option>
-                          <option value="restaurant">Restoran</option>
-                          <option value="fastfood">Fast Food</option>
-                          <option value="bar">Bar & Pub</option>
-                          <option value="bakery">Fırın & Pastane</option>
-                          <option value="pizzeria">Pizzeria</option>
-                        </select>
-                        <p className="text-sm text-gray-500 mt-1">
-                          İşletme türü menü tasarımını ve özelliklerini etkiler.
-                        </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <TranslatedText>İşletme Adı *</TranslatedText>
+                          </label>
+                          <input
+                            type="text"
+                            value={settings.basicInfo.name}
+                            onChange={(e) => updateBasicInfo({ name: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder={getStatic('İşletme Adı')}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <TranslatedText>İşletme Türü *</TranslatedText>
+                          </label>
+                          <select
+                            value={settings.basicInfo.businessType}
+                            onChange={(e) => updateBasicInfo({ businessType: e.target.value as any })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          >
+                            <option value="cafe"><TranslatedText>Cafe & Kahvehane</TranslatedText></option>
+                            <option value="restaurant"><TranslatedText>Restoran</TranslatedText></option>
+                            <option value="fastfood"><TranslatedText>Fast Food</TranslatedText></option>
+                            <option value="bar"><TranslatedText>Bar & Pub</TranslatedText></option>
+                            <option value="bakery"><TranslatedText>Fırın & Pastane</TranslatedText></option>
+                            <option value="pizzeria"><TranslatedText>Pizzeria</TranslatedText></option>
+                          </select>
+                          <p className="text-xs text-gray-500 mt-1"><TranslatedText>İşletme türü menü tasarımını ve özelliklerini etkiler.</TranslatedText></p>
+                        </div>
                       </div>
 
                       {/* Subdomain */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Subdomain
+                          <TranslatedText>Subdomain</TranslatedText>
                         </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={settings.basicInfo.subdomain}
-                            onChange={(e) => {
-                              updateBasicInfo({ subdomain: e.target.value });
-                              handleSubdomainChange(e.target.value);
-                            }}
-                            className="w-full px-4 py-2 pr-36 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium bg-gray-50 px-2 py-1 rounded">
-                            .restxqr.com
-                          </span>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 relative">
+                            <input
+                              type="text"
+                              value={settings.basicInfo.subdomain || ''}
+                              onChange={(e) => {
+                                const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                                updateBasicInfo({ subdomain: val });
+                                handleSubdomainChange(val);
+                              }}
+                              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${subdomainValidation.isValid === true ? 'border-green-500 focus:ring-green-500 text-green-700' :
+                                subdomainValidation.isValid === false ? 'border-red-500 focus:ring-red-500 text-red-700' :
+                                  'border-gray-300 focus:ring-purple-500'
+                                }`}
+                              placeholder="aksaray"
+                            />
+                            {subdomainValidation.isChecking && (
+                              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                <FaSpinner className="animate-spin text-purple-600" />
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-gray-500 font-medium">.restxqr.com</span>
                         </div>
-                        <div className="mt-2 flex items-center gap-2">
-                          {subdomainValidation.isChecking && (
-                            <FaSpinner className="animate-spin text-blue-500" />
-                          )}
-                          {!subdomainValidation.isChecking && subdomainValidation.isValid && (
-                            <FaCheckCircle className="text-green-500" />
-                          )}
-                          {!subdomainValidation.isChecking && !subdomainValidation.isValid && (
-                            <FaTimes className="text-red-500" />
-                          )}
-                          <span className={`text-sm ${subdomainValidation.isValid ? 'text-green-600' : 'text-red-600'
-                            }`}>
+                        {subdomainValidation.message && (
+                          <p className={`text-xs mt-1 ${subdomainValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
                             {subdomainValidation.message}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Menü adresiniz: <span className="text-purple-600 font-medium">{settings.basicInfo.subdomain}.restxqr.com</span>
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">
+                          <TranslatedText>Menü adresiniz:</TranslatedText> <span className="font-medium text-purple-600">https://{settings.basicInfo.subdomain || 'aksaray'}.restxqr.com</span>
                         </p>
                       </div>
 
-                      {/* Açıklama */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Açıklama
-                        </label>
-                        <textarea
-                          value={settings.basicInfo.description}
-                          onChange={(e) => updateBasicInfo({ description: e.target.value })}
-                          rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        />
-                      </div>
-
-                      {/* Slogan */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Slogan
-                        </label>
-                        <input
-                          type="text"
-                          value={settings.basicInfo.slogan || ''}
-                          onChange={(e) => updateBasicInfo({ slogan: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="Örn: Lezzetin Adresi"
-                        />
-                      </div>
-
-                      {/* İletişim Bilgileri */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Açıklama ve Slogan */}
+                      <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Adres
+                            <TranslatedText>Açıklama</TranslatedText>
                           </label>
-                          <input
-                            type="text"
-                            value={settings.basicInfo.address}
-                            onChange={(e) => updateBasicInfo({ address: e.target.value })}
+                          <textarea
+                            value={settings.basicInfo.description}
+                            onChange={(e) => updateBasicInfo({ description: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            rows={3}
+                            placeholder={getStatic('Örn: Lezzetin Adresi')}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Telefon
+                            <TranslatedText>Slogan</TranslatedText>
+                          </label>
+                          <input
+                            type="text"
+                            value={settings.basicInfo.slogan || ''}
+                            onChange={(e) => updateBasicInfo({ slogan: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder={getStatic('Örn: En taze malzemelerle...')}
+                          />
+                        </div>
+                      </div>
+
+                      {/* İletişim Bilgileri */}
+                      <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                        <h4 className="font-medium text-gray-800"><TranslatedText>İletişim Bilgileri</TranslatedText></h4>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <TranslatedText>Adres</TranslatedText>
+                          </label>
+                          <textarea
+                            value={settings.basicInfo.address}
+                            onChange={(e) => updateBasicInfo({ address: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            rows={2}
+                            placeholder={getStatic('Açık adresiniz')}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <TranslatedText>Telefon</TranslatedText>
                           </label>
                           <input
                             type="text"
                             value={settings.basicInfo.phone}
                             onChange={(e) => updateBasicInfo({ phone: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder={getStatic('Telefon numaranız')}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            E-posta
+                            <TranslatedText>E-posta</TranslatedText>
                           </label>
                           <input
                             type="email"
                             value={settings.basicInfo.email}
                             onChange={(e) => updateBasicInfo({ email: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder={getStatic('E-posta adresiniz')}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Web Sitesi
+                            <TranslatedText>Web Sitesi</TranslatedText>
                           </label>
                           <input
                             type="url"
                             value={settings.basicInfo.website || ''}
                             onChange={(e) => updateBasicInfo({ website: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder={getStatic('Web sitenizin adresi')}
                           />
                         </div>
                       </div>
 
-                      {/* WiFi Şifresi */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          WiFi Şifresi
-                        </label>
-                        <div className="flex gap-2">
+                      {/* WiFi Bilgileri */}
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <h4 className="font-medium text-blue-900 mb-4 flex items-center gap-2">
+                          <FaWifi />
+                          <TranslatedText>WiFi Şifresi</TranslatedText>
+                        </h4>
+                        <div className="flex gap-2 mb-4">
                           <input
                             type="text"
                             value={settings.basicInfo.wifiPassword || ''}
                             onChange={(e) => updateBasicInfo({ wifiPassword: e.target.value })}
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            className="flex-1 px-4 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder={getStatic('WiFi Şifresi')}
                           />
                           <button
                             onClick={() => handleSaveField('wifiPassword', settings.basicInfo.wifiPassword)}
-                            className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                            title="WiFi Şifresini Kaydet"
+                            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            title={getStatic('WiFi Şifresini Kaydet')}
                           >
                             <FaSave size={14} />
                           </button>
                         </div>
-                        <div className="mt-2 flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                           <input
                             type="checkbox"
                             id="showWifiInMenu"
@@ -734,37 +760,38 @@ export default function SettingsPage() {
                               updateBasicInfo({ showWifiInMenu: e.target.checked });
                               handleSaveField('showWifiInMenu', e.target.checked);
                             }}
-                            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                           />
-                          <label htmlFor="showWifiInMenu" className="text-sm text-gray-600">
-                            Menüde WiFi şifresini göster
+                          <label htmlFor="showWifiInMenu" className="text-sm text-blue-800">
+                            <TranslatedText>Menüde WiFi şifresini göster</TranslatedText>
                           </label>
                         </div>
                       </div>
 
                       {/* Çalışma Saatleri */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-4">
-                          Çalışma Saatleri (7 Gün)
-                        </label>
-                        <div className="flex gap-2">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-medium text-gray-800 flex items-center gap-2">
+                            <FaClock className="text-gray-500" />
+                            <TranslatedText>Çalışma Saatleri (7 Gün)</TranslatedText>
+                          </h4>
+                          <button
+                            onClick={() => handleSaveField('workingHours', settings.basicInfo.workingHours)}
+                            className="px-3 py-1 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            <TranslatedText>Çalışma Saatlerini Kaydet</TranslatedText>
+                          </button>
+                        </div>
+                        <div className="mb-4">
                           <textarea
                             value={settings.basicInfo.workingHours || ''}
                             onChange={(e) => updateBasicInfo({ workingHours: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
                             rows={7}
-                            placeholder="Pazartesi: 08:00 - 22:00&#10;Salı: 08:00 - 22:00&#10;Çarşamba: 08:00 - 22:00&#10;Perşembe: 08:00 - 22:00&#10;Cuma: 08:00 - 23:00&#10;Cumartesi: 09:00 - 23:00&#10;Pazar: 09:00 - 22:00"
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder={t("Pazartesi: 08:00 - 22:00\nSalı: 08:00 - 22:00\nÇarşamba: 08:00 - 22:00\nPerşembe: 08:00 - 22:00\nCuma: 08:00 - 23:00\nCumartesi: 09:00 - 23:00\nPazar: 09:00 - 22:00")}
                           />
-                          <button
-                            onClick={() => handleSaveField('workingHours', settings.basicInfo.workingHours)}
-                            className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                            title="Çalışma Saatlerini Kaydet"
-                          >
-                            <FaSave size={14} />
-                          </button>
                         </div>
-
-                        <div className="mt-6 flex items-center gap-2 p-4 bg-blue-50 rounded-xl">
+                        <div className="flex items-center gap-2">
                           <input
                             type="checkbox"
                             id="showHoursInMenu"
@@ -775,12 +802,12 @@ export default function SettingsPage() {
                             }}
                             className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                           />
-                          <label htmlFor="showHoursInMenu" className="text-sm text-gray-600">
-                            Menüde çalışma saatlerini göster
+                          <label htmlFor="showHoursInMenu" className="text-sm text-gray-700">
+                            <TranslatedText>Menüde çalışma saatlerini göster</TranslatedText>
                           </label>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Çalışma saatleri menünün alt kısmında gösterilecektir.
+                        <p className="text-xs text-gray-500 mt-2 pl-6">
+                          <TranslatedText>Çalışma saatleri menünün alt kısmında gösterilecektir.</TranslatedText>
                         </p>
                       </div>
 
@@ -792,27 +819,27 @@ export default function SettingsPage() {
                         </h4>
                         <p className="text-sm text-gray-600 mb-6">Müşteri menüsünde gösterilen günlük duyurular ve özel içerikler</p>
 
-                        {/* Bugüne Özel Duyuru */}
-                        <div className="mb-6">
+                        {/* Bugüne Özel */}
+                        <div className="mb-6 bg-white p-4 rounded-lg">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            🎉 Bugüne Özel Başlık
+                            ⭐ <TranslatedText>Bugüne Özel Başlık</TranslatedText>
                           </label>
                           <input
                             type="text"
                             value={settings.basicInfo.dailySpecialTitle || 'Bugüne Özel!'}
                             onChange={(e) => updateBasicInfo({ dailySpecialTitle: e.target.value })}
-                            placeholder="Bugüne Özel!"
+                            placeholder={t('Bugüne Özel!')}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                           <div className="mt-2">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Detaylı Açıklama
+                              <TranslatedText>Detaylı Açıklama</TranslatedText>
                             </label>
                             <input
                               type="text"
                               value={settings.basicInfo.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}
                               onChange={(e) => updateBasicInfo({ dailySpecialDesc: e.target.value })}
-                              placeholder="Tüm tatlılarda %20 indirim - Sadece bugün geçerli"
+                              placeholder={t('Tüm tatlılarda %20 indirim - Sadece bugün geçerli')}
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
@@ -821,31 +848,31 @@ export default function SettingsPage() {
                             className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                           >
                             <FaSave size={14} className="inline mr-2" />
-                            Kaydet
+                            <TranslatedText>Kaydet</TranslatedText>
                           </button>
                         </div>
 
                         {/* Günün Çorbası */}
                         <div className="mb-6 bg-white p-4 rounded-lg">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            🍲 Günün Çorbası Başlık
+                            🍲 <TranslatedText>Günün Çorbası Başlık</TranslatedText>
                           </label>
                           <input
                             type="text"
                             value={settings.basicInfo.soupOfDayTitle || 'Günün Çorbası'}
                             onChange={(e) => updateBasicInfo({ soupOfDayTitle: e.target.value })}
-                            placeholder="Günün Çorbası"
+                            placeholder={t('Günün Çorbası')}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                           <div className="mt-2">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Çorba İsmi ve Açıklama
+                              <TranslatedText>Çorba İsmi ve Açıklama</TranslatedText>
                             </label>
                             <input
                               type="text"
                               value={settings.basicInfo.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}
                               onChange={(e) => updateBasicInfo({ soupOfDayDesc: e.target.value })}
-                              placeholder="Ezogelin çorbası - Ev yapımı lezzet"
+                              placeholder={t('Ezogelin çorbası - Ev yapımı lezzet')}
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
@@ -854,33 +881,35 @@ export default function SettingsPage() {
                             className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                           >
                             <FaSave size={14} className="inline mr-2" />
-                            Kaydet
+                            <TranslatedText>Kaydet</TranslatedText>
                           </button>
                         </div>
 
                         <div className="bg-blue-100 border border-blue-300 rounded-lg p-4">
                           <p className="text-sm text-blue-800">
-                            💡 Bu içerikler müşteri menüsünün en üstünde slider olarak gösterilecektir.
+                            💡 <TranslatedText>Bu içerikler müşteri menüsünün en üstünde slider olarak gösterilecektir.</TranslatedText>
                           </p>
                         </div>
                       </div>
 
                       {/* Sosyal Medya Linkleri */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                        <h4 className="font-medium text-gray-800"><TranslatedText>Sosyal Medya Linkleri</TranslatedText></h4>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Facebook
+                            <TranslatedText>Facebook</TranslatedText>
                           </label>
                           <input
                             type="url"
                             value={settings.basicInfo.facebook || ''}
                             onChange={(e) => updateBasicInfo({ facebook: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder={t('Facebook profil linkiniz')}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Instagram
+                            <TranslatedText>Instagram</TranslatedText>
                           </label>
                           <div className="flex gap-2">
                             <input
@@ -888,11 +917,12 @@ export default function SettingsPage() {
                               value={settings.basicInfo.instagram || ''}
                               onChange={(e) => updateBasicInfo({ instagram: e.target.value })}
                               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder={t('Instagram profil linkiniz')}
                             />
                             <button
                               onClick={() => handleSaveField('instagram', settings.basicInfo.instagram)}
                               className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                              title="Instagram Linkini Kaydet"
+                              title={t('Instagram Linkini Kaydet')}
                             >
                               <FaSave size={14} />
                             </button>
@@ -909,27 +939,28 @@ export default function SettingsPage() {
                               className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                             />
                             <label htmlFor="showInstagramInMenu" className="text-sm text-gray-600">
-                              Menüde Instagram linkini göster
+                              <TranslatedText>Menüde Instagram linkini göster</TranslatedText>
                             </label>
                           </div>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Twitter
+                            <TranslatedText>Twitter</TranslatedText>
                           </label>
                           <input
                             type="url"
                             value={settings.basicInfo.twitter || ''}
                             onChange={(e) => updateBasicInfo({ twitter: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder={t('Twitter profil linkiniz')}
                           />
                         </div>
                       </div>
 
                       {/* Durum */}
-                      <div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Durum
+                          <TranslatedText>Durum</TranslatedText>
                         </label>
                         <div className="flex items-center gap-4">
                           <label className="flex items-center gap-2">
@@ -941,7 +972,7 @@ export default function SettingsPage() {
                               onChange={(e) => updateBasicInfo({ status: e.target.value as any })}
                               className="text-purple-600"
                             />
-                            <span className="text-sm font-medium">Aktif</span>
+                            <span className="text-sm font-medium"><TranslatedText>Aktif</TranslatedText></span>
                           </label>
                           <label className="flex items-center gap-2">
                             <input
@@ -952,11 +983,11 @@ export default function SettingsPage() {
                               onChange={(e) => updateBasicInfo({ status: e.target.value as any })}
                               className="text-purple-600"
                             />
-                            <span className="text-sm font-medium">Pasif</span>
+                            <span className="text-sm font-medium"><TranslatedText>Pasif</TranslatedText></span>
                           </label>
                         </div>
                         <p className="text-sm text-gray-500 mt-1">
-                          Pasif durumda menü görüntülenmeyecektir.
+                          <TranslatedText>Pasif durumda menü görüntülenmeyecektir.</TranslatedText>
                         </p>
                       </div>
                     </div>
@@ -969,14 +1000,14 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <div className="bg-white rounded-lg shadow-sm p-6">
                     <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-semibold text-gray-800">Görsel Kimlik</h3>
+                      <h3 className="text-xl font-semibold text-gray-800"><TranslatedText>Görsel Kimlik</TranslatedText></h3>
                       <button
                         onClick={() => handleSave('branding')}
                         disabled={isLoading}
                         className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
                       >
                         {isLoading ? <FaSpinner className="animate-spin" /> : <FaSave />}
-                        Kaydet
+                        <TranslatedText>Kaydet</TranslatedText>
                       </button>
                     </div>
 
@@ -987,10 +1018,10 @@ export default function SettingsPage() {
                         <div>
                           <h4 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
                             <FaImage className="text-purple-600" />
-                            Logo (Splash Ekranı)
+                            <TranslatedText>Logo (Splash Ekranı)</TranslatedText>
                           </h4>
                           <p className="text-sm text-gray-500 mb-4">
-                            Logo sadece uygulama açılış ekranında (splash) görünür. Menü tasarımında logo gösterilmez.
+                            <TranslatedText>Logo sadece uygulama açılış ekranında (splash) görünür. Menü tasarımında logo gösterilmez.</TranslatedText>
                           </p>
                           <input id="logoFileInput" type="file" accept="image/*" className="hidden" onChange={async (e) => {
                             const file = e.target.files?.[0];
@@ -1012,18 +1043,18 @@ export default function SettingsPage() {
                                 <img src={settings.branding.logo} alt="Logo" className="max-h-24 object-contain mb-3" />
                                 <button className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors">
                                   <FaUpload className="inline mr-2" />
-                                  Logoyu Değiştir
+                                  <TranslatedText>Logoyu Değiştir</TranslatedText>
                                 </button>
                               </div>
                             ) : (
                               <>
                                 <FaImage className="text-4xl text-gray-400 mx-auto mb-4" />
-                                <p className="text-gray-600 mb-4">Logo yüklemek için tıklayın</p>
+                                <p className="text-gray-600 mb-4"><TranslatedText>Logo yüklemek için tıklayın</TranslatedText></p>
                                 <button className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors">
                                   <FaUpload className="inline mr-2" />
-                                  Logo Yükle
+                                  <TranslatedText>Logo Yükle</TranslatedText>
                                 </button>
-                                <p className="text-xs text-gray-500 mt-2">PNG, JPG veya SVG (Max: 2MB)</p>
+                                <p className="text-xs text-gray-500 mt-2"><TranslatedText>PNG, JPG veya SVG (Max: 2MB)</TranslatedText></p>
                               </>
                             )}
                           </div>
@@ -1033,15 +1064,15 @@ export default function SettingsPage() {
                         <div>
                           <h4 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
                             <FaPalette className="text-purple-600" />
-                            Menü Renk Paleti
+                            <TranslatedText>Menü Renk Paleti</TranslatedText>
                           </h4>
                           <p className="text-sm text-gray-500 mb-4">
-                            Seçtiğiniz renkler menü tasarımında butonlar, kategoriler ve vurgular için kullanılır.
+                            <TranslatedText>Seçtiğiniz renkler menü tasarımında butonlar, kategoriler ve vurgular için kullanılır.</TranslatedText>
                           </p>
 
                           {/* Ana Renk */}
                           <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Ana Renk</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2"><TranslatedText>Ana Renk</TranslatedText></label>
                             <div className="flex flex-wrap gap-3 mb-3">
                               {[
                                 { name: 'Mor', value: '#8B5CF6' },
@@ -1075,7 +1106,7 @@ export default function SettingsPage() {
 
                           {/* İkinci Renk */}
                           <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">İkinci Renk</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2"><TranslatedText>İkinci Renk</TranslatedText></label>
                             <div className="flex items-center gap-3">
                               <input
                                 type="color"
@@ -1085,72 +1116,64 @@ export default function SettingsPage() {
                               />
                               <span className="text-sm text-gray-600">{settings.branding.secondaryColor}</span>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Arka plan ve vurgu renkleri otomatik hesaplanacak</p>
+                            <p className="text-xs text-gray-500 mt-1"><TranslatedText>Arka plan ve vurgu renkleri otomatik hesaplanacak</TranslatedText></p>
                           </div>
                         </div>
 
                         {/* Font Ayarları */}
-                        <div>
-                          <h4 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                            <span className="text-purple-600">A</span>
-                            Font Ayarları
-                          </h4>
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2"><TranslatedText>Font Ailesi</TranslatedText></label>
+                          <select
+                            value={settings.branding.fontFamily}
+                            onChange={(e) => updateBranding({ fontFamily: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          >
+                            <option value="Poppins">Poppins (Şık)</option>
+                            <option value="Inter">Inter (Modern)</option>
+                            <option value="Roboto">Roboto (Klasik)</option>
+                            <option value="Open Sans">Open Sans (Temiz)</option>
+                            <option value="Montserrat">Montserrat (Elegant)</option>
+                            <option value="Lato">Lato (Profesyonel)</option>
+                            <option value="Nunito">Nunito (Dostane)</option>
+                            <option value="Source Sans Pro">Source Sans Pro (Okunabilir)</option>
+                          </select>
+                          <p className="text-xs text-gray-500 mt-1"><TranslatedText>Menüde kullanılacak font ailesi</TranslatedText></p>
+                        </div>
 
-                          {/* Font Ailesi */}
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Font Ailesi</label>
-                            <select
-                              value={settings.branding.fontFamily}
-                              onChange={(e) => updateBranding({ fontFamily: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            >
-                              <option value="Poppins">Poppins (Şık)</option>
-                              <option value="Inter">Inter (Modern)</option>
-                              <option value="Roboto">Roboto (Klasik)</option>
-                              <option value="Open Sans">Open Sans (Temiz)</option>
-                              <option value="Montserrat">Montserrat (Elegant)</option>
-                              <option value="Lato">Lato (Profesyonel)</option>
-                              <option value="Nunito">Nunito (Dostane)</option>
-                              <option value="Source Sans Pro">Source Sans Pro (Okunabilir)</option>
-                            </select>
-                            <p className="text-xs text-gray-500 mt-1">Menüde kullanılacak font ailesi</p>
+                        {/* Font Boyutu */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2"><TranslatedText>Temel Font Boyutu</TranslatedText></label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {[
+                              { id: 'small', name: 'Küçük', size: '14px' },
+                              { id: 'medium', name: 'Orta', size: '16px' },
+                              { id: 'large', name: 'Büyük', size: '18px' }
+                            ].map((size) => (
+                              <button
+                                key={size.id}
+                                onClick={() => updateBranding({ fontSize: size.id as any })}
+                                className={`px-3 py-2 text-sm rounded-lg border transition-colors ${settings.branding.fontSize === size.id
+                                  ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                  : 'border-gray-300 hover:border-gray-400'
+                                  }`}
+                              >
+                                {getStatic(size.name)} ({size.size})
+                              </button>
+                            ))}
                           </div>
-
-                          {/* Font Boyutu */}
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Temel Font Boyutu</label>
-                            <div className="grid grid-cols-3 gap-2">
-                              {[
-                                { id: 'small', name: 'Küçük', size: '14px' },
-                                { id: 'medium', name: 'Orta', size: '16px' },
-                                { id: 'large', name: 'Büyük', size: '18px' }
-                              ].map((size) => (
-                                <button
-                                  key={size.id}
-                                  onClick={() => updateBranding({ fontSize: size.id as any })}
-                                  className={`px-3 py-2 text-sm rounded-lg border transition-colors ${settings.branding.fontSize === size.id
-                                      ? 'border-purple-500 bg-purple-50 text-purple-700'
-                                      : 'border-gray-300 hover:border-gray-400'
-                                    }`}
-                                >
-                                  {size.name} ({size.size})
-                                </button>
-                              ))}
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">Temel metin boyutu</p>
-                          </div>
+                          <p className="text-xs text-gray-500 mt-1"><TranslatedText>Temel metin boyutu</TranslatedText></p>
                         </div>
 
                         {/* Stil Ayarları */}
                         <div>
                           <h4 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
                             <FaPalette className="text-purple-600" />
-                            Stil Ayarları
+                            <TranslatedText>Stil Ayarları</TranslatedText>
                           </h4>
 
                           {/* Header Stili */}
                           <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Header Stili</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2"><TranslatedText>Header Stili</TranslatedText></label>
                             <div className="grid grid-cols-2 gap-2">
                               {[
                                 { id: 'gradient', name: 'Gradyan', desc: 'Renk geçişli' },
@@ -1162,16 +1185,16 @@ export default function SettingsPage() {
                                   key={style.id}
                                   onClick={() => updateBranding({ headerStyle: style.id as any })}
                                   className={`p-3 text-left rounded-lg border transition-colors ${settings.branding.headerStyle === style.id
-                                      ? 'border-purple-500 bg-purple-50 text-purple-700'
-                                      : 'border-gray-300 hover:border-gray-400'
+                                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                    : 'border-gray-300 hover:border-gray-400'
                                     }`}
                                 >
-                                  <div className="font-medium text-sm">{style.name}</div>
-                                  <div className="text-xs text-gray-500">{style.desc}</div>
+                                  <div className="font-medium text-sm"><TranslatedText>{style.name}</TranslatedText></div>
+                                  <div className="text-xs text-gray-500"><TranslatedText>{style.desc}</TranslatedText></div>
                                 </button>
                               ))}
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Sayfa başlığının görünüm stili</p>
+                            <p className="text-xs text-gray-500 mt-1"><TranslatedText>Sayfa başlığının görünüm stili</TranslatedText></p>
                           </div>
                         </div>
                       </div>
@@ -1185,28 +1208,28 @@ export default function SettingsPage() {
                                 <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
                                   <FaEye className="text-white text-lg" />
                                 </div>
-                                Canlı Önizleme
+                                <TranslatedText>Canlı Önizleme</TranslatedText>
                               </h4>
                               <p className="text-sm text-gray-600 ml-12">
-                                Değişikliklerinizi anlık olarak görüntüleyin
+                                <TranslatedText>Değişikliklerinizi anlık olarak görüntüleyin</TranslatedText>
                               </p>
                             </div>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => window.open('/menu', '_blank')}
                                 className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center gap-2 font-medium"
-                                title="Yeni Sekmede Aç"
+                                title={getStatic('Yeni Sekmede Aç')}
                               >
                                 <FaEye className="text-sm" />
-                                <span className="text-sm">Aç</span>
+                                <span className="text-sm"><TranslatedText>Aç</TranslatedText></span>
                               </button>
                               <button
                                 onClick={() => window.location.reload()}
                                 className="px-4 py-2 bg-white text-gray-700 rounded-xl shadow-md hover:shadow-lg transition-all hover:scale-105 flex items-center gap-2 font-medium border border-gray-200"
-                                title="Yenile"
+                                title={getStatic('Yenile')}
                               >
                                 <FaSync className="text-sm" />
-                                <span className="text-sm">Yenile</span>
+                                <span className="text-sm"><TranslatedText>Yenile</TranslatedText></span>
                               </button>
                             </div>
                           </div>
@@ -1272,11 +1295,11 @@ export default function SettingsPage() {
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full">
                               <span className="text-2xl">✨</span>
                               <p className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                Canlı Önizleme Aktif
+                                <TranslatedText>Canlı Önizleme Aktif</TranslatedText>
                               </p>
                             </div>
                             <p className="text-xs text-gray-500">
-                              Değişiklikleriniz anında yansıtılır
+                              <TranslatedText>Değişiklikleriniz anında yansıtılır</TranslatedText>
                             </p>
                           </div>
                         </div>
@@ -1338,8 +1361,8 @@ export default function SettingsPage() {
                             <button
                               onClick={() => toggleLanguage(language.code)}
                               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive
-                                  ? 'bg-green-100 text-green-700 border border-green-200'
-                                  : 'bg-gray-100 text-gray-600 border border-gray-200'
+                                ? 'bg-green-100 text-green-700 border border-green-200'
+                                : 'bg-gray-100 text-gray-600 border border-gray-200'
                                 }`}
                             >
                               {isActive ? 'Aktif' : 'Aktifleştir'}
@@ -1362,8 +1385,8 @@ export default function SettingsPage() {
                               updateMenuSettings({ defaultLanguage: language.code });
                             }}
                             className={`border rounded-2xl p-4 flex items-center justify-between transition-all ${settings.menuSettings.defaultLanguage === language.code
-                                ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
-                                : 'border-gray-200 hover:border-purple-200'
+                              ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
+                              : 'border-gray-200 hover:border-purple-200'
                               }`}
                           >
                             <div className="flex items-center gap-3">

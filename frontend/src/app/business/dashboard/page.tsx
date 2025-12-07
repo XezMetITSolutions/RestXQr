@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AnnouncementQuickModal from '@/components/AnnouncementQuickModal';
-import BusinessSidebar from '@/components/BusinessSidebar';
 import {
   FaStore,
   FaUtensils,
@@ -28,13 +27,12 @@ import {
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
-import { useState } from 'react';
 import BusinessPaymentModal from '@/components/BusinessPaymentModal';
 import { useFeature } from '@/hooks/useFeature';
 import LanguageSelector from '@/components/LanguageSelector';
 import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
-import { LanguageProvider } from '@/context/LanguageContext';
-import TranslatedText from '@/components/TranslatedText';
+import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
+import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
 
 export default function BusinessDashboard() {
   const router = useRouter();
@@ -47,6 +45,25 @@ export default function BusinessDashboard() {
     fetchRestaurantMenu,
     loading: restaurantLoading
   } = useRestaurantStore();
+
+  const { currentLanguage } = useLanguage(); // Need this for getStatic
+
+  // Helper for synchronous translation
+  const getStatic = (text: string) => {
+    const langCode = currentLanguage === 'German' ? 'de' :
+      (currentLanguage === 'English' ? 'en' :
+        (currentLanguage === 'Turkish' ? 'tr' :
+          (currentLanguage === 'Arabic' ? 'ar' :
+            (currentLanguage === 'Russian' ? 'ru' :
+              (currentLanguage === 'French' ? 'fr' :
+                (currentLanguage === 'Spanish' ? 'es' :
+                  (currentLanguage === 'Italian' ? 'it' : 'en')))))));
+
+    if (staticDictionary[text] && staticDictionary[text][langCode]) {
+      return staticDictionary[text][langCode];
+    }
+    return text;
+  };
 
   // Sayfa yüklendiginde auth'u initialize et
   useEffect(() => {
@@ -80,19 +97,19 @@ export default function BusinessDashboard() {
   // Restoranlar sayfasından alınan planlar ve fiyatlar
   const plans = {
     premium: {
-      name: 'Premium Paket',
-      description: 'Küçük ve orta ölçekli işletmeler için',
+      name: getStatic('Premium Paket'),
+      description: getStatic('Küçük ve orta ölçekli işletmeler için'),
       features: [
-        'QR Menü Sistemi (Sınırsız menü, anlık güncelleme)',
-        'Mutfak Paneli (5 kullanıcı, sipariş takibi)',
-        'Garson Paneli (3 kullanıcı, masa yönetimi)',
-        'İşletme Paneli (2 kullanıcı, raporlama)',
-        'Müşteri Uygulaması (Sipariş verme, ödeme)',
-        '7/24 WhatsApp Destek',
-        'Google Yorum Entegrasyonu',
-        'Detaylı Satış Raporları',
-        'Mobil Uyumlu Tasarım',
-        'Stok Yönetimi'
+        getStatic('QR Menü Sistemi (Sınırsız menü, anlık güncelleme)'),
+        getStatic('Mutfak Paneli (5 kullanıcı, sipariş takibi)'),
+        getStatic('Garson Paneli (3 kullanıcı, masa yönetimi)'),
+        getStatic('İşletme Paneli (2 kullanıcı, raporlama)'),
+        getStatic('Müşteri Uygulaması (Sipariş verme, ödeme)'),
+        getStatic('7/24 WhatsApp Destek'),
+        getStatic('Google Yorum Entegrasyonu'),
+        getStatic('Detaylı Satış Raporları'),
+        getStatic('Mobil Uyumlu Tasarım'),
+        getStatic('Stok Yönetimi')
       ],
       pricing: {
         monthly: 4980,
@@ -101,23 +118,23 @@ export default function BusinessDashboard() {
       }
     },
     corporate: {
-      name: 'Kurumsal Paket',
-      description: 'Büyük işletmeler ve zincirler için',
+      name: getStatic('Kurumsal Paket'),
+      description: getStatic('Büyük işletmeler ve zincirler için'),
       features: [
-        'Premium Paket\'in Tüm Özellikleri',
-        'Sınırsız Kullanıcı (Tüm paneller)',
-        'Çoklu Şube Yönetimi',
-        'Özel Menü ve Logo Entegrasyonu',
-        'Özel Tema Tasarımı',
-        'API Entegrasyonları (POS, Muhasebe)',
-        'Özel Eğitim ve Danışmanlık',
-        'Öncelikli WhatsApp Destek',
-        'Gelişmiş Analitik ve Raporlama',
-        'Özel Geliştirmeler',
-        'Dedicated Account Manager',
-        '7/24 Telefon Desteği',
-        'Özel Rapor Şablonları',
-        'Beyaz Etiket Çözümü'
+        getStatic('Premium Paket\'in Tüm Özellikleri'),
+        getStatic('Sınırsız Kullanıcı (Tüm paneller)'),
+        getStatic('Çoklu Şube Yönetimi'),
+        getStatic('Özel Menü ve Logo Entegrasyonu'),
+        getStatic('Özel Tema Tasarımı'),
+        getStatic('API Entegrasyonları (POS, Muhasebe)'),
+        getStatic('Özel Eğitim ve Danışmanlık'),
+        getStatic('Öncelikli WhatsApp Destek'),
+        getStatic('Gelişmiş Analitik ve Raporlama'),
+        getStatic('Özel Geliştirmeler'),
+        getStatic('Dedicated Account Manager'),
+        getStatic('7/24 Telefon Desteği'),
+        getStatic('Özel Rapor Şablonları'),
+        getStatic('Beyaz Etiket Çözümü')
       ],
       pricing: {
         monthly: 9980,
@@ -130,43 +147,43 @@ export default function BusinessDashboard() {
   // Ek hizmetler ve fiyatlandırma (Türkiye şartlarına göre)
   const additionalServices = {
     'menu-customization': {
-      name: 'Menü Özelleştirme',
-      description: 'Özel tema, logo ve tasarım değişiklikleri',
+      name: getStatic('Menü Özelleştirme'),
+      description: getStatic('Özel tema, logo ve tasarım değişiklikleri'),
       panel: 'Menü',
       basePrice: 2500,
       perChange: 500
     },
     'qr-design': {
-      name: 'QR Kod Tasarımı',
-      description: 'Özel QR kod tasarımı ve yerleşimi',
+      name: getStatic('QR Kod Tasarımı'),
+      description: getStatic('Özel QR kod tasarımı ve yerleşimi'),
       panel: 'QR Kodlar',
       basePrice: 1500,
       perChange: 300
     },
     'report-customization': {
-      name: 'Rapor Özelleştirme',
-      description: 'Özel rapor şablonları ve analitik',
+      name: getStatic('Rapor Özelleştirme'),
+      description: getStatic('Özel rapor şablonları ve analitik'),
       panel: 'Raporlar',
       basePrice: 3000,
       perChange: 800
     },
     'staff-training': {
-      name: 'Personel Eğitimi',
-      description: 'Panel kullanımı ve sistem eğitimi',
+      name: getStatic('Personel Eğitimi'),
+      description: getStatic('Panel kullanımı ve sistem eğitimi'),
       panel: 'Personel',
       basePrice: 2000,
       perChange: 500
     },
     'order-integration': {
-      name: 'Sipariş Entegrasyonu',
-      description: 'POS ve ödeme sistem entegrasyonu',
+      name: getStatic('Sipariş Entegrasyonu'),
+      description: getStatic('POS ve ödeme sistem entegrasyonu'),
       panel: 'Siparişler',
       basePrice: 5000,
       perChange: 1500
     },
     'multi-branch-setup': {
-      name: 'Çoklu Şube Kurulumu',
-      description: 'Ek şube ekleme ve yönetimi',
+      name: getStatic('Çoklu Şube Kurulumu'),
+      description: getStatic('Ek şube ekleme ve yönetimi'),
       panel: 'Genel',
       basePrice: 4000,
       perChange: 2000
@@ -217,7 +234,7 @@ export default function BusinessDashboard() {
   };
 
   const calculateTotalPrice = () => {
-    const planPrice = plans[selectedPlan].pricing[billingCycle];
+    const planPrice = plans[selectedPlan as keyof typeof plans].pricing[billingCycle];
     const servicesPrice = Object.entries(selectedServices).reduce((total, [serviceId, quantity]) => {
       const service = additionalServices[serviceId as keyof typeof additionalServices];
       return total + (service.basePrice + (service.perChange * (quantity - 1)));
@@ -241,7 +258,7 @@ export default function BusinessDashboard() {
     console.log(`💳 Ödeme tamamlandı:`, paymentData);
 
     // Ödeme başarılı mesajı
-    alert(`Ödeme Başarılı! 🎉\n\nPlan: ${paymentData.plan}\nFaturalandırma: ${paymentData.billingCycle}\nTutar: ₺${paymentData.total.toLocaleString('tr-TR')}\nÖdeme Yöntemi: ${paymentData.method}\n\nPlanınız aktifleştirildi!`);
+    alert(`${getStatic('Ödeme Başarılı! 🎉')}\n\nPlan: ${paymentData.plan}\nFaturalandırma: ${paymentData.billingCycle}\nTutar: ₺${paymentData.total.toLocaleString('tr-TR')}\nÖdeme Yöntemi: ${paymentData.method}\n\n${getStatic('Planınız aktifleştirildi!')}`);
 
     // Modal'ları kapat
     setShowUpgradeModal(false);
@@ -476,8 +493,8 @@ export default function BusinessDashboard() {
                           <span className="font-black text-purple-600 text-xl">{order.tableNumber || 'N/A'}</span>
                         </div>
                         <div>
-                          <p className="font-black text-gray-800 text-xl">Masa {order.tableNumber || 'N/A'}</p>
-                          <p className="text-gray-600 font-bold">{order.items?.length || 0} ürün • ₺{order.totalAmount || 0}</p>
+                          <p className="font-black text-gray-800 text-xl"><TranslatedText>Masa</TranslatedText> {order.tableNumber || 'N/A'}</p>
+                          <p className="text-gray-600 font-bold">{order.items?.length || 0} <TranslatedText>ürün</TranslatedText> • ₺{order.totalAmount || 0}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
@@ -485,7 +502,7 @@ export default function BusinessDashboard() {
                           ? 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800'
                           : 'bg-gradient-to-r from-yellow-100 to-orange-200 text-yellow-800'
                           }`}>
-                          {order.status === 'ready' ? 'Hazır' : 'Hazırlanıyor'}
+                          {order.status === 'ready' ? getStatic('Hazır') : getStatic('Hazırlanıyor')}
                         </span>
                         <span className="text-sm text-gray-500 font-bold">{new Date(order.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
@@ -617,102 +634,6 @@ export default function BusinessDashboard() {
         </div>
       </div>
 
-      {/* Eski Modal - Kaldırıldı */}
-      {false && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-2xl font-bold text-gray-800">Plan Yükseltme</h2>
-              <button
-                onClick={handleCancelPlan}
-                className="text-gray-500 hover:text-gray-700 text-xl"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Plan Detayları */}
-            <div className="p-6">
-              <div className="text-center mb-8">
-                <h3 className="text-3xl font-bold text-gray-800 mb-2">
-                  {selectedPlan}
-                </h3>
-                <div className="text-5xl font-bold text-purple-600 mb-2">
-                  ₺{calculateTotalPrice()}
-                </div>
-                <div className="text-gray-500">/ay</div>
-              </div>
-
-              {/* Özellikler */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">Dahil Özellikler</h4>
-                  <ul className="space-y-3">
-                    {selectedFeatures.map((featureId, index) => (
-                      <li key={index} className="flex items-center gap-3">
-                        <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        </div>
-                        <span className="text-gray-700">{featureId}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">Mevcut Planınız</h4>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-lg font-semibold text-gray-800 mb-2">
-                      Premium Plan
-                    </div>
-                    <div className="text-2xl font-bold text-gray-600 mb-2">
-                      ₺99
-                    </div>
-                    <div className="text-sm text-gray-500">/ay</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Ödeme Seçenekleri */}
-              <div className="mb-8">
-                <h4 className="text-lg font-semibold text-gray-800 mb-4">Ödeme Yöntemi</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-300 transition-colors text-left">
-                    <div className="font-medium text-gray-800">Kredi Kartı</div>
-                    <div className="text-sm text-gray-500">Visa, Mastercard</div>
-                  </button>
-                  <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-300 transition-colors text-left">
-                    <div className="font-medium text-gray-800">Banka Havalesi</div>
-                    <div className="text-sm text-gray-500">EFT, Havale</div>
-                  </button>
-                  <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-300 transition-colors text-left">
-                    <div className="font-medium text-gray-800">Dijital Cüzdan</div>
-                    <div className="text-sm text-gray-500">PayPal, Stripe</div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Butonlar */}
-              <div className="flex justify-end gap-4">
-                <button
-                  onClick={handleCancelPlan}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  İptal
-                </button>
-                <button
-                  onClick={() => setShowPaymentModal(true)}
-                  className="px-8 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-                >
-                  Ödeme Yap (₺{calculateTotalPrice()})
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Gelişmiş Paket Yönetimi Modalı */}
       {showUpgradeModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -724,8 +645,8 @@ export default function BusinessDashboard() {
                   <FaCog className="text-white text-2xl" />
                 </div>
                 <div>
-                  <h3 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Paket ve Hizmet Yönetimi</h3>
-                  <p className="text-gray-600 text-lg">İhtiyacınıza göre plan ve ek hizmetler seçin</p>
+                  <h3 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent"><TranslatedText>Paket ve Hizmet Yönetimi</TranslatedText></h3>
+                  <p className="text-gray-600 text-lg"><TranslatedText>İhtiyacınıza göre plan ve ek hizmetler seçin</TranslatedText></p>
                 </div>
               </div>
               <button
@@ -750,7 +671,7 @@ export default function BusinessDashboard() {
                         }`}>
                         <FaCog className="text-white text-xl" />
                       </div>
-                      <h4 className="text-2xl font-bold text-gray-800">Mevcut Planınız</h4>
+                      <h4 className="text-2xl font-bold text-gray-800"><TranslatedText>Mevcut Planınız</TranslatedText></h4>
                     </div>
                     <div className="flex justify-between items-center">
                       <div>
@@ -760,21 +681,21 @@ export default function BusinessDashboard() {
                         </h5>
                         <p className="text-gray-700 text-lg font-medium">
                           ₺{plans[selectedPlan].pricing[billingCycle].toLocaleString('tr-TR')}
-                          {billingCycle === 'monthly' ? '/ay' :
-                            billingCycle === 'sixMonths' ? '/6 ay' : '/yıl'} - Aktif
+                          {billingCycle === 'monthly' ? `/${getStatic('Ay')}` :
+                            billingCycle === 'sixMonths' ? `/6 ${getStatic('Ay')}` : `/${getStatic('Yıl')}`} - <TranslatedText>Aktif</TranslatedText>
                         </p>
                       </div>
                       <div className="text-right bg-white/50 rounded-xl p-4">
-                        <div className="text-sm text-gray-600 font-medium">Sonraki ödeme</div>
-                        <div className="font-bold text-lg">15 Ocak 2024</div>
+                        <div className="text-sm text-gray-600 font-medium"><TranslatedText>Sonraki ödeme</TranslatedText></div>
+                        <div className="font-bold text-lg">15 January 2024</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Faturalandırma Seçimi */}
                   <div className="bg-white/80 backdrop-blur-lg border-2 border-gray-200 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300">
-                    <h4 className="text-2xl font-bold text-gray-800 mb-6">Faturalandırma Dönemini Değiştir</h4>
-                    <p className="text-gray-600 mb-6 text-lg">Faturalandırma döneminizi değiştirerek tasarruf edebilirsiniz</p>
+                    <h4 className="text-2xl font-bold text-gray-800 mb-6"><TranslatedText>Faturalandırma Dönemini Değiştir</TranslatedText></h4>
+                    <p className="text-gray-600 mb-6 text-lg"><TranslatedText>Faturalandırma döneminizi değiştirerek tasarruf edebilirsiniz</TranslatedText></p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <button
                         onClick={() => setBillingCycle('monthly')}
@@ -785,8 +706,8 @@ export default function BusinessDashboard() {
                           : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                           }`}
                       >
-                        <div className="font-bold text-lg">Aylık</div>
-                        <div className="text-sm text-gray-600 mb-3">Her ay ödeme</div>
+                        <div className="font-bold text-lg"><TranslatedText>Aylık</TranslatedText></div>
+                        <div className="text-sm text-gray-600 mb-3"><TranslatedText>Her ay ödeme</TranslatedText></div>
                         <div className={`text-2xl font-bold ${selectedPlan === 'corporate' ? 'text-purple-600' : 'text-orange-600'
                           }`}>
                           ₺{plans[selectedPlan].pricing.monthly}
@@ -801,8 +722,8 @@ export default function BusinessDashboard() {
                           : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                           }`}
                       >
-                        <div className="font-bold text-lg">6 Aylık</div>
-                        <div className="text-sm text-gray-600 mb-3">%17 indirim</div>
+                        <div className="font-bold text-lg"><TranslatedText>6 Aylık</TranslatedText></div>
+                        <div className="text-sm text-gray-600 mb-3"><TranslatedText>%17 indirim</TranslatedText></div>
                         <div className={`text-2xl font-bold ${selectedPlan === 'corporate' ? 'text-purple-600' : 'text-orange-600'
                           }`}>
                           ₺{plans[selectedPlan].pricing.sixMonths}
@@ -817,8 +738,8 @@ export default function BusinessDashboard() {
                           : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                           }`}
                       >
-                        <div className="font-bold text-lg">Yıllık</div>
-                        <div className="text-sm text-gray-600 mb-3">%20 indirim</div>
+                        <div className="font-bold text-lg"><TranslatedText>Yıllık</TranslatedText></div>
+                        <div className="text-sm text-gray-600 mb-3"><TranslatedText>%20 indirim</TranslatedText></div>
                         <div className={`text-2xl font-bold ${selectedPlan === 'corporate' ? 'text-purple-600' : 'text-orange-600'
                           }`}>
                           ₺{plans[selectedPlan].pricing.yearly}
@@ -829,11 +750,9 @@ export default function BusinessDashboard() {
 
                   {/* Ek Hizmetler */}
                   <div className="bg-white/80 backdrop-blur-lg border-2 border-gray-200 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300">
-                    <h4 className="text-2xl font-bold text-gray-800 mb-6">Ek Hizmetler</h4>
+                    <h4 className="text-2xl font-bold text-gray-800 mb-6"><TranslatedText>Ek Hizmetler</TranslatedText></h4>
                     <p className="text-gray-600 mb-8 text-lg">
-                      Dilediğiniz ek hizmet hangi paneldeyse hemen sepete ekleyin.
-                      Birden fazla seçebilirsiniz. Örneğin mutfak panelinde kaç tane değişiklik istiyorsanız
-                      o kadar sayı seçebilirsiniz, fiyat ona göre eklenecektir.
+                      <TranslatedText>Dilediğiniz ek hizmet hangi paneldeyse hemen sepete ekleyin. Birden fazla seçebilirsiniz. Örneğin mutfak panelinde kaç tane değişiklik istiyorsanız o kadar sayı seçebilirsiniz, fiyat ona göre eklenecektir.</TranslatedText>
                     </p>
 
                     <div className="space-y-8">
@@ -850,7 +769,7 @@ export default function BusinessDashboard() {
                               {panel === 'Personel' && <FaUsers className="text-green-500 text-2xl" />}
                               {panel === 'Siparişler' && <FaShoppingCart className="text-orange-500 text-2xl" />}
                               {panel === 'Genel' && <FaCog className="text-gray-500 text-2xl" />}
-                              {panel} Paneli
+                              <TranslatedText>{panel} Paneli</TranslatedText>
                             </h5>
                             <div className="space-y-4">
                               {panelServices.map(([serviceId, service]) => (
@@ -859,7 +778,7 @@ export default function BusinessDashboard() {
                                     <h6 className="font-bold text-gray-800 text-lg">{service.name}</h6>
                                     <p className="text-sm text-gray-600 mb-2">{service.description}</p>
                                     <div className="text-sm text-orange-600 font-bold bg-orange-100 px-3 py-1 rounded-full inline-block">
-                                      ₺{service.basePrice} + ₺{service.perChange}/değişiklik
+                                      ₺{service.basePrice} + ₺{service.perChange}/<TranslatedText>değişiklik</TranslatedText>
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-3">
@@ -893,7 +812,7 @@ export default function BusinessDashboard() {
                 <div className="space-y-8">
                   {/* Sepet */}
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 shadow-xl border border-gray-200 hover:shadow-2xl transition-all duration-300">
-                    <h4 className="text-2xl font-bold text-gray-800 mb-6">Sepetiniz</h4>
+                    <h4 className="text-2xl font-bold text-gray-800 mb-6"><TranslatedText>Sepetiniz</TranslatedText></h4>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center bg-white rounded-xl p-4 border border-gray-200">
                         <span className="text-gray-700 font-bold text-lg">{plans[selectedPlan].name}</span>
@@ -922,12 +841,12 @@ export default function BusinessDashboard() {
                       })}
                       <div className="border-t-2 border-gray-300 pt-4 bg-white rounded-xl p-4">
                         <div className="flex justify-between text-2xl font-bold">
-                          <span className="text-gray-800">Toplam</span>
+                          <span className="text-gray-800"><TranslatedText>Toplam</TranslatedText></span>
                           <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">₺{calculateTotalPrice().toLocaleString('tr-TR')}</span>
                         </div>
                         <div className="text-sm text-gray-600 font-medium mt-2">
-                          {billingCycle === 'monthly' ? 'Aylık' :
-                            billingCycle === 'sixMonths' ? '6 Aylık' : 'Yıllık'} ödeme
+                          {billingCycle === 'monthly' ? getStatic('Aylık') :
+                            billingCycle === 'sixMonths' ? getStatic('6 Aylık') : getStatic('Yıllık')} <TranslatedText>ödeme</TranslatedText>
                         </div>
                       </div>
                     </div>
@@ -938,70 +857,8 @@ export default function BusinessDashboard() {
                     onClick={() => setShowPaymentModal(true)}
                     className="w-full bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 text-white py-4 rounded-2xl font-bold text-lg hover:from-orange-600 hover:via-pink-600 hover:to-purple-700 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
                   >
-                    Ödeme Yap (₺{calculateTotalPrice().toLocaleString('tr-TR')})
+                    <TranslatedText>Ödeme Yap</TranslatedText> (₺{calculateTotalPrice().toLocaleString('tr-TR')})
                   </button>
-
-                  {/* Kurumsal Paket Tanıtımı kaldırıldı */}
-                  {false && (
-                    <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-                          <FaStore className="text-white text-lg" />
-                        </div>
-                        <div>
-                          <h5 className="text-lg font-bold text-purple-800">Kurumsal Paket</h5>
-                          <p className="text-sm text-purple-600">Büyük işletmeler ve zincirler için</p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span className="text-sm text-purple-700">Özel Menü ve Logo Entegrasyonu</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span className="text-sm text-purple-700">Sınırsız kullanıcı (tüm paneller)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span className="text-sm text-purple-700">Çoklu şube yönetimi</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span className="text-sm text-purple-700">API entegrasyonları</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span className="text-sm text-purple-700">7/24 Telefon Desteği</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span className="text-sm text-purple-700">Beyaz Etiket Çözümü</span>
-                        </div>
-                      </div>
-
-                      {/* Ödeme Bilgileri */}
-                      <div className="bg-white rounded-lg p-4 mb-4">
-                        <h6 className="font-semibold text-gray-800 mb-3 text-sm">Ödeme Bilgileri</h6>
-                        <p className="text-sm text-gray-600 mb-4">Ödeme bilgileriniz güvenli bir şekilde saklanmaktadır.</p>
-                        <a href="tel:+905393222797" className="inline-block bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors">
-                          Hemen Arayın
-                        </a>
-                      </div>
-
-                      <button
-                        onClick={() => {
-                          setSelectedPlan('corporate');
-                          setBillingCycle(corporateBillingCycle);
-                          alert('Kurumsal paket seçildi! Faturalandırma dönemini değiştirebilirsiniz.');
-                        }}
-                        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-                      >
-                        Kurumsal Pakete Geç
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -1015,10 +872,9 @@ export default function BusinessDashboard() {
         onClose={() => setShowPaymentModal(false)}
         total={calculateTotalPrice()}
         planName={plans[selectedPlan].name}
-        billingCycle={billingCycle === 'monthly' ? 'Aylık' : billingCycle === 'sixMonths' ? '6 Aylık' : 'Yıllık'}
+        billingCycle={billingCycle === 'monthly' ? getStatic('Aylık') : billingCycle === 'sixMonths' ? getStatic('6 Aylık') : getStatic('Yıllık')}
         onPaymentComplete={handlePaymentComplete}
       />
     </div>
   );
 }
-

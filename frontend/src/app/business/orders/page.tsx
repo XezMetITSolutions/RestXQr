@@ -2,159 +2,215 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { 
-  FaShoppingCart, 
-  FaClock,
-  FaCheckCircle,
-  FaExclamationTriangle,
-  FaEye,
-  FaPrint,
-  FaFilter,
+import {
   FaSearch,
-  FaChartLine,
-  FaChartBar,
-  FaUsers,
-  FaSignOutAlt,
+  FaFilter,
   FaDownload,
-  FaCog,
-  FaHeadset,
+  FaPrint,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaClock,
+  FaSpinner,
+  FaConciergeBell,
+  FaGlassWhiskey,
+  FaFileInvoiceDollar,
+  FaBroom,
   FaUtensils,
-  FaQrcode,
-  FaBell,
-  FaMoneyBillWave,
-  FaTimes,
-  FaSort,
-  FaCalendarAlt,
-  FaArrowUp,
-  FaArrowDown,
-  FaBars
+  FaPhone,
+  FaUser
 } from 'react-icons/fa';
+import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
+import { useLanguage } from '@/context/LanguageContext';
 import { useAuthStore } from '@/store/useAuthStore';
+import useRestaurantStore from '@/store/useRestaurantStore';
+
+interface OrderItem {
+  name: string;
+  quantity: number;
+  price: number;
+  notes?: string;
+  options?: string[];
+}
+
+interface Order {
+  id: string;
+  tableId: string;
+  tableName: string;
+  customerName?: string;
+  customerPhone?: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'completed' | 'cancelled';
+  createdAt: any; // Firebase timestamp
+  paymentMethod?: 'cash' | 'card' | 'online';
+  note?: string;
+  waiterCalls?: ('waiter' | 'bill' | 'water' | 'cleanup')[];
+}
 
 export default function OrdersPage() {
   const router = useRouter();
-  const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
-  
-  // Sayfa yüklendiğinde auth'u initialize et
-  useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState('today');
-  const [sortBy, setSortBy] = useState('newest');
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [showOrderModal, setShowOrderModal] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { currentLanguage } = useLanguage();
+  const { authenticatedRestaurant } = useAuthStore();
+  const { restaurant } = useRestaurantStore();
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<string>('today');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'amount'>('newest');
+
+  // Helper for synchronous translation
+  const getStatic = (text: string) => {
+    const langCode = currentLanguage === 'German' ? 'de' :
+      (currentLanguage === 'English' ? 'en' :
+        (currentLanguage === 'Turkish' ? 'tr' :
+          (currentLanguage === 'Arabic' ? 'ar' :
+            (currentLanguage === 'Russian' ? 'ru' :
+              (currentLanguage === 'French' ? 'fr' :
+                (currentLanguage === 'Spanish' ? 'es' :
+                  (currentLanguage === 'Italian' ? 'it' : 'en')))))));
+
+    if (staticDictionary[text] && staticDictionary[text][langCode]) {
+      return staticDictionary[text][langCode];
     }
-  }, [isAuthenticated, router]);
-
-  // Siparişleri backend'den yükle
-  useEffect(() => {
-    // Backend'den siparişleri çek (gelecekte implement edilecek)
-    // TODO: API call to fetch orders from backend
-    console.log('📦 Orders will be loaded from backend');
-    // Şimdilik boş array
-    setOrders([]);
-    setFilteredOrders([]);
-  }, [authenticatedRestaurant]);
-
-  // Filtreleme ve arama
-  useEffect(() => {
-    let filtered = [...orders];
-
-    // Durum filtresi
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(order => order.status === statusFilter);
-    }
-
-    // Tarih filtresi
-    if (dateFilter === 'today') {
-      // Bugünkü siparişler (demo için tümü)
-      filtered = filtered;
-    } else if (dateFilter === 'yesterday') {
-      // Dünkü siparişler (demo için boş)
-      filtered = [];
-    } else if (dateFilter === 'week') {
-      // Bu hafta (demo için tümü)
-      filtered = filtered;
-    }
-
-    // Arama
-    if (searchTerm) {
-      filtered = filtered.filter(order => 
-        order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.tableNumber.toString().includes(searchTerm) ||
-        order.items.some((item: any) => 
-          item.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
-
-    // Sıralama
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return b.id - a.id;
-        case 'oldest':
-          return a.id - b.id;
-        case 'table':
-          return a.tableNumber - b.tableNumber;
-        case 'amount':
-          return b.totalAmount - a.totalAmount;
-        case 'waitTime':
-          return b.waitTime - a.waitTime;
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredOrders(filtered);
-  }, [orders, statusFilter, dateFilter, searchTerm, sortBy]);
-
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
+    return text;
   };
+
+  useEffect(() => {
+    // Mock data for demonstration
+    const mockOrders: Order[] = [
+      {
+        id: 'ORD-1001',
+        tableId: 'T1',
+        tableName: 'Masa 1',
+        customerName: 'Ahmet Yılmaz',
+        customerPhone: '0532 123 45 67',
+        items: [
+          { name: 'Izgara Tavuk', quantity: 1, price: 250, options: ['Az pişmiş', 'Patates kızartması ile'] },
+          { name: 'Mercimek Çorbası', quantity: 1, price: 80 },
+          { name: 'Kola', quantity: 1, price: 40 }
+        ],
+        totalAmount: 370,
+        status: 'pending',
+        createdAt: new Date(),
+        paymentMethod: 'card',
+        note: 'Tavuk soslu olsun lütfen',
+        waiterCalls: ['waiter']
+      },
+      {
+        id: 'ORD-1002',
+        tableId: 'T3',
+        tableName: 'Masa 3',
+        items: [
+          { name: 'Hamburger Menü', quantity: 2, price: 300, options: ['Orta boy', 'Soğan halkası'] },
+          { name: 'Ayran', quantity: 2, price: 30 }
+        ],
+        totalAmount: 660,
+        status: 'preparing',
+        createdAt: new Date(Date.now() - 1000 * 60 * 15), // 15 mins ago
+        paymentMethod: 'cash'
+      },
+      {
+        id: 'ORD-1003',
+        tableId: 'T5',
+        tableName: 'Bahçe 2',
+        customerName: 'Ayşe Demir',
+        items: [
+          { name: 'Sezar Salata', quantity: 1, price: 180 },
+          { name: 'Su', quantity: 1, price: 15 }
+        ],
+        totalAmount: 195,
+        status: 'ready',
+        createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
+      },
+      {
+        id: 'ORD-1004',
+        tableId: 'T2',
+        tableName: 'Masa 2',
+        items: [
+          { name: 'Pizza Margherita', quantity: 1, price: 220 },
+          { name: 'Limonata', quantity: 1, price: 50 }
+        ],
+        totalAmount: 270,
+        status: 'delivered',
+        createdAt: new Date(Date.now() - 1000 * 60 * 45), // 45 mins ago
+      },
+      {
+        id: 'ORD-1005',
+        tableId: 'T8',
+        tableName: 'Teras 1',
+        items: [
+          { name: 'Latte', quantity: 2, price: 120 },
+          { name: 'Cheesecake', quantity: 1, price: 140 }
+        ],
+        totalAmount: 260,
+        status: 'completed',
+        createdAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+      }
+    ];
+
+    setTimeout(() => {
+      setOrders(mockOrders);
+      setLoading(false);
+    }, 1000);
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-red-100 text-red-800 border-red-300';
-      case 'preparing': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'ready': return 'bg-green-100 text-green-800 border-green-300';
-      case 'delivered': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'completed': return 'bg-gray-100 text-gray-800 border-gray-300';
-      case 'cancelled': return 'bg-red-100 text-red-800 border-red-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'preparing': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'ready': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'delivered': return 'bg-green-100 text-green-800 border-green-200';
+      case 'completed': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return 'Bekliyor';
-      case 'preparing': return 'Hazırlanıyor';
-      case 'ready': return 'Hazır';
-      case 'delivered': return 'Teslim Edildi';
-      case 'completed': return 'Tamamlandı';
-      case 'cancelled': return 'İptal Edildi';
+      case 'pending': return getStatic('Bekliyor');
+      case 'preparing': return getStatic('Hazırlanıyor');
+      case 'ready': return getStatic('Hazır');
+      case 'delivered': return getStatic('Teslim Edildi');
+      case 'completed': return getStatic('Tamamlandı');
+      case 'cancelled': return getStatic('İptal Edildi');
       default: return status;
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'border-red-400 bg-red-50';
-      case 'normal': return 'border-gray-200';
-      case 'low': return 'border-blue-200 bg-blue-50';
-      default: return 'border-gray-200';
+  const getFilteredOrders = () => {
+    let filtered = [...orders];
+
+    // Status filter
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(order => order.status === selectedStatus);
     }
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(order =>
+        order.tableName.toLowerCase().includes(query) ||
+        order.customerName?.toLowerCase().includes(query) ||
+        order.id.toLowerCase().includes(query) ||
+        order.items.some(item => item.name.toLowerCase().includes(query))
+      );
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest': return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'oldest': return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'amount': return b.totalAmount - a.totalAmount;
+        default: return 0;
+      }
+    });
+
+    return filtered;
   };
 
   const stats = {
@@ -163,472 +219,324 @@ export default function OrdersPage() {
     preparing: orders.filter(o => o.status === 'preparing').length,
     ready: orders.filter(o => o.status === 'ready').length,
     completed: orders.filter(o => o.status === 'completed').length,
-    totalRevenue: orders.reduce((acc, o) => acc + o.totalAmount, 0),
-    avgOrderValue: orders.length > 0 ? Math.round(orders.reduce((acc, o) => acc + o.totalAmount, 0) / orders.length) : 0
+    revenue: orders
+      .filter(o => o.status !== 'cancelled')
+      .reduce((sum, order) => sum + order.totalAmount, 0)
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-purple-900 to-purple-800 text-white transform transition-transform duration-300 ease-in-out z-50 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0`}>
-        <div className="p-4 sm:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold">{authenticatedRestaurant?.name || authenticatedStaff?.name}</h1>
-              <p className="text-purple-200 text-xs sm:text-sm mt-1">Yönetim Paneli</p>
+    <div className="p-4 md:p-6 space-y-6">
+      {/* Header Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {[
+          { label: 'Toplam', value: stats.total, color: 'bg-blue-50 text-blue-600', icon: FaUtensils },
+          { label: 'Bekliyor', value: stats.pending, color: 'bg-yellow-50 text-yellow-600', icon: FaClock },
+          { label: 'Hazırlanıyor', value: stats.preparing, color: 'bg-indigo-50 text-indigo-600', icon: FaSpinner },
+          { label: 'Hazır', value: stats.ready, color: 'bg-purple-50 text-purple-600', icon: FaCheckCircle },
+          { label: 'Tamamlandı', value: stats.completed, color: 'bg-green-50 text-green-600', icon: FaFileInvoiceDollar },
+          { label: 'Ciro', value: `₺${stats.revenue}`, color: 'bg-emerald-50 text-emerald-600', icon: FaGlassWhiskey },
+        ].map((stat, index) => (
+          <div key={index} className={`${stat.color} p-4 rounded-xl border border-opacity-20 shadow-sm`}>
+            <div className="flex items-center justify-between mb-2">
+              <stat.icon className="text-xl opacity-80" />
+              <span className="text-2xl font-bold">{stat.value}</span>
             </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 hover:bg-purple-700 rounded-lg transition-colors"
-            >
-              <FaTimes className="text-lg" />
-            </button>
+            <div className="text-sm font-medium opacity-80"><TranslatedText>{stat.label}</TranslatedText></div>
           </div>
+        ))}
+      </div>
+
+      {/* Filters and Search */}
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          {['all', 'pending', 'preparing', 'ready', 'delivered', 'completed', 'cancelled'].map((status) => (
+            <button
+              key={status}
+              onClick={() => setSelectedStatus(status)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedStatus === status
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+            >
+              {status === 'all' ? getStatic('Tüm Durumlar') : getStatusText(status)}
+            </button>
+          ))}
         </div>
 
-        <nav className="mt-4 sm:mt-6">
-          <Link href="/business/dashboard" className="flex items-center justify-center sm:justify-start px-4 sm:px-6 py-3 sm:py-3 hover:bg-purple-700 hover:bg-opacity-50 transition-colors rounded-r-lg mx-2 sm:mx-0">
-            <FaChartLine className="mr-2 sm:mr-3 text-sm sm:text-base" />
-            <span className="text-sm sm:text-base font-medium">Kontrol Paneli</span>
-          </Link>
-          <Link href="/business/orders" className="flex items-center justify-center sm:justify-start px-4 sm:px-6 py-3 sm:py-3 bg-purple-700 bg-opacity-50 border-l-4 border-white rounded-r-lg mx-2 sm:mx-0">
-            <FaShoppingCart className="mr-2 sm:mr-3 text-sm sm:text-base" />
-            <span className="text-sm sm:text-base font-medium">Siparişler</span>
-          </Link>
-          <Link href="/business/menu" className="flex items-center justify-center sm:justify-start px-4 sm:px-6 py-3 sm:py-3 hover:bg-purple-700 hover:bg-opacity-50 transition-colors rounded-r-lg mx-2 sm:mx-0">
-            <FaUtensils className="mr-2 sm:mr-3 text-sm sm:text-base" />
-            <span className="text-sm sm:text-base font-medium">Menü</span>
-          </Link>
-          <Link href="/kitchen" className="flex items-center justify-center sm:justify-start px-4 sm:px-6 py-3 sm:py-3 hover:bg-purple-700 hover:bg-opacity-50 transition-colors rounded-r-lg mx-2 sm:mx-0">
-            <FaUtensils className="mr-2 sm:mr-3 text-sm sm:text-base" />
-            <span className="text-sm sm:text-base font-medium">Mutfak</span>
-          </Link>
-          <Link href="/business/cashier" className="flex items-center justify-center sm:justify-start px-4 sm:px-6 py-3 sm:py-3 hover:bg-purple-700 hover:bg-opacity-50 transition-colors rounded-r-lg mx-2 sm:mx-0">
-            <FaMoneyBillWave className="mr-2 sm:mr-3 text-sm sm:text-base" />
-            <span className="text-sm sm:text-base font-medium">Kasa</span>
-          </Link>
-          <Link href="/business/staff" className="flex items-center justify-center sm:justify-start px-4 sm:px-6 py-3 sm:py-3 hover:bg-purple-700 hover:bg-opacity-50 transition-colors rounded-r-lg mx-2 sm:mx-0">
-            <FaUsers className="mr-2 sm:mr-3 text-sm sm:text-base" />
-            <span className="text-sm sm:text-base font-medium">Personel</span>
-          </Link>
-          <Link href="/business/qr-codes" className="flex items-center justify-center sm:justify-start px-4 sm:px-6 py-3 sm:py-3 hover:bg-purple-700 hover:bg-opacity-50 transition-colors rounded-r-lg mx-2 sm:mx-0">
-            <FaQrcode className="mr-2 sm:mr-3 text-sm sm:text-base" />
-            <span className="text-sm sm:text-base font-medium">QR Kodlar</span>
-          </Link>
-          <Link href="/business/reports" className="flex items-center justify-center sm:justify-start px-4 sm:px-6 py-3 sm:py-3 hover:bg-purple-700 hover:bg-opacity-50 transition-colors rounded-r-lg mx-2 sm:mx-0">
-            <FaChartBar className="mr-2 sm:mr-3 text-sm sm:text-base" />
-            <span className="text-sm sm:text-base font-medium">Raporlar</span>
-          </Link>
-          <Link href="/business/settings" className="flex items-center justify-center sm:justify-start px-4 sm:px-6 py-3 sm:py-3 hover:bg-purple-700 hover:bg-opacity-50 transition-colors rounded-r-lg mx-2 sm:mx-0">
-            <FaCog className="mr-2 sm:mr-3 text-sm sm:text-base" />
-            <span className="text-sm sm:text-base font-medium">Ayarlar</span>
-          </Link>
-          <Link href="/business/support" className="flex items-center justify-center sm:justify-start px-4 sm:px-6 py-3 sm:py-3 hover:bg-purple-700 hover:bg-opacity-50 transition-colors rounded-r-lg mx-2 sm:mx-0">
-            <FaHeadset className="mr-2 sm:mr-3 text-sm sm:text-base" />
-            <span className="text-sm sm:text-base font-medium">Destek</span>
-          </Link>
-        </nav>
-
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <div className="border-t border-purple-700 pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">{authenticatedRestaurant?.name || authenticatedStaff?.name}</p>
-                <p className="text-xs text-purple-300">{authenticatedRestaurant?.email || authenticatedStaff?.email}</p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="p-2 hover:bg-purple-700 rounded-lg"
-                title="Çıkış Yap"
-              >
-                <FaSignOutAlt />
-              </button>
-            </div>
+        <div className="flex gap-4 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+            <input
+              type="text"
+              placeholder={getStatic('Müşteri adı, masa no veya ürün ara...')}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
+
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="today">{getStatic('Bugün')}</option>
+            <option value="yesterday">{getStatic('Dün')}</option>
+            <option value="week">{getStatic('Bu Hafta')}</option>
+            <option value="month">{getStatic('Bu Ay')}</option>
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="newest">{getStatic('En Yeni')}</option>
+            <option value="oldest">{getStatic('En Eski')}</option>
+            <option value="amount">{getStatic('Tutar')}</option>
+          </select>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="ml-0 lg:ml-64">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <FaBars className="text-lg text-gray-600" />
-              </button>
-              <div>
-                <h2 className="text-lg sm:text-2xl font-semibold text-gray-800">Siparişler</h2>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1 hidden sm:block">Tüm siparişleri görüntüleyin ve yönetin</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2 lg:gap-4">
-              <button className="px-2 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <FaDownload className="text-xs sm:text-sm" />
-                <span className="hidden sm:inline">Rapor İndir</span>
-                <span className="sm:hidden">Rapor</span>
-              </button>
-              <button className="px-2 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <FaPrint className="text-xs sm:text-sm" />
-                <span className="hidden sm:inline">Yazdır</span>
-                <span className="sm:hidden">Yazdır</span>
-              </button>
-            </div>
-          </div>
-        </header>
-
-        <div className="p-3 sm:p-6 lg:p-8">
-          {/* İstatistik Kartları */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <FaShoppingCart className="text-xl text-blue-600" />
-                </div>
-                <span className="text-sm text-blue-600 font-medium">Toplam</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800">{stats.total}</h3>
-              <p className="text-sm text-gray-500 mt-1">Sipariş</p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-yellow-100 rounded-lg">
-                  <FaClock className="text-xl text-yellow-600" />
-                </div>
-                <span className="text-sm text-yellow-600 font-medium">Hazırlanıyor</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800">{stats.preparing}</h3>
-              <p className="text-sm text-gray-500 mt-1">Sipariş</p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <FaCheckCircle className="text-xl text-green-600" />
-                </div>
-                <span className="text-sm text-green-600 font-medium">Hazır</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800">{stats.ready}</h3>
-              <p className="text-sm text-gray-500 mt-1">Sipariş</p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-gray-100 rounded-lg">
-                  <FaCheckCircle className="text-xl text-gray-600" />
-                </div>
-                <span className="text-sm text-gray-600 font-medium">Tamamlandı</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800">{stats.completed}</h3>
-              <p className="text-sm text-gray-500 mt-1">Sipariş</p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <FaMoneyBillWave className="text-xl text-purple-600" />
-                </div>
-                <span className="text-sm text-purple-600 font-medium">Toplam Ciro</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800">₺{stats.totalRevenue}</h3>
-              <p className="text-sm text-gray-500 mt-1">Bugün</p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <FaChartLine className="text-xl text-orange-600" />
-                </div>
-                <span className="text-sm text-orange-600 font-medium">Ortalama</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800">₺{stats.avgOrderValue}</h3>
-              <p className="text-sm text-gray-500 mt-1">Sipariş Değeri</p>
-            </div>
-          </div>
-
-          {/* Filtreler ve Arama */}
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {/* Arama */}
-              <div className="lg:col-span-2 relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Müşteri adı, masa no veya ürün ara..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              {/* Durum Filtresi */}
-              <div>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="all">Tüm Durumlar</option>
-                  <option value="pending">Bekliyor</option>
-                  <option value="preparing">Hazırlanıyor</option>
-                  <option value="ready">Hazır</option>
-                  <option value="delivered">Teslim Edildi</option>
-                  <option value="completed">Tamamlandı</option>
-                  <option value="cancelled">İptal Edildi</option>
-                </select>
-              </div>
-
-              {/* Tarih Filtresi */}
-              <div>
-                <select
-                  value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="today">Bugün</option>
-                  <option value="yesterday">Dün</option>
-                  <option value="week">Bu Hafta</option>
-                  <option value="month">Bu Ay</option>
-                </select>
-              </div>
-
-              {/* Sıralama */}
-              <div>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="newest">En Yeni</option>
-                  <option value="oldest">En Eski</option>
-                  <option value="table">Masa No</option>
-                  <option value="amount">Tutar</option>
-                  <option value="waitTime">Bekleme Süresi</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-
-          {/* Sipariş Listesi */}
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Siparişler ({filteredOrders.length})
-              </h3>
-            </div>
-
-            <div className="divide-y divide-gray-200">
-              {filteredOrders.map(order => (
-                <div
-                  key={order.id}
-                  className={`p-6 hover:bg-gray-50 transition-colors ${getPriorityColor(order.priority)}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <span className="font-bold text-purple-600">{order.tableNumber}</span>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800">
-                          Masa {order.tableNumber} - {order.customerName}
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          {order.orderTime} • {order.items.length} ürün • ₺{order.totalAmount}
-                        </p>
-                        {order.notes && (
-                          <p className="text-sm text-purple-600 italic mt-1">
-                            Not: {order.notes}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                          {getStatusText(order.status)}
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {order.waitTime} dk bekleme
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {order.calls.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            <FaBell className="text-red-500 animate-pulse" />
-                            <span className="text-sm text-red-600 font-medium">
-                              {order.calls.length} çağrı
-                            </span>
-                          </div>
-                        )}
-                        
-                        <button
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setShowOrderModal(true);
-                          }}
-                          className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                          title="Detayları Görüntüle"
-                        >
-                          <FaEye />
-                        </button>
-                      </div>
-                    </div>
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {getFilteredOrders().map((order) => (
+            <div
+              key={order.id}
+              onClick={() => setSelectedOrder(order)}
+              className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+            >
+              {/* Card Header */}
+              <div className="p-4 border-b border-gray-50 flex justify-between items-start bg-gray-50">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-lg text-gray-800">{order.tableName}</span>
+                    <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded border border-gray-200">
+                      #{order.id.split('-')[1]}
+                    </span>
                   </div>
+                  <div className="text-xs text-gray-500 flex items-center gap-1">
+                    <FaClock className="text-gray-400" />
+                    {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <span className="mx-1">•</span>
+                    {Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000)} <TranslatedText>dk bekleme</TranslatedText>
+                  </div>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(order.status)}`}>
+                  {getStatusText(order.status)}
+                </div>
+              </div>
 
-                  {/* Ürünler */}
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                    {order.items.map((item: any, index: number) => (
-                      <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
-                        <span className="text-sm font-medium">
-                          {item.quantity}x {item.name}
+              {/* Active Calls */}
+              {order.waiterCalls && order.waiterCalls.length > 0 && (
+                <div className="bg-red-50 px-4 py-2 border-b border-red-100 flex gap-2 overflow-x-auto">
+                  {order.waiterCalls.map((call, idx) => (
+                    <span key={idx} className="flex items-center gap-1 text-xs font-bold text-red-600 bg-white px-2 py-1 rounded-lg border border-red-100 shadow-sm">
+                      {call === 'waiter' && <><FaConciergeBell /> <TranslatedText>Garson çağrısı</TranslatedText></>}
+                      {call === 'water' && <><FaGlassWhiskey /> <TranslatedText>Su isteniyor</TranslatedText></>}
+                      {call === 'bill' && <><FaFileInvoiceDollar /> <TranslatedText>Hesap isteniyor</TranslatedText></>}
+                      {call === 'cleanup' && <><FaBroom /> <TranslatedText>Masa temizleme isteniyor</TranslatedText></>}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Order Items */}
+              <div className="p-4">
+                <div className="space-y-3 mb-4 max-h-48 overflow-y-auto custom-scrollbar">
+                  {order.items.slice(0, 3).map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-start text-sm">
+                      <div className="flex gap-2">
+                        <span className="font-bold text-gray-400 text-xs px-1.5 py-0.5 bg-gray-100 rounded self-start">
+                          {item.quantity}x
                         </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">₺{item.price}</span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            item.status === 'ready' ? 'bg-green-100 text-green-700' :
-                            item.status === 'delivered' ? 'bg-gray-100 text-gray-700' :
-                            'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {item.status === 'ready' ? 'Hazır' :
-                             item.status === 'delivered' ? 'Teslim' : 'Hazırlanıyor'}
-                          </span>
+                        <div>
+                          <span className="text-gray-800 font-medium">{item.name}</span>
+                          {item.options && (
+                            <p className="text-xs text-gray-500">{item.options.join(', ')}</p>
+                          )}
+                          {item.notes && (
+                            <p className="text-xs text-orange-500 italic mt-0.5">{item.notes}</p>
+                          )}
                         </div>
                       </div>
+                      <span className="font-medium text-gray-600">₺{item.price * item.quantity}</span>
+                    </div>
+                  ))}
+                  {order.items.length > 3 && (
+                    <div className="text-center text-xs text-blue-600 font-medium pt-2 border-t border-dashed">
+                      + {order.items.length - 3} <TranslatedText>daha fazla ürün</TranslatedText>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-between items-end pt-3 border-t border-gray-100">
+                  <div className="text-sm text-gray-500">
+                    <div><TranslatedText>Toplam</TranslatedText></div>
+                    <div className="text-xs">{order.paymentMethod ? getStatic((order.paymentMethod === 'cash' ? 'Nakit' : 'Kart')) : '-'}</div>
+                  </div>
+                  <div className="text-xl font-bold text-blue-600">
+                    ₺{order.totalAmount}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
+          <div className="bg-white w-full max-w-md h-full shadow-xl flex flex-col animate-slide-left">
+            <div className="p-4 border-b flex justify-between items-center bg-gray-50">
+              <h2 className="text-lg font-bold text-gray-800"><TranslatedText>Sipariş Detayları</TranslatedText></h2>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+              >
+                <FaTimesCircle className="text-gray-500 text-xl" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {/* Status Header */}
+              <div className={`p-4 rounded-xl border ${getStatusColor(selectedOrder.status)} flex justify-between items-center`}>
+                <div className="font-bold text-lg">{getStatusText(selectedOrder.status)}</div>
+                <div className="text-sm opacity-80">#{selectedOrder.id}</div>
+              </div>
+
+              {/* Waiter Calls */}
+              {selectedOrder.waiterCalls && selectedOrder.waiterCalls.length > 0 && (
+                <div className="bg-red-50 p-4 rounded-xl border border-red-100 space-y-2">
+                  <h3 className="text-sm font-bold text-red-800 uppercase tracking-wider mb-2"><TranslatedText>Aktif Çağrılar</TranslatedText></h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedOrder.waiterCalls.map((call, idx) => (
+                      <span key={idx} className="flex items-center gap-2 text-sm font-bold text-red-600 bg-white px-3 py-1.5 rounded-lg border border-red-100 shadow-sm">
+                        {call === 'waiter' && <><FaConciergeBell /> <TranslatedText>Garson çağrısı</TranslatedText></>}
+                        {call === 'water' && <><FaGlassWhiskey /> <TranslatedText>Su isteniyor</TranslatedText></>}
+                        {call === 'bill' && <><FaFileInvoiceDollar /> <TranslatedText>Hesap isteniyor</TranslatedText></>}
+                        {call === 'cleanup' && <><FaBroom /> <TranslatedText>Masa temizleme isteniyor</TranslatedText></>}
+                      </span>
                     ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Info Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-xs text-gray-500 mb-1"><TranslatedText>Masa No</TranslatedText></div>
+                  <div className="font-semibold">{selectedOrder.tableName}</div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-xs text-gray-500 mb-1"><TranslatedText>Sipariş Zamanı</TranslatedText></div>
+                  <div className="font-semibold">{new Date(selectedOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                </div>
+                {selectedOrder.customerName && (
+                  <div className="p-3 bg-gray-50 rounded-lg col-span-2">
+                    <div className="text-xs text-gray-500 mb-1"><TranslatedText>Müşteri</TranslatedText></div>
+                    <div className="font-semibold flex items-center justify-between">
+                      {selectedOrder.customerName}
+                      {selectedOrder.customerPhone && (
+                        <a href={`tel:${selectedOrder.customerPhone}`} className="text-blue-600 text-sm flex items-center gap-1 hover:underline">
+                          <FaPhone className="text-xs" /> {selectedOrder.customerPhone}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Items List */}
+              <div>
+                <h3 className="font-bold text-gray-800 mb-3 pb-2 border-b"><TranslatedText>Sipariş Edilen Ürünler</TranslatedText></h3>
+                <div className="space-y-4">
+                  {selectedOrder.items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-start">
+                      <div className="flex gap-3">
+                        <div className="bg-blue-50 text-blue-600 font-bold w-8 h-8 flex items-center justify-center rounded-lg text-sm">
+                          {item.quantity}x
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-800">{item.name}</div>
+                          {item.options && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {item.options.map((opt, i) => (
+                                <span key={i} className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{opt}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="font-bold text-gray-700">₺{item.price * item.quantity}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Notes */}
+              {selectedOrder.note && (
+                <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
+                  <h3 className="text-sm font-bold text-yellow-800 mb-1 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                    <TranslatedText>Özel Notlar</TranslatedText>
+                  </h3>
+                  <p className="text-sm text-yellow-700">{selectedOrder.note}</p>
+                </div>
+              )}
+
+              {/* Total Summary */}
+              <div className="bg-gray-50 p-4 rounded-xl space-y-3">
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span><TranslatedText>Ara Toplam</TranslatedText></span>
+                  <span>₺{selectedOrder.totalAmount}</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>KDV (%10)</span>
+                  <span>₺{Math.round(selectedOrder.totalAmount * 0.1)}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold text-gray-900 pt-3 border-t border-gray-200">
+                  <span><TranslatedText>Toplam Tutar</TranslatedText></span>
+                  <span>₺{Math.round(selectedOrder.totalAmount * 1.1)}</span>
+                </div>
+              </div>
             </div>
 
-            {filteredOrders.length === 0 && (
-              <div className="text-center py-12">
-                <FaShoppingCart className="text-4xl text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">Sipariş bulunamadı</p>
-                <p className="text-gray-400 text-sm mt-2">Filtreleri değiştirerek tekrar deneyin</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Sipariş Detay Modal */}
-      {showOrderModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Sipariş Detayları</h3>
-                <button
-                  onClick={() => setShowOrderModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FaTimes size={20} />
+            {/* Action Footer */}
+            <div className="p-4 border-t bg-white safe-area-bottom space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <button className="flex items-center justify-center gap-2 py-3 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                  <FaPrint /> <TranslatedText>Yazdır</TranslatedText>
+                </button>
+                <button className="flex items-center justify-center gap-2 py-3 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                  <FaDownload /> <TranslatedText>Rapor İndir</TranslatedText>
                 </button>
               </div>
 
-              <div className="space-y-6">
-                {/* Sipariş Bilgileri */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold mb-3">Sipariş Bilgileri</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Masa No</p>
-                      <p className="font-medium">{selectedOrder.tableNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Sipariş Zamanı</p>
-                      <p className="font-medium">{selectedOrder.orderTime}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Müşteri</p>
-                      <p className="font-medium">{selectedOrder.customerName}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Telefon</p>
-                      <p className="font-medium">{selectedOrder.customerPhone}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Toplam Tutar</p>
-                      <p className="font-bold text-purple-600">₺{selectedOrder.totalAmount}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Ödeme Yöntemi</p>
-                      <p className="font-medium">{selectedOrder.paymentMethod}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Ürünler */}
-                <div>
-                  <h4 className="font-semibold mb-3">Sipariş Edilen Ürünler</h4>
-                  <div className="space-y-2">
-                    {selectedOrder.items.map((item: any, index: number) => (
-                      <div key={index} className="flex justify-between items-center p-3 bg-white border rounded-lg">
-                        <div>
-                          <p className="font-medium">{item.quantity}x {item.name}</p>
-                          <p className="text-sm text-gray-500">₺{item.price} adet</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold">₺{item.quantity * item.price}</p>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            item.status === 'ready' ? 'bg-green-100 text-green-700' :
-                            item.status === 'delivered' ? 'bg-gray-100 text-gray-700' :
-                            'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {item.status === 'ready' ? 'Hazır' :
-                             item.status === 'delivered' ? 'Teslim' : 'Hazırlanıyor'}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Notlar */}
-                {selectedOrder.notes && (
-                  <div>
-                    <h4 className="font-semibold mb-3">Özel Notlar</h4>
-                    <p className="text-gray-700 italic bg-yellow-50 p-3 rounded-lg">
-                      {selectedOrder.notes}
-                    </p>
-                  </div>
-                )}
-
-                {/* Çağrılar */}
-                {selectedOrder.calls.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold mb-3 text-red-700">Aktif Çağrılar</h4>
-                    <div className="space-y-2">
-                      {selectedOrder.calls.map((call: string, index: number) => (
-                        <div key={index} className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                          <FaBell className="text-red-500 animate-pulse" />
-                          <span className="text-red-800 font-medium">
-                            {call === 'waiter' && 'Garson çağrısı'}
-                            {call === 'water' && 'Su isteniyor'}
-                            {call === 'bill' && 'Hesap isteniyor'}
-                            {call === 'clean' && 'Masa temizleme isteniyor'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                {selectedOrder.status !== 'completed' && selectedOrder.status !== 'cancelled' && (
+                  <>
+                    <button
+                      onClick={() => {
+                        // In a real app, update status here
+                        const nextStatus = selectedOrder.status === 'pending' ? 'preparing' :
+                          selectedOrder.status === 'preparing' ? 'ready' :
+                            selectedOrder.status === 'ready' ? 'delivered' : 'completed';
+                        // For demo just console log
+                        console.log('Advance status to', nextStatus);
+                      }}
+                      className="col-span-2 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-colors"
+                    >
+                      {selectedOrder.status === 'pending' ? getStatic('Hazırlanıyor') :
+                        selectedOrder.status === 'preparing' ? getStatic('Hazır') :
+                          selectedOrder.status === 'ready' ? getStatic('Teslim Edildi') : getStatic('Tamamlandı')}
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -638,4 +546,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
