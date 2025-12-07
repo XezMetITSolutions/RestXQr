@@ -261,9 +261,6 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         isPopular: data.isPopular || false,
         preparationTime: data.preparationTime || null,
         calories: data.calories || null,
-        isPopular: data.isPopular || false,
-        preparationTime: data.preparationTime || null,
-        calories: data.calories || null,
         allergens: data.allergens || [],
         ingredients: data.ingredients || []
       };
@@ -356,8 +353,6 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         price: data.price ? parseFloat(data.price) : undefined,
         imageUrl: data.imageUrl || data.image,
         displayOrder: data.order || data.displayOrder,
-        isAvailable: data.isAvailable,
-        isPopular: data.isPopular,
         isAvailable: data.isAvailable,
         isPopular: data.isPopular,
         allergens: data.allergens,
