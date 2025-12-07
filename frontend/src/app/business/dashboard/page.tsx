@@ -33,6 +33,7 @@ import LanguageSelector from '@/components/LanguageSelector';
 import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
+import BusinessSidebar from '@/components/BusinessSidebar';
 
 export default function BusinessDashboard() {
   const router = useRouter();
@@ -321,6 +322,11 @@ export default function BusinessDashboard() {
 
   return (
     <div className="flex bg-gray-50 min-h-screen font-sans">
+      <BusinessSidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        onLogout={logout}
+      />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-30 shadow-sm">
@@ -769,7 +775,7 @@ export default function BusinessDashboard() {
                               {panel === 'Personel' && <FaUsers className="text-green-500 text-2xl" />}
                               {panel === 'Siparişler' && <FaShoppingCart className="text-orange-500 text-2xl" />}
                               {panel === 'Genel' && <FaCog className="text-gray-500 text-2xl" />}
-                              <TranslatedText>{panel} Paneli</TranslatedText>
+                              <TranslatedText>{`${panel} Paneli`}</TranslatedText>
                             </h5>
                             <div className="space-y-4">
                               {panelServices.map(([serviceId, service]) => (
