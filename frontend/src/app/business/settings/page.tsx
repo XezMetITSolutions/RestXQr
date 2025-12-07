@@ -39,7 +39,8 @@ import {
   FaCheck,
   FaExclamationTriangle,
   FaDownload,
-  FaSync
+  FaSync,
+  FaClock
 } from 'react-icons/fa';
 import AnnouncementQuickModal from '@/components/AnnouncementQuickModal';
 import PhonePreview from '@/components/PhonePreview';
