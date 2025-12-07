@@ -335,11 +335,14 @@ export default function BusinessDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <div className="hidden sm:block">
+                <LanguageSelector enabledLanguages={useBusinessSettingsStore(s => s.settings.menuSettings.language)} />
+              </div>
               <button
                 onClick={() => setShowUpgradeModal(true)}
                 className={`px-6 py-4 rounded-2xl text-base font-bold transition-all duration-300 hover:scale-105 shadow-xl ${(authenticatedRestaurant?.subscription?.plan || 'premium') === 'premium'
-                    ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white hover:shadow-2xl'
-                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 hover:from-gray-200 hover:to-gray-300'
+                  ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white hover:shadow-2xl'
+                  : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 hover:from-gray-200 hover:to-gray-300'
                   }`}
               >
                 <span className="hidden sm:inline">
@@ -489,8 +492,8 @@ export default function BusinessDashboard() {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className={`px-4 py-2 rounded-full text-sm font-black shadow-lg ${order.status === 'ready'
-                            ? 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800'
-                            : 'bg-gradient-to-r from-yellow-100 to-orange-200 text-yellow-800'
+                          ? 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800'
+                          : 'bg-gradient-to-r from-yellow-100 to-orange-200 text-yellow-800'
                           }`}>
                           {order.status === 'ready' ? 'Hazır' : 'Hazırlanıyor'}
                         </span>
@@ -749,8 +752,8 @@ export default function BusinessDashboard() {
                 <div className="lg:col-span-2 space-y-8">
                   {/* Mevcut Plan */}
                   <div className={`bg-gradient-to-r border-2 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 ${selectedPlan === 'corporate'
-                      ? 'from-purple-50 via-purple-100 to-purple-200 border-purple-300'
-                      : 'from-orange-50 via-orange-100 to-orange-200 border-orange-300'
+                    ? 'from-purple-50 via-purple-100 to-purple-200 border-purple-300'
+                    : 'from-orange-50 via-orange-100 to-orange-200 border-orange-300'
                     }`}>
                     <div className="flex items-center gap-4 mb-6">
                       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${selectedPlan === 'corporate' ? 'bg-gradient-to-r from-purple-500 to-purple-600' : 'bg-gradient-to-r from-orange-500 to-orange-600'
@@ -786,10 +789,10 @@ export default function BusinessDashboard() {
                       <button
                         onClick={() => setBillingCycle('monthly')}
                         className={`p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:scale-105 ${billingCycle === 'monthly'
-                            ? selectedPlan === 'corporate'
-                              ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-purple-100 shadow-lg'
-                              : 'border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100 shadow-lg'
-                            : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                          ? selectedPlan === 'corporate'
+                            ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-purple-100 shadow-lg'
+                            : 'border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100 shadow-lg'
+                          : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                           }`}
                       >
                         <div className="font-bold text-lg">Aylık</div>
@@ -802,10 +805,10 @@ export default function BusinessDashboard() {
                       <button
                         onClick={() => setBillingCycle('sixMonths')}
                         className={`p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:scale-105 ${billingCycle === 'sixMonths'
-                            ? selectedPlan === 'corporate'
-                              ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-purple-100 shadow-lg'
-                              : 'border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100 shadow-lg'
-                            : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                          ? selectedPlan === 'corporate'
+                            ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-purple-100 shadow-lg'
+                            : 'border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100 shadow-lg'
+                          : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                           }`}
                       >
                         <div className="font-bold text-lg">6 Aylık</div>
@@ -818,10 +821,10 @@ export default function BusinessDashboard() {
                       <button
                         onClick={() => setBillingCycle('yearly')}
                         className={`p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:scale-105 ${billingCycle === 'yearly'
-                            ? selectedPlan === 'corporate'
-                              ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-purple-100 shadow-lg'
-                              : 'border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100 shadow-lg'
-                            : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                          ? selectedPlan === 'corporate'
+                            ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-purple-100 shadow-lg'
+                            : 'border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100 shadow-lg'
+                          : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                           }`}
                       >
                         <div className="font-bold text-lg">Yıllık</div>
