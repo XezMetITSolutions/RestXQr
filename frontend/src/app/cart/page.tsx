@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  FaShoppingCart, 
-  FaBell, 
-  FaArrowLeft, 
-  FaPlus, 
-  FaMinus, 
+import {
+  FaShoppingCart,
+  FaBell,
+  FaArrowLeft,
+  FaPlus,
+  FaMinus,
   FaTrash,
   FaCreditCard,
   FaHeart,
@@ -43,7 +43,7 @@ function CartPageContent() {
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [confirmationCountdown, setConfirmationCountdown] = useState<number | null>(null);
   const [pendingOrderItems, setPendingOrderItems] = useState<any[]>([]);
-  
+
   const primary = settings.branding.primaryColor;
 
   useEffect(() => {
@@ -74,7 +74,7 @@ function CartPageContent() {
   // Sipariş iptal fonksiyonu
   const handleCancelOrder = async () => {
     if (!pendingOrderId) return;
-    
+
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
       const response = await fetch(`${apiUrl}/orders/${pendingOrderId}`, {
@@ -84,9 +84,9 @@ function CartPageContent() {
         },
         body: JSON.stringify({ status: 'cancelled' })
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setPendingOrderId(null);
         setConfirmationCountdown(null);
@@ -126,7 +126,7 @@ function CartPageContent() {
 
     // Sepeti temizle ve siparişteki ürünleri sepete geri yükle
     clearCart();
-    
+
     pendingOrderItems.forEach(item => {
       addItem({
         itemId: item.itemId || item.id,
@@ -168,7 +168,7 @@ function CartPageContent() {
 
   const handlePayment = async () => {
     if (isSubmitting) return;
-    
+
     console.log('💳 ÖDE ME İŞLEMİ BAŞLADI:', {
       timestamp: new Date().toLocaleString(),
       paymentMethod,
@@ -177,31 +177,31 @@ function CartPageContent() {
       subtotal: subtotal + '₺',
       total: total + '₺'
     });
-    
+
     setIsSubmitting(true);
     try {
       // Resolve restaurantId (fallback to subdomain lookup if not in store)
       let restaurantId = currentRestaurant?.id as string | undefined;
-      
+
       console.log('🏪 RESTORAN BİLGİSİ:', {
         currentRestaurant,
         restaurantId,
         kaynak: restaurantId ? 'currentRestaurant store' : 'subdomain lookup gerekli'
       });
-      
+
       if (!restaurantId && typeof window !== 'undefined') {
         try {
           const sub = window.location.hostname.split('.')[0];
           const base = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
           const API = base.endsWith('/api') ? base : `${base.replace(/\/$/, '')}/api`;
-          
+
           console.log('🔍 SUBDOMAIN LOOKUP:', { subdomain: sub, apiUrl: API });
-          
+
           const res = await fetch(`${API}/staff/restaurants`);
           const data = await res.json();
           const found = Array.isArray(data?.data) ? data.data.find((r: any) => r.username === sub) : null;
           restaurantId = found?.id;
-          
+
           console.log('✅ SUBDOMAIN LOOKUP SONUCU:', { found, restaurantId });
         } catch (e) {
           console.error('❌ Restaurant resolve failed:', e);
@@ -213,12 +213,12 @@ function CartPageContent() {
         alert('Restoran bilgisi alınamadı. Lütfen sayfayı yenileyip tekrar deneyin.');
         return;
       }
-      
+
       // Backend'e sipariş gönder
       const orderData = {
         restaurantId,
         tableNumber: tableNumber || undefined,
-         items: (items || []).map(item => ({
+        items: (items || []).map(item => ({
           menuItemId: item.itemId || item.id,
           name: item.name,
           quantity: item.quantity,
@@ -240,43 +240,43 @@ function CartPageContent() {
         paymentMethod,
         orderData
       });
-      
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
       console.log('🌐 API ENDPOINT:', `${apiUrl}/orders`);
 
       const response = await apiService.createOrder(orderData);
-      
+
       console.log('📨 API YANITI:', response);
-      
+
       if (response.success) {
         console.log('✅ SİPARİŞ BAŞARILI!', {
           orderId: response.data?.id,
           status: response.data?.status,
           createdAt: response.data?.created_at
         });
-        
-         // Sipariş ID'sini kaydet ve 1 dakika countdown başlat
-         const orderId = response.data?.id;
-         if (orderId) {
-           setPendingOrderId(orderId);
-           setConfirmationCountdown(60); // 60 saniye
-           // Siparişteki ürünleri kaydet (değişiklik yapmak için)
-           setPendingOrderItems((items || []).map(item => ({
-             itemId: item.itemId || item.id,
-             name: item.name,
-             price: item.price,
-             quantity: item.quantity,
-             notes: item.notes || '',
-             image: item.image
-           })));
-         }
-        
+
+        // Sipariş ID'sini kaydet ve 1 dakika countdown başlat
+        const orderId = response.data?.id;
+        if (orderId) {
+          setPendingOrderId(orderId);
+          setConfirmationCountdown(60); // 60 saniye
+          // Siparişteki ürünleri kaydet (değişiklik yapmak için)
+          setPendingOrderItems((items || []).map(item => ({
+            itemId: item.itemId || item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            notes: item.notes || '',
+            image: item.image
+          })));
+        }
+
         // Clear cart after successful order
         clearCart();
         setShowPaymentModal(false);
         setTipAmount(0);
         setDonationAmount(0);
-        
+
         console.log('🧹 Sepet temizlendi');
       } else {
         console.error('❌ SİPARİŞ BAŞARISIZ:', response);
@@ -307,9 +307,9 @@ function CartPageContent() {
         name: currentRestaurant?.name,
         username: currentRestaurant?.username
       },
-       cart: {
-         itemCount: (items || []).length,
-         items: (items || []).map(i => ({
+      cart: {
+        itemCount: (items || []).length,
+        items: (items || []).map(i => ({
           name: i.name,
           quantity: i.quantity,
           price: i.price + '₺',
@@ -323,7 +323,7 @@ function CartPageContent() {
       table: tableNumber || 'Belirtilmemiş',
       paymentMethod: paymentMethod
     };
-    
+
     console.log('🐛 SEPET DEBUG BİLGİLERİ:', debugData);
     alert(JSON.stringify(debugData, null, 2));
   };
@@ -331,7 +331,7 @@ function CartPageContent() {
   // Handle quick service
   const handleQuickService = async (serviceType: string, customNote?: string) => {
     if (!currentRestaurant) return;
-    
+
     try {
       const response = await fetch('/api/service-call/create', {
         method: 'POST',
@@ -347,7 +347,7 @@ function CartPageContent() {
       });
 
       if (response.ok) {
-        alert('Garson çağrısı gönderildi!');
+        alert('Garson çağrısı gönderildi!'); // Alert translations are harder, leaving as is for now or use Toast
         setIsQuickServiceModalOpen(false);
       } else {
         console.error('Service call failed');
@@ -430,9 +430,9 @@ function CartPageContent() {
           </div>
         )}
 
-         {/* Cart Items */}
-         <div className={`pt-16 px-3 py-4 ${pendingOrderId && confirmationCountdown !== null && confirmationCountdown > 0 ? 'pt-32' : ''}`}>
-           {(!items || items.length === 0) ? (
+        {/* Cart Items */}
+        <div className={`pt-16 px-3 py-4 ${pendingOrderId && confirmationCountdown !== null && confirmationCountdown > 0 ? 'pt-32' : ''}`}>
+          {(!items || items.length === 0) ? (
             <div className="text-center py-12">
               <FaShoppingCart size={48} className="mx-auto text-gray-300 mb-4" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
@@ -441,7 +441,7 @@ function CartPageContent() {
               <p className="text-gray-500 mb-6">
                 <TranslatedText>Menüden ürün ekleyerek başlayın</TranslatedText>
               </p>
-              <Link 
+              <Link
                 href="/menu"
                 className="btn btn-primary px-6 py-3 rounded-lg"
               >
@@ -452,21 +452,21 @@ function CartPageContent() {
             <>
               {/* Cart Items List */}
               <div className="space-y-3 mb-6">
-                 {(items || []).map((item) => (
+                {(items || []).map((item) => (
                   <div key={item.itemId} className="bg-white rounded-lg shadow-sm border p-3 flex">
                     <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                      <Image 
-                        src={item.image || '/placeholder-food.jpg'} 
-                        alt={item.name} 
-                        width={64} 
-                        height={64} 
+                      <Image
+                        src={item.image || '/placeholder-food.jpg'}
+                        alt={item.name}
+                        width={64}
+                        height={64}
                         className="object-cover w-full h-full rounded-lg"
                       />
                     </div>
                     <div className="ml-3 flex-grow">
                       <div className="flex justify-between items-start">
                         <h3 className="font-semibold text-dynamic-sm">{item.name}</h3>
-                        <button 
+                        <button
                           onClick={() => handleRemoveItem(item.itemId)}
                           className="text-red-500 hover:text-red-700 p-1"
                         >
@@ -476,17 +476,17 @@ function CartPageContent() {
                       <p className="text-xs text-gray-600 mb-2">
                         <TranslatedText>₺{item.price}</TranslatedText>
                       </p>
-                      
+
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                          <button 
+                          <button
                             onClick={() => handleUpdateQuantity(item.itemId, item.quantity - 1)}
                             className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
                           >
                             <FaMinus size={10} />
                           </button>
                           <span className="w-8 text-center font-medium">{item.quantity}</span>
-                          <button 
+                          <button
                             onClick={() => handleUpdateQuantity(item.itemId, item.quantity + 1)}
                             className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
                           >
@@ -507,26 +507,24 @@ function CartPageContent() {
                 <h3 className="font-semibold text-dynamic-sm mb-4">
                   <TranslatedText>Ödeme Seçenekleri</TranslatedText>
                 </h3>
-                
+
                 {/* Payment Method Selection */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <button
                     onClick={() => setPaymentMethod('card')}
-                    className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${
-                      paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                    }`}
+                    className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      }`}
                   >
                     <FaCreditCard className={paymentMethod === 'card' ? 'text-blue-500' : 'text-gray-500'} />
                     <span className="text-sm font-medium">
                       <TranslatedText>Kart</TranslatedText>
                     </span>
                   </button>
-                  
+
                   <button
                     onClick={() => setPaymentMethod('cash')}
-                    className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${
-                      paymentMethod === 'cash' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                    }`}
+                    className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${paymentMethod === 'cash' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      }`}
                   >
                     <FaUser className={paymentMethod === 'cash' ? 'text-blue-500' : 'text-gray-500'} />
                     <span className="text-sm font-medium">
@@ -605,7 +603,7 @@ function CartPageContent() {
                 className="w-full btn btn-primary py-4 rounded-lg font-semibold text-dynamic-sm"
               >
                 {paymentMethod === 'cash' ? (
-                  <span>Siparişi Ver</span>
+                  <span><TranslatedText>Siparişi Ver</TranslatedText></span>
                 ) : (
                   <TranslatedText>Ödemeyi Tamamla</TranslatedText>
                 )}
@@ -624,7 +622,7 @@ function CartPageContent() {
             <Link href="/cart" className="flex flex-col items-center" style={{ color: primary }}>
               <div className="relative">
                 <FaShoppingCart className="mb-0.5" size={16} />
-                 {items && items.length > 0 && (
+                {items && items.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center">
                     {items.length}
                   </span>
@@ -634,7 +632,7 @@ function CartPageContent() {
             </Link>
             <button
               onClick={() => setIsQuickServiceModalOpen(true)}
-              className="flex flex-col items-center" 
+              className="flex flex-col items-center"
               style={{ color: primary }}
             >
               <FaBell className="mb-0.5" size={16} />
@@ -670,7 +668,7 @@ function CartPageContent() {
                 onClick={handlePayment}
                 className="flex-1 py-2 px-4 btn btn-primary rounded-lg"
               >
-                {paymentMethod === 'cash' ? <span>Siparişi Ver</span> : <TranslatedText>Öde</TranslatedText>}
+                {paymentMethod === 'cash' ? <span><TranslatedText>Siparişi Ver</TranslatedText></span> : <TranslatedText>Öde</TranslatedText>}
               </button>
             </div>
           </div>
@@ -684,7 +682,7 @@ function CartPageContent() {
             <h3 className="text-lg font-semibold mb-4">
               <TranslatedText>Bahşiş Miktarı</TranslatedText>
             </h3>
-            
+
             {/* Yüzde Butonları */}
             <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">
@@ -711,7 +709,7 @@ function CartPageContent() {
                 </button>
               </div>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <TranslatedText>Manuel Miktar</TranslatedText>
@@ -725,7 +723,7 @@ function CartPageContent() {
                 step="0.01"
               />
             </div>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={() => setShowTipModal(false)}
@@ -751,7 +749,7 @@ function CartPageContent() {
             <h3 className="text-lg font-semibold mb-4">
               <TranslatedText>Bağış Miktarı</TranslatedText>
             </h3>
-            
+
             {/* Yüzde Butonları */}
             <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">
@@ -778,7 +776,7 @@ function CartPageContent() {
                 </button>
               </div>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <TranslatedText>Manuel Miktar</TranslatedText>

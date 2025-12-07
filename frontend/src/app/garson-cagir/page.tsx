@@ -119,7 +119,7 @@ function GarsonCagirContent() {
               style={{ backgroundColor: primary, color: 'white' }}
             >
               <FaGlassWhiskey size={32} />
-              <span className="text-sm font-semibold">Su Getir</span>
+              <span className="text-sm font-semibold"><TranslatedText>Su Getir</TranslatedText></span>
             </button>
             <button
               onClick={() => handleQuickRequest('bill')}
@@ -127,7 +127,7 @@ function GarsonCagirContent() {
               style={{ backgroundColor: primary, color: 'white' }}
             >
               <FaFileInvoiceDollar size={32} />
-              <span className="text-sm font-semibold">Hesap İste</span>
+              <span className="text-sm font-semibold"><TranslatedText>Hesap İste</TranslatedText></span>
             </button>
             <button
               onClick={() => handleQuickRequest('clean')}
@@ -135,7 +135,7 @@ function GarsonCagirContent() {
               style={{ backgroundColor: primary, color: 'white' }}
             >
               <FaSprayCan size={32} />
-              <span className="text-sm font-semibold">Masayı Temizle</span>
+              <span className="text-sm font-semibold"><TranslatedText>Masayı Temizle</TranslatedText></span>
             </button>
             <button
               onClick={() => handleQuickRequest('help')}
@@ -143,7 +143,7 @@ function GarsonCagirContent() {
               style={{ backgroundColor: primary, color: 'white' }}
             >
               <FaHandHolding size={32} />
-              <span className="text-sm font-semibold">Yardım Gerekiyor</span>
+              <span className="text-sm font-semibold"><TranslatedText>Yardım Gerekiyor</TranslatedText></span>
             </button>
           </div>
         </div>
