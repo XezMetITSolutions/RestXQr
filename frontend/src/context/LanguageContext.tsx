@@ -47,11 +47,24 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
           return;
         }
 
+        // Check browser language
+        if (typeof navigator !== 'undefined' && navigator.language) {
+          const browserLang = navigator.language.toLowerCase();
+          console.log('Browser language detected:', browserLang);
+
+          if (browserLang.startsWith('de')) {
+            console.log('Setting language to German based on browser settings');
+            setCurrentLanguage('German');
+            localStorage.setItem('masapp-language', 'German');
+            return;
+          }
+        }
+
         // If no saved preference, detect from IP location
         const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
         const detectedLanguage = await detectLanguageFromLocation(data.country_code);
-        
+
         setCurrentLanguage(detectedLanguage);
         // TODO: Backend'e kaydet
         // await apiService.updateUserPreferences({ language: detectedLanguage });
@@ -90,11 +103,11 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       // Convert language name to API-friendly format
       const languageMap: { [key: string]: string } = {
         'English': 'English',
-        'German': 'German', 
+        'German': 'German',
         'Arabic': 'Arabic',
         'Russian': 'Russian'
       };
-      
+
       const apiLanguage = languageMap[currentLanguage] || 'English';
       console.log('Translating:', text, 'to:', apiLanguage);
       const translatedText = await translateText(text, apiLanguage);
