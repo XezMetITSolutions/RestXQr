@@ -13,6 +13,7 @@ import TranslatedText from '@/components/TranslatedText';
 import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
 import SetBrandColor from '@/components/SetBrandColor';
 import apiService from '@/services/api';
+import LanguageSelector from '@/components/LanguageSelector';
 
 function MenuPageContent() {
   // Store states
@@ -494,6 +495,7 @@ function MenuPageContent() {
               )}
             </div>
             <div className="flex items-center gap-2">
+              <LanguageSelector enabledLanguages={settings.menuSettings.language} />
               <Link href="/cart" className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
                 <FaShoppingCart className="text-xl" style={{ color: primary }} />
                 {cartItems.length > 0 && (
@@ -569,8 +571,8 @@ function MenuPageContent() {
               <button
                 key={category.id}
                 className={`px-3 py-1.5 rounded-full whitespace-nowrap text-dynamic-sm ${activeCategory === category.id
-                    ? 'btn-gradient'
-                    : 'bg-brand-surface text-gray-700'
+                  ? 'btn-gradient'
+                  : 'bg-brand-surface text-gray-700'
                   }`}
                 onClick={() => handleCategoryChange(category.id)}
               >
