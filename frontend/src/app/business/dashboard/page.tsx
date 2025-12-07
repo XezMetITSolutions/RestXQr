@@ -373,16 +373,16 @@ export default function BusinessDashboard() {
                       <FaShoppingCart className="text-2xl text-white" />
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">Bugün</div>
+                      <div className="text-sm font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full"><TranslatedText>Bugün</TranslatedText></div>
                     </div>
                   </div>
                   <h3 className="text-4xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
                     {stats.todayOrders}
                   </h3>
-                  <p className="text-gray-600 text-lg font-bold">Bugünkü Siparişler</p>
+                  <p className="text-gray-600 text-lg font-bold"><TranslatedText>Bugünkü Siparişler</TranslatedText></p>
                   <div className="mt-4 flex items-center text-sm text-green-600 font-bold">
                     <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                    Aktif durumda
+                    <TranslatedText>Aktif durumda</TranslatedText>
                   </div>
                 </div>
               </div>
