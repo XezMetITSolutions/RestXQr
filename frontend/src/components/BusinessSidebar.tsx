@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
+import {
   FaChartLine,
   FaUtensils,
   FaUsers,
@@ -29,6 +29,7 @@ import { useFeature } from '@/hooks/useFeature';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
 import { useEffect, useState } from 'react';
+import TranslatedText from './TranslatedText';
 
 interface BusinessSidebarProps {
   sidebarOpen: boolean;
@@ -45,24 +46,24 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     secondary: '#1D4ED8',
     accent: '#F59E0B'
   });
-  
+
   // Feature kontrolü - Temel
   const hasQrMenu = useFeature('qr_menu');
   const hasTableManagement = useFeature('table_management');
   const hasBasicReports = useFeature('basic_reports');
-  
+
   // Premium özellikler
   const hasAdvancedAnalytics = useFeature('advanced_analytics');
   const hasInventoryManagement = useFeature('inventory_management');
   const hasMultiLanguage = useFeature('multi_language');
   const hasPaymentIntegration = useFeature('payment_integration');
-  
+
   // Enterprise özellikler
   const hasMultiBranch = useFeature('multi_branch');
   const hasFranchiseManagement = useFeature('franchise_management');
   const hasApiAccess = useFeature('api_access');
   const hasDataExport = useFeature('data_export');
-  
+
   // Özel özellikler
   const hasDeliveryIntegration = useFeature('delivery_integration');
   const hasPosIntegration = useFeature('pos_integration');
@@ -94,7 +95,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
           };
         case 'kardesler':
           return {
-            name: 'Kardeşler Lokantası', 
+            name: 'Kardeşler Lokantası',
             email: 'iletisim@kardeslerlokantasi.com'
           };
         case 'pizza':
@@ -119,41 +120,41 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       email: authenticatedRestaurant?.email || authenticatedStaff?.email || 'info@restxqr.com'
     };
   };
-  
+
   const { name: restaurantName, email: restaurantEmail } = getRestaurantInfo();
 
   // Demo sayfasında mıyız?
   const isDemo = pathname?.includes('/demo-paneller/isletme');
-  
+
   // Base path'i belirle
   const basePath = isDemo ? '/demo-paneller/isletme' : '/business';
-  
+
   const allMenuItems = [
     {
       href: `${basePath}/dashboard`,
       icon: FaChartLine,
-      label: 'Kontrol Paneli',
+      label: <TranslatedText>Kontrol Paneli</TranslatedText>,
       active: pathname === `${basePath}/dashboard`,
       visible: isDemo ? true : true // Demo'da hepsi görünür
     },
     {
       href: `${basePath}/menu`,
       icon: FaUtensils,
-      label: 'Menü Yönetimi',
+      label: <TranslatedText>Menü Yönetimi</TranslatedText>,
       active: pathname === `${basePath}/menu`,
       visible: isDemo ? true : hasQrMenu // Demo'da hepsi görünür
     },
     {
       href: `${basePath}/staff`,
       icon: FaUsers,
-      label: 'Personel',
+      label: <TranslatedText>Personel</TranslatedText>,
       active: pathname === `${basePath}/staff`,
       visible: true
     },
     {
       href: `${basePath}/qr-codes`,
       icon: FaQrcode,
-      label: 'QR Kodlar',
+      label: <TranslatedText>QR Kodlar</TranslatedText>,
       active: pathname === `${basePath}/qr-codes`,
       visible: isDemo ? true : (hasQrMenu || hasTableManagement)
     },
@@ -174,7 +175,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     {
       href: `${basePath}/support`,
       icon: FaHeadset,
-      label: 'Destek',
+      label: <TranslatedText>Destek</TranslatedText>,
       active: pathname === `${basePath}/support`,
       visible: true
     },
@@ -182,7 +183,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     {
       href: `${basePath}/inventory`,
       icon: FaBox,
-      label: 'Stok Yönetimi',
+      label: <TranslatedText>Stok Yönetimi</TranslatedText>,
       active: pathname === `${basePath}/inventory`,
       visible: isDemo ? true : hasInventoryManagement,
       badge: 'Premium'
@@ -191,7 +192,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     {
       href: `${basePath}/branches`,
       icon: FaBuilding,
-      label: 'Şube Yönetimi',
+      label: <TranslatedText>Şube Yönetimi</TranslatedText>,
       active: pathname === `${basePath}/branches`,
       visible: isDemo ? true : hasMultiBranch,
       badge: 'Enterprise'
@@ -199,7 +200,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     {
       href: `${basePath}/api`,
       icon: FaCode,
-      label: 'API Yönetimi',
+      label: <TranslatedText>API Yönetimi</TranslatedText>,
       active: pathname === `${basePath}/api`,
       visible: isDemo ? true : hasApiAccess,
       badge: 'Enterprise'
@@ -208,7 +209,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     {
       href: `${basePath}/delivery`,
       icon: FaTruck,
-      label: 'Paket Servis',
+      label: <TranslatedText>Paket Servis</TranslatedText>,
       active: pathname === `${basePath}/delivery`,
       visible: isDemo ? true : hasDeliveryIntegration,
       badge: 'Özel'
@@ -216,7 +217,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     {
       href: `${basePath}/pos`,
       icon: FaCashRegister,
-      label: 'POS Entegrasyonu',
+      label: <TranslatedText>POS Entegrasyonu</TranslatedText>,
       active: pathname === `${basePath}/pos`,
       visible: isDemo ? true : hasPosIntegration,
       badge: 'Özel'
@@ -224,7 +225,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     {
       href: `${basePath}/accounting`,
       icon: FaCalculator,
-      label: 'Muhasebe',
+      label: <TranslatedText>Muhasebe</TranslatedText>,
       active: pathname === `${basePath}/accounting`,
       visible: isDemo ? true : hasAccountingSoftware,
       badge: 'Özel'
@@ -232,7 +233,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     {
       href: `${basePath}/ai`,
       icon: FaRobot,
-      label: 'AI Önerileri',
+      label: <TranslatedText>AI Önerileri</TranslatedText>,
       active: pathname === `${basePath}/ai`,
       visible: isDemo ? true : hasAiRecommendations,
       badge: 'Özel'
@@ -240,7 +241,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     {
       href: `${basePath}/video-menu`,
       icon: FaVideo,
-      label: 'Video Menü',
+      label: <TranslatedText>Video Menü</TranslatedText>,
       active: pathname === `${basePath}/video-menu`,
       visible: isDemo ? true : hasVideoMenu,
       badge: 'Özel'
@@ -248,7 +249,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     {
       href: `${basePath}/events`,
       icon: FaCalendarAlt,
-      label: 'Etkinlikler',
+      label: <TranslatedText>Etkinlikler</TranslatedText>,
       active: pathname === `${basePath}/events`,
       visible: isDemo ? true : hasEventManagement,
       badge: 'Özel'
@@ -262,17 +263,16 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     <>
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div 
-        className={`fixed inset-y-0 left-0 w-72 text-white transform transition-all duration-500 ease-in-out z-40 shadow-2xl flex flex-col ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0`}
+      <div
+        className={`fixed inset-y-0 left-0 w-72 text-white transform transition-all duration-500 ease-in-out z-40 shadow-2xl flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0`}
         style={{
           background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
           backdropFilter: 'blur(20px)',
@@ -289,9 +289,9 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
         <div className="relative z-10 p-6 border-b border-white/10 backdrop-blur-sm bg-gradient-to-r from-white/5 to-transparent">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div 
+              <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform duration-300 cursor-pointer"
-                style={{ 
+                style={{
                   background: `linear-gradient(135deg, ${brandColors.primary}, ${brandColors.secondary})`,
                   boxShadow: `0 10px 30px -10px ${brandColors.primary}50`
                 }}
@@ -302,7 +302,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
                 <h1 className="text-2xl font-black bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent tracking-tight">
                   {restaurantName}
                 </h1>
-                <p className="text-white/60 text-xs font-semibold uppercase tracking-wider">Yönetim Paneli</p>
+                <p className="text-white/60 text-xs font-semibold uppercase tracking-wider"><TranslatedText>Yönetim Paneli</TranslatedText></p>
               </div>
             </div>
             <button
@@ -322,52 +322,47 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-300 hover:scale-105 hover:translate-x-1 ${
-                  item.active
-                    ? 'shadow-2xl'
-                    : 'hover:shadow-xl'
-                }`}
+                className={`group flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-300 hover:scale-105 hover:translate-x-1 ${item.active
+                  ? 'shadow-2xl'
+                  : 'hover:shadow-xl'
+                  }`}
                 style={{
-                  background: item.active 
-                    ? `linear-gradient(135deg, ${brandColors.primary}20, ${brandColors.secondary}20, ${brandColors.primary}10)` 
+                  background: item.active
+                    ? `linear-gradient(135deg, ${brandColors.primary}20, ${brandColors.secondary}20, ${brandColors.primary}10)`
                     : 'transparent',
                   borderLeft: item.active ? `4px solid ${brandColors.accent}` : '4px solid transparent',
                   animationDelay: `${index * 50}ms`
                 }}
               >
-                <div 
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:rotate-6 ${
-                    item.active ? 'shadow-2xl transform scale-110' : 'group-hover:shadow-xl'
-                  }`}
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:rotate-6 ${item.active ? 'shadow-2xl transform scale-110' : 'group-hover:shadow-xl'
+                    }`}
                   style={{
-                    background: item.active 
+                    background: item.active
                       ? `linear-gradient(135deg, ${brandColors.primary}, ${brandColors.secondary})`
                       : 'rgba(255, 255, 255, 0.05)',
                     boxShadow: item.active ? `0 8px 20px -5px ${brandColors.primary}40` : 'none'
                   }}
                 >
-                  <Icon className={`text-xl transition-all duration-300 ${
-                    item.active ? 'text-white' : 'text-white/60 group-hover:text-white'
-                  }`} />
+                  <Icon className={`text-xl transition-all duration-300 ${item.active ? 'text-white' : 'text-white/60 group-hover:text-white'
+                    }`} />
                 </div>
-                <span className={`text-base font-bold transition-all duration-300 ${
-                  item.active ? 'text-white' : 'text-white/70 group-hover:text-white'
-                }`}>
+                <span className={`text-base font-bold transition-all duration-300 ${item.active ? 'text-white' : 'text-white/70 group-hover:text-white'
+                  }`}>
                   {item.label}
                 </span>
                 {item.badge && (
-                  <span className={`ml-auto px-3 py-1 text-xs font-black rounded-full backdrop-blur-sm ${
-                    item.badge === 'Premium' ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 border border-yellow-500/50' :
+                  <span className={`ml-auto px-3 py-1 text-xs font-black rounded-full backdrop-blur-sm ${item.badge === 'Premium' ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 border border-yellow-500/50' :
                     item.badge === 'Enterprise' ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-purple-300 border border-purple-500/50' :
-                    'bg-gradient-to-r from-blue-500/30 to-cyan-500/30 text-blue-300 border border-blue-500/50'
-                  }`}>
+                      'bg-gradient-to-r from-blue-500/30 to-cyan-500/30 text-blue-300 border border-blue-500/50'
+                    }`}>
                     {item.badge}
                   </span>
                 )}
                 {item.active && !item.badge && (
-                  <div 
+                  <div
                     className="ml-auto w-3 h-3 rounded-full animate-pulse shadow-lg"
-                    style={{ 
+                    style={{
                       backgroundColor: brandColors.accent,
                       boxShadow: `0 0 10px ${brandColors.accent}`
                     }}
@@ -382,9 +377,9 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
         <div className="relative z-10 p-6 border-t border-white/10 backdrop-blur-sm bg-gradient-to-r from-transparent to-white/5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div 
+              <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform duration-300 cursor-pointer"
-                style={{ 
+                style={{
                   background: `linear-gradient(135deg, ${brandColors.secondary}, ${brandColors.accent})`,
                   boxShadow: `0 10px 30px -10px ${brandColors.accent}50`
                 }}
