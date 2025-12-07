@@ -1584,7 +1584,7 @@ export default function MenuManagement() {
                           <label key={allergen} className="flex items-center p-2 border border-gray-200 rounded-lg hover:bg-gray-50">
                             <input
                               type="checkbox"
-                              checked={Array.isArray(formData.allergens) && formData.allergens.includes(allergen)}
+                              checked={Array.isArray(formData.allergens) && formData.allergens.some(a => a.toLowerCase() === allergen.toLowerCase())}
                               onChange={(e) => {
                                 const currentAllergens = Array.isArray(formData.allergens) ? formData.allergens : [];
                                 console.log('Alerjen değişikliği:', { allergen, checked: e.target.checked, currentAllergens });
