@@ -330,10 +330,10 @@ export default function BusinessDashboard() {
                 </button>
                 <div>
                   <h2 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-900 bg-clip-text text-transparent">
-                    Kontrol Paneli
+                    <TranslatedText>Kontrol Paneli</TranslatedText>
                   </h2>
                   <p className="text-gray-600 text-lg font-medium mt-2 hidden sm:block">
-                    Hoş geldiniz, {displayName} 👋
+                    <TranslatedText>Hoş geldiniz</TranslatedText>, {displayName} 👋
                   </p>
                 </div>
               </div>
