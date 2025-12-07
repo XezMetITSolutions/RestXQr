@@ -255,8 +255,7 @@ export default function MenuItemForm({
               value={formData.category}
               onChange={(e) => setFormData({
                 ...formData,
-                category: e.target.value,
-                subcategory: ''
+                category: e.target.value
               })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               required
@@ -269,29 +268,6 @@ export default function MenuItemForm({
               ))}
             </select>
           </div>
-
-          {formData.category && getSubcategoriesByParent(formData.category).length > 0 && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Alt Kategori
-              </label>
-              <select
-                value={formData.subcategory}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  subcategory: e.target.value
-                })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="">Alt Kategori Seçin</option>
-                {getSubcategoriesByParent(formData.category).map(subcategory => (
-                  <option key={subcategory.id} value={subcategory.id}>
-                    {subcategory.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
         </div>
       </div>
 
