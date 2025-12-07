@@ -261,7 +261,11 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         isPopular: data.isPopular || false,
         preparationTime: data.preparationTime || null,
         calories: data.calories || null,
-        allergens: data.allergens || []
+        isPopular: data.isPopular || false,
+        preparationTime: data.preparationTime || null,
+        calories: data.calories || null,
+        allergens: data.allergens || [],
+        ingredients: data.ingredients || []
       };
 
       console.log('🚀 Creating menu item:', { restaurantId, backendData });
@@ -354,7 +358,10 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         displayOrder: data.order || data.displayOrder,
         isAvailable: data.isAvailable,
         isPopular: data.isPopular,
-        allergens: data.allergens
+        isAvailable: data.isAvailable,
+        isPopular: data.isPopular,
+        allergens: data.allergens,
+        ingredients: data.ingredients
       };
 
       const response = await apiService.updateMenuItem(restaurantId, itemId, backendData);
