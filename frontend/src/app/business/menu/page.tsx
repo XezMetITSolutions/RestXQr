@@ -43,6 +43,8 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import { useFeature } from '@/hooks/useFeature';
 import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
 import { translateWithDeepL } from '@/lib/deepl';
+import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
+import { useLanguage } from '@/context/LanguageContext';
 
 // Lazy load heavy components
 const CameraCapture = lazy(() => import('@/components/CameraCapture'));
@@ -141,6 +143,26 @@ export default function MenuManagement() {
   const [selectedItemForTranslation, setSelectedItemForTranslation] = useState<any>(null);
   const [translations, setTranslations] = useState<{ [key: string]: { name: string, description: string } }>({});
   const [loadingTranslations, setLoadingTranslations] = useState(false);
+  const { currentLanguage } = useLanguage();
+
+  const getLangCode = (language: string) => {
+    switch (language) {
+      case 'German': return 'de';
+      case 'English': return 'en';
+      case 'Turkish': return 'tr';
+      case 'Arabic': return 'ar';
+      case 'Russian': return 'ru';
+      case 'French': return 'fr';
+      case 'Spanish': return 'es';
+      case 'Italian': return 'it';
+      default: return 'en';
+    }
+  };
+
+  const t = (text: string) => {
+    const code = getLangCode(currentLanguage);
+    return staticDictionary[text]?.[code] || text;
+  };
 
   const { settings } = useBusinessSettingsStore();
   const selectedLanguages = settings?.menuSettings?.language?.length
@@ -960,13 +982,13 @@ export default function MenuManagement() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <span className="text-sm font-medium text-purple-700">
-                        {selectedItems.length} ürün seçildi
+                        <TranslatedText>{`${selectedItems.length} ürün seçildi`}</TranslatedText>
                       </span>
                       <button
                         onClick={() => setSelectedItems([])}
                         className="text-sm text-purple-600 hover:text-purple-800"
                       >
-                        Seçimi Temizle
+                        <TranslatedText>Seçimi Temizle</TranslatedText>
                       </button>
                     </div>
                     <div className="flex items-center gap-2">
@@ -975,14 +997,14 @@ export default function MenuManagement() {
                         className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
                       >
                         <FaMoneyBillWave className="text-xs" />
-                        Fiyat Düzenle
+                        <TranslatedText>Fiyat Düzenle</TranslatedText>
                       </button>
                       <button
                         onClick={handleBulkDelete}
                         className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 flex items-center gap-1"
                       >
                         <FaTrash className="text-xs" />
-                        Sil
+                        <TranslatedText>Sil</TranslatedText>
                       </button>
                     </div>
                   </div>
@@ -995,7 +1017,7 @@ export default function MenuManagement() {
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Ürün ara..."
+                    placeholder={t('Ara...')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -1005,15 +1027,15 @@ export default function MenuManagement() {
                 {/* Filtreler */}
                 <div className="flex flex-wrap gap-4 items-center">
                   <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-gray-700">Durum:</label>
+                    <label className="text-sm font-medium text-gray-700"><TranslatedText>Durum</TranslatedText>:</label>
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value as any)}
                       className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
                     >
-                      <option value="all">Tümü</option>
-                      <option value="available">Mevcut</option>
-                      <option value="out-of-stock">Tükendi</option>
+                      <option value="all"><TranslatedText>Tümü</TranslatedText></option>
+                      <option value="available"><TranslatedText>Mevcut</TranslatedText></option>
+                      <option value="out-of-stock"><TranslatedText>Tükendi</TranslatedText></option>
                     </select>
                   </div>
 
@@ -1024,7 +1046,7 @@ export default function MenuManagement() {
                       onChange={(e) => setShowOutOfStock(e.target.checked)}
                       className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                     />
-                    <span className="text-sm text-gray-700">Tükenen ürünleri göster</span>
+                    <span className="text-sm text-gray-700"><TranslatedText>Tükenen ürünleri göster</TranslatedText></span>
                   </label>
                 </div>
               </div>
@@ -1044,22 +1066,22 @@ export default function MenuManagement() {
                           />
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Ürün
+                          <TranslatedText>Ürün</TranslatedText>
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Kategori
+                          <TranslatedText>Kategori</TranslatedText>
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Detaylar
+                          <TranslatedText>Detaylar</TranslatedText>
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Fiyat
+                          <TranslatedText>Fiyat</TranslatedText>
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Durum
+                          <TranslatedText>Durum</TranslatedText>
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          İşlemler
+                          <TranslatedText>İşlemler</TranslatedText>
                         </th>
                       </tr>
                     </thead>
@@ -1100,7 +1122,7 @@ export default function MenuManagement() {
                                   {item.isPopular && (
                                     <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 border border-yellow-200">
                                       <FaFire className="mr-1 text-yellow-600" />
-                                      Popüler
+                                      <TranslatedText>Popüler</TranslatedText>
                                     </span>
                                   )}
                                 </div>
@@ -1111,29 +1133,27 @@ export default function MenuManagement() {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {categories.find(c => c.id === item.categoryId)?.name || 'Kategori Yok'}
+                            {categories.find(c => c.id === item.categoryId)?.name || <TranslatedText>Kategori Yok</TranslatedText>}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex flex-col gap-1">
-                              {item.calories && (
-                                <span className="flex items-center gap-1 text-xs" title="Kalori">
-                                  <FaFire className="text-orange-400" /> {item.calories} kcal
-                                </span>
-                              )}
-                              {item.preparationTime && (
-                                <span className="flex items-center gap-1 text-xs" title="Hazırlık Süresi">
-                                  <FaClock className="text-blue-400" /> {item.preparationTime} dk
-                                </span>
-                              )}
+                              {item.calories && <span className="flex items-center gap-1 text-xs" title={t('Kalori')}>
+                                <FaFire className="text-orange-400" /> {item.calories} <TranslatedText>kcal</TranslatedText>
+                              </span>
+                              }
+                              {item.preparationTime && <span className="flex items-center gap-1 text-xs" title={t('Hazırlık Süresi')}>
+                                <FaClock className="text-blue-400" /> {item.preparationTime} <TranslatedText>dk</TranslatedText>
+                              </span>
+                              }
                               <div className="flex gap-1 mt-1">
                                 {item.allergens && Array.isArray(item.allergens) && item.allergens.length > 0 && (
-                                  <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium" title={`Alerjenler: ${item.allergens.join(', ')}`}>
-                                    {item.allergens.length} Alerjen
+                                  <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium" title={`${t('Alerjen')}: ${item.allergens.join(', ')}`}>
+                                    {item.allergens.length} <TranslatedText>Alerjen</TranslatedText>
                                   </span>
                                 )}
                                 {item.ingredients && (
-                                  <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-medium" title={`Malzemeler: ${item.ingredients}`}>
-                                    Malzemeler
+                                  <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-medium" title={`${t('Malzemeler')}: ${item.ingredients}`}>
+                                    <TranslatedText>Malzemeler</TranslatedText>
                                   </span>
                                 )}
                               </div>
@@ -1149,7 +1169,7 @@ export default function MenuManagement() {
                               }`}>
                               <div className={`w-2 h-2 rounded-full mr-1 ${item.isAvailable !== false ? 'bg-green-500' : 'bg-red-500'
                                 }`}></div>
-                              {item.isAvailable !== false ? 'Mevcut' : 'Tükendi'}
+                              {item.isAvailable !== false ? <TranslatedText>Mevcut</TranslatedText> : <TranslatedText>Tükendi</TranslatedText>}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -1157,21 +1177,21 @@ export default function MenuManagement() {
                               <button
                                 onClick={() => handleViewTranslations(item)}
                                 className="text-blue-600 hover:text-blue-900"
-                                title="Çevirileri Gör"
+                                title={t('Çevirileri Gör')}
                               >
                                 <FaLanguage />
                               </button>
                               <button
                                 onClick={() => handleEditItem(item)}
                                 className="text-purple-600 hover:text-purple-900"
-                                title="Düzenle"
+                                title={t('Düzenle')}
                               >
                                 <FaEdit />
                               </button>
                               <button
                                 onClick={() => handleDeleteItem(item.id)}
                                 className="text-red-600 hover:text-red-900"
-                                title="Sil"
+                                title={t('Sil')}
                               >
                                 <FaTrash />
                               </button>
@@ -1216,7 +1236,7 @@ export default function MenuManagement() {
                             {item.isPopular && (
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 border border-yellow-200 mt-1">
                                 <FaFire className="mr-1 text-yellow-600" />
-                                Popüler
+                                <TranslatedText>Popüler</TranslatedText>
                               </span>
                             )}
                             <p className="text-xs text-gray-500 mt-1 line-clamp-2">
@@ -1233,19 +1253,19 @@ export default function MenuManagement() {
                               }`}>
                               <div className={`w-2 h-2 rounded-full mr-1 ${item.isAvailable !== false ? 'bg-green-500' : 'bg-red-500'
                                 }`}></div>
-                              {item.isAvailable !== false ? 'Mevcut' : 'Tükendi'}
+                              {item.isAvailable !== false ? <TranslatedText>Mevcut</TranslatedText> : <TranslatedText>Tükendi</TranslatedText>}
                             </span>
                           </div>
                         </div>
                         <div className="flex items-center justify-between mt-3">
                           <span className="text-xs text-gray-500">
-                            {categories.find(c => c.id === item.categoryId)?.name || 'Kategori Yok'}
+                            {categories.find(c => c.id === item.categoryId)?.name || <TranslatedText>Kategori Yok</TranslatedText>}
                           </span>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleViewTranslations(item)}
                               className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg"
-                              title="Çevirileri Gör"
+                              title={t('Çevirileri Gör')}
                             >
                               <FaLanguage className="text-sm" />
                             </button>
@@ -1276,13 +1296,13 @@ export default function MenuManagement() {
           {!loading && activeTab === 'categories' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Kategoriler</h2>
+                <h2 className="text-xl font-semibold"><TranslatedText>Kategoriler</TranslatedText></h2>
                 <button
                   onClick={handleAddCategory}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
                 >
                   <FaPlus />
-                  Yeni Kategori Ekle
+                  <TranslatedText>Yeni Kategori Ekle</TranslatedText>
                 </button>
               </div>
 
@@ -1291,16 +1311,16 @@ export default function MenuManagement() {
                   <div className="text-gray-400 mb-4">
                     <FaFolderOpen className="mx-auto text-5xl" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Henüz kategori yok</h3>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz kategori yok</TranslatedText></h3>
                   <p className="text-sm text-gray-500 mb-4">
-                    Menü ürünlerinizi düzenlemek için kategoriler oluşturun
+                    <TranslatedText>Menü ürünlerinizi düzenlemek için kategoriler oluşturun</TranslatedText>
                   </p>
                   <button
                     onClick={handleAddCategory}
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
                   >
                     <FaPlus />
-                    İlk Kategoriyi Ekle
+                    <TranslatedText>İlk Kategoriyi Ekle</TranslatedText>
                   </button>
                 </div>
               ) : (
@@ -1313,13 +1333,13 @@ export default function MenuManagement() {
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                           }`}>
-                          {category.isActive !== false ? 'Aktif' : 'Pasif'}
+                          {category.isActive !== false ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
                         </span>
                       </div>
 
                       <div>
                         <p className="text-sm text-gray-500 mb-4">
-                          {items.filter(i => i.categoryId === category.id).length} ürün
+                          {items.filter(i => i.categoryId === category.id).length} <TranslatedText>ürün</TranslatedText>
                         </p>
 
                         <div className="flex gap-2">
@@ -1328,7 +1348,7 @@ export default function MenuManagement() {
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
                           >
                             <FaEdit />
-                            Düzenle
+                            <TranslatedText>Düzenle</TranslatedText>
                           </button>
                           <button
                             onClick={() => handleDeleteCategory(category.id)}
@@ -1348,8 +1368,8 @@ export default function MenuManagement() {
           {!loading && activeTab === 'stats' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Menü İstatistikleri</h2>
-                <div className="text-xs text-gray-500">Backend verileri üzerinden hesaplanır</div>
+                <h2 className="text-xl font-semibold"><TranslatedText>Menü İstatistikleri</TranslatedText></h2>
+                <div className="text-xs text-gray-500"><TranslatedText>Backend verileri üzerinden hesaplanır</TranslatedText></div>
               </div>
 
               {/* KPI Kartları */}
@@ -1363,7 +1383,7 @@ export default function MenuManagement() {
                   <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">{kpi.label}</p>
+                        <p className="text-sm font-medium text-gray-600"><TranslatedText>{kpi.label}</TranslatedText></p>
                         <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
                       </div>
                       <div className={`p-3 rounded-full ${kpi.bg}`}>{kpi.icon}</div>
@@ -1380,7 +1400,7 @@ export default function MenuManagement() {
               <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999] lg:ml-72">
                 <div className="p-6 border-b flex justify-between items-center">
                   <h2 className="text-2xl font-bold">
-                    {editingItem ? 'Ürünü Düzenle' : 'Yeni Ürün Ekle'}
+                    {editingItem ? <TranslatedText>Ürünü Düzenle</TranslatedText> : <TranslatedText>Yeni Ürün Ekle</TranslatedText>}
                   </h2>
                   <button
                     onClick={() => setShowItemForm(false)}
@@ -1394,14 +1414,14 @@ export default function MenuManagement() {
                     {/* Ürün Adı */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ürün Adı *
+                        <TranslatedText>Ürün Adı *</TranslatedText>
                       </label>
                       <input
                         type="text"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Örn: Bruschetta"
+                        placeholder={t('Örn: Bruschetta')}
                         required
                       />
                     </div>
@@ -1416,7 +1436,7 @@ export default function MenuManagement() {
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Ürün açıklaması..."
+                        placeholder={t('Ürün açıklaması...')}
                       />
                     </div>
 
@@ -1426,9 +1446,9 @@ export default function MenuManagement() {
                           <div className="flex items-center gap-2 text-purple-800">
                             <FaGlobe />
                             <div>
-                              <p className="font-semibold">Çeviriler</p>
+                              <p className="font-semibold"><TranslatedText>Çeviriler</TranslatedText></p>
                               <p className="text-xs text-purple-600">
-                                Seçili diller için ürün adı ve açıklamasını düzenleyin.
+                                <TranslatedText>Seçili diller için ürün adı ve açıklamasını düzenleyin.</TranslatedText>
                               </p>
                             </div>
                           </div>
@@ -1439,7 +1459,7 @@ export default function MenuManagement() {
                             className="inline-flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-60"
                           >
                             <FaMagic />
-                            {isTranslatingItem ? 'Çevriliyor...' : 'Otomatik Çevir'}
+                            {isTranslatingItem ? <TranslatedText>Çevriliyor...</TranslatedText> : <TranslatedText>Otomatik Çevir</TranslatedText>}
                           </button>
                         </div>
                         {itemTranslationError && (
@@ -1480,7 +1500,7 @@ export default function MenuManagement() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Fiyat (₺) *
+                          <TranslatedText>Fiyat (₺) *</TranslatedText>
                         </label>
                         <input
                           type="number"
@@ -1493,7 +1513,7 @@ export default function MenuManagement() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Kategori *
+                          <TranslatedText>Kategori *</TranslatedText>
                         </label>
                         <select
                           value={formData.category}
@@ -1501,13 +1521,13 @@ export default function MenuManagement() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           required
                         >
-                          <option value="">Kategori Seçin</option>
+                          <option value="">{t('Kategori Seçin')}</option>
                           {categories.length > 0 ? (
                             categories.map(cat => (
                               <option key={cat.id} value={cat.id}>{cat.name}</option>
                             ))
                           ) : (
-                            <option disabled>Önce kategori ekleyin</option>
+                            <option disabled>{t('Önce kategori ekleyin')}</option>
                           )}
                         </select>
                         {categories.length === 0 && (
@@ -1522,7 +1542,7 @@ export default function MenuManagement() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Kalori
+                          <TranslatedText>Kalori</TranslatedText>
                         </label>
                         <input
                           type="number"
@@ -1534,7 +1554,7 @@ export default function MenuManagement() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Hazırlık Süresi (dakika)
+                          <TranslatedText>Hazırlık Süresi (dakika)</TranslatedText>
                         </label>
                         <input
                           type="number"
@@ -1551,21 +1571,21 @@ export default function MenuManagement() {
                     {/* Malzemeler */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Malzemeler
+                        <TranslatedText>Malzemeler</TranslatedText>
                       </label>
                       <textarea
                         value={formData.ingredients}
                         onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Malzemeleri virgülle ayırarak yazın (Örn: Domates, Mozzarella, Fesleğen)"
+                        placeholder={t('Malzemeleri virgülle ayırarak yazın (Örn: Domates, Mozzarella, Fesleğen)')}
                       />
                     </div>
 
                     {/* Alerjenler */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Alerjenler
+                        <TranslatedText>Alerjen</TranslatedText>
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         {['Gluten', 'Süt', 'Yumurta', 'Fındık', 'Fıstık', 'Soya', 'Balık', 'Kabuklu Deniz Ürünleri'].map((allergen) => (
@@ -1588,7 +1608,7 @@ export default function MenuManagement() {
                               }}
                               className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
                             />
-                            <span className="ml-2 text-sm text-gray-700">{allergen}</span>
+                            <span className="ml-2 text-sm text-gray-700"><TranslatedText>{allergen}</TranslatedText></span>
                           </label>
                         ))}
                       </div>
@@ -1597,7 +1617,7 @@ export default function MenuManagement() {
                     {/* Ürün Fotoğrafı */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ürün Fotoğrafı
+                        <TranslatedText>Ürün Fotoğrafı</TranslatedText>
                       </label>
 
                       {/* Fotoğraf Yükleme Seçenekleri */}
@@ -1614,8 +1634,8 @@ export default function MenuManagement() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                           </div>
-                          <p className="text-sm font-medium text-purple-600">Kameradan Çek</p>
-                          <p className="text-xs text-gray-500">Telefon kamerası</p>
+                          <p className="text-sm font-medium text-purple-600"><TranslatedText>Kameradan Çek</TranslatedText></p>
+                          <p className="text-xs text-gray-500"><TranslatedText>Telefon kamerası</TranslatedText></p>
                         </button>
 
                         {/* Dosyadan Yükle */}
@@ -1630,13 +1650,13 @@ export default function MenuManagement() {
 
                                 // Dosya boyutunu kontrol et (max 5MB)
                                 if (file.size > 5 * 1024 * 1024) {
-                                  alert('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.');
+                                  alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
                                   return;
                                 }
 
                                 // Dosya tipini kontrol et
                                 if (!file.type.startsWith('image/')) {
-                                  alert('Lütfen sadece resim dosyası seçin.');
+                                  alert(t('Lütfen sadece resim dosyası seçin.'));
                                   return;
                                 }
 
@@ -1667,10 +1687,10 @@ export default function MenuManagement() {
                                   if (result.success) {
                                     console.log('✅ Resim başarıyla yüklendi:', result.data.imageUrl);
                                     setCapturedImage(result.data.imageUrl);
-                                    alert('✅ Resim başarıyla yüklendi!');
+                                    alert(t('Resim başarıyla yüklendi!'));
                                   } else {
                                     console.error('❌ Upload failed:', result.message);
-                                    alert('❌ Resim yüklenemedi: ' + result.message);
+                                    alert(t('Resim yüklenemedi: ') + result.message);
                                   }
                                 } catch (error) {
                                   console.error('❌ Resim yükleme hatası:', error);
@@ -1685,8 +1705,8 @@ export default function MenuManagement() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                           </div>
-                          <p className="text-sm font-medium text-gray-600">Dosyadan Yükle</p>
-                          <p className="text-xs text-gray-500">PNG, JPG, GIF</p>
+                          <p className="text-sm font-medium text-gray-600"><TranslatedText>Dosyadan Yükle</TranslatedText></p>
+                          <p className="text-xs text-gray-500"><TranslatedText>PNG, JPG, GIF</TranslatedText></p>
                         </label>
                       </div>
 
@@ -1698,25 +1718,25 @@ export default function MenuManagement() {
                             <span className="text-yellow-400 text-sm">⭐</span>
                             <span className="text-yellow-400 text-xs">✨</span>
                           </div>
-                          <h4 className="font-semibold text-gray-800">AI Görsel İşleme Aktif!</h4>
+                          <h4 className="font-semibold text-gray-800"><TranslatedText>AI Görsel İşleme Aktif!</TranslatedText></h4>
                         </div>
 
                         <ul className="space-y-2 text-sm text-gray-700">
                           <li className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                            <span>Otomatik arka plan kaldırma</span>
+                            <span><TranslatedText>Otomatik arka plan kaldırma</TranslatedText></span>
                           </li>
                           <li className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span>Renk ve parlaklık optimizasyonu</span>
+                            <span><TranslatedText>Renk ve parlaklık optimizasyonu</TranslatedText></span>
                           </li>
                           <li className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span>Akıllı boyutlandırma</span>
+                            <span><TranslatedText>Akıllı boyutlandırma</TranslatedText></span>
                           </li>
                           <li className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                            <span>Keskinlik artırma</span>
+                            <span><TranslatedText>Keskinlik artırma</TranslatedText></span>
                           </li>
                         </ul>
 
@@ -1724,7 +1744,7 @@ export default function MenuManagement() {
                           <div className="flex items-center gap-2">
                             <span className="text-yellow-600">💡</span>
                             <span className="text-xs text-yellow-800">
-                              Kameradan çekmek daha profesyonel sonuçlar verir
+                              <TranslatedText>Kameradan çekmek daha profesyonel sonuçlar verir</TranslatedText>
                             </span>
                           </div>
                         </div>
@@ -1733,7 +1753,7 @@ export default function MenuManagement() {
                       {/* Seçilen Fotoğraf Önizleme */}
                       {capturedImage && (
                         <div className="mt-4">
-                          <p className="text-sm font-medium text-gray-700 mb-2">Seçilen Fotoğraf:</p>
+                          <p className="text-sm font-medium text-gray-700 mb-2"><TranslatedText>Seçilen Fotoğraf:</TranslatedText></p>
                           <div className="relative inline-block">
                             <img
                               src={capturedImage.startsWith('http') ? capturedImage : `https://masapp-backend.onrender.com${capturedImage}`}
@@ -1757,7 +1777,7 @@ export default function MenuManagement() {
                       <div className="space-y-3">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Ürün Durumu
+                            <TranslatedText>Ürün Durumu</TranslatedText>
                           </label>
                           <div className="flex gap-4">
                             <label className="flex items-center">
@@ -1771,7 +1791,7 @@ export default function MenuManagement() {
                               />
                               <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                Mevcut
+                                <TranslatedText>Mevcut</TranslatedText>
                               </span>
                             </label>
                             <label className="flex items-center">
@@ -1785,7 +1805,7 @@ export default function MenuManagement() {
                               />
                               <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
                                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                Tükendi
+                                <TranslatedText>Tükendi</TranslatedText>
                               </span>
                             </label>
                           </div>
@@ -1800,7 +1820,7 @@ export default function MenuManagement() {
                             />
                             <span className="ml-3 text-sm font-medium text-yellow-800 flex items-center gap-2">
                               <FaFire className="text-yellow-600" size={16} />
-                              Popüler Ürün
+                              <TranslatedText>Popüler Ürün</TranslatedText>
                             </span>
                           </label>
                         </div>
@@ -1813,7 +1833,7 @@ export default function MenuManagement() {
                       onClick={() => setShowItemForm(false)}
                       className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                     >
-                      İptal
+                      <TranslatedText>İptal</TranslatedText>
                     </button>
                     <button
                       onClick={async () => {
@@ -1848,16 +1868,16 @@ export default function MenuManagement() {
                               console.log('Ürün güncellendi:', formData);
                               // Menüyü yeniden yükle
                               await fetchRestaurantMenu(currentRestaurantId);
-                              alert('Ürün başarıyla güncellendi!');
+                              alert(t('Ürün başarıyla güncellendi!'));
                             }
                           } catch (error) {
                             console.error('Ürün güncellenirken hata:', error);
-                            alert('Ürün güncellenirken bir hata oluştu: ' + error.message);
+                            alert(t('Ürün güncellenirken bir hata oluştu: ') + (error as any).message);
                           }
                         } else {
                           // Yeni ürün ekleme
                           if (!formData.name || !formData.price || !formData.category) {
-                            alert('Lütfen ürün adı, fiyat ve kategori alanlarını doldurun!');
+                            alert(t('Lütfen ürün adı, fiyat ve kategori alanlarını doldurun!'));
                             return;
                           }
 
@@ -1883,11 +1903,11 @@ export default function MenuManagement() {
                               console.log('Yeni ürün backend\'e kaydedildi:', formData);
                               // Menüyü yeniden yükle
                               await fetchRestaurantMenu(currentRestaurantId);
-                              alert('Ürün başarıyla eklendi!');
+                              alert(t('Ürün başarıyla eklendi!'));
                             }
                           } catch (error) {
                             console.error('Ürün eklenirken hata:', error);
-                            alert('Ürün eklenirken bir hata oluştu: ' + (error as any).message);
+                            alert(t('Ürün eklenirken bir hata oluştu: ') + (error as any).message);
                           }
                         }
 
@@ -1914,7 +1934,7 @@ export default function MenuManagement() {
                       }}
                       className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
-                      {editingItem ? 'Güncelle' : 'Kaydet'}
+                      {editingItem ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
                     </button>
                   </div>
                 </div>
@@ -1927,7 +1947,7 @@ export default function MenuManagement() {
               <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
                 <div className="p-6 border-b flex justify-between items-center">
                   <h2 className="text-2xl font-bold">
-                    {editingCategory ? 'Kategoriyi Düzenle' : 'Yeni Kategori Ekle'}
+                    {editingCategory ? <TranslatedText>Kategoriyi Düzenle</TranslatedText> : <TranslatedText>Yeni Kategori Ekle</TranslatedText>}
                   </h2>
                   <button
                     onClick={() => setShowCategoryForm(false)}
@@ -1941,14 +1961,14 @@ export default function MenuManagement() {
                     {/* Kategori Adı */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Kategori Adı *
+                        <TranslatedText>Kategori Adı *</TranslatedText>
                       </label>
                       <input
                         type="text"
                         value={categoryFormData.name}
                         onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Örn: Başlangıçlar, Ana Yemekler, Tatlılar"
+                        placeholder={t('Örn: Başlangıçlar, Ana Yemekler, Tatlılar')}
                         required
                       />
                     </div>
@@ -1962,7 +1982,7 @@ export default function MenuManagement() {
                           onChange={(e) => setCategoryFormData({ ...categoryFormData, isActive: e.target.checked })}
                           className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                         />
-                        <span className="ml-2 text-sm text-gray-700">Aktif</span>
+                        <span className="ml-2 text-sm text-gray-700"><TranslatedText>Aktif</TranslatedText></span>
                       </label>
                     </div>
                   </form>
@@ -1972,13 +1992,13 @@ export default function MenuManagement() {
                       onClick={() => setShowCategoryForm(false)}
                       className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                     >
-                      İptal
+                      <TranslatedText>İptal</TranslatedText>
                     </button>
                     <button
                       onClick={async () => {
                         // Gerçek kategori güncelleme işlemi
                         if (!categoryFormData.name) {
-                          alert('Lütfen kategori adını girin!');
+                          alert(t('Lütfen kategori adını girin!'));
                           return;
                         }
 
@@ -2011,7 +2031,7 @@ export default function MenuManagement() {
                           }
                         } catch (error) {
                           console.error('Kategori işlemi sırasında hata:', error);
-                          alert('Kategori işlemi sırasında bir hata oluştu: ' + (error as any).message);
+                          alert(t('Kategori işlemi sırasında bir hata oluştu: ') + (error as any).message);
                         }
                         setShowCategoryForm(false);
                         setEditingCategory(null);
@@ -2026,7 +2046,7 @@ export default function MenuManagement() {
                       }}
                       className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
-                      {editingCategory ? 'Güncelle' : 'Kaydet'}
+                      {editingCategory ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
                     </button>
                   </div>
                 </div>
@@ -2039,7 +2059,7 @@ export default function MenuManagement() {
             <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
               <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
                 <div className="p-6 border-b flex justify-between items-center">
-                  <h2 className="text-xl font-bold">Fotoğraf Çek</h2>
+                  <h2 className="text-xl font-bold"><TranslatedText>Fotoğraf Çek</TranslatedText></h2>
                   <button
                     onClick={stopCamera}
                     className="text-gray-500 hover:text-gray-700"
@@ -2062,7 +2082,7 @@ export default function MenuManagement() {
                     />
                     <div className="absolute inset-0 border-2 border-white rounded-lg pointer-events-none">
                       <div className="absolute top-2 left-2 right-2 h-8 bg-black bg-opacity-50 rounded flex items-center justify-center">
-                        <span className="text-white text-sm">Ürünü çerçeve içine alın</span>
+                        <span className="text-white text-sm"><TranslatedText>Ürünü çerçeve içine alın</TranslatedText></span>
                       </div>
                     </div>
                   </div>
@@ -2071,13 +2091,13 @@ export default function MenuManagement() {
                       onClick={stopCamera}
                       className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                     >
-                      İptal
+                      <TranslatedText>İptal</TranslatedText>
                     </button>
                     <button
                       onClick={capturePhoto}
                       className="flex-1 py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                     >
-                      Fotoğraf Çek
+                      <TranslatedText>Fotoğraf Çek</TranslatedText>
                     </button>
                   </div>
                 </div>
@@ -2094,7 +2114,7 @@ export default function MenuManagement() {
                     <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
-                    Toplu Ürün İçe Aktar
+                    <TranslatedText>Toplu Ürün İçe Aktar</TranslatedText>
                   </h2>
                   <button
                     onClick={() => setShowBulkImport(false)}
@@ -2111,9 +2131,9 @@ export default function MenuManagement() {
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                       </svg>
                       <div>
-                        <h4 className="font-semibold text-blue-900 mb-1">CSV Formatı</h4>
+                        <h4 className="font-semibold text-blue-900 mb-1"><TranslatedText>CSV Formatı</TranslatedText></h4>
                         <p className="text-sm text-blue-800">
-                          CSV dosyanız şu sütunları içermelidir: <strong>Ürün Adı, Açıklama, Fiyat, Kategori</strong>
+                          <TranslatedText>CSV dosyanız şu sütunları içermelidir:</TranslatedText> <strong><TranslatedText>Ürün Adı, Açıklama, Fiyat, Kategori</TranslatedText></strong>
                         </p>
                       </div>
                     </div>
@@ -2129,7 +2149,7 @@ export default function MenuManagement() {
                         if (file) {
                           console.log('CSV dosyası seçildi:', file.name);
                           // CSV işleme mantığı buraya eklenecek
-                          alert('CSV yükleme özelliği yakında aktif olacak! 🚀');
+                          alert(t('CSV yükleme özelliği yakında aktif olacak! 🚀'));
                         }
                       }}
                       className="hidden"
@@ -2141,16 +2161,16 @@ export default function MenuManagement() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
                       </div>
-                      <p className="text-lg font-semibold text-gray-700 mb-2">CSV Dosyası Yükle</p>
-                      <p className="text-sm text-gray-500">Tıklayın veya dosyayı sürükleyin</p>
-                      <p className="text-xs text-gray-400 mt-2">Maksimum dosya boyutu: 5MB</p>
+                      <p className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>CSV Dosyası Yükle</TranslatedText></p>
+                      <p className="text-sm text-gray-500"><TranslatedText>Tıklayın veya dosyayı sürükleyin</TranslatedText></p>
+                      <p className="text-xs text-gray-400 mt-2"><TranslatedText>Maksimum dosya boyutu: 5MB</TranslatedText></p>
                     </label>
                   </div>
 
                   {/* Example Template */}
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-gray-700">Örnek Şablon</h4>
+                      <h4 className="font-semibold text-gray-700"><TranslatedText>Örnek Şablon</TranslatedText></h4>
                       <button
                         onClick={() => {
                           // CSV şablonu oluştur
@@ -2166,7 +2186,7 @@ export default function MenuManagement() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        Şablonu İndir
+                        <TranslatedText>Şablonu İndir</TranslatedText>
                       </button>
                     </div>
                     <div className="bg-white rounded border border-gray-200 p-3 text-xs font-mono overflow-x-auto">
@@ -2185,8 +2205,8 @@ export default function MenuManagement() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Hızlı İçe Aktar</p>
-                        <p className="text-xs text-gray-500">Yüzlerce ürünü tek seferde ekleyin</p>
+                        <p className="text-sm font-medium text-gray-700"><TranslatedText>Hızlı İçe Aktar</TranslatedText></p>
+                        <p className="text-xs text-gray-500"><TranslatedText>Yüzlerce ürünü tek seferde ekleyin</TranslatedText></p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
@@ -2196,8 +2216,8 @@ export default function MenuManagement() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Otomatik Doğrulama</p>
-                        <p className="text-xs text-gray-500">Hatalı veriler otomatik tespit edilir</p>
+                        <p className="text-sm font-medium text-gray-700"><TranslatedText>Otomatik Doğrulama</TranslatedText></p>
+                        <p className="text-xs text-gray-500"><TranslatedText>Hatalı veriler otomatik tespit edilir</TranslatedText></p>
                       </div>
                     </div>
                   </div>
@@ -2207,7 +2227,7 @@ export default function MenuManagement() {
                     onClick={() => setShowBulkImport(false)}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 font-medium"
                   >
-                    İptal
+                    <TranslatedText>İptal</TranslatedText>
                   </button>
                 </div>
               </div>
@@ -2222,7 +2242,7 @@ export default function MenuManagement() {
                   <div>
                     <h2 className="text-2xl font-bold flex items-center gap-2">
                       <FaLanguage className="text-blue-600" />
-                      Ürün Çevirileri
+                      <TranslatedText>Ürün Çevirileri</TranslatedText>
                     </h2>
                     <p className="text-sm text-gray-600 mt-1">{selectedItemForTranslation.name}</p>
                   </div>
@@ -2241,7 +2261,7 @@ export default function MenuManagement() {
                   {loadingTranslations ? (
                     <div className="flex items-center justify-center py-12">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                      <span className="ml-3 text-gray-600">Çeviriler yükleniyor...</span>
+                      <span className="ml-3 text-gray-600"><TranslatedText>Çeviriler yükleniyor...</TranslatedText></span>
                     </div>
                   ) : (
                     <div className="space-y-6">
@@ -2284,7 +2304,7 @@ export default function MenuManagement() {
                       ) : (
                         <div className="text-center py-12">
                           <FaLanguage className="mx-auto text-5xl text-gray-300 mb-4" />
-                          <p className="text-gray-600">Çeviriler yüklenemedi</p>
+                          <p className="text-gray-600"><TranslatedText>Çeviriler yüklenemedi</TranslatedText></p>
                         </div>
                       )}
                     </div>
@@ -2299,7 +2319,7 @@ export default function MenuManagement() {
                     }}
                     className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
-                    Kapat
+                    <TranslatedText>Kapat</TranslatedText>
                   </button>
                 </div>
               </div>
@@ -2311,7 +2331,7 @@ export default function MenuManagement() {
             <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
               <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
                 <div className="p-6 border-b flex justify-between items-center">
-                  <h2 className="text-xl font-bold">Toplu Fiyat Düzenle</h2>
+                  <h2 className="text-xl font-bold"><TranslatedText>Toplu Fiyat Düzenle</TranslatedText></h2>
                   <button
                     onClick={() => setShowBulkPriceModal(false)}
                     className="text-gray-500 hover:text-gray-700"
@@ -2321,13 +2341,13 @@ export default function MenuManagement() {
                 </div>
                 <div className="p-6 space-y-4">
                   <p className="text-sm text-gray-600">
-                    {selectedItems.length} ürünün fiyatını güncelleyeceksiniz.
+                    {selectedItems.length} <TranslatedText>ürünün fiyatını güncelleyeceksiniz.</TranslatedText>
                   </p>
 
                   {/* Operation Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      İşlem Türü
+                      <TranslatedText>İşlem Türü</TranslatedText>
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -2337,7 +2357,7 @@ export default function MenuManagement() {
                           : 'border-gray-300 text-gray-700'
                           }`}
                       >
-                        Arttır
+                        <TranslatedText>Arttır</TranslatedText>
                       </button>
                       <button
                         onClick={() => setBulkPriceOperation('decrease')}
@@ -2346,7 +2366,7 @@ export default function MenuManagement() {
                           : 'border-gray-300 text-gray-700'
                           }`}
                       >
-                        Azalt
+                        <TranslatedText>Azalt</TranslatedText>
                       </button>
                     </div>
                   </div>
@@ -2354,7 +2374,7 @@ export default function MenuManagement() {
                   {/* Price Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Değer Türü
+                      <TranslatedText>Değer Türü</TranslatedText>
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -2365,7 +2385,7 @@ export default function MenuManagement() {
                           }`}
                       >
                         <FaPercent className="inline mr-1" />
-                        Yüzde
+                        <TranslatedText>Yüzde</TranslatedText>
                       </button>
                       <button
                         onClick={() => setBulkPriceType('fixed')}
@@ -2374,7 +2394,7 @@ export default function MenuManagement() {
                           : 'border-gray-300 text-gray-700'
                           }`}
                       >
-                        ₺ Sabit
+                        <TranslatedText>₺ Sabit</TranslatedText>
                       </button>
                     </div>
                   </div>
@@ -2382,7 +2402,7 @@ export default function MenuManagement() {
                   {/* Value Input */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Değer
+                      <TranslatedText>Değer</TranslatedText>
                     </label>
                     <input
                       type="number"
@@ -2393,8 +2413,8 @@ export default function MenuManagement() {
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       {bulkPriceType === 'percentage'
-                        ? `Fiyatları %${bulkPriceValue || '0'} ${bulkPriceOperation === 'increase' ? 'arttır' : 'azalt'}`
-                        : `Fiyatlara ₺${bulkPriceValue || '0'} ${bulkPriceOperation === 'increase' ? 'ekle' : 'çıkar'}`
+                        ? <><TranslatedText>Fiyatları %</TranslatedText>{bulkPriceValue || '0'} <TranslatedText>{bulkPriceOperation === 'increase' ? 'arttır' : 'azalt'}</TranslatedText></>
+                        : <><TranslatedText>Fiyatlara ₺</TranslatedText>{bulkPriceValue || '0'} <TranslatedText>{bulkPriceOperation === 'increase' ? 'ekle' : 'çıkar'}</TranslatedText></>
                       }
                     </p>
                   </div>
@@ -2404,14 +2424,14 @@ export default function MenuManagement() {
                     onClick={() => setShowBulkPriceModal(false)}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
-                    İptal
+                    <TranslatedText>İptal</TranslatedText>
                   </button>
                   <button
                     onClick={handleBulkPriceUpdate}
                     disabled={!bulkPriceValue}
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Güncelle
+                    <TranslatedText>Güncelle</TranslatedText>
                   </button>
                 </div>
               </div>
@@ -2419,6 +2439,6 @@ export default function MenuManagement() {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 }
