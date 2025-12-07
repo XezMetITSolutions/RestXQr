@@ -1546,19 +1546,7 @@ export default function MenuManagement() {
                       </div>
                     </div>
 
-                    {/* Alt Kategori */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Alt Kategori
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.subcategory}
-                        onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Örn: Sıcak İçecekler, Ana Yemekler"
-                      />
-                    </div>
+
 
                     {/* Malzemeler */}
                     <div>
