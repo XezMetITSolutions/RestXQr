@@ -25,32 +25,29 @@ export async function translateWithDeepL({
 }: TranslateOptions): Promise<string> {
   if (!text) return '';
 
-  const deeplKey = apiKey || process.env.NEXT_PUBLIC_DEEPL_API_KEY;
   const deeplTarget = LANGUAGE_CODE_MAP[targetLanguage];
 
-  if (!deeplKey || !deeplTarget) {
+  if (!deeplTarget) {
     return text;
   }
 
-  try {
-    const params = new URLSearchParams();
-    params.append('text', text);
-    params.append('target_lang', deeplTarget);
-    if (sourceLanguage && LANGUAGE_CODE_MAP[sourceLanguage]) {
-      params.append('source_lang', LANGUAGE_CODE_MAP[sourceLanguage]);
-    }
+  const sourceLangCode = sourceLanguage ? LANGUAGE_CODE_MAP[sourceLanguage] : undefined;
 
-    const response = await fetch('https://api-free.deepl.com/v2/translate', {
+  try {
+    const response = await fetch('/api/translate', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `DeepL-Auth-Key ${deeplKey}`
+        'Content-Type': 'application/json'
       },
-      body: params.toString()
+      body: JSON.stringify({
+        text,
+        targetLanguage: deeplTarget,
+        sourceLanguage: sourceLangCode
+      })
     });
 
     if (!response.ok) {
-      console.error('DeepL response error:', response.status, await response.text());
+      console.error('Translation proxy response error:', response.status);
       return text;
     }
 
