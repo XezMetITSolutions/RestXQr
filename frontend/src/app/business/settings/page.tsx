@@ -41,6 +41,8 @@ import {
   FaDownload,
   FaSync
 } from 'react-icons/fa';
+import AnnouncementQuickModal from '@/components/AnnouncementQuickModal';
+import BusinessSidebar from '@/components/BusinessSidebar';
 
 import PhonePreview from '@/components/PhonePreview';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -88,6 +90,7 @@ export default function SettingsPage() {
   useEffect(() => {
     initializeAuth();
   }, [initializeAuth]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
 
   // Restaurant-specific settings kullan
