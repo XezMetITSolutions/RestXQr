@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { translateWithDeepL, getSupportedLanguages } from '@/lib/deepl';
+import { getSupportedLanguages } from '@/lib/deepl';
 
 export default function TranslationDebugPage() {
     const [inputText, setInputText] = useState('');
@@ -13,19 +13,31 @@ export default function TranslationDebugPage() {
     const handleTranslate = async () => {
         setLoading(true);
         setError(null);
+        setTranslatedText('');
         try {
             if (!inputText) {
                 setError('Please enter text to translate');
                 return;
             }
 
-            const result = await translateWithDeepL({
-                text: inputText,
-                targetLanguage,
-                sourceLanguage: 'en' // default source for testing
+            const response = await fetch('/api/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: inputText,
+                    targetLanguage: targetLanguage.toUpperCase(),
+                    sourceLanguage: 'EN'
+                })
             });
 
-            setTranslatedText(result);
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(`API Error (${response.status}): ${JSON.stringify(data)}`);
+                return;
+            }
+
+            setTranslatedText(JSON.stringify(data, null, 2));
         } catch (err: any) {
             setError(err.message || 'Translation failed');
         } finally {
@@ -79,8 +91,8 @@ export default function TranslationDebugPage() {
 
                 {translatedText && (
                     <div className="p-4 bg-gray-100 rounded">
-                        <h3 className="font-semibold mb-2">Result:</h3>
-                        <p>{translatedText}</p>
+                        <h3 className="font-semibold mb-2">Raw API Response:</h3>
+                        <pre className="whitespace-pre-wrap font-mono text-sm">{translatedText}</pre>
                     </div>
                 )}
             </div>
