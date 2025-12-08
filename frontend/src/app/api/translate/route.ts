@@ -32,9 +32,11 @@ export async function POST(request: Request) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `DeepL-Auth-Key ${apiKey}`
+                'Authorization': `DeepL-Auth-Key ${apiKey}`,
+                'User-Agent': 'RestXQr/1.0'
             },
-            body: params.toString()
+            body: params.toString(),
+            cache: 'no-store'
         });
 
         if (!response.ok) {
@@ -46,7 +48,9 @@ export async function POST(request: Request) {
                 debug: {
                     endpoint: isFreeAccount ? 'free' : 'pro',
                     keySource: requestApiKey ? 'request' : 'env',
-                    keyPreview: apiKey ? `...${apiKey.slice(-4)}` : 'none'
+                    keyPreview: apiKey ? `...${apiKey.slice(-4)}` : 'none',
+                    keyStart: apiKey ? apiKey.slice(0, 2) : 'none',
+                    keyLength: apiKey ? apiKey.length : 0
                 }
             }, { status: response.status });
         }
