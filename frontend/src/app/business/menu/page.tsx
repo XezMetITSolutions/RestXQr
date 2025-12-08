@@ -511,11 +511,11 @@ export default function MenuManagement() {
         setShowBulkPriceModal(false);
         setBulkPriceValue('');
         await fetchRestaurantMenu(currentRestaurantId);
-        alert(`${successCount} ürünün fiyatı başarıyla güncellendi`);
+        alert(`${successCount} ${t('ürünün fiyatı başarıyla güncellendi')}`);
       }
     } catch (error) {
       console.error('❌ Toplu fiyat güncelleme hatası:', error);
-      alert(`Fiyatlar güncellenirken bir hata oluştu: ${(error as Error).message}`);
+      alert(t('Fiyatlar güncellenirken bir hata oluştu: ') + (error as Error).message);
     }
   };
 
@@ -533,7 +533,7 @@ export default function MenuManagement() {
       setShowCameraModal(true);
     } catch (error) {
       console.error('Kamera erişim hatası:', error);
-      alert('Kameraya erişim sağlanamadı. Lütfen izin verin.');
+      alert(t('Kameraya erişim sağlanamadı. Lütfen izin verin.'));
     }
   };
 
@@ -626,7 +626,7 @@ export default function MenuManagement() {
   const handleItemAutoTranslate = async () => {
     if (!translationLanguages.length) return;
     if (!formData.name && !formData.description) {
-      setItemTranslationError('Çevirmek için önce ürün adı veya açıklama girin.');
+      setItemTranslationError(t('Çevirmek için önce ürün adı veya açıklama girin.'));
       return;
     }
     setItemTranslationError(null);
@@ -665,7 +665,7 @@ export default function MenuManagement() {
       }));
     } catch (error) {
       console.error('Ürün çevirisi hatası:', error);
-      setItemTranslationError('Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+      setItemTranslationError(t('Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.'));
     } finally {
       setIsTranslatingItem(false);
     }
@@ -691,7 +691,7 @@ export default function MenuManagement() {
   };
 
   const handleBulkTranslate = async () => {
-    if (!confirm('Tüm ürünler Almancaya çevrilecek. Bu işlem biraz zaman alabilir. Devam etmek istiyor musunuz?')) return;
+    if (!confirm(t('Tüm ürünler Almancaya çevrilecek. Bu işlem biraz zaman alabilir. Devam etmek istiyor musunuz?'))) return;
 
     setIsBulkTranslating(true);
     let successCount = 0;
@@ -738,11 +738,11 @@ export default function MenuManagement() {
         }
 
         await fetchRestaurantMenu(currentRestaurantId);
-        alert(`${successCount} ürün başarıyla Almancaya çevrildi.`);
+        alert(`${successCount} ${t('ürün başarıyla Almancaya çevrildi.')}`);
       }
     } catch (error) {
       console.error('Toplu çeviri hatası:', error);
-      alert('Toplu çeviri sırasında bir hata oluştu.');
+      alert(t('Toplu çeviri sırasında bir hata oluştu.'));
     } finally {
       setIsBulkTranslating(false);
     }
@@ -751,7 +751,7 @@ export default function MenuManagement() {
   const handleCategoryAutoTranslate = async () => {
     if (!translationLanguages.length) return;
     if (!categoryFormData.name && !categoryFormData.description) {
-      setCategoryTranslationError('Çevirmek için önce kategori adı veya açıklama girin.');
+      setCategoryTranslationError(t('Çevirmek için önce kategori adı veya açıklama girin.'));
       return;
     }
     setCategoryTranslationError(null);
@@ -786,14 +786,14 @@ export default function MenuManagement() {
       }));
     } catch (error) {
       console.error('Kategori çevirisi hatası:', error);
-      setCategoryTranslationError('Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+      setCategoryTranslationError(t('Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.'));
     } finally {
       setIsTranslatingCategory(false);
     }
   };
 
   const handleDeleteCategory = async (categoryId: string) => {
-    if (confirm('Bu kategoriyi silmek istediğinizden emin misiniz? Bu kategoriye ait tüm ürünler de silinecektir.')) {
+    if (confirm(t('Bu kategoriyi silmek istediğinizden emin misiniz? Bu kategoriye ait tüm ürünler de silinecektir.'))) {
       try {
         if (currentRestaurantId) {
           await deleteMenuCategory(currentRestaurantId, categoryId);
@@ -803,7 +803,7 @@ export default function MenuManagement() {
         }
       } catch (error) {
         console.error('Kategori silinirken hata:', error);
-        alert('Kategori silinirken bir hata oluştu');
+        alert(t('Kategori silinirken bir hata oluştu'));
       }
     }
   };
@@ -1429,7 +1429,7 @@ export default function MenuManagement() {
                     {/* Açıklama */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Açıklama
+                        <TranslatedText>Açıklama</TranslatedText>
                       </label>
                       <textarea
                         value={formData.description}
@@ -1470,7 +1470,7 @@ export default function MenuManagement() {
                             <div key={lang} className="space-y-3">
                               <div>
                                 <label className="block text-xs font-medium text-gray-600 mb-1">
-                                  Ürün Adı ({lang.toUpperCase()})
+                                  <TranslatedText>Ürün Adı</TranslatedText> ({lang.toUpperCase()})
                                 </label>
                                 <input
                                   type="text"
@@ -1481,7 +1481,7 @@ export default function MenuManagement() {
                               </div>
                               <div>
                                 <label className="block text-xs font-medium text-gray-600 mb-1">
-                                  Açıklama ({lang.toUpperCase()})
+                                  <TranslatedText>Açıklama</TranslatedText> ({lang.toUpperCase()})
                                 </label>
                                 <textarea
                                   rows={2}
@@ -1532,7 +1532,7 @@ export default function MenuManagement() {
                         </select>
                         {categories.length === 0 && (
                           <p className="text-xs text-red-600 mt-1">
-                            ⚠️ Kategori bulunamadı. Lütfen önce "Kategoriler" sekmesinden kategori ekleyin.
+                            ⚠️ {t('Kategori bulunamadı. Lütfen önce "Kategoriler" sekmesinden kategori ekleyin.')}
                           </p>
                         )}
                       </div>
@@ -1694,7 +1694,7 @@ export default function MenuManagement() {
                                   }
                                 } catch (error) {
                                   console.error('❌ Resim yükleme hatası:', error);
-                                  alert('❌ Resim yüklenirken hata oluştu: ' + (error as any).message);
+                                  alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
                                 }
                               }
                             }}
@@ -2288,12 +2288,12 @@ export default function MenuManagement() {
                               </div>
                               <div className="space-y-3">
                                 <div>
-                                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Ürün Adı</label>
+                                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide"><TranslatedText>Ürün Adı</TranslatedText></label>
                                   <p className="text-gray-900 font-medium mt-1">{translation.name}</p>
                                 </div>
                                 {translation.description && (
                                   <div>
-                                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Açıklama</label>
+                                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide"><TranslatedText>Açıklama</TranslatedText></label>
                                     <p className="text-gray-700 mt-1">{translation.description}</p>
                                   </div>
                                 )}

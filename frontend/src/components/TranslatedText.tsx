@@ -320,12 +320,12 @@ export const staticDictionary: { [key: string]: { [key: string]: string } } = {
   'İşletme türü menü tasarımını ve özelliklerini etkiler.': { 'en': 'Business type affects menu design and features.', 'de': 'Der Geschäftstyp beeinflusst das Menüdesign und die Funktionen.', 'tr': 'İşletme türü menü tasarımını ve özelliklerini etkiler.' },
   'Subdomain': { 'en': 'Subdomain', 'de': 'Subdomain', 'tr': 'Subdomain' },
   'Menü adresiniz:': { 'en': 'Your menu address:', 'de': 'Ihre Menüadresse:', 'tr': 'Menü adresiniz:' },
-  'Açıklama': { 'en': 'Description', 'de': 'Beschreibung', 'tr': 'Açıklama' },
+
   'Slogan': { 'en': 'Slogan', 'de': 'Slogan', 'tr': 'Slogan' },
   'İletişim Bilgileri': { 'en': 'Contact Information', 'de': 'Kontaktinformationen', 'tr': 'İletişim Bilgileri' },
   'Adres': { 'en': 'Address', 'de': 'Adresse', 'tr': 'Adres' },
   'Web Sitesi': { 'en': 'Website', 'de': 'Webseite', 'tr': 'Web Sitesi' },
-  'WiFi Şifresi': { 'en': 'WiFi Password', 'de': 'WLAN-Passwort', 'tr': 'WiFi Şifresi' },
+
   'WiFi Şifresini Kaydet': { 'en': 'Save WiFi Password', 'de': 'WLAN-Passwort speichern', 'tr': 'WiFi Şifresini Kaydet' },
   'Menüde WiFi şifresini göster': { 'en': 'Show WiFi password in menu', 'de': 'WLAN-Passwort im Menü anzeigen', 'tr': 'Menüde WiFi şifresini göster' },
   'Çalışma Saatleri (7 Gün)': { 'en': 'Working Hours (7 Days)', 'de': 'Öffnungszeiten (7 Tage)', 'tr': 'Çalışma Saatleri (7 Gün)' },
@@ -342,9 +342,7 @@ export const staticDictionary: { [key: string]: { [key: string]: string } } = {
   'Sosyal Medya Linkleri': { 'en': 'Social Media Links', 'de': 'Social Media Links', 'tr': 'Sosyal Medya Linkleri' },
   'Instagram Linkini Kaydet': { 'en': 'Save Instagram Link', 'de': 'Instagram-Link speichern', 'tr': 'Instagram Linkini Kaydet' },
   'Menüde Instagram linkini göster': { 'en': 'Show Instagram link in menu', 'de': 'Instagram-Link im Menü anzeigen', 'tr': 'Menüde Instagram linkini göster' },
-  'Durum': { 'en': 'Status', 'de': 'Status', 'tr': 'Durum' },
-  'Aktif': { 'en': 'Active', 'de': 'Aktiv', 'tr': 'Aktif' },
-  'Pasif': { 'en': 'Inactive', 'de': 'Inaktiv', 'tr': 'Pasif' },
+
   'Pasif durumda menü görüntülenmeyecektir.': { 'en': 'Menu will not be displayed in inactive status.', 'de': 'Im inaktiven Zustand wird das Menü nicht angezeigt.', 'tr': 'Pasif durumda menü görüntülenmeyecektir.' },
   'Logo (Splash Ekranı)': { 'en': 'Logo (Splash Screen)', 'de': 'Logo (Startbildschirm)', 'tr': 'Logo (Splash Ekranı)' },
   'Logo sadece uygulama açılış ekranında (splash) görünür. Menü tasarımında logo gösterilmez.': { 'en': 'Logo only appears on app splash screen. It is not shown in menu design.', 'de': 'Logo erscheint nur auf dem App-Startbildschirm. Es wird nicht im Menüdesign angezeigt.', 'tr': 'Logo sadece uygulama açılış ekranında (splash) görünür. Menü tasarımında logo gösterilmez.' },
@@ -390,9 +388,9 @@ export const staticDictionary: { [key: string]: { [key: string]: string } } = {
   'Hemen Arayın': { 'en': 'Call Now', 'de': 'Jetzt anrufen', 'tr': 'Hemen Arayın' },
   'Entegrasyonlar': { 'en': 'Integrations', 'de': 'Integrationen', 'tr': 'Entegrasyonlar' },
   'POS Sistemleri': { 'en': 'POS Systems', 'de': 'POS-Systeme', 'tr': 'POS Sistemleri' },
-  'Muhasebe': { 'en': 'Accounting', 'de': 'Buchhaltung', 'tr': 'Muhasebe' },
+
   'Online Ödeme': { 'en': 'Online Payment', 'de': 'Online-Zahlung', 'tr': 'Online Ödeme' },
-  'Stok Yönetimi': { 'en': 'Inventory Management', 'de': 'Bestandsverwaltung', 'tr': 'Stok Yönetimi' },
+
   'CRM Sistemleri': { 'en': 'CRM Systems', 'de': 'CRM-Systeme', 'tr': 'CRM Sistemleri' },
   'Rezervasyon': { 'en': 'Reservation', 'de': 'Reservierung', 'tr': 'Rezervasyon' },
   'Bağla': { 'en': 'Connect', 'de': 'Verbinden', 'tr': 'Bağla' },
@@ -473,12 +471,167 @@ export const staticDictionary: { [key: string]: { [key: string]: string } } = {
   'ödeme': { 'en': 'payment', 'de': 'Zahlung', 'tr': 'ödeme' },
   'Mevcut Planınız': { 'en': 'Your Current Plan', 'de': 'Ihr aktueller Plan', 'tr': 'Mevcut Planınız' },
   'Ek Hizmetler': { 'en': 'Additional Services', 'de': 'Zusätzliche Dienstleistungen', 'tr': 'Ek Hizmetler' },
+
+  // Staff Page Terms
+  'Personel Listesi': { 'en': 'Staff List', 'de': 'Personalliste', 'tr': 'Personel Listesi' },
+  'Personel Ekle': { 'en': 'Add Staff', 'de': 'Personal hinzufügen', 'tr': 'Personel Ekle' },
+  'Ad Soyad zorunludur.': { 'en': 'Name is required.', 'de': 'Name ist erforderlich.', 'tr': 'Ad Soyad zorunludur.' },
+  'E-posta zorunludur.': { 'en': 'Email is required.', 'de': 'E-Mail ist erforderlich.', 'tr': 'E-posta zorunludur.' },
+  'Personel başarıyla silindi!': { 'en': 'Staff deleted successfully!', 'de': 'Personal erfolgreich gelöscht!', 'tr': 'Personel başarıyla silindi!' },
+  'Panel Yönetimi': { 'en': 'Panel Management', 'de': 'Panelverwaltung', 'tr': 'Panel Yönetimi' },
+  'Kasa Paneli': { 'en': 'Cashier Panel', 'de': 'Kassenpanel', 'tr': 'Kasa Paneli' },
+  'Mutfak': { 'en': 'Kitchen', 'de': 'Küche', 'tr': 'Mutfak' },
+  'Servis': { 'en': 'Service', 'de': 'Service', 'tr': 'Servis' },
+  'Mali İşler': { 'en': 'Finance', 'de': 'Finanzen', 'tr': 'Mali İşler' },
+  'Yönetim': { 'en': 'Management', 'de': 'Verwaltung', 'tr': 'Yönetim' },
+  'Kişi': { 'en': 'Person', 'de': 'Person', 'tr': 'Kişi' },
+  'Puan': { 'en': 'Points', 'de': 'Punkte', 'tr': 'Puan' },
+  'Personel ara...': { 'en': 'Search staff...', 'de': 'Personal suchen...', 'tr': 'Personel ara...' },
+  'Tüm Roller': { 'en': 'All Roles', 'de': 'Alle Rollen', 'tr': 'Tüm Roller' },
+  'Yönetici': { 'en': 'Manager', 'de': 'Manager', 'tr': 'Yönetici' },
+  'Aşçı': { 'en': 'Chef', 'de': 'Koch', 'tr': 'Aşçı' },
+  'Garson': { 'en': 'Waiter', 'de': 'Kellner', 'tr': 'Garson' },
+  'Kasiyer': { 'en': 'Cashier', 'de': 'Kassierer', 'tr': 'Kasiyer' },
+  'Admin': { 'en': 'Admin', 'de': 'Admin', 'tr': 'Admin' },
+  'İzinli': { 'en': 'On Leave', 'de': 'Im Urlaub', 'tr': 'İzinli' },
+  'İşten Ayrıldı': { 'en': 'Terminated', 'de': 'Gekündigt', 'tr': 'İşten Ayrıldı' },
+  'İşe Başlama:': { 'en': 'Start Date:', 'de': 'Startdatum:', 'tr': 'İşe Başlama:' },
+  'Son Giriş:': { 'en': 'Last Login:', 'de': 'Letzter Login:', 'tr': 'Son Giriş:' },
+  'Not:': { 'en': 'Note:', 'de': 'Hinweis:', 'tr': 'Not:' },
+  'Panel Bilgileri': { 'en': 'Panel Info', 'de': 'Panel-Info', 'tr': 'Panel Bilgileri' },
+  'Yeni Personel Ekle': { 'en': 'Add New Staff', 'de': 'Neues Personal hinzufügen', 'tr': 'Yeni Personel Ekle' },
+  'Kullanıcı Adı *': { 'en': 'Username *', 'de': 'Benutzername *', 'tr': 'Kullanıcı Adı *' },
+  'Ad Soyad *': { 'en': 'Name Surname *', 'de': 'Vorname Nachname *', 'tr': 'Ad Soyad *' },
+  'Şifre': { 'en': 'Password', 'de': 'Passwort', 'tr': 'Şifre' },
+  'Şifre (Boş bırakılırsa değişmez)': { 'en': 'Password (Leave blank to keep current)', 'de': 'Passwort (Leer lassen um beizubehalten)', 'tr': 'Şifre (Boş bırakılırsa değişmez)' },
+  'Departman': { 'en': 'Department', 'de': 'Abteilung', 'tr': 'Departman' },
+  'Rol': { 'en': 'Role', 'de': 'Rolle', 'tr': 'Rol' },
+  'Personel Düzenle': { 'en': 'Edit Staff', 'de': 'Personal bearbeiten', 'tr': 'Personel Düzenle' },
+  'Personel başarıyla güncellendi!': { 'en': 'Staff updated successfully!', 'de': 'Personal erfolgreich aktualisiert!', 'tr': 'Personel başarıyla güncellendi!' },
+  'Erişim Bilgileri': { 'en': 'Access Information', 'de': 'Zugangsinformationen', 'tr': 'Erişim Bilgileri' },
+  'Personel bilgilerini yönetin ve takip edin': { 'en': 'Manage and track staff information', 'de': 'Personalinformationen verwalten und verfolgen', 'tr': 'Personel bilgilerini yönetin ve takip edin' },
+  'Ortalama': { 'en': 'Average', 'de': 'Durchschnitt', 'tr': 'Ortalama' },
+  'Personel adı': { 'en': 'Staff name', 'de': 'Personalname', 'tr': 'Personel adı' },
+  'Şifre *': { 'en': 'Password *', 'de': 'Passwort *', 'tr': 'Şifre *' },
+  'E-posta *': { 'en': 'Email *', 'de': 'E-Mail *', 'tr': 'E-posta *' },
+  'Notlar': { 'en': 'Notes', 'de': 'Notizen', 'tr': 'Notlar' },
+  'Personel hakkında notlar...': { 'en': 'Notes about staff...', 'de': 'Notizen über Personal...', 'tr': 'Personel hakkında notlar...' },
+  'Giriş Bilgileri': { 'en': 'Login Info', 'de': 'Login-Info', 'tr': 'Giriş Bilgileri' },
+  'Yeni şifre': { 'en': 'New password', 'de': 'Neues Passwort', 'tr': 'Yeni şifre' },
+  'Kullanıcı adı': { 'en': 'Username', 'de': 'Benutzername', 'tr': 'Kullanıcı adı' },
+  'Mevcut Panel Bilgileri': { 'en': 'Current Panel Info', 'de': 'Aktuelle Panel-Info', 'tr': 'Mevcut Panel Bilgileri' },
+  'Panel URL': { 'en': 'Panel URL', 'de': 'Panel-URL', 'tr': 'Panel URL' },
+  'Kopyala': { 'en': 'Copy', 'de': 'Kopieren', 'tr': 'Kopyala' },
+  'Aktif Yap': { 'en': 'Activate', 'de': 'Aktivieren', 'tr': 'Aktif Yap' },
+  'Pasif Yap': { 'en': 'Deactivate', 'de': 'Deaktivieren', 'tr': 'Pasif Yap' },
+  'Yeni Panel Oluştur': { 'en': 'Create New Panel', 'de': 'Neues Panel erstellen', 'tr': 'Yeni Panel Oluştur' },
+  'Bu personel için yeni panel bilgileri oluşturmak istiyorsanız aşağıdaki butona tıklayın.': { 'en': 'Click the button below to create new panel credentials for this staff.', 'de': 'Klicken Sie auf die Schaltfläche unten, um neue Panel-Anmeldeinformationen für dieses Personal zu erstellen.', 'tr': 'Bu personel için yeni panel bilgileri oluşturmak istiyorsanız aşağıdaki butona tıklayın.' },
+  'Panel Erişim Bilgileri': { 'en': 'Panel Access Info', 'de': 'Panel-Zugangsdaten', 'tr': 'Panel Erişim Bilgileri' },
+  'Yönetici Paneli:': { 'en': 'Manager Panel:', 'de': 'Manager-Panel:', 'tr': 'Yönetici Paneli:' },
+  'Kullanıcı adı kopyalandı!': { 'en': 'Username copied!', 'de': 'Benutzername kopiert!', 'tr': 'Kullanıcı adı kopyalandı!' },
+  'Şifre kopyalandı!': { 'en': 'Password copied!', 'de': 'Passwort kopiert!', 'tr': 'Şifre kopyalandı!' },
+  'Yeni panel bilgileri oluşturuldu!': { 'en': 'New panel credentials created!', 'de': 'Neue Panel-Anmeldeinformationen erstellt!', 'tr': 'Yeni panel bilgileri oluşturuldu!' },
+  'Personel bilgileri başarıyla güncellendi!': { 'en': 'Staff info updated successfully!', 'de': 'Personalinfo erfolgreich aktualisiert!', 'tr': 'Personel bilgileri başarıyla güncellendi!' },
+  'Güncelleme sırasında hata oluştu!': { 'en': 'Error during update!', 'de': 'Fehler bei der Aktualisierung!', 'tr': 'Güncelleme sırasında hata oluştu!' },
+
+  // Reports Page Terms
+  'Erişim Yok': { 'en': 'Access Denied', 'de': 'Zugriff verweigert', 'tr': 'Erişim Yok' },
+  'Bu sayfaya erişim yetkiniz bulunmamaktadır.': { 'en': 'You do not have permission to access this page.', 'de': 'Sie haben keine Berechtigung, auf diese Seite zuzugreifen.', 'tr': 'Bu sayfaya erişim yetkiniz bulunmamaktadır.' },
+  'Raporlama özelliğine erişmek için lütfen yöneticinizle iletişime geçin.': { 'en': 'Please contact your administrator to access reporting features.', 'de': 'Bitte wenden Sie sich an Ihren Administrator, um auf Berichtsfunktionen zuzugreifen.', 'tr': 'Raporlama özelliğine erişmek için lütfen yöneticinizle iletişime geçin.' },
+  'Kontrol Paneline Dön': { 'en': 'Return to Dashboard', 'de': 'Zurück zum Dashboard', 'tr': 'Kontrol Paneline Dön' },
+  'İşletme Raporları': { 'en': 'Business Reports', 'de': 'Geschäftsberichte', 'tr': 'İşletme Raporları' },
+  'Performans analizi ve detaylı raporlar': { 'en': 'Performance analysis and detailed reports', 'de': 'Leistungsanalyse und detaillierte Berichte', 'tr': 'Performans analizi ve detaylı raporlar' },
+  'Excel İndir': { 'en': 'Download Excel', 'de': 'Excel herunterladen', 'tr': 'Excel İndir' },
+
+  'Genel Bakış': { 'en': 'Overview', 'de': 'Überblick', 'tr': 'Genel Bakış' },
+  'Ürün Performansı': { 'en': 'Product Performance', 'de': 'Produktleistung', 'tr': 'Ürün Performansı' },
+  'Ciro Analizi': { 'en': 'Revenue Analysis', 'de': 'Umsatzanalyse', 'tr': 'Ciro Analizi' },
+  'Saat Analizi': { 'en': 'Hourly Analysis', 'de': 'Stundenanalyse', 'tr': 'Saat Analizi' },
+  'Başlangıç Tarihi': { 'en': 'Start Date', 'de': 'Startdatum', 'tr': 'Başlangıç Tarihi' },
+  'Bitiş Tarihi': { 'en': 'End Date', 'de': 'Enddatum', 'tr': 'Bitiş Tarihi' },
+  'Günlük performans özeti': { 'en': 'Daily performance summary', 'de': 'Tägliche Leistungszusammenfassung', 'tr': 'Günlük performans özeti' },
+  'Ortalama Sipariş': { 'en': 'Average Order', 'de': 'Durchschnittliche Bestellung', 'tr': 'Ortalama Sipariş' },
+  'Aktif Masa': { 'en': 'Active Tables', 'de': 'Aktive Tische', 'tr': 'Aktif Masa' },
+  'En Çok Satan Ürünler': { 'en': 'Best Selling Items', 'de': 'Meistverkaufte Artikel', 'tr': 'En Çok Satan Ürünler' },
+  'Masa Performansı': { 'en': 'Table Performance', 'de': 'Tischleistung', 'tr': 'Masa Performansı' },
+  'Ortalama Masa Süresi': { 'en': 'Average Table Time', 'de': 'Durchschnittliche Tischzeit', 'tr': 'Ortalama Masa Süresi' },
+  'En Hızlı': { 'en': 'Fastest', 'de': 'Am schnellsten', 'tr': 'En Hızlı' },
+  'En Yavaş': { 'en': 'Slowest', 'de': 'Am langsamsten', 'tr': 'En Yavaş' },
+  'Bu tarih aralığında veri bulunamadı.': { 'en': 'No data found in this date range.', 'de': 'Keine Daten in diesem Datumsbereich gefunden.', 'tr': 'Bu tarih aralığında veri bulunamadı.' },
+  'Günlük Ciro': { 'en': 'Daily Revenue', 'de': 'Tagesumsatz', 'tr': 'Günlük Ciro' },
+  'Haftalık Ciro': { 'en': 'Weekly Revenue', 'de': 'Wochenumsatz', 'tr': 'Haftalık Ciro' },
+  'dün': { 'en': 'yesterday', 'de': 'gestern', 'tr': 'dün' },
+  'geçen hafta': { 'en': 'last week', 'de': 'letzte Woche', 'tr': 'geçen hafta' },
+  'geçen ay': { 'en': 'last month', 'de': 'letzten Monat', 'tr': 'geçen ay' },
+  'Günlük Ciro Trendi (Son 7 Gün)': { 'en': 'Daily Revenue Trend (Last 7 Days)', 'de': 'Tagesumsatztrend (Letzte 7 Tage)', 'tr': 'Günlük Ciro Trendi (Son 7 Gün)' },
+  'Haftalık Ciro Karşılaştırması': { 'en': 'Weekly Revenue Comparison', 'de': 'Wochenumsatzvergleich', 'tr': 'Haftalık Ciro Karşılaştırması' },
+  'Aylık Ciro Karşılaştırması': { 'en': 'Monthly Revenue Comparison', 'de': 'Monatsumsatzvergleich', 'tr': 'Aylık Ciro Karşılaştırması' },
+  'Saatlik Performans Analizi': { 'en': 'Hourly Performance Analysis', 'de': 'Stündliche Leistungsanalyse', 'tr': 'Saatlik Performans Analizi' },
+  'En Yoğun Saatler': { 'en': 'Busiest Hours', 'de': 'Stoßzeiten', 'tr': 'En Yoğun Saatler' },
+  'En Karlı Saatler': { 'en': 'Most Profitable Hours', 'de': 'Profitabelste Stunden', 'tr': 'En Karlı Saatler' },
+  'Masa Süreleri': { 'en': 'Table Durations', 'de': 'Tischzeiten', 'tr': 'Masa Süreleri' },
+  'Öğle (12-15)': { 'en': 'Lunch (12-15)', 'de': 'Mittag (12-15)', 'tr': 'Öğle (12-15)' },
+  'Akşam (18-22)': { 'en': 'Evening (18-22)', 'de': 'Abend (18-22)', 'tr': 'Akşam (18-22)' },
+  'Gece (22-24)': { 'en': 'Night (22-24)', 'de': 'Nacht (22-24)', 'tr': 'Gece (22-24)' },
+  'Sipariş yoğunluğu': { 'en': 'Order density', 'de': 'Bestellungsdichte', 'tr': 'Sipariş yoğunluğu' },
+  'kârlı': { 'en': 'profitable', 'de': 'profitabel', 'tr': 'kârlı' },
+
+  // Menu Page Terms
+  'Kamera erişim hatası': { 'en': 'Camera access error', 'de': 'Kamerazugriffsfehler', 'tr': 'Kamera erişim hatası' },
+  'Kameraya erişim sağlanamadı. Lütfen izin verin.': { 'en': 'Camera access denied. Please allow access.', 'de': 'Zugriff auf die Kamera verweigert. Bitte erlauben Sie den Zugriff.', 'tr': 'Kameraya erişim sağlanamadı. Lütfen izin verin.' },
+  'Kamera ile çekilen resim boyutu': { 'en': 'Captured image size', 'de': 'Aufgenommene Bildgröße', 'tr': 'Kamera ile çekilen resim boyutu' },
+  'Çevirmek için önce ürün adı veya açıklama girin.': { 'en': 'Please enter item name or description to translate.', 'de': 'Bitte geben Sie den Produktnamen oder die Beschreibung ein, um zu übersetzen.', 'tr': 'Çevirmek için önce ürün adı veya açıklama girin.' },
+  'Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.': { 'en': 'An error occurred during translation. Please try again.', 'de': 'Ein Fehler ist während der Übersetzung aufgetreten. Bitte versuchen Sie es erneut.', 'tr': 'Çeviri sırasında bir hata oluştu. Lütfen tekrar deneyin.' },
+  'Tüm ürünler Almancaya çevrilecek. Bu işlem biraz zaman alabilir. Devam etmek istiyor musunuz?': { 'en': 'All items will be translated to German. This may take some time. Do you want to continue?', 'de': 'Alle Produkte werden ins Deutsche übersetzt. Dies kann einige Zeit dauern. Möchten Sie fortfahren?', 'tr': 'Tüm ürünler Almancaya çevrilecek. Bu işlem biraz zaman alabilir. Devam etmek istiyor musunuz?' },
+  'Toplu çeviri hatası': { 'en': 'Bulk translation error', 'de': 'Massenübersetzungsfehler', 'tr': 'Toplu çeviri hatası' },
+  'Toplu çeviri sırasında bir hata oluştu.': { 'en': 'An error occurred during bulk translation.', 'de': 'Ein Fehler ist während der Massenübersetzung aufgetreten.', 'tr': 'Toplu çeviri sırasında bir hata oluştu.' },
+  'Çevirmek için önce kategori adı veya açıklama girin.': { 'en': 'Please enter category name or description to translate.', 'de': 'Bitte geben Sie den Kategorienamen oder die Beschreibung ein, um zu übersetzen.', 'tr': 'Çevirmek için önce kategori adı veya açıklama girin.' },
+  'Bu kategoriyi silmek istediğinizden emin misiniz? Bu kategoriye ait tüm ürünler de silinecektir.': { 'en': 'Are you sure you want to delete this category? All items in this category will also be deleted.', 'de': 'Möchten Sie diese Kategorie wirklich löschen? Alle Produkte in dieser Kategorie werden ebenfalls gelöscht.', 'tr': 'Bu kategoriyi silmek istediğinizden emin misiniz? Bu kategoriye ait tüm ürünler de silinecektir.' },
+  'Kategori silinirken hata': { 'en': 'Error deleting category', 'de': 'Fehler beim Löschen der Kategorie', 'tr': 'Kategori silinirken hata' },
+  'Kategori silinirken bir hata oluştu': { 'en': 'An error occurred while deleting the category', 'de': 'Ein Fehler ist beim Löschen der Kategorie aufgetreten', 'tr': 'Kategori silinirken bir hata oluştu' },
+  'CSV dosyası seçildi:': { 'en': 'CSV file selected:', 'de': 'CSV-Datei ausgewählt:', 'tr': 'CSV dosyası seçildi:' },
+  'ürünün fiyatı başarıyla güncellendi': { 'en': 'item prices updated successfully', 'de': 'Produktpreise erfolgreich aktualisiert', 'tr': 'ürünün fiyatı başarıyla güncellendi' },
+  'Fiyatlar güncellenirken bir hata oluştu: ': { 'en': 'An error occurred while updating prices: ', 'de': 'Ein Fehler ist beim Aktualisieren der Preise aufgetreten: ', 'tr': 'Fiyatlar güncellenirken bir hata oluştu: ' },
+  'Toplu fiyat güncelleme hatası': { 'en': 'Bulk price update error', 'de': 'Massenpreisaktualisierungsfehler', 'tr': 'Toplu fiyat güncelleme hatası' },
+  'Ürün Adı, Açıklama, Fiyat, Kategori': { 'en': 'Item Name, Description, Price, Category', 'de': 'Produktname, Beschreibung, Preis, Kategorie', 'tr': 'Ürün Adı, Açıklama, Fiyat, Kategori' },
+  'Çeviriler yükleniyor...': { 'en': 'Translations loading...', 'de': 'Übersetzungen werden geladen...', 'tr': 'Çeviriler yükleniyor...' },
+  'Çeviriler yüklenemedi': { 'en': 'Translations could not be loaded', 'de': 'Übersetzungen konnten nicht geladen werden', 'tr': 'Çeviriler yüklenemedi' },
+
+  'Örn: Bruschetta': { 'en': 'Ex: Bruschetta', 'de': 'Z.B.: Bruschetta', 'tr': 'Örn: Bruschetta' },
+  'Ürün açıklaması...': { 'en': 'Item description...', 'de': 'Produktbeschreibung...', 'tr': 'Ürün açıklaması...' },
+  'Kategori bulunamadı. Lütfen önce "Kategoriler" sekmesinden kategori ekleyin.': { 'en': 'Category not found. Please add a category from "Categories" tab first.', 'de': 'Kategorie nicht gefunden. Bitte fügen Sie zuerst eine Kategorie im Reiter "Kategorien" hinzu.', 'tr': 'Kategori bulunamadı. Lütfen önce "Kategoriler" sekmesinden kategori ekleyin.' },
+  'Malzemeleri virgülle ayırarak yazın (Örn: Domates, Mozzarella, Fesleğen)': { 'en': 'Write ingredients separated by commas (Ex: Tomato, Mozzarella, Basil)', 'de': 'Schreiben Sie Zutaten durch Kommas getrennt (Z.B.: Tomate, Mozzarella, Basilikum)', 'tr': 'Malzemeleri virgülle ayırarak yazın (Örn: Domates, Mozzarella, Fesleğen)' },
+  'Ürün Adı': { 'en': 'Product Name', 'de': 'Produktname', 'tr': 'Ürün Adı' },
+  'Örn: Başlangıçlar, Ana Yemekler, Tatlılar': { 'en': 'Ex: Starters, Main Courses, Desserts', 'de': 'Z.B.: Vorspeisen, Hauptgerichte, Desserts', 'tr': 'Örn: Başlangıçlar, Ana Yemekler, Tatlılar' },
 };
 
 interface TranslatedTextProps {
   children: string;
   className?: string;
   as?: keyof JSX.IntrinsicElements;
+}
+
+export function useTranslation() {
+  const { currentLanguage } = useLanguage();
+
+  const t = (text: string) => {
+    const langCode = currentLanguage === 'German' ? 'de' :
+      (currentLanguage === 'English' ? 'en' :
+        (currentLanguage === 'Turkish' ? 'tr' :
+          (currentLanguage === 'Arabic' ? 'ar' :
+            (currentLanguage === 'Russian' ? 'ru' :
+              (currentLanguage === 'French' ? 'fr' :
+                (currentLanguage === 'Spanish' ? 'es' :
+                  (currentLanguage === 'Italian' ? 'it' : 'en')))))));
+
+    if (staticDictionary[text] && staticDictionary[text][langCode]) {
+      return staticDictionary[text][langCode];
+    }
+
+    return text;
+  };
+
+  return { t };
 }
 
 export default function TranslatedText({
