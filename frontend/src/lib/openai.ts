@@ -21,21 +21,20 @@ export async function translateText(text: string, targetLanguage: string): Promi
   }
 
   try {
-    const params = new URLSearchParams();
-    params.append('auth_key', DEEPL_API_KEY);
-    params.append('text', text);
-    params.append('target_lang', targetLangCode);
-
-    const response = await fetch(DEEPL_API_URL, {
+    const response = await fetch('/api/translate', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
       },
-      body: params
+      body: JSON.stringify({
+        text,
+        targetLanguage: targetLangCode,
+        sourceLanguage: 'TR' // Assuming source is usually Turkish in this app context, or let API auto-detect if omitted
+      })
     });
 
     if (!response.ok) {
-      throw new Error(`DeepL API error: ${response.statusText}`);
+      throw new Error(`Translation API error: ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -43,9 +42,11 @@ export async function translateText(text: string, targetLanguage: string): Promi
       return data.translations[0].text;
     }
 
-    return text;
+    // API response format mismatch fallback
+    return data.translatedText || text;
+
   } catch (error) {
-    console.error('DeepL translation failed:', error);
+    console.error('Translation failed:', error);
     return text;
   }
 }

@@ -162,14 +162,14 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
     {
       href: `${basePath}/reports`,
       icon: FaChartBar,
-      label: 'Raporlar',
+      label: <TranslatedText>Raporlar</TranslatedText>,
       active: pathname === `${basePath}/reports`,
       visible: isDemo ? true : (hasBasicReports || hasAdvancedAnalytics)
     },
     {
       href: `${basePath}/settings`,
       icon: FaCog,
-      label: 'Ayarlar',
+      label: <TranslatedText>Ayarlar</TranslatedText>,
       active: pathname === `${basePath}/settings`,
       visible: true
     },
