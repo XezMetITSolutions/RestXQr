@@ -958,7 +958,7 @@ export default function SettingsPage() {
                             value={settings.basicInfo.twitter || ''}
                             onChange={(e) => updateBasicInfo({ twitter: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            placeholder={t('Twitter profil linkiniz')}
+                            placeholder={getStatic('Twitter profil linkiniz')}
                           />
                         </div>
                       </div>
