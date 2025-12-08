@@ -39,15 +39,14 @@ import {
   FaCheck,
   FaExclamationTriangle,
   FaDownload,
-  FaSync,
-  FaClock
+  FaSync
 } from 'react-icons/fa';
-import AnnouncementQuickModal from '@/components/AnnouncementQuickModal';
+
 import PhonePreview from '@/components/PhonePreview';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
 import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
-import BusinessSidebar from '@/components/BusinessSidebar';
+
 
 import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
 import { useLanguage } from '@/context/LanguageContext';
@@ -89,7 +88,7 @@ export default function SettingsPage() {
   useEffect(() => {
     initializeAuth();
   }, [initializeAuth]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+
 
   // Restaurant-specific settings kullan
   const {
@@ -773,7 +772,7 @@ export default function SettingsPage() {
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <div className="flex items-center justify-between mb-4">
                           <h4 className="font-medium text-gray-800 flex items-center gap-2">
-                            <FaClock className="text-gray-500" />
+
                             <TranslatedText>Çalışma Saatleri (7 Gün)</TranslatedText>
                           </h4>
                           <button
