@@ -8,12 +8,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Text is required' }, { status: 400 });
         }
 
-        const apiKey = requestApiKey || process.env.DEEPL_API_KEY || process.env.NEXT_PUBLIC_DEEPL_API_KEY;
-
-        if (!apiKey) {
+        const rawApiKey = requestApiKey || process.env.DEEPL_API_KEY || process.env.NEXT_PUBLIC_DEEPL_API_KEY;
+        if (!rawApiKey) {
             console.error('DeepL API key missing');
             return NextResponse.json({ error: 'DeepL API key not configured' }, { status: 500 });
         }
+
+        const apiKey = rawApiKey.trim();
 
         const params = new URLSearchParams();
         params.append('text', text);
@@ -39,7 +40,15 @@ export async function POST(request: Request) {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('DeepL API Error:', response.status, errorText);
-            return NextResponse.json({ error: `DeepL API Error: ${response.status}` }, { status: response.status });
+            return NextResponse.json({
+                error: `DeepL API Error: ${response.status}`,
+                details: errorText,
+                debug: {
+                    endpoint: isFreeAccount ? 'free' : 'pro',
+                    keySource: requestApiKey ? 'request' : 'env',
+                    keyPreview: apiKey ? `...${apiKey.slice(-4)}` : 'none'
+                }
+            }, { status: response.status });
         }
 
         const data = await response.json();
