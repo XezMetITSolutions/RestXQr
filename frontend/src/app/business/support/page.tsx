@@ -28,6 +28,7 @@ import {
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import BusinessSidebar from '@/components/BusinessSidebar';
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 
 interface SupportTicket {
   id: number;
@@ -43,6 +44,7 @@ interface SupportTicket {
 
 export default function SupportPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showNewTicketModal, setShowNewTicketModal] = useState(false);
@@ -50,7 +52,7 @@ export default function SupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || 'Kullanıcı';
   const displayEmail = authenticatedRestaurant?.email || authenticatedStaff?.email || '';
 
@@ -70,35 +72,35 @@ export default function SupportPage() {
   // Destek talepleri her restoran için ayrı (boş başla, Kardeşler için demo yüklenecek)
   useEffect(() => {
     // Eğer Kardeşler restoranı ise demo ticket verilerini ekle
-    if (authenticatedRestaurant?.name.toLowerCase().includes('kardeşler') || 
-        authenticatedRestaurant?.name.toLowerCase().includes('kardesler')) {
+    if (authenticatedRestaurant?.name.toLowerCase().includes('kardeşler') ||
+      authenticatedRestaurant?.name.toLowerCase().includes('kardesler')) {
       const demoTickets: SupportTicket[] = [
-      {
-        id: 1,
-        subject: 'QR Kod Tarama Sorunu',
-        category: 'technical',
-        priority: 'high',
-        status: 'in_progress',
-        description: 'Müşteriler QR kodu taradığında menü açılmıyor.',
-        createdAt: '2024-01-15 10:30',
-        updatedAt: '2024-01-15 14:20',
-        responses: [
-          { message: 'Sorununuzu inceliyoruz, kısa süre içinde dönüş yapacağız.', from: 'Destek Ekibi', time: '2024-01-15 11:00' }
-        ]
-      },
-      {
-        id: 2,
-        subject: 'Fatura Bilgilerinde Hata',
-        category: 'billing',
-        priority: 'normal',
-        status: 'resolved',
-        description: 'Geçen ayki faturada yanlış tutar gözüküyor.',
-        createdAt: '2024-01-10 09:15',
-        updatedAt: '2024-01-12 16:45',
-        responses: [
-          { message: 'Fatura düzeltildi ve yeni fatura gönderildi.', from: 'Mali İşler', time: '2024-01-12 16:45' }
-        ]
-      }
+        {
+          id: 1,
+          subject: 'QR Kod Tarama Sorunu',
+          category: 'technical',
+          priority: 'high',
+          status: 'in_progress',
+          description: 'Müşteriler QR kodu taradığında menü açılmıyor.',
+          createdAt: '2024-01-15 10:30',
+          updatedAt: '2024-01-15 14:20',
+          responses: [
+            { message: 'Sorununuzu inceliyoruz, kısa süre içinde dönüş yapacağız.', from: 'Destek Ekibi', time: '2024-01-15 11:00' }
+          ]
+        },
+        {
+          id: 2,
+          subject: 'Fatura Bilgilerinde Hata',
+          category: 'billing',
+          priority: 'normal',
+          status: 'resolved',
+          description: 'Geçen ayki faturada yanlış tutar gözüküyor.',
+          createdAt: '2024-01-10 09:15',
+          updatedAt: '2024-01-12 16:45',
+          responses: [
+            { message: 'Fatura düzeltildi ve yeni fatura gönderildi.', from: 'Mali İşler', time: '2024-01-12 16:45' }
+          ]
+        }
       ];
       setTickets(demoTickets);
     }
@@ -112,13 +114,13 @@ export default function SupportPage() {
 
   const handleCreateTicket = async () => {
     if (!newTicket.subject.trim() || !newTicket.description.trim()) {
-      alert('Lütfen tüm zorunlu alanları doldurun!');
+      alert(t('Lütfen tüm zorunlu alanları doldurun!'));
       return;
     }
 
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
-      
+
       const response = await fetch(`${API_URL}/support`, {
         method: 'POST',
         headers: {
@@ -138,7 +140,7 @@ export default function SupportPage() {
       const data = await response.json();
 
       if (data.success) {
-        alert('✅ Destek talebiniz başarıyla gönderildi! En kısa sürede size dönüş yapılacaktır.');
+        alert(t('✅ Destek talebiniz başarıyla gönderildi! En kısa sürede size dönüş yapılacaktır.'));
         setShowNewTicketModal(false);
         setNewTicket({
           subject: '',
@@ -151,7 +153,7 @@ export default function SupportPage() {
       }
     } catch (error) {
       console.error('Destek talebi oluşturulamadı:', error);
-      alert('❌ Destek talebi gönderilirken bir hata oluştu!');
+      alert(t('❌ Destek talebi gönderilirken bir hata oluştu!'));
     }
   };
 
@@ -177,30 +179,30 @@ export default function SupportPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'open': return 'Açık';
-      case 'in_progress': return 'İşlemde';
-      case 'resolved': return 'Çözüldü';
-      case 'closed': return 'Kapalı';
+      case 'open': return t('Açık');
+      case 'in_progress': return t('İşlemde');
+      case 'resolved': return t('Çözüldü');
+      case 'closed': return t('Kapalı');
       default: return status;
     }
   };
 
   const getPriorityText = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'Acil';
-      case 'high': return 'Yüksek';
-      case 'normal': return 'Normal';
-      case 'low': return 'Düşük';
+      case 'urgent': return t('Acil');
+      case 'high': return t('Yüksek');
+      case 'normal': return t('Normal');
+      case 'low': return t('Düşük');
       default: return priority;
     }
   };
 
   const getCategoryText = (category: string) => {
     switch (category) {
-      case 'technical': return 'Teknik Destek';
-      case 'billing': return 'Fatura/Ödeme';
-      case 'feature': return 'Özellik Talebi';
-      case 'other': return 'Diğer';
+      case 'technical': return t('Teknik Destek');
+      case 'billing': return t('Fatura/Ödeme');
+      case 'feature': return t('Özellik Talebi');
+      case 'other': return t('Diğer');
       default: return category;
     }
   };
@@ -208,36 +210,36 @@ export default function SupportPage() {
   const filteredTickets = tickets.filter(ticket => {
     const matchesStatus = filterStatus === 'all' || ticket.status === filterStatus;
     const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ticket.description.toLowerCase().includes(searchTerm.toLowerCase());
+      ticket.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
   const faqItems = [
     {
-      question: 'QR kod nasıl oluşturulur?',
-      answer: 'QR Kodlar sayfasından "Yeni QR Kod" butonuna tıklayarak QR kod oluşturabilirsiniz. Masa numarasını girin ve QR kod otomatik olarak oluşturulacaktır.'
+      question: t('QR kod nasıl oluşturulur?'),
+      answer: t('QR Kodlar sayfasından "Yeni QR Kod" butonuna tıklayarak QR kod oluşturabilirsiniz. Masa numarasını girin ve QR kod otomatik olarak oluşturulacaktır.')
     },
     {
-      question: 'Menüye nasıl yeni ürün eklerim?',
-      answer: 'Menü Yönetimi sayfasından önce bir kategori seçin, ardından "Yeni Ürün Ekle" butonuna tıklayın. Ürün bilgilerini girin ve kaydedin.'
+      question: t('Menüye nasıl yeni ürün eklerim?'),
+      answer: t('Menü Yönetimi sayfasından önce bir kategori seçin, ardından "Yeni Ürün Ekle" butonuna tıklayın. Ürün bilgilerini girin ve kaydedin.')
     },
     {
-      question: 'Personel girişi nasıl yapılır?',
-      answer: 'Personel sayfasından her personel için kullanıcı adı ve şifre oluşturabilirsiniz. Personeller bu bilgilerle giriş yapıp kendi panellerine erişebilir.'
+      question: t('Personel girişi nasıl yapılır?'),
+      answer: t('Personel sayfasından her personel için kullanıcı adı ve şifre oluşturabilirsiniz. Personeller bu bilgilerle giriş yapıp kendi panellerine erişebilir.')
     },
     {
-      question: 'Siparişleri nasıl takip ederim?',
-      answer: 'Siparişler sayfasından tüm siparişleri görebilir, durum güncelleyebilir ve sipariş detaylarını inceleyebilirsiniz.'
+      question: t('Siparişleri nasıl takip ederim?'),
+      answer: t('Siparişler sayfasından tüm siparişleri görebilir, durum güncelleyebilir ve sipariş detaylarını inceleyebilirsiniz.')
     },
     {
-      question: 'Destek ekibine nasıl ulaşabilirim?',
-      answer: 'Bu sayfadan destek talebi oluşturabilir, e-posta gönderebilir veya WhatsApp üzerinden bize ulaşabilirsiniz.'
+      question: t('Destek ekibine nasıl ulaşabilirim?'),
+      answer: t('Bu sayfadan destek talebi oluşturabilir, e-posta gönderebilir veya WhatsApp üzerinden bize ulaşabilirsiniz.')
     }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -256,8 +258,8 @@ export default function SupportPage() {
                 <FaBars className="text-gray-600" />
               </button>
               <div>
-                <h2 className="text-2xl font-semibold text-gray-800">Destek Merkezi</h2>
-                <p className="text-sm text-gray-500 mt-1">Size nasıl yardımcı olabiliriz?</p>
+                <h2 className="text-2xl font-semibold text-gray-800"><TranslatedText>Destek Merkezi</TranslatedText></h2>
+                <p className="text-sm text-gray-500 mt-1"><TranslatedText>Size nasıl yardımcı olabiliriz?</TranslatedText></p>
               </div>
             </div>
             <button
@@ -265,7 +267,7 @@ export default function SupportPage() {
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
             >
               <FaPlus />
-              Yeni Talep
+              <TranslatedText>Yeni Talep</TranslatedText>
             </button>
           </div>
         </header>
@@ -275,36 +277,33 @@ export default function SupportPage() {
           <div className="flex gap-6">
             <button
               onClick={() => setActiveTab('tickets')}
-              className={`py-3 px-2 border-b-2 transition-colors ${
-                activeTab === 'tickets'
-                  ? 'border-purple-600 text-purple-600 font-medium'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+              className={`py-3 px-2 border-b-2 transition-colors ${activeTab === 'tickets'
+                ? 'border-purple-600 text-purple-600 font-medium'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
             >
               <FaTicketAlt className="inline mr-2" />
-              Destek Taleplerim
+              <TranslatedText>Destek Taleplerim</TranslatedText>
             </button>
             <button
               onClick={() => setActiveTab('faq')}
-              className={`py-3 px-2 border-b-2 transition-colors ${
-                activeTab === 'faq'
-                  ? 'border-purple-600 text-purple-600 font-medium'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+              className={`py-3 px-2 border-b-2 transition-colors ${activeTab === 'faq'
+                ? 'border-purple-600 text-purple-600 font-medium'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
             >
               <FaQuestionCircle className="inline mr-2" />
-              Sıkça Sorulan Sorular
+              <TranslatedText>Sıkça Sorulan Sorular</TranslatedText>
             </button>
             <button
               onClick={() => setActiveTab('contact')}
-              className={`py-3 px-2 border-b-2 transition-colors ${
-                activeTab === 'contact'
-                  ? 'border-purple-600 text-purple-600 font-medium'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+              className={`py-3 px-2 border-b-2 transition-colors ${activeTab === 'contact'
+                ? 'border-purple-600 text-purple-600 font-medium'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
             >
               <FaEnvelope className="inline mr-2" />
-              İletişim
+              <TranslatedText>İletişim</TranslatedText>
             </button>
           </div>
         </div>
@@ -324,7 +323,7 @@ export default function SupportPage() {
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Talep ara..."
+                        placeholder={t('Talep ara...')}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
@@ -336,11 +335,11 @@ export default function SupportPage() {
                       onChange={(e) => setFilterStatus(e.target.value)}
                       className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                     >
-                      <option value="all">Tüm Durumlar</option>
-                      <option value="open">Açık</option>
-                      <option value="in_progress">İşlemde</option>
-                      <option value="resolved">Çözüldü</option>
-                      <option value="closed">Kapalı</option>
+                      <option value="all">{t('Tüm Durumlar')}</option>
+                      <option value="open">{t('Açık')}</option>
+                      <option value="in_progress">{t('İşlemde')}</option>
+                      <option value="resolved">{t('Çözüldü')}</option>
+                      <option value="closed">{t('Kapalı')}</option>
                     </select>
                   </div>
                 </div>
@@ -351,12 +350,12 @@ export default function SupportPage() {
                 {filteredTickets.length === 0 ? (
                   <div className="bg-white rounded-lg shadow p-12 text-center">
                     <FaTicketAlt className="text-5xl text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">Henüz destek talebiniz bulunmuyor</p>
+                    <p className="text-gray-500"><TranslatedText>Henüz destek talebiniz bulunmuyor</TranslatedText></p>
                     <button
                       onClick={() => setShowNewTicketModal(true)}
                       className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                     >
-                      İlk Talebinizi Oluşturun
+                      <TranslatedText>İlk Talebinizi Oluşturun</TranslatedText>
                     </button>
                   </div>
                 ) : (
@@ -387,14 +386,14 @@ export default function SupportPage() {
                           </p>
                         </div>
                       </div>
-                      
+
                       <p className="text-gray-600 mb-4">{ticket.description}</p>
-                      
+
                       {ticket.responses && ticket.responses.length > 0 && (
                         <div className="border-t pt-4 mt-4">
                           <p className="text-sm font-medium text-gray-700 mb-2">
                             <FaCheckCircle className="inline text-green-500 mr-1" />
-                            Son Yanıt:
+                            <TranslatedText>Son Yanıt:</TranslatedText>
                           </p>
                           <div className="bg-green-50 rounded-lg p-3">
                             <p className="text-sm text-gray-700">{ticket.responses[0].message}</p>
@@ -433,27 +432,27 @@ export default function SupportPage() {
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaEnvelope className="text-3xl text-purple-600" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">E-posta</h3>
+                <h3 className="text-lg font-semibold mb-2"><TranslatedText>E-posta</TranslatedText></h3>
                 <p className="text-gray-600 mb-4">destek@masapp.com</p>
-                <p className="text-sm text-gray-500">Yanıt süresi: 24 saat içinde</p>
+                <p className="text-sm text-gray-500"><TranslatedText>Yanıt süresi: 24 saat içinde</TranslatedText></p>
               </div>
 
               <div className="bg-white rounded-lg shadow p-6 text-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaWhatsapp className="text-3xl text-green-600" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">WhatsApp</h3>
+                <h3 className="text-lg font-semibold mb-2"><TranslatedText>WhatsApp</TranslatedText></h3>
                 <p className="text-gray-600 mb-4">+90 532 123 45 67</p>
-                <p className="text-sm text-gray-500">Mesai saatleri: 09:00-18:00</p>
+                <p className="text-sm text-gray-500"><TranslatedText>Mesai saatleri: 09:00-18:00</TranslatedText></p>
               </div>
 
               <div className="bg-white rounded-lg shadow p-6 text-center">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaPhone className="text-3xl text-blue-600" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Telefon</h3>
+                <h3 className="text-lg font-semibold mb-2"><TranslatedText>Telefon</TranslatedText></h3>
                 <p className="text-gray-600 mb-4">0850 123 45 67</p>
-                <p className="text-sm text-gray-500">7/24 Destek Hattı</p>
+                <p className="text-sm text-gray-500"><TranslatedText>7/24 Destek Hattı</TranslatedText></p>
               </div>
             </div>
           )}
@@ -466,7 +465,7 @@ export default function SupportPage() {
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold">Yeni Destek Talebi</h3>
+                <h3 className="text-2xl font-bold"><TranslatedText>Yeni Destek Talebi</TranslatedText></h3>
                 <button
                   onClick={() => setShowNewTicketModal(false)}
                   className="text-gray-500 hover:text-gray-700"
@@ -478,61 +477,61 @@ export default function SupportPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Konu *
+                    <TranslatedText>Konu *</TranslatedText>
                   </label>
                   <input
                     type="text"
                     value={newTicket.subject}
-                    onChange={(e) => setNewTicket({...newTicket, subject: e.target.value})}
+                    onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                    placeholder="Sorun veya talebinizin konusu"
+                    placeholder={t('Sorun veya talebinizin konusu')}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Kategori *
+                      <TranslatedText>Kategori *</TranslatedText>
                     </label>
                     <select
                       value={newTicket.category}
-                      onChange={(e) => setNewTicket({...newTicket, category: e.target.value})}
+                      onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                     >
-                      <option value="technical">Teknik Destek</option>
-                      <option value="billing">Fatura/Ödeme</option>
-                      <option value="feature">Özellik Talebi</option>
-                      <option value="other">Diğer</option>
+                      <option value="technical">{t('Teknik Destek')}</option>
+                      <option value="billing">{t('Fatura/Ödeme')}</option>
+                      <option value="feature">{t('Özellik Talebi')}</option>
+                      <option value="other">{t('Diğer')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Öncelik *
+                      <TranslatedText>Öncelik *</TranslatedText>
                     </label>
                     <select
                       value={newTicket.priority}
-                      onChange={(e) => setNewTicket({...newTicket, priority: e.target.value as any})}
+                      onChange={(e) => setNewTicket({ ...newTicket, priority: e.target.value as any })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                     >
-                      <option value="low">Düşük</option>
-                      <option value="normal">Normal</option>
-                      <option value="high">Yüksek</option>
-                      <option value="urgent">Acil</option>
+                      <option value="low">{t('Düşük')}</option>
+                      <option value="normal">{t('Normal')}</option>
+                      <option value="high">{t('Yüksek')}</option>
+                      <option value="urgent">{t('Acil')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Açıklama *
+                    <TranslatedText>Açıklama *</TranslatedText>
                   </label>
                   <textarea
                     value={newTicket.description}
-                    onChange={(e) => setNewTicket({...newTicket, description: e.target.value})}
+                    onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
                     rows={6}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                    placeholder="Sorununuzu veya talebinizi detaylı bir şekilde açıklayın..."
+                    placeholder={t('Sorununuzu veya talebinizi detaylı bir şekilde açıklayın...')}
                   />
                 </div>
 
@@ -541,14 +540,14 @@ export default function SupportPage() {
                     onClick={() => setShowNewTicketModal(false)}
                     className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                   >
-                    İptal
+                    <TranslatedText>İptal</TranslatedText>
                   </button>
                   <button
                     onClick={handleCreateTicket}
                     className="flex-1 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2"
                   >
                     <FaTicketAlt />
-                    Talep Oluştur
+                    <TranslatedText>Talep Oluştur</TranslatedText>
                   </button>
                 </div>
               </div>

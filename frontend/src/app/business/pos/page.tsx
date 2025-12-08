@@ -6,11 +6,12 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFeature } from '@/hooks/useFeature';
 import { apiService } from '@/services/api';
-import { 
-  FaCashRegister, 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
+import {
+  FaCashRegister,
+  FaPlus,
+  FaEdit,
+  FaTrash,
   FaSearch,
   FaCheckCircle,
   FaTimesCircle,
@@ -35,6 +36,7 @@ interface POSDevice {
 
 export default function POSPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated, logout, user } = useAuthStore();
   const hasPOSIntegration = useFeature('pos_integration');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -67,7 +69,7 @@ export default function POSPage() {
       setLoading(true);
       const restaurantId = user?.id;
       if (!restaurantId) return;
-      
+
       const response = await apiService.getPOSDevices(restaurantId);
       if (response.success && response.data) {
         // Backend'den gelen veriyi frontend formatına çevir
@@ -93,7 +95,7 @@ export default function POSPage() {
 
   const handleAddPOSDevice = async () => {
     if (!formData.name || !formData.deviceId || !formData.location) {
-      alert('Lütfen tüm zorunlu alanları doldurun.');
+      alert(t('Lütfen tüm zorunlu alanları doldurun.'));
       return;
     }
 
@@ -108,17 +110,17 @@ export default function POSPage() {
         location: formData.location,
         battery: formData.battery
       });
-      
+
       if (response.success) {
         await fetchPOSDevices();
         setShowAddModal(false);
         resetForm();
       } else {
-        alert('POS cihazı eklenirken hata oluştu.');
+        alert(t('POS cihazı eklenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('POS cihazı eklenirken hata:', error);
-      alert('POS cihazı eklenirken hata oluştu.');
+      alert(t('POS cihazı eklenirken hata oluştu.'));
     }
   };
 
@@ -135,7 +137,7 @@ export default function POSPage() {
 
   const handleUpdatePOSDevice = async () => {
     if (!formData.name || !formData.deviceId || !formData.location) {
-      alert('Lütfen tüm zorunlu alanları doldurun.');
+      alert(t('Lütfen tüm zorunlu alanları doldurun.'));
       return;
     }
 
@@ -148,18 +150,18 @@ export default function POSPage() {
         location: formData.location,
         battery: formData.battery
       });
-      
+
       if (response.success) {
         await fetchPOSDevices();
         setShowEditModal(false);
         setEditingDevice(null);
         resetForm();
       } else {
-        alert('POS cihazı güncellenirken hata oluştu.');
+        alert(t('POS cihazı güncellenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('POS cihazı güncellenirken hata:', error);
-      alert('POS cihazı güncellenirken hata oluştu.');
+      alert(t('POS cihazı güncellenirken hata oluştu.'));
     }
   };
 
@@ -178,11 +180,11 @@ export default function POSPage() {
         setShowDeleteConfirm(false);
         setDeviceToDelete(null);
       } else {
-        alert('POS cihazı silinirken hata oluştu.');
+        alert(t('POS cihazı silinirken hata oluştu.'));
       }
     } catch (error) {
       console.error('POS cihazı silinirken hata:', error);
-      alert('POS cihazı silinirken hata oluştu.');
+      alert(t('POS cihazı silinirken hata oluştu.'));
     }
   };
 
@@ -218,15 +220,15 @@ export default function POSPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <FaCashRegister className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">POS Entegrasyonu</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2"><TranslatedText text="POS Entegrasyonu" /></h2>
           <p className="text-gray-600 mb-4">
-            Bu özellik planınızda bulunmuyor. POS entegrasyonu özelliğini kullanmak için planınızı yükseltin.
+            <TranslatedText text="Bu özellik planınızda bulunmuyor. POS entegrasyonu özelliğini kullanmak için planınızı yükseltin." />
           </p>
           <button
             onClick={() => router.push('/business/settings')}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Planı Yükselt
+            <TranslatedText text="Planı Yükselt" />
           </button>
         </div>
       </div>
@@ -258,9 +260,9 @@ export default function POSPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'online': return 'Çevrimiçi';
-      case 'offline': return 'Çevrimdışı';
-      case 'syncing': return 'Senkronize Ediliyor';
+      case 'online': return t('Çevrimiçi');
+      case 'offline': return t('Çevrimdışı');
+      case 'syncing': return t('Senkronize Ediliyor');
       default: return status;
     }
   };
@@ -273,8 +275,8 @@ export default function POSPage() {
 
   const filteredDevices = posDevices.filter(device => {
     const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         device.deviceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         device.location.toLowerCase().includes(searchTerm.toLowerCase());
+      device.deviceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || device.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -285,7 +287,7 @@ export default function POSPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -306,17 +308,17 @@ export default function POSPage() {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <FaCashRegister className="text-teal-600" />
-                    POS Entegrasyonu
+                    <TranslatedText text="POS Entegrasyonu" />
                   </h1>
-                  <p className="text-sm text-gray-600 mt-1">POS cihazlarınızı yönetin ve izleyin</p>
+                  <p className="text-sm text-gray-600 mt-1"><TranslatedText text="POS cihazlarınızı yönetin ve izleyin" /></p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowAddModal(true)}
                 className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 flex items-center gap-2"
               >
                 <FaPlus />
-                <span className="hidden sm:inline">Yeni Cihaz</span>
+                <span className="hidden sm:inline"><TranslatedText text="Yeni Cihaz" /></span>
               </button>
             </div>
           </div>
@@ -328,7 +330,7 @@ export default function POSPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Cihaz</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Cihaz" /></p>
                   <p className="text-2xl font-bold text-gray-900">{posDevices.length}</p>
                 </div>
                 <FaCashRegister className="text-3xl text-teal-500" />
@@ -337,7 +339,7 @@ export default function POSPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Çevrimiçi</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Çevrimiçi" /></p>
                   <p className="text-2xl font-bold text-green-600">{onlineDevices}</p>
                 </div>
                 <FaCheckCircle className="text-3xl text-green-500" />
@@ -346,7 +348,7 @@ export default function POSPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Bugünkü İşlem</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Bugünkü İşlem" /></p>
                   <p className="text-2xl font-bold text-blue-600">{totalTransactions}</p>
                 </div>
                 <FaReceipt className="text-3xl text-blue-500" />
@@ -355,7 +357,7 @@ export default function POSPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Bugünkü Ciro</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Bugünkü Ciro" /></p>
                   <p className="text-2xl font-bold text-teal-600">₺{totalRevenue.toLocaleString()}</p>
                 </div>
                 <FaChartLine className="text-3xl text-teal-500" />
@@ -370,7 +372,7 @@ export default function POSPage() {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Cihaz adı, ID veya lokasyon ara..."
+                  placeholder={t('Cihaz adı, ID veya lokasyon ara...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
@@ -381,10 +383,10 @@ export default function POSPage() {
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               >
-                <option value="all">Tüm Durumlar</option>
-                <option value="online">Çevrimiçi</option>
-                <option value="offline">Çevrimdışı</option>
-                <option value="syncing">Senkronize Ediliyor</option>
+                <option value="all">{t('Tüm Durumlar')}</option>
+                <option value="online">{t('Çevrimiçi')}</option>
+                <option value="offline">{t('Çevrimdışı')}</option>
+                <option value="syncing">{t('Senkronize Ediliyor')}</option>
               </select>
             </div>
           </div>
@@ -412,17 +414,17 @@ export default function POSPage() {
 
                   <div className="space-y-3 mb-4">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Lokasyon:</span>
+                      <span className="text-gray-600"><TranslatedText text="Lokasyon" />:</span>
                       <span className="font-medium text-gray-900">{device.location}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Son Senkronizasyon:</span>
+                      <span className="text-gray-600"><TranslatedText text="Son Senkronizasyon" />:</span>
                       <span className="font-medium text-gray-900">
                         {new Date(device.lastSync).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Batarya:</span>
+                      <span className="text-gray-600"><TranslatedText text="Batarya" />:</span>
                       <span className={`font-bold ${getBatteryColor(device.battery)}`}>
                         %{device.battery}
                       </span>
@@ -431,32 +433,32 @@ export default function POSPage() {
 
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 mb-4">
                     <div>
-                      <p className="text-xs text-gray-600">Bugünkü İşlem</p>
+                      <p className="text-xs text-gray-600"><TranslatedText text="Bugünkü İşlem" /></p>
                       <p className="text-lg font-bold text-gray-900">{device.todayTransactions}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Bugünkü Ciro</p>
+                      <p className="text-xs text-gray-600"><TranslatedText text="Bugünkü Ciro" /></p>
                       <p className="text-lg font-bold text-green-600">₺{device.todayRevenue.toLocaleString()}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     {device.status !== 'offline' && (
-                      <button 
+                      <button
                         onClick={() => handleSyncPOSDevice(device.id)}
                         className="flex-1 px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 flex items-center justify-center gap-2 text-sm font-medium"
                       >
                         <FaSync />
-                        Senkronize Et
+                        <TranslatedText text="Senkronize Et" />
                       </button>
                     )}
-                    <button 
+                    <button
                       onClick={() => handleEditClick(device)}
                       className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
                     >
                       <FaEdit />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteClick(device.id)}
                       className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
                     >
@@ -471,7 +473,7 @@ export default function POSPage() {
           {filteredDevices.length === 0 && (
             <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
               <FaCashRegister className="text-5xl text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">POS cihazı bulunamadı</p>
+              <p className="text-gray-600"><TranslatedText text="POS cihazı bulunamadı" /></p>
             </div>
           )}
 
@@ -479,13 +481,13 @@ export default function POSPage() {
           <div className="mt-6 bg-teal-50 rounded-lg p-6 border border-teal-200">
             <h3 className="font-bold text-teal-900 mb-2 flex items-center gap-2">
               <FaCashRegister />
-              Desteklenen POS Sistemleri
+              <TranslatedText text="Desteklenen POS Sistemleri" />
             </h3>
             <p className="text-sm text-teal-800 mb-4">
-              Olivetti, Hugin, Datecs ve daha fazla POS sistemi ile entegre olun.
+              <TranslatedText text="Olivetti, Hugin, Datecs ve daha fazla POS sistemi ile entegre olun." />
             </p>
             <button className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
-              Entegrasyon Ayarları
+              <TranslatedText text="Entegrasyon Ayarları" />
             </button>
           </div>
         </div>
@@ -496,12 +498,12 @@ export default function POSPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Yeni POS Cihazı Ekle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="Yeni POS Cihazı Ekle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Cihaz Adı <span className="text-red-500">*</span>
+                  <TranslatedText text="Cihaz Adı" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -514,7 +516,7 @@ export default function POSPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cihaz ID <span className="text-red-500">*</span>
+                    <TranslatedText text="Cihaz ID" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -526,7 +528,7 @@ export default function POSPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Lokasyon <span className="text-red-500">*</span>
+                    <TranslatedText text="Lokasyon" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -539,7 +541,7 @@ export default function POSPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Batarya Seviyesi (%)
+                  <TranslatedText text="Batarya Seviyesi (%)" />
                 </label>
                 <input
                   type="number"
@@ -559,13 +561,13 @@ export default function POSPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleAddPOSDevice}
                 className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
               >
-                Kaydet
+                <TranslatedText text="Kaydet" />
               </button>
             </div>
           </div>
@@ -577,12 +579,12 @@ export default function POSPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">POS Cihazını Düzenle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="POS Cihazını Düzenle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Cihaz Adı <span className="text-red-500">*</span>
+                  <TranslatedText text="Cihaz Adı" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -595,7 +597,7 @@ export default function POSPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cihaz ID <span className="text-red-500">*</span>
+                    <TranslatedText text="Cihaz ID" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -607,7 +609,7 @@ export default function POSPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Lokasyon <span className="text-red-500">*</span>
+                    <TranslatedText text="Lokasyon" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -620,7 +622,7 @@ export default function POSPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Batarya Seviyesi (%)
+                  <TranslatedText text="Batarya Seviyesi (%)" />
                 </label>
                 <input
                   type="number"
@@ -641,13 +643,13 @@ export default function POSPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleUpdatePOSDevice}
                 className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
               >
-                Güncelle
+                <TranslatedText text="Güncelle" />
               </button>
             </div>
           </div>
@@ -664,9 +666,9 @@ export default function POSPage() {
                   <FaTrash className="text-red-600 text-xl" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">POS Cihazını Sil</h3>
+                  <h3 className="text-lg font-bold text-gray-900"><TranslatedText text="POS Cihazını Sil" /></h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    Bu POS cihazını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                    <TranslatedText text="Bu POS cihazını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz." />
                   </p>
                 </div>
               </div>
@@ -678,13 +680,13 @@ export default function POSPage() {
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                 >
-                  İptal
+                  <TranslatedText text="İptal" />
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
-                  Sil
+                  <TranslatedText text="Sil" />
                 </button>
               </div>
             </div>

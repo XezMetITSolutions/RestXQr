@@ -6,11 +6,12 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFeature } from '@/hooks/useFeature';
 import { apiService } from '@/services/api';
-import { 
-  FaTruck, 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
+import {
+  FaTruck,
+  FaPlus,
+  FaEdit,
+  FaTrash,
   FaSearch,
   FaMapMarkerAlt,
   FaPhone,
@@ -39,6 +40,7 @@ interface Delivery {
 
 export default function DeliveryPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated, logout, user } = useAuthStore();
   const hasDeliveryIntegration = useFeature('delivery_integration');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -76,7 +78,7 @@ export default function DeliveryPage() {
       setLoading(true);
       const restaurantId = user?.id;
       if (!restaurantId) return;
-      
+
       const response = await apiService.getDeliveries(restaurantId);
       if (response.success && response.data) {
         // Backend'den gelen veriyi frontend formatına çevir
@@ -104,7 +106,7 @@ export default function DeliveryPage() {
 
   const handleAddDelivery = async () => {
     if (!formData.orderNumber || !formData.customerName || !formData.customerPhone || !formData.address) {
-      alert('Lütfen tüm zorunlu alanları doldurun.');
+      alert(t('Lütfen tüm zorunlu alanları doldurun.'));
       return;
     }
 
@@ -124,17 +126,17 @@ export default function DeliveryPage() {
         deliveryPerson: formData.deliveryPerson,
         estimatedTime: formData.estimatedTime
       });
-      
+
       if (response.success) {
         await fetchDeliveries();
         setShowAddModal(false);
         resetForm();
       } else {
-        alert('Teslimat eklenirken hata oluştu.');
+        alert(t('Teslimat eklenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('Teslimat eklenirken hata:', error);
-      alert('Teslimat eklenirken hata oluştu.');
+      alert(t('Teslimat eklenirken hata oluştu.'));
     }
   };
 
@@ -156,7 +158,7 @@ export default function DeliveryPage() {
 
   const handleUpdateDelivery = async () => {
     if (!formData.orderNumber || !formData.customerName || !formData.customerPhone || !formData.address) {
-      alert('Lütfen tüm zorunlu alanları doldurun.');
+      alert(t('Lütfen tüm zorunlu alanları doldurun.'));
       return;
     }
 
@@ -174,18 +176,18 @@ export default function DeliveryPage() {
         deliveryPerson: formData.deliveryPerson,
         estimatedTime: formData.estimatedTime
       });
-      
+
       if (response.success) {
         await fetchDeliveries();
         setShowEditModal(false);
         setEditingDelivery(null);
         resetForm();
       } else {
-        alert('Teslimat güncellenirken hata oluştu.');
+        alert(t('Teslimat güncellenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('Teslimat güncellenirken hata:', error);
-      alert('Teslimat güncellenirken hata oluştu.');
+      alert(t('Teslimat güncellenirken hata oluştu.'));
     }
   };
 
@@ -204,11 +206,11 @@ export default function DeliveryPage() {
         setShowDeleteConfirm(false);
         setDeliveryToDelete(null);
       } else {
-        alert('Teslimat silinirken hata oluştu.');
+        alert(t('Teslimat silinirken hata oluştu.'));
       }
     } catch (error) {
       console.error('Teslimat silinirken hata:', error);
-      alert('Teslimat silinirken hata oluştu.');
+      alert(t('Teslimat silinirken hata oluştu.'));
     }
   };
 
@@ -218,11 +220,11 @@ export default function DeliveryPage() {
       if (response.success) {
         await fetchDeliveries();
       } else {
-        alert('Durum güncellenirken hata oluştu.');
+        alert(t('Durum güncellenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('Durum güncellenirken hata:', error);
-      alert('Durum güncellenirken hata oluştu.');
+      alert(t('Durum güncellenirken hata oluştu.'));
     }
   };
 
@@ -246,15 +248,15 @@ export default function DeliveryPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <FaTruck className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Paket Servis Yönetimi</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2"><TranslatedText text="Paket Servis Yönetimi" /></h2>
           <p className="text-gray-600 mb-4">
-            Bu özellik planınızda bulunmuyor. Paket servis entegrasyonu özelliğini kullanmak için planınızı yükseltin.
+            <TranslatedText text="Bu özellik planınızda bulunmuyor. Paket servis entegrasyonu özelliğini kullanmak için planınızı yükseltin." />
           </p>
           <button
             onClick={() => router.push('/business/settings')}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Planı Yükselt
+            <TranslatedText text="Planı Yükselt" />
           </button>
         </div>
       </div>
@@ -290,19 +292,19 @@ export default function DeliveryPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return 'Bekliyor';
-      case 'preparing': return 'Hazırlanıyor';
-      case 'on_way': return 'Yolda';
-      case 'delivered': return 'Teslim Edildi';
-      case 'cancelled': return 'İptal';
+      case 'pending': return t('Bekliyor');
+      case 'preparing': return t('Hazırlanıyor');
+      case 'on_way': return t('Yolda');
+      case 'delivered': return t('Teslim Edildi');
+      case 'cancelled': return t('İptal');
       default: return status;
     }
   };
 
   const filteredDeliveries = deliveries.filter(delivery => {
     const matchesSearch = delivery.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         delivery.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         delivery.customerPhone.includes(searchTerm);
+      delivery.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      delivery.customerPhone.includes(searchTerm);
     const matchesStatus = filterStatus === 'all' || delivery.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -314,7 +316,7 @@ export default function DeliveryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -335,17 +337,17 @@ export default function DeliveryPage() {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <FaTruck className="text-orange-600" />
-                    Paket Servis Yönetimi
+                    <TranslatedText text="Paket Servis Yönetimi" />
                   </h1>
-                  <p className="text-sm text-gray-600 mt-1">Teslimatları takip edin ve yönetin</p>
+                  <p className="text-sm text-gray-600 mt-1"><TranslatedText text="Teslimatları takip edin ve yönetin" /></p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowAddModal(true)}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center gap-2"
               >
                 <FaPlus />
-                <span className="hidden sm:inline">Yeni Sipariş</span>
+                <span className="hidden sm:inline"><TranslatedText text="Yeni Sipariş" /></span>
               </button>
             </div>
           </div>
@@ -357,7 +359,7 @@ export default function DeliveryPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Yolda</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Yolda" /></p>
                   <p className="text-2xl font-bold text-purple-600">{activeDeliveries}</p>
                 </div>
                 <FaMotorcycle className="text-3xl text-purple-500" />
@@ -366,7 +368,7 @@ export default function DeliveryPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Bekleyen</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Bekleyen" /></p>
                   <p className="text-2xl font-bold text-yellow-600">{pendingDeliveries}</p>
                 </div>
                 <FaClock className="text-3xl text-yellow-500" />
@@ -375,7 +377,7 @@ export default function DeliveryPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Teslim Edilen</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Teslim Edilen" /></p>
                   <p className="text-2xl font-bold text-green-600">{deliveredToday}</p>
                 </div>
                 <FaCheckCircle className="text-3xl text-green-500" />
@@ -384,7 +386,7 @@ export default function DeliveryPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Ciro</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Ciro" /></p>
                   <p className="text-2xl font-bold text-orange-600">₺{totalRevenue.toLocaleString()}</p>
                 </div>
                 <FaTruck className="text-3xl text-orange-500" />
@@ -399,7 +401,7 @@ export default function DeliveryPage() {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Sipariş no, müşteri adı veya telefon ara..."
+                  placeholder={t('Sipariş no, müşteri adı veya telefon ara...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
@@ -410,12 +412,12 @@ export default function DeliveryPage() {
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                <option value="all">Tüm Durumlar</option>
-                <option value="pending">Bekliyor</option>
-                <option value="preparing">Hazırlanıyor</option>
-                <option value="on_way">Yolda</option>
-                <option value="delivered">Teslim Edildi</option>
-                <option value="cancelled">İptal</option>
+                <option value="all">{t('Tüm Durumlar')}</option>
+                <option value="pending">{t('Bekliyor')}</option>
+                <option value="preparing">{t('Hazırlanıyor')}</option>
+                <option value="on_way">{t('Yolda')}</option>
+                <option value="delivered">{t('Teslim Edildi')}</option>
+                <option value="cancelled">{t('İptal')}</option>
               </select>
             </div>
           </div>
@@ -454,20 +456,20 @@ export default function DeliveryPage() {
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Ürün Sayısı:</span>
-                        <span className="font-medium text-gray-900">{delivery.items} adet</span>
+                        <span className="text-gray-600"><TranslatedText text="Ürün Sayısı" />:</span>
+                        <span className="font-medium text-gray-900">{delivery.items} {t('adet')}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Tutar:</span>
+                        <span className="text-gray-600"><TranslatedText text="Tutar" />:</span>
                         <span className="font-bold text-green-600">₺{delivery.totalAmount}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Kurye:</span>
+                        <span className="text-gray-600"><TranslatedText text="Kurye" />:</span>
                         <span className="font-medium text-gray-900">{delivery.deliveryPerson}</span>
                       </div>
                       {delivery.estimatedTime !== '-' && (
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Tahmini Süre:</span>
+                          <span className="text-gray-600"><TranslatedText text="Tahmini Süre" />:</span>
                           <span className="font-medium text-orange-600">{delivery.estimatedTime}</span>
                         </div>
                       )}
@@ -482,13 +484,13 @@ export default function DeliveryPage() {
                           onChange={(e) => handleStatusUpdate(delivery.id, e.target.value)}
                           className="flex-1 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-sm font-medium border border-orange-200"
                         >
-                          <option value="pending">Bekliyor</option>
-                          <option value="preparing">Hazırlanıyor</option>
-                          <option value="on_way">Yolda</option>
-                          <option value="delivered">Teslim Edildi</option>
-                          <option value="cancelled">İptal</option>
+                          <option value="pending">{t('Bekliyor')}</option>
+                          <option value="preparing">{t('Hazırlanıyor')}</option>
+                          <option value="on_way">{t('Yolda')}</option>
+                          <option value="delivered">{t('Teslim Edildi')}</option>
+                          <option value="cancelled">{t('İptal')}</option>
                         </select>
-                        <button 
+                        <button
                           onClick={() => handleEditClick(delivery)}
                           className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
                         >
@@ -498,10 +500,10 @@ export default function DeliveryPage() {
                     )}
                     {delivery.status === 'delivered' && (
                       <div className="flex-1 text-center text-sm text-green-600 font-medium">
-                        ✓ Başarıyla teslim edildi
+                        ✓ <TranslatedText text="Başarıyla teslim edildi" />
                       </div>
                     )}
-                    <button 
+                    <button
                       onClick={() => handleDeleteClick(delivery.id)}
                       className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
                     >
@@ -516,7 +518,7 @@ export default function DeliveryPage() {
           {filteredDeliveries.length === 0 && (
             <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
               <FaTruck className="text-5xl text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">Teslimat bulunamadı</p>
+              <p className="text-gray-600"><TranslatedText text="Teslimat bulunamadı" /></p>
             </div>
           )}
 
@@ -524,13 +526,13 @@ export default function DeliveryPage() {
           <div className="mt-6 bg-orange-50 rounded-lg p-6 border border-orange-200">
             <h3 className="font-bold text-orange-900 mb-2 flex items-center gap-2">
               <FaMotorcycle />
-              Paket Servis Entegrasyonları
+              <TranslatedText text="Paket Servis Entegrasyonları" />
             </h3>
             <p className="text-sm text-orange-800 mb-4">
-              Yemeksepeti, Getir Yemek ve Trendyol Yemek ile entegre olun.
+              <TranslatedText text="Yemeksepeti, Getir Yemek ve Trendyol Yemek ile entegre olun." />
             </p>
             <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
-              Entegrasyonları Yönet
+              <TranslatedText text="Entegrasyonları Yönet" />
             </button>
           </div>
         </div>
@@ -541,12 +543,12 @@ export default function DeliveryPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Yeni Teslimat Ekle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="Yeni Teslimat Ekle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sipariş No <span className="text-red-500">*</span>
+                  <TranslatedText text="Sipariş No" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -559,7 +561,7 @@ export default function DeliveryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Müşteri Adı <span className="text-red-500">*</span>
+                    <TranslatedText text="Müşteri Adı" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -571,7 +573,7 @@ export default function DeliveryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Telefon <span className="text-red-500">*</span>
+                    <TranslatedText text="Telefon" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -584,20 +586,20 @@ export default function DeliveryPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Adres <span className="text-red-500">*</span>
+                  <TranslatedText text="Adres" /> <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   rows={2}
-                  placeholder="Tam adres bilgisi..."
+                  placeholder={t('Tam adres bilgisi...')}
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ürün Sayısı
+                    <TranslatedText text="Ürün Sayısı" />
                   </label>
                   <input
                     type="number"
@@ -609,7 +611,7 @@ export default function DeliveryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tutar (₺)
+                    <TranslatedText text="Tutar (₺)" />
                   </label>
                   <input
                     type="number"
@@ -622,25 +624,25 @@ export default function DeliveryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Durum
+                    <TranslatedText text="Durum" />
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   >
-                    <option value="pending">Bekliyor</option>
-                    <option value="preparing">Hazırlanıyor</option>
-                    <option value="on_way">Yolda</option>
-                    <option value="delivered">Teslim Edildi</option>
-                    <option value="cancelled">İptal</option>
+                    <option value="pending">{t('Bekliyor')}</option>
+                    <option value="preparing">{t('Hazırlanıyor')}</option>
+                    <option value="on_way">{t('Yolda')}</option>
+                    <option value="delivered">{t('Teslim Edildi')}</option>
+                    <option value="cancelled">{t('İptal')}</option>
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kurye Adı
+                    <TranslatedText text="Kurye Adı" />
                   </label>
                   <input
                     type="text"
@@ -652,7 +654,7 @@ export default function DeliveryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tahmini Süre (dakika)
+                    <TranslatedText text="Tahmini Süre (dakika)" />
                   </label>
                   <input
                     type="text"
@@ -672,13 +674,13 @@ export default function DeliveryPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleAddDelivery}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >
-                Kaydet
+                <TranslatedText text="Kaydet" />
               </button>
             </div>
           </div>
@@ -690,12 +692,12 @@ export default function DeliveryPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Teslimatı Düzenle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="Teslimatı Düzenle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sipariş No <span className="text-red-500">*</span>
+                  <TranslatedText text="Sipariş No" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -708,7 +710,7 @@ export default function DeliveryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Müşteri Adı <span className="text-red-500">*</span>
+                    <TranslatedText text="Müşteri Adı" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -720,7 +722,7 @@ export default function DeliveryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Telefon <span className="text-red-500">*</span>
+                    <TranslatedText text="Telefon" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -733,20 +735,20 @@ export default function DeliveryPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Adres <span className="text-red-500">*</span>
+                  <TranslatedText text="Adres" /> <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   rows={2}
-                  placeholder="Tam adres bilgisi..."
+                  placeholder={t('Tam adres bilgisi...')}
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ürün Sayısı
+                    <TranslatedText text="Ürün Sayısı" />
                   </label>
                   <input
                     type="number"
@@ -758,7 +760,7 @@ export default function DeliveryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tutar (₺)
+                    <TranslatedText text="Tutar (₺)" />
                   </label>
                   <input
                     type="number"
@@ -771,25 +773,25 @@ export default function DeliveryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Durum
+                    <TranslatedText text="Durum" />
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   >
-                    <option value="pending">Bekliyor</option>
-                    <option value="preparing">Hazırlanıyor</option>
-                    <option value="on_way">Yolda</option>
-                    <option value="delivered">Teslim Edildi</option>
-                    <option value="cancelled">İptal</option>
+                    <option value="pending">{t('Bekliyor')}</option>
+                    <option value="preparing">{t('Hazırlanıyor')}</option>
+                    <option value="on_way">{t('Yolda')}</option>
+                    <option value="delivered">{t('Teslim Edildi')}</option>
+                    <option value="cancelled">{t('İptal')}</option>
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kurye Adı
+                    <TranslatedText text="Kurye Adı" />
                   </label>
                   <input
                     type="text"

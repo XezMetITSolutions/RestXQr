@@ -6,11 +6,12 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFeature } from '@/hooks/useFeature';
 import { apiService } from '@/services/api';
-import { 
-  FaBox, 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
+import {
+  FaBox,
+  FaPlus,
+  FaEdit,
+  FaTrash,
   FaSearch,
   FaExclamationTriangle,
   FaCheckCircle,
@@ -34,6 +35,7 @@ interface InventoryItem {
 
 export default function InventoryPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated, logout, user } = useAuthStore();
   const hasInventoryManagement = useFeature('inventory_management');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,7 +72,7 @@ export default function InventoryPage() {
       setLoading(true);
       const restaurantId = user?.id;
       if (!restaurantId) return;
-      
+
       const response = await apiService.getInventoryItems(restaurantId);
       if (response.success && response.data) {
         // Backend'den gelen veriyi frontend formatına çevir
@@ -100,15 +102,15 @@ export default function InventoryPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <FaBox className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Stok Yönetimi</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2"><TranslatedText text="Stok Yönetimi" /></h2>
           <p className="text-gray-600 mb-4">
-            Bu özellik planınızda bulunmuyor. Stok yönetimi özelliğini kullanmak için planınızı yükseltin.
+            <TranslatedText text="Bu özellik planınızda bulunmuyor. Stok yönetimi özelliğini kullanmak için planınızı yükseltin." />
           </p>
           <button
             onClick={() => router.push('/business/settings')}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Planı Yükselt
+            <TranslatedText text="Planı Yükselt" />
           </button>
         </div>
       </div>
@@ -122,7 +124,7 @@ export default function InventoryPage() {
 
   const handleAddItem = async () => {
     if (!formData.name || !formData.category || !formData.supplier) {
-      alert('Lütfen tüm zorunlu alanları doldurun.');
+      alert(t('Lütfen tüm zorunlu alanları doldurun.'));
       return;
     }
 
@@ -146,11 +148,11 @@ export default function InventoryPage() {
         setShowAddModal(false);
         resetForm();
       } else {
-        alert('Ürün eklenirken hata oluştu.');
+        alert(t('Ürün eklenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('Ürün eklenirken hata:', error);
-      alert('Ürün eklenirken hata oluştu.');
+      alert(t('Ürün eklenirken hata oluştu.'));
     }
   };
 
@@ -170,7 +172,7 @@ export default function InventoryPage() {
 
   const handleUpdateItem = async () => {
     if (!formData.name || !formData.category || !formData.supplier) {
-      alert('Lütfen tüm zorunlu alanları doldurun.');
+      alert(t('Lütfen tüm zorunlu alanları doldurun.'));
       return;
     }
 
@@ -193,11 +195,11 @@ export default function InventoryPage() {
         setEditingItem(null);
         resetForm();
       } else {
-        alert('Ürün güncellenirken hata oluştu.');
+        alert(t('Ürün güncellenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('Ürün güncellenirken hata:', error);
-      alert('Ürün güncellenirken hata oluştu.');
+      alert(t('Ürün güncellenirken hata oluştu.'));
     }
   };
 
@@ -216,11 +218,11 @@ export default function InventoryPage() {
         setShowDeleteConfirm(false);
         setItemToDelete(null);
       } else {
-        alert('Ürün silinirken hata oluştu.');
+        alert(t('Ürün silinirken hata oluştu.'));
       }
     } catch (error) {
       console.error('Ürün silinirken hata:', error);
-      alert('Ürün silinirken hata oluştu.');
+      alert(t('Ürün silinirken hata oluştu.'));
     }
   };
 
@@ -238,7 +240,7 @@ export default function InventoryPage() {
 
   const handleExport = () => {
     const csvContent = [
-      ['Ürün Adı', 'Kategori', 'Miktar', 'Birim', 'Minimum Stok', 'Fiyat', 'Tedarikçi', 'Son Güncelleme'],
+      [t('Ürün Adı'), t('Kategori'), t('Miktar'), t('Birim'), t('Minimum Stok'), t('Fiyat'), t('Tedarikçi'), t('Son Güncelleme')],
       ...inventory.map(item => [
         item.name,
         item.category,
@@ -264,7 +266,7 @@ export default function InventoryPage() {
 
   const filteredInventory = inventory.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.supplier.toLowerCase().includes(searchTerm.toLowerCase());
+      item.supplier.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
@@ -275,7 +277,7 @@ export default function InventoryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -296,25 +298,25 @@ export default function InventoryPage() {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <FaBox className="text-purple-600" />
-                    Stok Yönetimi
+                    <TranslatedText text="Stok Yönetimi" />
                   </h1>
-                  <p className="text-sm text-gray-600 mt-1">Ürün stoklarınızı takip edin</p>
+                  <p className="text-sm text-gray-600 mt-1"><TranslatedText text="Ürün stoklarınızı takip edin" /></p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button 
+                <button
                   onClick={handleExport}
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2"
                 >
                   <FaDownload />
-                  <span className="hidden sm:inline">Dışa Aktar</span>
+                  <span className="hidden sm:inline"><TranslatedText text="Dışa Aktar" /></span>
                 </button>
-                <button 
+                <button
                   onClick={() => setShowAddModal(true)}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
                 >
                   <FaPlus />
-                  <span className="hidden sm:inline">Yeni Ürün</span>
+                  <span className="hidden sm:inline"><TranslatedText text="Yeni Ürün" /></span>
                 </button>
               </div>
             </div>
@@ -327,7 +329,7 @@ export default function InventoryPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Ürün</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Ürün" /></p>
                   <p className="text-2xl font-bold text-gray-900">{inventory.length}</p>
                 </div>
                 <FaBox className="text-3xl text-blue-500" />
@@ -336,7 +338,7 @@ export default function InventoryPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Düşük Stok</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Düşük Stok" /></p>
                   <p className="text-2xl font-bold text-orange-600">{lowStockItems.length}</p>
                 </div>
                 <FaExclamationTriangle className="text-3xl text-orange-500" />
@@ -345,7 +347,7 @@ export default function InventoryPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Değer</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Değer" /></p>
                   <p className="text-2xl font-bold text-green-600">₺{totalValue.toLocaleString()}</p>
                 </div>
                 <FaChartLine className="text-3xl text-green-500" />
@@ -354,7 +356,7 @@ export default function InventoryPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Kategoriler</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Kategoriler" /></p>
                   <p className="text-2xl font-bold text-purple-600">{categories.length - 1}</p>
                 </div>
                 <FaCheckCircle className="text-3xl text-purple-500" />
@@ -369,7 +371,7 @@ export default function InventoryPage() {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Ürün veya tedarikçi ara..."
+                  placeholder={t('Ürün veya tedarikçi ara...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -382,7 +384,7 @@ export default function InventoryPage() {
               >
                 {categories.map(cat => (
                   <option key={cat} value={cat}>
-                    {cat === 'all' ? 'Tüm Kategoriler' : cat}
+                    {cat === 'all' ? t('Tüm Kategoriler') : cat}
                   </option>
                 ))}
               </select>
@@ -395,9 +397,9 @@ export default function InventoryPage() {
               <div className="flex items-start gap-3">
                 <FaExclamationTriangle className="text-orange-500 text-xl mt-1" />
                 <div>
-                  <h3 className="font-semibold text-orange-900 mb-1">Düşük Stok Uyarısı</h3>
+                  <h3 className="font-semibold text-orange-900 mb-1"><TranslatedText text="Düşük Stok Uyarısı" /></h3>
                   <p className="text-sm text-orange-800">
-                    {lowStockItems.length} ürün minimum stok seviyesinin altında. Sipariş vermeyi unutmayın.
+                    {lowStockItems.length} {t('ürün minimum stok seviyesinin altında. Sipariş vermeyi unutmayın.')}
                   </p>
                 </div>
               </div>
@@ -407,7 +409,7 @@ export default function InventoryPage() {
           {/* Loading State */}
           {loading && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-              <p className="text-gray-600">Yükleniyor...</p>
+              <p className="text-gray-600"><TranslatedText text="Yükleniyor..." /></p>
             </div>
           )}
 
@@ -416,84 +418,84 @@ export default function InventoryPage() {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ürün
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Kategori
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Miktar
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Durum
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fiyat
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tedarikçi
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      İşlemler
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredInventory.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">{item.name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
-                          {item.category}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="font-medium">{item.quantity} {item.unit}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {item.quantity <= item.minStock ? (
-                          <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full flex items-center gap-1 w-fit">
-                            <FaExclamationTriangle />
-                            Düşük
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full flex items-center gap-1 w-fit">
-                            <FaCheckCircle />
-                            Normal
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                        ₺{item.price}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                        {item.supplier}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button 
-                          onClick={() => handleEditClick(item)}
-                          className="text-blue-600 hover:text-blue-900 mr-3"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteClick(item.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <FaTrash />
-                        </button>
-                      </td>
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <TranslatedText text="Ürün" />
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <TranslatedText text="Kategori" />
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <TranslatedText text="Miktar" />
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <TranslatedText text="Durum" />
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <TranslatedText text="Fiyat" />
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <TranslatedText text="Tedarikçi" />
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <TranslatedText text="İşlemler" />
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredInventory.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-medium text-gray-900">{item.name}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
+                            {item.category}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="font-medium">{item.quantity} {item.unit}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {item.quantity <= item.minStock ? (
+                            <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full flex items-center gap-1 w-fit">
+                              <FaExclamationTriangle />
+                              <TranslatedText text="Düşük" />
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full flex items-center gap-1 w-fit">
+                              <FaCheckCircle />
+                              <TranslatedText text="Normal" />
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                          ₺{item.price}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                          {item.supplier}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => handleEditClick(item)}
+                            className="text-blue-600 hover:text-blue-900 mr-3"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(item.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            <FaTrash />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
           )}
         </div>
       </div>
@@ -503,12 +505,12 @@ export default function InventoryPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Yeni Ürün Ekle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="Yeni Ürün Ekle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ürün Adı <span className="text-red-500">*</span>
+                  <TranslatedText text="Ürün Adı" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -521,7 +523,7 @@ export default function InventoryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kategori <span className="text-red-500">*</span>
+                    <TranslatedText text="Kategori" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -533,7 +535,7 @@ export default function InventoryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Birim
+                    <TranslatedText text="Birim" />
                   </label>
                   <select
                     value={formData.unit}
@@ -550,7 +552,7 @@ export default function InventoryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Miktar
+                    <TranslatedText text="Miktar" />
                   </label>
                   <input
                     type="number"
@@ -563,7 +565,7 @@ export default function InventoryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Minimum Stok
+                    <TranslatedText text="Minimum Stok" />
                   </label>
                   <input
                     type="number"
@@ -578,7 +580,7 @@ export default function InventoryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fiyat (₺)
+                    <TranslatedText text="Fiyat (₺) *" />
                   </label>
                   <input
                     type="number"
@@ -591,7 +593,7 @@ export default function InventoryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tedarikçi <span className="text-red-500">*</span>
+                    <TranslatedText text="Tedarikçi" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -611,13 +613,13 @@ export default function InventoryPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleAddItem}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
               >
-                Kaydet
+                <TranslatedText text="Kaydet" />
               </button>
             </div>
           </div>
@@ -629,12 +631,12 @@ export default function InventoryPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Ürünü Düzenle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="Ürünü Düzenle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ürün Adı <span className="text-red-500">*</span>
+                  <TranslatedText text="Ürün Adı" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -647,7 +649,7 @@ export default function InventoryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kategori <span className="text-red-500">*</span>
+                    <TranslatedText text="Kategori" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -659,7 +661,7 @@ export default function InventoryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Birim
+                    <TranslatedText text="Birim" />
                   </label>
                   <select
                     value={formData.unit}
@@ -676,7 +678,7 @@ export default function InventoryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Miktar
+                    <TranslatedText text="Miktar" />
                   </label>
                   <input
                     type="number"
@@ -689,7 +691,7 @@ export default function InventoryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Minimum Stok
+                    <TranslatedText text="Minimum Stok" />
                   </label>
                   <input
                     type="number"
@@ -704,7 +706,7 @@ export default function InventoryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fiyat (₺)
+                    <TranslatedText text="Fiyat (₺) *" />
                   </label>
                   <input
                     type="number"
@@ -717,7 +719,7 @@ export default function InventoryPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tedarikçi <span className="text-red-500">*</span>
+                    <TranslatedText text="Tedarikçi" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -738,13 +740,13 @@ export default function InventoryPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleUpdateItem}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
               >
-                Güncelle
+                <TranslatedText text="Güncelle" />
               </button>
             </div>
           </div>
@@ -761,9 +763,9 @@ export default function InventoryPage() {
                   <FaTrash className="text-red-600 text-xl" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Ürünü Sil</h3>
+                  <h3 className="text-lg font-bold text-gray-900"><TranslatedText text="Ürünü Sil" /></h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    Bu ürünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                    <TranslatedText text="Bu ürünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz." />
                   </p>
                 </div>
               </div>
@@ -775,13 +777,13 @@ export default function InventoryPage() {
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                 >
-                  İptal
+                  <TranslatedText text="İptal" />
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
-                  Sil
+                  <TranslatedText text="Sil" />
                 </button>
               </div>
             </div>

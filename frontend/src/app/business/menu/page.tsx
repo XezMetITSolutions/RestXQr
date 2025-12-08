@@ -113,7 +113,7 @@ export default function MenuManagement() {
   console.log('  first item restaurantId:', allMenuItems[0]?.restaurantId);
   console.log('  match?', allMenuItems[0]?.restaurantId === currentRestaurantId);
 
-  const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || 'Kullanıcı';
+  const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || t('Kullanıcı');
 
   const [activeTab, setActiveTab] = useState<'items' | 'categories' | 'stats'>('items');
   const [searchTerm, setSearchTerm] = useState('');
@@ -865,9 +865,9 @@ export default function MenuManagement() {
                 </div>
                 <div>
                   <h2 className="text-3xl font-black bg-gradient-to-r from-gray-900 via-purple-800 to-pink-800 bg-clip-text text-transparent">
-                    Menü Yönetimi
+                    <TranslatedText>Menü Yönetimi</TranslatedText>
                   </h2>
-                  <p className="text-gray-600 text-lg font-semibold mt-1">Restoran menünüzü yönetin ve düzenleyin</p>
+                  <p className="text-gray-600 text-lg font-semibold mt-1"><TranslatedText>Restoran menünüzü yönetin ve düzenleyin</TranslatedText></p>
                 </div>
               </div>
             </div>
@@ -887,7 +887,7 @@ export default function MenuManagement() {
                   }`}
               >
                 <FaUtensils />
-                Ürünler ({items.length})
+                <TranslatedText>Ürünler</TranslatedText> ({items.length})
               </button>
               <button
                 onClick={() => setActiveTab('categories')}
@@ -897,7 +897,7 @@ export default function MenuManagement() {
                   }`}
               >
                 <FaTag />
-                Kategoriler ({categories.length})
+                <TranslatedText>Kategoriler</TranslatedText> ({categories.length})
               </button>
               <button
                 onClick={() => setActiveTab('stats')}
@@ -907,7 +907,7 @@ export default function MenuManagement() {
                   }`}
               >
                 <FaChartBar />
-                İstatistikler
+                <TranslatedText>İstatistikler</TranslatedText>
               </button>
             </div>
 
@@ -925,7 +925,7 @@ export default function MenuManagement() {
                 className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl hover:from-purple-600 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold"
               >
                 <FaPlus className="text-white text-xl" />
-                <span className="font-bold">Yeni Ürün Ekle</span>
+                <span className="font-bold"><TranslatedText>Yeni Ürün Ekle</TranslatedText></span>
               </button>
 
               {/* Toplu Fiyat Düzenle */}
@@ -934,7 +934,7 @@ export default function MenuManagement() {
                 className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold"
               >
                 <span className="text-white text-xl">%</span>
-                <span className="font-bold">Toplu Fiyat Düzenle</span>
+                <span className="font-bold"><TranslatedText>Toplu Fiyat Düzenle</TranslatedText></span>
               </button>
 
               {/* Toplu İçe Aktar (AI) */}
@@ -945,7 +945,7 @@ export default function MenuManagement() {
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span>Toplu İçe Aktar</span>
+                <span><TranslatedText>Toplu İçe Aktar</TranslatedText></span>
               </button>
 
               {/* Toplu Çeviri (Almanca) */}
@@ -957,7 +957,7 @@ export default function MenuManagement() {
               >
                 <FaLanguage className="text-white text-xl" />
                 <span className="font-bold">
-                  {isBulkTranslating ? 'Çevriliyor...' : 'Tümünü Almancaya Çevir'}
+                  {isBulkTranslating ? <TranslatedText>Çevriliyor...</TranslatedText> : <TranslatedText>Tümünü Almancaya Çevir</TranslatedText>}
                 </span>
               </button>
             </div>
@@ -969,7 +969,7 @@ export default function MenuManagement() {
           {loading && (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-              <span className="ml-2 text-gray-600">Yükleniyor...</span>
+              <span className="ml-2 text-gray-600"><TranslatedText>Yükleniyor...</TranslatedText></span>
             </div>
           )}
 
@@ -1033,9 +1033,9 @@ export default function MenuManagement() {
                       onChange={(e) => setStatusFilter(e.target.value as any)}
                       className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
                     >
-                      <option value="all"><TranslatedText>Tümü</TranslatedText></option>
-                      <option value="available"><TranslatedText>Mevcut</TranslatedText></option>
-                      <option value="out-of-stock"><TranslatedText>Tükendi</TranslatedText></option>
+                      <option value="all">{t('Tümü')}</option>
+                      <option value="available">{t('Mevcut')}</option>
+                      <option value="out-of-stock">{t('Tükendi')}</option>
                     </select>
                   </div>
 
@@ -1272,14 +1272,14 @@ export default function MenuManagement() {
                             <button
                               onClick={() => handleEditItem(item)}
                               className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-lg"
-                              title="Düzenle"
+                              title={t('Düzenle')}
                             >
                               <FaEdit className="text-sm" />
                             </button>
                             <button
                               onClick={() => handleDeleteItem(item.id)}
                               className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg"
-                              title="Sil"
+                              title={t('Sil')}
                             >
                               <FaTrash className="text-sm" />
                             </button>

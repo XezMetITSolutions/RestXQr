@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import BusinessSidebar from '@/components/BusinessSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFeature } from '@/hooks/useFeature';
-import { 
-  FaVideo, 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
+import {
+  FaVideo,
+  FaPlus,
+  FaEdit,
+  FaTrash,
   FaSearch,
   FaPlay,
   FaPause,
@@ -20,6 +20,7 @@ import {
   FaTimesCircle,
   FaClock
 } from 'react-icons/fa';
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 
 interface VideoMenuItem {
   id: string;
@@ -36,6 +37,7 @@ interface VideoMenuItem {
 
 export default function VideoMenuPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated, logout } = useAuthStore();
   const hasVideoMenu = useFeature('video_menu');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,48 +49,48 @@ export default function VideoMenuPage() {
   const [videoMenuItems, setVideoMenuItems] = useState<VideoMenuItem[]>([
     {
       id: '1',
-      title: 'İmza Pizza Yapımı',
-      description: 'Usta pizzacımızın özel tarifini keşfedin',
+      title: t('İmza Pizza Yapımı'),
+      description: t('Usta pizzacımızın özel tarifini keşfedin'),
       videoUrl: '/videos/pizza.mp4',
       thumbnail: '/images/pizza-thumb.jpg',
       duration: '2:45',
-      category: 'Ana Yemek',
+      category: t('Ana Yemek'),
       status: 'active',
       views: 1250,
       uploadedAt: new Date().toISOString()
     },
     {
       id: '2',
-      title: 'Taze Salata Hazırlığı',
-      description: 'Günlük taze malzemelerle hazırlanan salatalarımız',
+      title: t('Taze Salata Hazırlığı'),
+      description: t('Günlük taze malzemelerle hazırlanan salatalarımız'),
       videoUrl: '/videos/salad.mp4',
       thumbnail: '/images/salad-thumb.jpg',
       duration: '1:30',
-      category: 'Salata',
+      category: t('Salata'),
       status: 'active',
       views: 890,
       uploadedAt: new Date(Date.now() - 86400000).toISOString()
     },
     {
       id: '3',
-      title: 'Özel Burger Menü',
-      description: 'El yapımı köfteli burgerlerimiz',
+      title: t('Özel Burger Menü'),
+      description: t('El yapımı köfteli burgerlerimiz'),
       videoUrl: '/videos/burger.mp4',
       thumbnail: '/images/burger-thumb.jpg',
       duration: '3:15',
-      category: 'Ana Yemek',
+      category: t('Ana Yemek'),
       status: 'processing',
       views: 0,
       uploadedAt: new Date(Date.now() - 3600000).toISOString()
     },
     {
       id: '4',
-      title: 'Tatlı Çeşitleri',
-      description: 'Ev yapımı tatlılarımızdan örnekler',
+      title: t('Tatlı Çeşitleri'),
+      description: t('Ev yapımı tatlılarımızdan örnekler'),
       videoUrl: '/videos/dessert.mp4',
       thumbnail: '/images/dessert-thumb.jpg',
       duration: '2:00',
-      category: 'Tatlı',
+      category: t('Tatlı'),
       status: 'inactive',
       views: 450,
       uploadedAt: new Date(Date.now() - 172800000).toISOString()
@@ -107,15 +109,15 @@ export default function VideoMenuPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <FaVideo className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Video Menü</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2"><TranslatedText text="Video Menü" /></h2>
           <p className="text-gray-600 mb-4">
-            Bu özellik planınızda bulunmuyor. Video menü özelliğini kullanmak için planınızı yükseltin.
+            <TranslatedText text="Bu özellik planınızda bulunmuyor. Video menü özelliğini kullanmak için planınızı yükseltin." />
           </p>
           <button
             onClick={() => router.push('/business/settings')}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Planı Yükselt
+            <TranslatedText text="Planı Yükselt" />
           </button>
         </div>
       </div>
@@ -147,17 +149,17 @@ export default function VideoMenuPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'active': return 'Aktif';
-      case 'inactive': return 'Pasif';
-      case 'processing': return 'İşleniyor';
+      case 'active': return t('Aktif');
+      case 'inactive': return t('Pasif');
+      case 'processing': return t('İşleniyor');
       default: return status;
     }
   };
 
   const filteredVideos = videoMenuItems.filter(video => {
     const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         video.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         video.category.toLowerCase().includes(searchTerm.toLowerCase());
+      video.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      video.category.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || video.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -168,7 +170,7 @@ export default function VideoMenuPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -189,17 +191,17 @@ export default function VideoMenuPage() {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <FaVideo className="text-red-600" />
-                    Video Menü
+                    <TranslatedText text="Video Menü" />
                   </h1>
-                  <p className="text-sm text-gray-600 mt-1">Menünüzü videolarla tanıtın</p>
+                  <p className="text-sm text-gray-600 mt-1"><TranslatedText text="Menünüzü videolarla tanıtın" /></p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowAddModal(true)}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
               >
                 <FaUpload />
-                <span className="hidden sm:inline">Video Yükle</span>
+                <span className="hidden sm:inline"><TranslatedText text="Video Yükle" /></span>
               </button>
             </div>
           </div>
@@ -211,7 +213,7 @@ export default function VideoMenuPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Video</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Video" /></p>
                   <p className="text-2xl font-bold text-gray-900">{videoMenuItems.length}</p>
                 </div>
                 <FaVideo className="text-3xl text-red-500" />
@@ -220,7 +222,7 @@ export default function VideoMenuPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Aktif Video</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Aktif Video" /></p>
                   <p className="text-2xl font-bold text-green-600">{activeVideos}</p>
                 </div>
                 <FaCheckCircle className="text-3xl text-green-500" />
@@ -229,7 +231,7 @@ export default function VideoMenuPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam İzlenme</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam İzlenme" /></p>
                   <p className="text-2xl font-bold text-blue-600">{totalViews.toLocaleString()}</p>
                 </div>
                 <FaEye className="text-3xl text-blue-500" />
@@ -238,7 +240,7 @@ export default function VideoMenuPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Ort. İzlenme</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Ort. İzlenme" /></p>
                   <p className="text-2xl font-bold text-purple-600">{avgViews}</p>
                 </div>
                 <FaPlay className="text-3xl text-purple-500" />
@@ -253,7 +255,7 @@ export default function VideoMenuPage() {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Video başlığı, açıklama veya kategori ara..."
+                  placeholder={t('Video başlığı, açıklama veya kategori ara...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
@@ -264,10 +266,10 @@ export default function VideoMenuPage() {
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
               >
-                <option value="all">Tüm Durumlar</option>
-                <option value="active">Aktif</option>
-                <option value="inactive">Pasif</option>
-                <option value="processing">İşleniyor</option>
+                <option value="all">{t('Tüm Durumlar')}</option>
+                <option value="active">{t('Aktif')}</option>
+                <option value="inactive">{t('Pasif')}</option>
+                <option value="processing">{t('İşleniyor')}</option>
               </select>
             </div>
           </div>
@@ -298,21 +300,21 @@ export default function VideoMenuPage() {
                 <div className="p-4">
                   <h3 className="font-bold text-gray-900 mb-2">{video.title}</h3>
                   <p className="text-sm text-gray-600 mb-3 line-clamp-2">{video.description}</p>
-                  
+
                   <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
                     <span className="px-2 py-1 bg-gray-100 rounded-full text-xs font-medium">
                       {video.category}
                     </span>
                     <div className="flex items-center gap-1">
                       <FaEye />
-                      <span>{video.views.toLocaleString()} izlenme</span>
+                      <span>{video.views.toLocaleString()} <TranslatedText text="izlenme" /></span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 pt-3 border-t border-gray-200">
                     <button className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 flex items-center justify-center gap-2 text-sm font-medium">
                       <FaPlay />
-                      Oynat
+                      <TranslatedText text="Oynat" />
                     </button>
                     <button className="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
                       <FaEdit />
@@ -329,7 +331,7 @@ export default function VideoMenuPage() {
           {filteredVideos.length === 0 && (
             <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
               <FaVideo className="text-5xl text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">Video bulunamadı</p>
+              <p className="text-gray-600"><TranslatedText text="Video bulunamadı" /></p>
             </div>
           )}
 
@@ -337,16 +339,16 @@ export default function VideoMenuPage() {
           <div className="mt-6 bg-red-50 rounded-lg p-6 border border-red-200">
             <h3 className="font-bold text-red-900 mb-2 flex items-center gap-2">
               <FaVideo />
-              Video Menü Avantajları
+              <TranslatedText text="Video Menü Avantajları" />
             </h3>
             <p className="text-sm text-red-800 mb-4">
-              Video menüler, müşterilerinizin yemekleri daha iyi anlamasını sağlar ve sipariş oranlarını %40'a kadar artırabilir.
+              <TranslatedText text="Video menüler, müşterilerinizin yemekleri daha iyi anlamasını sağlar ve sipariş oranlarını %40'a kadar artırabilir." />
             </p>
             <ul className="text-sm text-red-800 space-y-2">
-              <li>✓ Yemekleri görsel olarak tanıtın</li>
-              <li>✓ Hazırlık süreçlerini gösterin</li>
-              <li>✓ Müşteri güvenini artırın</li>
-              <li>✓ Sosyal medyada paylaşılabilir içerik</li>
+              <li>✓ <TranslatedText text="Yemekleri görsel olarak tanıtın" /></li>
+              <li>✓ <TranslatedText text="Hazırlık süreçlerini gösterin" /></li>
+              <li>✓ <TranslatedText text="Müşteri güvenini artırın" /></li>
+              <li>✓ <TranslatedText text="Sosyal medyada paylaşılabilir içerik" /></li>
             </ul>
           </div>
         </div>

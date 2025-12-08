@@ -6,11 +6,12 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFeature } from '@/hooks/useFeature';
 import { apiService } from '@/services/api';
-import { 
-  FaCode, 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
+import {
+  FaCode,
+  FaPlus,
+  FaEdit,
+  FaTrash,
   FaSearch,
   FaKey,
   FaCopy,
@@ -37,6 +38,7 @@ interface ApiKey {
 
 export default function ApiPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated, logout, user } = useAuthStore();
   const hasApiAccess = useFeature('api_access');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -69,7 +71,7 @@ export default function ApiPage() {
       setLoading(true);
       const restaurantId = user?.id;
       if (!restaurantId) return;
-      
+
       const response = await apiService.getApiKeys(restaurantId);
       if (response.success && response.data) {
         // Backend'den gelen veriyi frontend formatına çevir
@@ -95,7 +97,7 @@ export default function ApiPage() {
 
   const handleAddApiKey = async () => {
     if (!formData.name) {
-      alert('Lütfen API anahtarı adını girin.');
+      alert(t('Lütfen API anahtarı adını girin.'));
       return;
     }
 
@@ -109,17 +111,17 @@ export default function ApiPage() {
         permissions: formData.permissions,
         expiresAt: formData.expiresAt || null
       });
-      
+
       if (response.success) {
         await fetchApiKeys();
         setShowAddModal(false);
         resetForm();
       } else {
-        alert('API anahtarı eklenirken hata oluştu.');
+        alert(t('API anahtarı eklenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('API key eklenirken hata:', error);
-      alert('API anahtarı eklenirken hata oluştu.');
+      alert(t('API anahtarı eklenirken hata oluştu.'));
     }
   };
 
@@ -135,7 +137,7 @@ export default function ApiPage() {
 
   const handleUpdateApiKey = async () => {
     if (!formData.name) {
-      alert('Lütfen API anahtarı adını girin.');
+      alert(t('Lütfen API anahtarı adını girin.'));
       return;
     }
 
@@ -147,18 +149,18 @@ export default function ApiPage() {
         permissions: formData.permissions,
         expiresAt: formData.expiresAt || null
       });
-      
+
       if (response.success) {
         await fetchApiKeys();
         setShowEditModal(false);
         setEditingKey(null);
         resetForm();
       } else {
-        alert('API anahtarı güncellenirken hata oluştu.');
+        alert(t('API anahtarı güncellenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('API key güncellenirken hata:', error);
-      alert('API anahtarı güncellenirken hata oluştu.');
+      alert(t('API anahtarı güncellenirken hata oluştu.'));
     }
   };
 
@@ -177,11 +179,11 @@ export default function ApiPage() {
         setShowDeleteConfirm(false);
         setKeyToDelete(null);
       } else {
-        alert('API anahtarı silinirken hata oluştu.');
+        alert(t('API anahtarı silinirken hata oluştu.'));
       }
     } catch (error) {
       console.error('API key silinirken hata:', error);
-      alert('API anahtarı silinirken hata oluştu.');
+      alert(t('API anahtarı silinirken hata oluştu.'));
     }
   };
 
@@ -194,8 +196,8 @@ export default function ApiPage() {
   };
 
   const handleRegenerateApiKey = async (id: string) => {
-    if (!confirm('Bu API key\'i yenilemek istediğinizden emin misiniz? Eski key çalışmayacak.')) return;
-    
+    if (!confirm(t('Bu API key\'i yenilemek istediğinizden emin misiniz? Eski key çalışmayacak.'))) return;
+
     try {
       const response = await apiService.regenerateApiKey(id);
       if (response.success) {
@@ -212,15 +214,15 @@ export default function ApiPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <FaCode className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">API Yönetimi</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2"><TranslatedText text="API Yönetimi" /></h2>
           <p className="text-gray-600 mb-4">
-            Bu özellik planınızda bulunmuyor. API erişimi özelliğini kullanmak için planınızı yükseltin.
+            <TranslatedText text="Bu özellik planınızda bulunmuyor. API erişimi özelliğini kullanmak için planınızı yükseltin." />
           </p>
           <button
             onClick={() => router.push('/business/settings')}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Planı Yükselt
+            <TranslatedText text="Planı Yükselt" />
           </button>
         </div>
       </div>
@@ -258,7 +260,7 @@ export default function ApiPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -279,17 +281,17 @@ export default function ApiPage() {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <FaCode className="text-indigo-600" />
-                    API Yönetimi
+                    <TranslatedText text="API Yönetimi" />
                   </h1>
-                  <p className="text-sm text-gray-600 mt-1">API anahtarlarınızı yönetin ve izleyin</p>
+                  <p className="text-sm text-gray-600 mt-1"><TranslatedText text="API anahtarlarınızı yönetin ve izleyin" /></p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowAddModal(true)}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
               >
                 <FaPlus />
-                <span className="hidden sm:inline">Yeni API Anahtarı</span>
+                <span className="hidden sm:inline"><TranslatedText text="Yeni API Anahtarı" /></span>
               </button>
             </div>
           </div>
@@ -301,7 +303,7 @@ export default function ApiPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Anahtar</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Anahtar" /></p>
                   <p className="text-2xl font-bold text-gray-900">{apiKeys.length}</p>
                 </div>
                 <FaKey className="text-3xl text-indigo-500" />
@@ -310,7 +312,7 @@ export default function ApiPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Aktif Anahtar</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Aktif Anahtar" /></p>
                   <p className="text-2xl font-bold text-green-600">{activeKeys}</p>
                 </div>
                 <FaCheckCircle className="text-3xl text-green-500" />
@@ -319,7 +321,7 @@ export default function ApiPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam İstek</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam İstek" /></p>
                   <p className="text-2xl font-bold text-blue-600">{totalRequests.toLocaleString()}</p>
                 </div>
                 <FaChartLine className="text-3xl text-blue-500" />
@@ -328,7 +330,7 @@ export default function ApiPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Ort. İstek</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Ort. İstek" /></p>
                   <p className="text-2xl font-bold text-purple-600">{avgRequests.toLocaleString()}</p>
                 </div>
                 <FaClock className="text-3xl text-purple-500" />
@@ -343,7 +345,7 @@ export default function ApiPage() {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="API anahtarı adı ara..."
+                  placeholder={t('API anahtarı adı ara...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -354,9 +356,9 @@ export default function ApiPage() {
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
-                <option value="all">Tüm Durumlar</option>
-                <option value="active">Aktif</option>
-                <option value="inactive">Pasif</option>
+                <option value="all">{t('Tüm Durumlar')}</option>
+                <option value="active">{t('Aktif')}</option>
+                <option value="inactive">{t('Pasif')}</option>
               </select>
             </div>
           </div>
@@ -373,24 +375,23 @@ export default function ApiPage() {
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-900">{apiKey.name}</h3>
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${
-                          apiKey.status === 'active' 
-                            ? 'bg-green-100 text-green-700' 
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${apiKey.status === 'active'
+                            ? 'bg-green-100 text-green-700'
                             : 'bg-gray-100 text-gray-700'
-                        }`}>
+                          }`}>
                           {apiKey.status === 'active' ? <FaCheckCircle /> : <FaTimesCircle />}
-                          {apiKey.status === 'active' ? 'Aktif' : 'Pasif'}
+                          {apiKey.status === 'active' ? t('Aktif') : t('Pasif')}
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button 
+                      <button
                         onClick={() => handleEditClick(apiKey)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
                       >
                         <FaEdit />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteClick(apiKey.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                       >
@@ -427,11 +428,11 @@ export default function ApiPage() {
 
                   {/* Permissions */}
                   <div className="mb-4">
-                    <p className="text-sm text-gray-600 mb-2">İzinler:</p>
+                    <p className="text-sm text-gray-600 mb-2"><TranslatedText text="İzinler" />:</p>
                     <div className="flex flex-wrap gap-2">
                       {apiKey.permissions.map((perm) => (
                         <span key={perm} className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
-                          {perm === 'read' ? 'Okuma' : perm === 'write' ? 'Yazma' : 'Silme'}
+                          {perm === 'read' ? t('Okuma') : perm === 'write' ? t('Yazma') : t('Silme')}
                         </span>
                       ))}
                     </div>
@@ -440,17 +441,17 @@ export default function ApiPage() {
                   {/* Stats */}
                   <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
                     <div>
-                      <p className="text-xs text-gray-600">İstek Sayısı</p>
+                      <p className="text-xs text-gray-600"><TranslatedText text="İstek Sayısı" /></p>
                       <p className="text-lg font-bold text-gray-900">{apiKey.requestCount.toLocaleString()}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Son Kullanım</p>
+                      <p className="text-xs text-gray-600"><TranslatedText text="Son Kullanım" /></p>
                       <p className="text-sm font-medium text-gray-900">
                         {new Date(apiKey.lastUsed).toLocaleDateString('tr-TR')}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Geçerlilik</p>
+                      <p className="text-xs text-gray-600"><TranslatedText text="Geçerlilik" /></p>
                       <p className="text-sm font-medium text-gray-900">
                         {new Date(apiKey.expiresAt).toLocaleDateString('tr-TR')}
                       </p>
@@ -464,7 +465,7 @@ export default function ApiPage() {
           {filteredKeys.length === 0 && (
             <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
               <FaKey className="text-5xl text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">API anahtarı bulunamadı</p>
+              <p className="text-gray-600"><TranslatedText text="API anahtarı bulunamadı" /></p>
             </div>
           )}
 
@@ -472,13 +473,13 @@ export default function ApiPage() {
           <div className="mt-6 bg-indigo-50 rounded-lg p-6 border border-indigo-200">
             <h3 className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
               <FaCode />
-              API Dokümantasyonu
+              <TranslatedText text="API Dokümantasyonu" />
             </h3>
             <p className="text-sm text-indigo-800 mb-4">
-              API'mizi kullanmaya başlamak için dokümantasyonumuzu inceleyin.
+              <TranslatedText text="API'mizi kullanmaya başlamak için dokümantasyonumuzu inceleyin." />
             </p>
             <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-              Dokümantasyonu Görüntüle
+              <TranslatedText text="Dokümantasyonu Görüntüle" />
             </button>
           </div>
         </div>
@@ -489,12 +490,12 @@ export default function ApiPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Yeni API Anahtarı Ekle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="Yeni API Anahtarı Ekle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Anahtar Adı <span className="text-red-500">*</span>
+                  <TranslatedText text="Anahtar Adı" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -506,7 +507,7 @@ export default function ApiPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  İzinler
+                  <TranslatedText text="İzinler" />
                 </label>
                 <div className="space-y-2">
                   {['read', 'write', 'delete'].map((perm) => (
@@ -524,7 +525,7 @@ export default function ApiPage() {
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <span className="text-sm text-gray-700">
-                        {perm === 'read' ? 'Okuma' : perm === 'write' ? 'Yazma' : 'Silme'}
+                        {perm === 'read' ? t('Okuma') : perm === 'write' ? t('Yazma') : t('Silme')}
                       </span>
                     </label>
                   ))}
@@ -532,7 +533,7 @@ export default function ApiPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Son Kullanma Tarihi (Opsiyonel)
+                  <TranslatedText text="Son Kullanma Tarihi (Opsiyonel)" />
                 </label>
                 <input
                   type="date"
@@ -550,13 +551,13 @@ export default function ApiPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleAddApiKey}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
               >
-                Kaydet
+                <TranslatedText text="Kaydet" />
               </button>
             </div>
           </div>
@@ -568,12 +569,12 @@ export default function ApiPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">API Anahtarını Düzenle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="API Anahtarını Düzenle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Anahtar Adı <span className="text-red-500">*</span>
+                  <TranslatedText text="Anahtar Adı" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -585,7 +586,7 @@ export default function ApiPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  İzinler
+                  <TranslatedText text="İzinler" />
                 </label>
                 <div className="space-y-2">
                   {['read', 'write', 'delete'].map((perm) => (
@@ -603,7 +604,7 @@ export default function ApiPage() {
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <span className="text-sm text-gray-700">
-                        {perm === 'read' ? 'Okuma' : perm === 'write' ? 'Yazma' : 'Silme'}
+                        {perm === 'read' ? t('Okuma') : perm === 'write' ? t('Yazma') : t('Silme')}
                       </span>
                     </label>
                   ))}
@@ -611,7 +612,7 @@ export default function ApiPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Son Kullanma Tarihi (Opsiyonel)
+                  <TranslatedText text="Son Kullanma Tarihi (Opsiyonel)" />
                 </label>
                 <input
                   type="date"
@@ -630,13 +631,13 @@ export default function ApiPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleUpdateApiKey}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
               >
-                Güncelle
+                <TranslatedText text="Güncelle" />
               </button>
             </div>
           </div>
@@ -653,9 +654,9 @@ export default function ApiPage() {
                   <FaTrash className="text-red-600 text-xl" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">API Anahtarını Sil</h3>
+                  <h3 className="text-lg font-bold text-gray-900"><TranslatedText text="API Anahtarını Sil" /></h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    Bu API anahtarını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                    <TranslatedText text="Bu API anahtarını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz." />
                   </p>
                 </div>
               </div>
@@ -667,13 +668,13 @@ export default function ApiPage() {
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                 >
-                  İptal
+                  <TranslatedText text="İptal" />
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
-                  Sil
+                  <TranslatedText text="Sil" />
                 </button>
               </div>
             </div>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import apiService from '@/services/api';
 import { FaEye, FaEyeSlash, FaLock, FaUser, FaArrowRight } from 'react-icons/fa';
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 
 export default function IsletmeGirisPage() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function IsletmeGirisPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [subdomain, setSubdomain] = useState('');
   const [restaurantInfo, setRestaurantInfo] = useState<any>(null);
+  const { t } = useTranslation();
 
   // Ana domain'den gelenleri demo panele yönlendir
   useEffect(() => {
@@ -24,7 +26,7 @@ export default function IsletmeGirisPage() {
       const hostname = window.location.hostname;
       const currentSubdomain = hostname.split('.')[0];
       const mainDomains = ['localhost', 'www', 'restxqr'];
-      
+
       // Ana domain'den geliyorsa demo panele yönlendir
       if (mainDomains.includes(currentSubdomain) || !hostname.includes('.')) {
         // window.location kullanarak hard redirect yap
@@ -38,7 +40,7 @@ export default function IsletmeGirisPage() {
   useEffect(() => {
     const savedUsername = localStorage.getItem('rememberedUsername');
     const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
-    
+
     if (savedUsername && savedRememberMe) {
       setUsername(savedUsername);
       setRememberMe(true);
@@ -49,23 +51,23 @@ export default function IsletmeGirisPage() {
         const hostname = window.location.hostname;
         const currentSubdomain = hostname.split('.')[0];
         const mainDomains = ['localhost', 'www', 'restxqr'];
-        
+
         if (!mainDomains.includes(currentSubdomain) && hostname.includes('.')) {
           setSubdomain(currentSubdomain);
-          
+
           try {
             // Backend'den restoran ayarlarını çek
             const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
             const response = await fetch(`${API_URL}/restaurants/username/${currentSubdomain}`);
-            
+
             if (response.ok) {
               const data = await response.json();
               if (data.success && data.data) {
                 const restaurant = data.data;
-                
+
                 setRestaurantInfo({
                   name: restaurant.name || `${currentSubdomain.charAt(0).toUpperCase() + currentSubdomain.slice(1)} Restaurant`,
-                  description: 'İşletme Paneli', // TODO: Bu bilgi settings'ten gelecek
+                  description: t('İşletme Paneli'),
                   logo: '🍽️'
                 });
                 return;
@@ -74,27 +76,27 @@ export default function IsletmeGirisPage() {
           } catch (error) {
             console.error('Failed to fetch restaurant info:', error);
           }
-          
+
           // Fallback
           setRestaurantInfo({
             name: `${currentSubdomain.charAt(0).toUpperCase() + currentSubdomain.slice(1)} Restaurant`,
-            description: 'İşletme Paneli',
+            description: t('İşletme Paneli'),
             logo: '🍽️'
           });
         }
       }
     };
-    
+
     loadRestaurantInfo();
-  }, []);
+  }, [t]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
+
     console.log('🔐 Attempting login:', { username, subdomain });
-    
+
     try {
       // Restaurant login
       const response = await apiService.login({ username, password });
@@ -118,16 +120,16 @@ export default function IsletmeGirisPage() {
       throw new Error('Login failed');
     } catch (error: any) {
       console.warn('⚠️ Business login failed, trying staff login...', error?.message);
-      
+
       // Staff login fallback
       try {
         const currentSubdomain = subdomain || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
         const staffResp = await apiService.staffLogin(username, password, currentSubdomain);
-        
+
         if (staffResp.success && staffResp.data) {
           const staff = staffResp.data as any;
           const role = (staff.role || '').toLowerCase();
-          
+
           const roleToPath: Record<string, string> = {
             cashier: '/business/cashier',
             kasiyer: '/business/cashier',
@@ -144,17 +146,17 @@ export default function IsletmeGirisPage() {
           try {
             const storageKey = `${role || 'staff'}_staff`;
             sessionStorage.setItem(storageKey, JSON.stringify(staff));
-          } catch {}
+          } catch { }
 
           const target = roleToPath[role] || '/business/dashboard';
           router.push(target);
           return;
         }
 
-        setError('Kullanıcı adı veya şifre hatalı');
+        setError(t('Kullanıcı adı veya şifre hatalı'));
       } catch (staffErr: any) {
         console.error('❌ Staff login also failed:', staffErr);
-        setError(staffErr?.message || 'Giriş başarısız');
+        setError(staffErr?.message || t('Giriş başarısız'));
       }
     } finally {
       setLoading(false);
@@ -165,7 +167,7 @@ export default function IsletmeGirisPage() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%239C92AC%22%20fill-opacity%3D%220.1%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%224%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
-      
+
       {/* Floating Elements */}
       <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
       <div className="absolute top-40 right-20 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
@@ -183,7 +185,7 @@ export default function IsletmeGirisPage() {
               {restaurantInfo?.name || 'restXqr Business'}
             </h1>
             <p className="text-purple-200">
-              {restaurantInfo?.description || 'İşletme Paneli Giriş'}
+              {restaurantInfo?.description || <TranslatedText>İşletme Paneli Giriş</TranslatedText>}
             </p>
             {subdomain && (
               <div className="mt-2 text-sm text-purple-300 bg-purple-500/20 px-3 py-1 rounded-full inline-block">
@@ -195,14 +197,14 @@ export default function IsletmeGirisPage() {
           <form onSubmit={handleLogin} className="space-y-6">
             {error && (
               <div className="bg-red-500/20 border border-red-500/30 text-red-200 px-4 py-3 rounded-xl text-sm backdrop-blur-sm">
-                {error}
+                <TranslatedText>{error}</TranslatedText>
               </div>
             )}
 
             {/* Username Field */}
             <div className="space-y-2">
               <label htmlFor="username" className="block text-sm font-medium text-purple-200">
-                Kullanıcı Adı
+                <TranslatedText>Kullanıcı Adı</TranslatedText>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -214,7 +216,7 @@ export default function IsletmeGirisPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-300 focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm transition-all duration-200"
-                  placeholder="Kullanıcı adınızı girin"
+                  placeholder={t('Kullanıcı adınızı girin')}
                   required
                   disabled={loading}
                 />
@@ -224,7 +226,7 @@ export default function IsletmeGirisPage() {
             {/* Password Field */}
             <div className="space-y-2">
               <label htmlFor="password" className="block text-sm font-medium text-purple-200">
-                Şifre
+                <TranslatedText>Şifre</TranslatedText>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -259,14 +261,14 @@ export default function IsletmeGirisPage() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="w-4 h-4 text-purple-600 bg-white/10 border-white/20 rounded focus:ring-purple-500 focus:ring-2"
                 />
-                <span className="ml-2 text-sm text-purple-200">Beni Hatırla</span>
+                <span className="ml-2 text-sm text-purple-200"><TranslatedText>Beni Hatırla</TranslatedText></span>
               </label>
               <button
                 type="button"
                 className="text-sm text-purple-300 hover:text-white transition-colors"
-                onClick={() => alert('Şifremi Unuttum özelliği yakında eklenecek!')}
+                onClick={() => alert(t('Şifremi Unuttum özelliği yakında eklenecek!'))}
               >
-                Şifremi Unuttum?
+                <TranslatedText>Şifremi Unuttum?</TranslatedText>
               </button>
             </div>
 
@@ -282,11 +284,11 @@ export default function IsletmeGirisPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Giriş yapılıyor...
+                  <TranslatedText>Giriş yapılıyor...</TranslatedText>
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-3">
-                  Giriş Yap
+                  <TranslatedText>Giriş Yap</TranslatedText>
                   <FaArrowRight className="h-4 w-4" />
                 </span>
               )}

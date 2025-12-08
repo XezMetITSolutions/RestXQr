@@ -517,7 +517,7 @@ export default function OrdersPage() {
                       <span>₺{selectedOrder.totalAmount}</span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
-                      <span>KDV (%10)</span>
+                      <span>{getStatic('KDV (%10)')}</span>
                       <span>₺{Math.round(selectedOrder.totalAmount * 0.1)}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-gray-900 pt-3 border-t border-gray-200">

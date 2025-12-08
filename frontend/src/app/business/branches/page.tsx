@@ -6,11 +6,12 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFeature } from '@/hooks/useFeature';
 import { apiService } from '@/services/api';
-import { 
-  FaStore, 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
+import {
+  FaStore,
+  FaPlus,
+  FaEdit,
+  FaTrash,
   FaSearch,
   FaMapMarkerAlt,
   FaPhone,
@@ -38,6 +39,7 @@ interface Branch {
 
 export default function BranchesPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated, logout, user } = useAuthStore();
   const hasMultiBranch = useFeature('multi_branch');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -74,7 +76,7 @@ export default function BranchesPage() {
       setLoading(true);
       const restaurantId = user?.id;
       if (!restaurantId) return;
-      
+
       const response = await apiService.getBranches(restaurantId);
       if (response.success && response.data) {
         // Backend'den gelen veriyi frontend formatına çevir
@@ -102,7 +104,7 @@ export default function BranchesPage() {
 
   const handleAddBranch = async () => {
     if (!formData.name || !formData.address || !formData.city || !formData.phone) {
-      alert('Lütfen tüm zorunlu alanları doldurun.');
+      alert(t('Lütfen tüm zorunlu alanları doldurun.'));
       return;
     }
 
@@ -121,17 +123,17 @@ export default function BranchesPage() {
         employeeCount: formData.employeeCount,
         status: formData.status
       });
-      
+
       if (response.success) {
         await fetchBranches();
         setShowAddModal(false);
         resetForm();
       } else {
-        alert('Şube eklenirken hata oluştu.');
+        alert(t('Şube eklenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('Şube eklenirken hata:', error);
-      alert('Şube eklenirken hata oluştu.');
+      alert(t('Şube eklenirken hata oluştu.'));
     }
   };
 
@@ -152,7 +154,7 @@ export default function BranchesPage() {
 
   const handleUpdateBranch = async () => {
     if (!formData.name || !formData.address || !formData.city || !formData.phone) {
-      alert('Lütfen tüm zorunlu alanları doldurun.');
+      alert(t('Lütfen tüm zorunlu alanları doldurun.'));
       return;
     }
 
@@ -169,18 +171,18 @@ export default function BranchesPage() {
         employeeCount: formData.employeeCount,
         status: formData.status
       });
-      
+
       if (response.success) {
         await fetchBranches();
         setShowEditModal(false);
         setEditingBranch(null);
         resetForm();
       } else {
-        alert('Şube güncellenirken hata oluştu.');
+        alert(t('Şube güncellenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('Şube güncellenirken hata:', error);
-      alert('Şube güncellenirken hata oluştu.');
+      alert(t('Şube güncellenirken hata oluştu.'));
     }
   };
 
@@ -199,11 +201,11 @@ export default function BranchesPage() {
         setShowDeleteConfirm(false);
         setBranchToDelete(null);
       } else {
-        alert('Şube silinirken hata oluştu.');
+        alert(t('Şube silinirken hata oluştu.'));
       }
     } catch (error) {
       console.error('Şube silinirken hata:', error);
-      alert('Şube silinirken hata oluştu.');
+      alert(t('Şube silinirken hata oluştu.'));
     }
   };
 
@@ -226,15 +228,15 @@ export default function BranchesPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <FaStore className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Şube Yönetimi</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2"><TranslatedText text="Şube Yönetimi" /></h2>
           <p className="text-gray-600 mb-4">
-            Bu özellik planınızda bulunmuyor. Çoklu şube yönetimi özelliğini kullanmak için planınızı yükseltin.
+            <TranslatedText text="Bu özellik planınızda bulunmuyor. Stok yönetimi özelliğini kullanmak için planınızı yükseltin." />
           </p>
           <button
             onClick={() => router.push('/business/settings')}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Planı Yükselt
+            <TranslatedText text="Planı Yükselt" />
           </button>
         </div>
       </div>
@@ -248,8 +250,8 @@ export default function BranchesPage() {
 
   const filteredBranches = branches.filter(branch => {
     const matchesSearch = branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         branch.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         branch.manager.toLowerCase().includes(searchTerm.toLowerCase());
+      branch.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      branch.manager.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || branch.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -260,7 +262,7 @@ export default function BranchesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -281,17 +283,17 @@ export default function BranchesPage() {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <FaStore className="text-blue-600" />
-                    Şube Yönetimi
+                    <TranslatedText text="Şube Yönetimi" />
                   </h1>
-                  <p className="text-sm text-gray-600 mt-1">Tüm şubelerinizi tek yerden yönetin</p>
+                  <p className="text-sm text-gray-600 mt-1"><TranslatedText text="Tüm şubelerinizi tek yerden yönetin" /></p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowAddModal(true)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
               >
                 <FaPlus />
-                <span className="hidden sm:inline">Yeni Şube</span>
+                <span className="hidden sm:inline"><TranslatedText text="Yeni Şube" /></span>
               </button>
             </div>
           </div>
@@ -303,7 +305,7 @@ export default function BranchesPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Şube</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Şube" /></p>
                   <p className="text-2xl font-bold text-gray-900">{branches.length}</p>
                 </div>
                 <FaStore className="text-3xl text-blue-500" />
@@ -312,7 +314,7 @@ export default function BranchesPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Aktif Şube</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Aktif Şube" /></p>
                   <p className="text-2xl font-bold text-green-600">{activeBranches}</p>
                 </div>
                 <FaCheckCircle className="text-3xl text-green-500" />
@@ -321,7 +323,7 @@ export default function BranchesPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Çalışan</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Çalışan" /></p>
                   <p className="text-2xl font-bold text-purple-600">{totalEmployees}</p>
                 </div>
                 <FaUsers className="text-3xl text-purple-500" />
@@ -330,7 +332,7 @@ export default function BranchesPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Aylık Ciro</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Aylık Ciro" /></p>
                   <p className="text-2xl font-bold text-orange-600">₺{totalRevenue.toLocaleString()}</p>
                 </div>
                 <FaChartLine className="text-3xl text-orange-500" />
@@ -345,7 +347,7 @@ export default function BranchesPage() {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Şube adı, şehir veya yönetici ara..."
+                  placeholder={t('Şube adı, şehir veya yönetici ara...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -356,9 +358,9 @@ export default function BranchesPage() {
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="all">Tüm Durumlar</option>
-                <option value="active">Aktif</option>
-                <option value="inactive">Pasif</option>
+                <option value="all">{t('Tüm Durumlar')}</option>
+                <option value="active">{t('Aktif')}</option>
+                <option value="inactive">{t('Pasif')}</option>
               </select>
             </div>
           </div>
@@ -375,13 +377,12 @@ export default function BranchesPage() {
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-900">{branch.name}</h3>
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${
-                          branch.status === 'active' 
-                            ? 'bg-green-100 text-green-700' 
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${branch.status === 'active'
+                            ? 'bg-green-100 text-green-700'
                             : 'bg-gray-100 text-gray-700'
-                        }`}>
+                          }`}>
                           {branch.status === 'active' ? <FaCheckCircle /> : <FaTimesCircle />}
-                          {branch.status === 'active' ? 'Aktif' : 'Pasif'}
+                          {branch.status === 'active' ? t('Aktif') : t('Pasif')}
                         </span>
                       </div>
                     </div>
@@ -405,17 +406,17 @@ export default function BranchesPage() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <FaUsers className="text-gray-400" />
-                      Yönetici: {branch.manager}
+                      <TranslatedText text="Yönetici" />: {branch.manager}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
                     <div>
-                      <p className="text-xs text-gray-600">Çalışan</p>
+                      <p className="text-xs text-gray-600"><TranslatedText text="Çalışan" /></p>
                       <p className="text-lg font-bold text-gray-900">{branch.employeeCount}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Aylık Ciro</p>
+                      <p className="text-xs text-gray-600"><TranslatedText text="Aylık Ciro" /></p>
                       <p className="text-lg font-bold text-green-600">
                         {branch.monthlyRevenue > 0 ? `₺${(branch.monthlyRevenue / 1000).toFixed(0)}K` : '-'}
                       </p>
@@ -423,14 +424,14 @@ export default function BranchesPage() {
                   </div>
 
                   <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
-                    <button 
+                    <button
                       onClick={() => handleEditClick(branch)}
                       className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 flex items-center justify-center gap-2"
                     >
                       <FaEdit />
-                      Düzenle
+                      <TranslatedText text="Düzenle" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteClick(branch.id)}
                       className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
                     >
@@ -444,12 +445,12 @@ export default function BranchesPage() {
 
           {loading ? (
             <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-              <p className="text-gray-600">Yükleniyor...</p>
+              <p className="text-gray-600"><TranslatedText text="Yükleniyor..." /></p>
             </div>
           ) : filteredBranches.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
               <FaStore className="text-5xl text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">Şube bulunamadı</p>
+              <p className="text-gray-600"><TranslatedText text="Şube bulunamadı" /></p>
             </div>
           ) : null}
         </div>
@@ -460,12 +461,12 @@ export default function BranchesPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Yeni Şube Ekle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="Yeni Şube Ekle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Şube Adı <span className="text-red-500">*</span>
+                  <TranslatedText text="Şube Adı" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -477,7 +478,7 @@ export default function BranchesPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Adres <span className="text-red-500">*</span>
+                  <TranslatedText text="Adres" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -490,7 +491,7 @@ export default function BranchesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Şehir <span className="text-red-500">*</span>
+                    <TranslatedText text="Şehir" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -502,7 +503,7 @@ export default function BranchesPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Telefon <span className="text-red-500">*</span>
+                    <TranslatedText text="Telefon" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -516,7 +517,7 @@ export default function BranchesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Yönetici
+                    <TranslatedText text="Yönetici" />
                   </label>
                   <input
                     type="text"
@@ -528,7 +529,7 @@ export default function BranchesPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Çalışma Saatleri
+                    <TranslatedText text="Çalışma Saatleri" />
                   </label>
                   <input
                     type="text"
@@ -542,7 +543,7 @@ export default function BranchesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Çalışan Sayısı
+                    <TranslatedText text="Çalışan Sayısı" />
                   </label>
                   <input
                     type="number"
@@ -554,15 +555,15 @@ export default function BranchesPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Durum
+                    <TranslatedText text="Durum" />
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="active">Aktif</option>
-                    <option value="inactive">Pasif</option>
+                    <option value="active">{t('Aktif')}</option>
+                    <option value="inactive">{t('Pasif')}</option>
                   </select>
                 </div>
               </div>
@@ -575,13 +576,13 @@ export default function BranchesPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleAddBranch}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Kaydet
+                <TranslatedText text="Kaydet" />
               </button>
             </div>
           </div>
@@ -593,12 +594,12 @@ export default function BranchesPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Şubeyi Düzenle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="Şubeyi Düzenle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Şube Adı <span className="text-red-500">*</span>
+                  <TranslatedText text="Şube Adı" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -610,7 +611,7 @@ export default function BranchesPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Adres <span className="text-red-500">*</span>
+                  <TranslatedText text="Adres" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -623,7 +624,7 @@ export default function BranchesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Şehir <span className="text-red-500">*</span>
+                    <TranslatedText text="Şehir" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -635,7 +636,7 @@ export default function BranchesPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Telefon <span className="text-red-500">*</span>
+                    <TranslatedText text="Telefon" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -649,7 +650,7 @@ export default function BranchesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Yönetici
+                    <TranslatedText text="Yönetici" />
                   </label>
                   <input
                     type="text"
@@ -661,7 +662,7 @@ export default function BranchesPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Çalışma Saatleri
+                    <TranslatedText text="Çalışma Saatleri" />
                   </label>
                   <input
                     type="text"
@@ -675,7 +676,7 @@ export default function BranchesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Çalışan Sayısı
+                    <TranslatedText text="Çalışan Sayısı" />
                   </label>
                   <input
                     type="number"
@@ -687,15 +688,15 @@ export default function BranchesPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Durum
+                    <TranslatedText text="Durum" />
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="active">Aktif</option>
-                    <option value="inactive">Pasif</option>
+                    <option value="active">{t('Aktif')}</option>
+                    <option value="inactive">{t('Pasif')}</option>
                   </select>
                 </div>
               </div>
@@ -709,13 +710,13 @@ export default function BranchesPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleUpdateBranch}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Güncelle
+                <TranslatedText text="Güncelle" />
               </button>
             </div>
           </div>
@@ -732,9 +733,9 @@ export default function BranchesPage() {
                   <FaTrash className="text-red-600 text-xl" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Şubeyi Sil</h3>
+                  <h3 className="text-lg font-bold text-gray-900"><TranslatedText text="Şubeyi Sil" /></h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    Bu şubeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                    <TranslatedText text="Bu şubeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz." />
                   </p>
                 </div>
               </div>
@@ -746,13 +747,13 @@ export default function BranchesPage() {
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                 >
-                  İptal
+                  <TranslatedText text="İptal" />
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
-                  Sil
+                  <TranslatedText text="Sil" />
                 </button>
               </div>
             </div>

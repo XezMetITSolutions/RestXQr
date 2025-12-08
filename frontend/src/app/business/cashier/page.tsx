@@ -14,11 +14,13 @@ import { FaCreditCard, FaMoneyBillWave, FaQrcode, FaPrint, FaCheck, FaClock, FaU
 import { Order } from '@/store/useOrderStore';
 import { menuData, MenuItem } from '@/data/menu-data';
 import apiService from '@/services/api';
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 
 export default function CashierDashboard() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user, logout, authenticatedRestaurant, authenticatedStaff, isAuthenticated } = useAuthStore();
-  
+
   // Restoran adını al - subdomain'e göre kişiselleştir
   const getRestaurantName = () => {
     if (typeof window !== 'undefined') {
@@ -38,31 +40,31 @@ export default function CashierDashboard() {
     }
     return authenticatedRestaurant?.name || authenticatedStaff?.name || 'MasApp';
   };
-  
+
   const restaurantName = getRestaurantName();
   const { orders: oldOrders, updateOrderStatus } = useOrderStore();
   const { clearCart } = useCartStore();
-  const { 
-    getBillRequestsByStatus, 
-    generateBill, 
+  const {
+    getBillRequestsByStatus,
+    generateBill,
     updateBillRequestStatus,
     getBillById,
     updateBillStatus
   } = useBillRequestStore();
-  const { 
+  const {
     createBillReadyNotification,
     createPaymentCompletedNotification,
     getActiveNotifications,
     markAsAcknowledged
   } = useNotificationStore();
-  const { 
+  const {
     getActiveOrders,
     updateOrderStatus: updateCentralOrderStatus,
     initializeDemoData
   } = useCentralOrderStore();
-  
+
   // Demo veriler kaldırıldı - gerçek veriler API'den gelecek
-  
+
   // Test için demo data initialize et
   useEffect(() => {
     // Login kontrolü
@@ -74,7 +76,7 @@ export default function CashierDashboard() {
     // Real-time connection için EventSource
     const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://masapp-backend.onrender.com';
     const eventSource = new EventSource(`${baseUrl}/api/events/orders`);
-    
+
     eventSource.onopen = () => {
       console.log('Cashier dashboard connected to real-time updates');
     };
@@ -82,14 +84,14 @@ export default function CashierDashboard() {
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
+
         if (data.type === 'new_order') {
           console.log('New order received in cashier:', data);
           // Yeni sipariş geldiğinde bildirim göster
           createBillReadyNotification({
             id: `order-${data.data.orderId}`,
             type: 'new_order',
-            message: `Masa ${data.data.tableNumber} için yeni sipariş`,
+            message: `${t('Masa')} ${data.data.tableNumber} ${t('için yeni sipariş')}`,
             tableNumber: data.data.tableNumber,
             orderId: data.data.orderId,
             timestamp: new Date().toISOString()
@@ -117,7 +119,7 @@ export default function CashierDashboard() {
 
     initializeDemoData();
   }, [initializeDemoData, router, isAuthenticated, authenticatedStaff, authenticatedRestaurant]);
-  
+
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [tipAmount, setTipAmount] = useState(0);
@@ -130,7 +132,7 @@ export default function CashierDashboard() {
   const [selectedTable, setSelectedTable] = useState<number>(1);
   const [currentOrderItems, setCurrentOrderItems] = useState<Array<{
     id: string;
-    name: {en: string, tr: string};
+    name: { en: string, tr: string };
     price: number;
     quantity: number;
   }>>([]);
@@ -140,21 +142,21 @@ export default function CashierDashboard() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [menuSearchTerm, setMenuSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  
+
   // Gelişmiş ödeme sistemi state'leri
   const [showSplitPaymentModal, setShowSplitPaymentModal] = useState(false);
-  const [splitPayments, setSplitPayments] = useState<Array<{method: 'cash' | 'card', amount: number, items: Array<{id: string, name: {en: string, tr: string}, price: number, quantity: number}>}>>([]);
+  const [splitPayments, setSplitPayments] = useState<Array<{ method: 'cash' | 'card', amount: number, items: Array<{ id: string, name: { en: string, tr: string }, price: number, quantity: number }> }>>([]);
   const [partialPaymentAmount, setPartialPaymentAmount] = useState(0);
   const [remainingAmount, setRemainingAmount] = useState(0);
   const [showPaymentHistory, setShowPaymentHistory] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
-  const [selectedItemsForPayment, setSelectedItemsForPayment] = useState<Array<{id: string, name: {en: string, tr: string}, price: number, quantity: number, selected: boolean, paymentQuantity: number}>>([]);
+  const [selectedItemsForPayment, setSelectedItemsForPayment] = useState<Array<{ id: string, name: { en: string, tr: string }, price: number, quantity: number, selected: boolean, paymentQuantity: number }>>([]);
   const [showItemSelection, setShowItemSelection] = useState(false);
   const [showTableTransferNotification, setShowTableTransferNotification] = useState(false);
   const [tableTransferNotification, setTableTransferNotification] = useState<any>(null);
   const [showBillRequests, setShowBillRequests] = useState(false);
   const [billRequests, setBillRequests] = useState<any[]>([]);
-  const [incomingBillBlink, setIncomingBillBlink] = useState<{table:number}|null>(null);
+  const [incomingBillBlink, setIncomingBillBlink] = useState<{ table: number } | null>(null);
 
   // Listen realtime bill requests
   useEffect(() => {
@@ -168,7 +170,7 @@ export default function CashierDashboard() {
 
   // Siparişler - CentralOrderStore'dan al
   const centralOrders = getActiveOrders();
-  
+
   // CentralOrder'ı Order formatına çevir
   const demoOrders: Order[] = centralOrders.map(centralOrder => ({
     id: centralOrder.id,
@@ -191,11 +193,11 @@ export default function CashierDashboard() {
   }));
 
   const filteredOrders = demoOrders.filter(order => {
-    const matchesSearch = order.tableNumber.toString().includes(searchTerm) ||    
-                         order.items.some(item => 
-                           item.name.en.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.name.tr.toLowerCase().includes(searchTerm.toLowerCase())
-                         );
+    const matchesSearch = order.tableNumber.toString().includes(searchTerm) ||
+      order.items.some(item =>
+        item.name.en.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.name.tr.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -205,21 +207,21 @@ export default function CashierDashboard() {
     // Ödenen siparişler en alta
     if (a.status === 'paid' && b.status !== 'paid') return 1;
     if (b.status === 'paid' && a.status !== 'paid') return -1;
-    
+
     // Diğer durumlar için timestamp'e göre sırala (yeni üstte)
     return b.timestamp - a.timestamp;
   });
 
   const handlePayment = async () => {
     if (!selectedOrder) return;
-    
+
     setIsProcessing(true);
-    
+
     // Ödeme işlemi simülasyonu
     setTimeout(async () => {
       // Sipariş durumunu "ödendi" olarak güncelle
       updateOrderStatus(selectedOrder.id, 'paid');
-      
+
       // QR token'ı deaktive et (ödeme tamamlandığında token geçersiz olacak)
       if (authenticatedRestaurant?.id && selectedOrder.tableNumber) {
         try {
@@ -232,10 +234,10 @@ export default function CashierDashboard() {
           console.error('QR token deaktive hatası:', error);
         }
       }
-      
+
       // Ödeme bildirimi oluştur
       createPaymentNotification(selectedOrder.id, paymentMethod === 'cash' ? 'Nakit' : 'Kart');
-      
+
       // Ödeme kaydı oluştur
       const paymentRecord = {
         orderId: selectedOrder.id,
@@ -246,12 +248,12 @@ export default function CashierDashboard() {
         timestamp: new Date().toISOString(),
         cashier: 'MasApp'
       };
-      
+
       // Local storage'a kaydet
       const payments = JSON.parse(localStorage.getItem('payments') || '[]');
       payments.push(paymentRecord);
       localStorage.setItem('payments', JSON.stringify(payments));
-      
+
       setIsProcessing(false);
       setShowPaymentModal(false);
       setSelectedOrder(null);
@@ -262,19 +264,19 @@ export default function CashierDashboard() {
   // Ödeme türü seçimi
   const handlePaymentTypeSelection = (type: 'single' | 'split') => {
     setPaymentType(type);
-    
+
     if (type === 'split') {
       const totalAmount = selectedOrder?.total || 0;
       setRemainingAmount(totalAmount);
       setSplitPayments([]);
-      
-    // Sipariş ürünlerini seçim için hazırla
-    const itemsForSelection = selectedOrder?.items.map(item => ({
-      ...item,
-      selected: false,
-      paymentQuantity: 0
-    })) || [];
-    setSelectedItemsForPayment(itemsForSelection);
+
+      // Sipariş ürünlerini seçim için hazırla
+      const itemsForSelection = selectedOrder?.items.map(item => ({
+        ...item,
+        selected: false,
+        paymentQuantity: 0
+      })) || [];
+      setSelectedItemsForPayment(itemsForSelection);
     }
   };
 
@@ -285,9 +287,9 @@ export default function CashierDashboard() {
 
   // Ürün seçimini güncelleme
   const toggleItemSelection = (itemId: string) => {
-    setSelectedItemsForPayment(prev => 
-      prev.map(item => 
-        item.id === itemId 
+    setSelectedItemsForPayment(prev =>
+      prev.map(item =>
+        item.id === itemId
           ? { ...item, selected: !item.selected, paymentQuantity: !item.selected ? 1 : 0 }
           : item
       )
@@ -296,9 +298,9 @@ export default function CashierDashboard() {
 
   // Ödeme miktarını güncelleme
   const updatePaymentQuantity = (itemId: string, quantity: number) => {
-    setSelectedItemsForPayment(prev => 
-      prev.map(item => 
-        item.id === itemId 
+    setSelectedItemsForPayment(prev =>
+      prev.map(item =>
+        item.id === itemId
           ? { ...item, paymentQuantity: Math.max(0, Math.min(quantity, item.quantity)) }
           : item
       )
@@ -308,22 +310,22 @@ export default function CashierDashboard() {
   // Seçili ürünlerle ödeme ekleme
   const addPartialPaymentWithItems = (method: 'cash' | 'card') => {
     const selectedItems = selectedItemsForPayment.filter(item => item.selected && item.paymentQuantity > 0);
-    
+
     if (selectedItems.length === 0) {
-      alert('Lütfen ödenecek ürünleri seçin ve miktar belirleyin!');
+      alert(t('Lütfen ödenecek ürünleri seçin ve miktar belirleyin!'));
       return;
     }
-    
+
     const selectedAmount = selectedItems.reduce((sum, item) => sum + (item.price * item.paymentQuantity), 0);
-    
+
     if (selectedAmount > remainingAmount) {
-      alert('Seçili ürünlerin toplamı kalan tutardan fazla!');
+      alert(t('Seçili ürünlerin toplamı kalan tutardan fazla!'));
       return;
     }
-    
-    setSplitPayments([...splitPayments, { 
-      method, 
-      amount: selectedAmount, 
+
+    setSplitPayments([...splitPayments, {
+      method,
+      amount: selectedAmount,
       items: selectedItems.map(item => ({
         id: item.id,
         name: item.name,
@@ -331,11 +333,11 @@ export default function CashierDashboard() {
         quantity: item.paymentQuantity
       }))
     }]);
-    
+
     setRemainingAmount(remainingAmount - selectedAmount);
-    
+
     // Ödenen miktarları orijinal miktardan çıkar
-    setSelectedItemsForPayment(prev => 
+    setSelectedItemsForPayment(prev =>
       prev.map(item => {
         if (item.selected && item.paymentQuantity > 0) {
           const newQuantity = item.quantity - item.paymentQuantity;
@@ -354,15 +356,15 @@ export default function CashierDashboard() {
   // Kısmi ödeme ekleme (manuel tutar ile)
   const addPartialPayment = (method: 'cash' | 'card', amount: number) => {
     if (amount <= 0) {
-      alert('Ödeme tutarı sıfırdan büyük olmalıdır!');
+      alert(t('Ödeme tutarı sıfırdan büyük olmalıdır!'));
       return;
     }
-    
+
     if (amount > remainingAmount) {
-      alert('Ödeme tutarı kalan tutardan fazla olamaz!');
+      alert(t('Ödeme tutarı kalan tutardan fazla olamaz!'));
       return;
     }
-    
+
     setSplitPayments([...splitPayments, { method, amount, items: [] }]);
     setRemainingAmount(remainingAmount - amount);
     setPartialPaymentAmount(0);
@@ -371,16 +373,16 @@ export default function CashierDashboard() {
   // Bölünen ödemeyi tamamla
   const completeSplitPayment = async () => {
     if (!selectedOrder || remainingAmount > 0) {
-      alert('Tüm tutar ödenmelidir!');
+      alert(t('Tüm tutar ödenmelidir!'));
       return;
     }
-    
+
     setIsProcessing(true);
-    
+
     setTimeout(async () => {
       // Sipariş durumunu "ödendi" olarak güncelle
       updateOrderStatus(selectedOrder.id, 'paid');
-      
+
       // QR token'ı deaktive et (ödeme tamamlandığında token geçersiz olacak)
       if (authenticatedRestaurant?.id && selectedOrder.tableNumber) {
         try {
@@ -393,7 +395,7 @@ export default function CashierDashboard() {
           console.error('QR token deaktive hatası:', error);
         }
       }
-      
+
       // Her ödeme için kayıt oluştur
       splitPayments.forEach((payment, index) => {
         const paymentRecord = {
@@ -408,15 +410,15 @@ export default function CashierDashboard() {
           splitIndex: index + 1,
           totalSplit: splitPayments.length
         };
-        
+
         const payments = JSON.parse(localStorage.getItem('payments') || '[]');
         payments.push(paymentRecord);
         localStorage.setItem('payments', JSON.stringify(payments));
       });
-      
+
       // Ödeme bildirimi oluştur
       createPaymentNotification(selectedOrder.id, `Bölünen Ödeme (${splitPayments.length} parça)`);
-      
+
       setIsProcessing(false);
       setShowSplitPaymentModal(false);
       setSelectedOrder(null);
@@ -456,7 +458,7 @@ export default function CashierDashboard() {
         <p style="text-align: center; margin-top: 20px;">Teşekkürler!</p>
       </div>
     `;
-    
+
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(printContent);
@@ -481,13 +483,13 @@ export default function CashierDashboard() {
     switch (status) {
       case 'pending':
         return incomingBillBlink && selectedOrder?.tableNumber === incomingBillBlink.table
-          ? 'Hesap (Yeni)'
-          : 'Beklemede';
-      case 'preparing': return 'Hazırlanıyor';
-      case 'ready': return 'Hazır';
-      case 'delivered': return 'Servis Edildi';
-      case 'paid': return 'Ödendi';
-      case 'cancelled': return 'İptal Edildi';
+          ? t('Hesap (Yeni)')
+          : t('Beklemede');
+      case 'preparing': return t('Hazırlanıyor');
+      case 'ready': return t('Hazır');
+      case 'delivered': return t('Servis Edildi');
+      case 'paid': return t('Ödendi');
+      case 'cancelled': return t('İptal Edildi');
       default: return status;
     }
   };
@@ -512,12 +514,12 @@ export default function CashierDashboard() {
     const loadNotifications = () => {
       const activeNotifications = getActiveNotifications('cashier');
       setNotifications(activeNotifications);
-      
+
       // Hesap taleplerini yükle
       const pendingRequests = getBillRequestsByStatus('pending');
       setBillRequests(pendingRequests);
     };
-    
+
     loadNotifications();
     const interval = setInterval(loadNotifications, 2000);
     return () => clearInterval(interval);
@@ -527,33 +529,33 @@ export default function CashierDashboard() {
   useEffect(() => {
     const savedNotifications = JSON.parse(localStorage.getItem('cashier_notifications') || '[]');
     setNotifications(prev => [...prev, ...savedNotifications]);
-    
+
     // Demo veriler kaldırıldı - gerçek veriler API'den gelecek
-    
+
     // Masa değişikliği bildirimlerini kontrol et
     const checkTableTransferNotifications = () => {
       const cashierNotifications = JSON.parse(localStorage.getItem('cashier_notifications') || '[]');
-      const tableTransferNotif = cashierNotifications.find((notif: any) => 
+      const tableTransferNotif = cashierNotifications.find((notif: any) =>
         notif.type === 'table_transfer' && !notif.read
       );
-      
+
       if (tableTransferNotif) {
         setTableTransferNotification(tableTransferNotif);
         setShowTableTransferNotification(true);
-        
+
         // Bildirimi okundu olarak işaretle
-        const updatedNotifications = cashierNotifications.map((notif: any) => 
+        const updatedNotifications = cashierNotifications.map((notif: any) =>
           notif === tableTransferNotif ? { ...notif, read: true } : notif
         );
         localStorage.setItem('cashier_notifications', JSON.stringify(updatedNotifications));
       }
     };
-    
+
     checkTableTransferNotifications();
-    
+
     // Her 3 saniyede bir kontrol et
     const interval = setInterval(checkTableTransferNotifications, 3000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -561,9 +563,9 @@ export default function CashierDashboard() {
   const addMenuItem = (menuItem: MenuItem) => {
     const existingItem = currentOrderItems.find(item => item.id === menuItem.id);
     if (existingItem) {
-      setCurrentOrderItems(prev => 
-        prev.map(item => 
-          item.id === menuItem.id 
+      setCurrentOrderItems(prev =>
+        prev.map(item =>
+          item.id === menuItem.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
@@ -586,9 +588,9 @@ export default function CashierDashboard() {
     if (quantity <= 0) {
       removeMenuItem(itemId);
     } else {
-      setCurrentOrderItems(prev => 
-        prev.map(item => 
-          item.id === itemId 
+      setCurrentOrderItems(prev =>
+        prev.map(item =>
+          item.id === itemId
             ? { ...item, quantity }
             : item
         )
@@ -598,7 +600,7 @@ export default function CashierDashboard() {
 
   const createNewOrder = () => {
     if (currentOrderItems.length === 0) return;
-    
+
     const total = currentOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const newOrder: Order = {
       id: `order-${Date.now()}`,
@@ -621,11 +623,11 @@ export default function CashierDashboard() {
       timestamp: Date.now(),
       couponCode: null
     };
-    
+
     // Store'a ekle
     const { addOrder } = useOrderStore.getState();
     addOrder(newOrder);
-    
+
     // Local state'i temizle
     setCurrentOrderItems([]);
     setShowMenu(false);
@@ -654,7 +656,7 @@ export default function CashierDashboard() {
 
     const updatedItems = order.items.filter(item => item.id !== itemId);
     const newTotal = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
+
     // Store'u güncelle
     updateCentralOrderStatus(orderId, 'pending');
     console.log('Ürün siparişten çıkarıldı:', itemId);
@@ -665,7 +667,7 @@ export default function CashierDashboard() {
 
   const updateOrderItems = (orderId: string, newItems: typeof currentOrderItems) => {
     const newTotal = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
+
     // Store'u güncelle
     console.log('Sipariş güncellendi:', orderId, newItems, newTotal);
     setShowEditModal(false);
@@ -684,24 +686,24 @@ export default function CashierDashboard() {
   const processBillRequest = (billRequestId: string) => {
     const billRequest = getBillRequestsByStatus('pending').find(req => req.id === billRequestId);
     if (!billRequest) return;
-    
+
     // Siparişi bul
     const order = demoOrders.find(o => o.id === billRequest.orderId);
     if (!order) return;
-    
+
     // Fatura oluştur
     const billId = generateBill(billRequestId, order.items, 0.18, 0);
-    
+
     // Bildirim oluştur
     createBillReadyNotification(
       billRequest.tableNumber,
       billRequest.orderId,
       billRequestId
     );
-    
+
     // Durumu güncelle
     updateBillRequestStatus(billRequestId, 'ready', user?.id);
-    
+
     console.log('✅ Fatura oluşturuldu:', billId);
   };
 
@@ -715,17 +717,17 @@ export default function CashierDashboard() {
         amount: order.total,
         paymentMethod: paymentMethod,
         timestamp: new Date().toISOString(),
-        message: `Masa ${order.tableNumber} ${paymentMethod} ödemesi tamamlandı - ${order.total.toFixed(2)}₺`
+        message: `${t('Masa')} ${order.tableNumber} ${paymentMethod} ${t('ödemesi tamamlandı')} - ${order.total.toFixed(2)}₺`
       };
-      
+
       // Bildirimleri local storage'a kaydet
       const notifications = JSON.parse(localStorage.getItem('cashier_notifications') || '[]');
       notifications.push(paymentNotification);
       localStorage.setItem('cashier_notifications', JSON.stringify(notifications));
-      
+
       // State'i güncelle
       setNotifications(prev => [...prev, paymentNotification]);
-      
+
       // Bildirim store'una da ekle
       createPaymentCompletedNotification(order.tableNumber, orderId, order.total);
     }
@@ -744,39 +746,39 @@ export default function CashierDashboard() {
       const arr = JSON.parse(localStorage.getItem('kitchen_change_notifications') || '[]');
       arr.push({ tableNumber, orderId, message, timestamp: Date.now(), read: false });
       localStorage.setItem('kitchen_change_notifications', JSON.stringify(arr));
-    } catch {}
+    } catch { }
   };
 
   // Menü filtreleme
   const getFilteredMenuItems = () => {
     let filtered = menuData;
-    
+
     // Kategori filtresi
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(item => item.category === selectedCategory);
     }
-    
+
     // Arama filtresi
     if (menuSearchTerm) {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.name.tr.toLowerCase().includes(menuSearchTerm.toLowerCase()) ||
         item.name.en.toLowerCase().includes(menuSearchTerm.toLowerCase())
       );
     }
-    
+
     return filtered;
   };
 
   const getCategoryName = (category: string) => {
     const categoryNames: { [key: string]: string } = {
-      'starters': 'Başlangıçlar',
-      'mains': 'Ana Yemekler',
-      'meats': 'Et Yemekleri',
-      'chicken': 'Tavuk Yemekleri',
-      'pasta': 'Makarnalar',
-      'seafood': 'Deniz Ürünleri',
-      'desserts': 'Tatlılar',
-      'drinks': 'İçecekler'
+      'starters': t('Başlangıçlar'),
+      'mains': t('Ana Yemekler'),
+      'meats': t('Et Yemekleri'),
+      'chicken': t('Tavuk Yemekleri'),
+      'pasta': t('Makarnalar'),
+      'seafood': t('Deniz Ürünleri'),
+      'desserts': t('Tatlılar'),
+      'drinks': t('İçecekler')
     };
     return categoryNames[category] || category;
   };
@@ -794,8 +796,8 @@ export default function CashierDashboard() {
           <div className="flex justify-between items-center py-3 sm:py-4">
             <div className="flex items-center gap-2 sm:gap-4">
               <div>
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">{restaurantName} - Kasa Paneli</h1>
-                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Ödemeleri yönet ve kasa işlemlerini takip et</p>
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">{restaurantName} - <TranslatedText text="Kasa Paneli" /></h1>
+                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block"><TranslatedText text="Ödemeleri yönet ve kasa işlemlerini takip et" /></p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
@@ -810,7 +812,7 @@ export default function CashierDashboard() {
                   console.log('Authenticated Restaurant:', authenticatedRestaurant);
                   console.log('Orders Count:', orders.length);
                   console.log('Notifications:', notifications);
-                  
+
                   // API Health Check
                   fetch(`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://masapp-backend.onrender.com'}/health`)
                     .then(res => res.json())
@@ -821,7 +823,7 @@ export default function CashierDashboard() {
               >
                 🔧 Debug
               </button>
-              
+
               <button
                 onClick={() => {
                   logout();
@@ -830,7 +832,7 @@ export default function CashierDashboard() {
                 className="px-2 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base"
               >
                 <FaSignOutAlt className="text-sm sm:text-base" />
-                <span className="hidden sm:inline">Çıkış</span>
+                <span className="hidden sm:inline"><TranslatedText text="Çıkış" /></span>
               </button>
             </div>
           </div>
@@ -847,7 +849,7 @@ export default function CashierDashboard() {
                 <FaReceipt className="text-green-600 text-lg sm:text-xl" />
               </div>
               <div className="ml-2 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Toplam Ciro</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600"><TranslatedText text="Toplam Ciro" /></p>
                 <p className="text-lg sm:text-2xl font-bold text-gray-900">{totalRevenue.toFixed(2)}₺</p>
               </div>
             </div>
@@ -859,7 +861,7 @@ export default function CashierDashboard() {
                 <FaClock className="text-yellow-600 text-lg sm:text-xl" />
               </div>
               <div className="ml-2 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Bekleyen</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600"><TranslatedText text="Bekleyen" /></p>
                 <p className="text-lg sm:text-2xl font-bold text-gray-900">{pendingOrders}</p>
               </div>
             </div>
@@ -871,7 +873,7 @@ export default function CashierDashboard() {
                 <FaUtensils className="text-blue-600 text-lg sm:text-xl" />
               </div>
               <div className="ml-2 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Toplam</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600"><TranslatedText text="Toplam" /></p>
                 <p className="text-lg sm:text-2xl font-bold text-gray-900">{demoOrders.length}</p>
               </div>
             </div>
@@ -883,7 +885,7 @@ export default function CashierDashboard() {
                 <FaCheck className="text-purple-600 text-lg sm:text-xl" />
               </div>
               <div className="ml-2 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Tamamlanan</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600"><TranslatedText text="Tamamlanan" /></p>
                 <p className="text-lg sm:text-2xl font-bold text-gray-900">
                   {demoOrders.filter(order => order.status === 'paid').length}
                 </p>
@@ -896,7 +898,7 @@ export default function CashierDashboard() {
         {showMenu && (
           <div className="bg-white rounded-lg shadow mb-4 sm:mb-6 p-3 sm:p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Menüden Sipariş Ekle</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900"><TranslatedText text="Menüden Sipariş Ekle" /></h2>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                 <div className="flex items-center gap-2">
                   <label className="text-xs sm:text-sm font-medium text-gray-700">Masa:</label>
@@ -916,8 +918,8 @@ export default function CashierDashboard() {
                   className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
                   <FaPlus className="text-sm" />
-                  <span className="hidden sm:inline">Sipariş Oluştur</span>
-                  <span className="sm:hidden">Oluştur</span>
+                  <span className="hidden sm:inline"><TranslatedText text="Sipariş Oluştur" /></span>
+                  <span className="sm:hidden"><TranslatedText text="Oluştur" /></span>
                 </button>
               </div>
             </div>
@@ -925,7 +927,7 @@ export default function CashierDashboard() {
             {/* Sepet */}
             {currentOrderItems.length > 0 && (
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Sepet ({currentOrderItems.length} ürün)</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3"><TranslatedText text="Sepet" /> ({currentOrderItems.length} {t('ürün')})</h3>
                 <div className="space-y-2">
                   {currentOrderItems.map((item) => (
                     <div key={item.id} className="flex items-center justify-between bg-white p-3 rounded-lg">
@@ -963,7 +965,7 @@ export default function CashierDashboard() {
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold text-gray-900">Toplam:</span>
+                    <span className="text-lg font-semibold text-gray-900"><TranslatedText text="Toplam" />:</span>
                     <span className="text-xl font-bold text-blue-600">
                       {currentOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}₺
                     </span>
@@ -977,18 +979,18 @@ export default function CashierDashboard() {
               {['starters', 'mains', 'meats', 'chicken', 'pasta', 'seafood', 'desserts', 'drinks'].map((category) => {
                 const categoryItems = menuData.filter(item => item.category === category);
                 if (categoryItems.length === 0) return null;
-                
+
                 return (
                   <div key={category} className="bg-gray-50 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3 capitalize">
-                      {category === 'starters' ? 'Başlangıçlar' :
-                       category === 'mains' ? 'Ana Yemekler' :
-                       category === 'meats' ? 'Et Yemekleri' :
-                       category === 'chicken' ? 'Tavuk Yemekleri' :
-                       category === 'pasta' ? 'Makarnalar' :
-                       category === 'seafood' ? 'Deniz Ürünleri' :
-                       category === 'desserts' ? 'Tatlılar' :
-                       category === 'drinks' ? 'İçecekler' : category}
+                      {category === 'starters' ? t('Başlangıçlar') :
+                        category === 'mains' ? t('Ana Yemekler') :
+                          category === 'meats' ? t('Et Yemekleri') :
+                            category === 'chicken' ? t('Tavuk Yemekleri') :
+                              category === 'pasta' ? t('Makarnalar') :
+                                category === 'seafood' ? t('Deniz Ürünleri') :
+                                  category === 'desserts' ? t('Tatlılar') :
+                                    category === 'drinks' ? t('İçecekler') : category}
                     </h3>
                     <div className="space-y-2">
                       {categoryItems.map((item) => (
@@ -1021,7 +1023,7 @@ export default function CashierDashboard() {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
                 <input
                   type="text"
-                  placeholder="Masa veya ürün ara..."
+                  placeholder={t('Masa veya ürün ara...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-9 sm:pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
@@ -1034,10 +1036,10 @@ export default function CashierDashboard() {
                 onChange={(e) => setStatusFilter(e.target.value as any)}
                 className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
               >
-                <option value="all">Tüm Durumlar</option>
-                <option value="pending">Hazırlanıyor</option>
-                <option value="ready">Hazır</option>
-                <option value="delivered">Servis Edildi</option>
+                <option value="all">{t('Tüm Durumlar')}</option>
+                <option value="pending">{t('Beklemede')}</option>
+                <option value="ready">{t('Hazır')}</option>
+                <option value="delivered">{t('Servis Edildi')}</option>
               </select>
             </div>
           </div>
@@ -1046,7 +1048,7 @@ export default function CashierDashboard() {
         {/* Sipariş Listesi */}
         <div className="bg-white rounded-lg shadow">
           <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Siparişler</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900"><TranslatedText text="Siparişler" /></h2>
           </div>
           <div className="divide-y divide-gray-200">
             {sortedOrders.map((order) => (
@@ -1054,7 +1056,7 @@ export default function CashierDashboard() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">Masa {order.tableNumber}</h3>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">{t('Masa')} {order.tableNumber}</h3>
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)} ${incomingBillBlink && order.tableNumber === incomingBillBlink.table ? 'animate-pulse ring-2 ring-red-400' : ''}`}>
                         {getStatusText(order.status)}
                       </span>
@@ -1062,14 +1064,14 @@ export default function CashierDashboard() {
                       {billRequests.some(request => request.tableNumber === order.tableNumber) && (
                         <span className="px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 animate-pulse">
                           <FaReceipt className="inline mr-1" />
-                          Hesap Talebi
+                          {t('Hesap Talebi')}
                         </span>
                       )}
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <p className="text-sm text-gray-600 mb-1">Sipariş Detayları:</p>
+                        <p className="text-sm text-gray-600 mb-1">{t('Sipariş Detayları')}:</p>
                         <div className="space-y-1">
                           {order.items.map((item, index) => (
                             <div key={index} className="flex justify-between text-sm">
@@ -1080,14 +1082,14 @@ export default function CashierDashboard() {
                         </div>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 mb-1">Sipariş Bilgileri:</p>
-                        <p className="text-sm text-gray-900">Sipariş No: {order.id}</p>
-                        <p className="text-sm text-gray-900">Tarih: {new Date(order.timestamp).toLocaleString('tr-TR')}</p>
-                        <p className="text-sm font-semibold text-gray-900">Toplam: {order.total.toFixed(2)}₺</p>
+                        <p className="text-sm text-gray-600 mb-1">{t('Sipariş Bilgileri')}:</p>
+                        <p className="text-sm text-gray-900">{t('Sipariş No')}: {order.id}</p>
+                        <p className="text-sm text-gray-900">{t('Tarih')}: {new Date(order.timestamp).toLocaleString('tr-TR')}</p>
+                        <p className="text-sm font-semibold text-gray-900">{t('Toplam')}: {order.total.toFixed(2)}₺</p>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col gap-2 ml-4">
                     {/* Ödeme Al (durum/hesap talebine göre) */}
                     {(order.status === 'ready' || order.status === 'delivered' || (order.status === 'pending' && billRequests.some(request => request.tableNumber === order.tableNumber))) && (
@@ -1100,7 +1102,7 @@ export default function CashierDashboard() {
                           className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
                         >
                           <FaCreditCard />
-                          Ödeme Al
+                          {t('Ödeme Al')}
                         </button>
                       </>
                     )}
@@ -1111,9 +1113,9 @@ export default function CashierDashboard() {
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                     >
                       <FaPlus />
-                      Siparişi Düzenle
+                      {t('Siparişi Düzenle')}
                     </button>
-                    
+
                     {/* Ödenen Siparişler - Ödendi Butonu (Fiş Yazdır) */}
                     {order.status === 'paid' && (
                       <button
@@ -1121,7 +1123,7 @@ export default function CashierDashboard() {
                         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
                       >
                         <FaCheck />
-                        Ödendi
+                        {t('Ödendi')}
                       </button>
                     )}
                   </div>
@@ -1132,225 +1134,224 @@ export default function CashierDashboard() {
         </div>
       </div>
 
-       {/* Ödeme Modal */}
-       {showPaymentModal && selectedOrder && (
-         <div 
-           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-           onClick={() => setShowPaymentModal(false)}
-         >
-           <div 
-             className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
-             onClick={(e) => e.stopPropagation()}
-           >
-             <div className="p-6 border-b border-gray-200">
-               <h3 className="text-lg font-semibold text-gray-900">Ödeme Al</h3>
-               <p className="text-sm text-gray-600">Masa {selectedOrder.tableNumber} - {selectedOrder.total.toFixed(2)}₺</p>
-             </div>
-             
-             <div className="p-6">
-               {!paymentType ? (
-                 // Ödeme türü seçimi
-                 <div className="space-y-4">
-                   <h4 className="text-md font-semibold text-gray-900 mb-4">Ödeme Türünü Seçin</h4>
-                   <div className="grid grid-cols-2 gap-4">
-                     <button
-                       onClick={() => handlePaymentTypeSelection('single')}
-                       className="p-6 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors flex flex-col items-center gap-3"
-                     >
-                       <FaCreditCard className="text-2xl text-gray-600" />
-                       <span className="font-medium text-gray-900">Tek Ödeme</span>
-                       <span className="text-sm text-gray-600">Tüm tutarı tek seferde öde</span>
-                     </button>
-                     <button
-                       onClick={() => handlePaymentTypeSelection('split')}
-                       className="p-6 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors flex flex-col items-center gap-3"
-                     >
-                       <FaMoneyBillWave className="text-2xl text-gray-600" />
-                       <span className="font-medium text-gray-900">Bölünen Ödeme</span>
-                       <span className="text-sm text-gray-600">Ürünleri seçerek öde</span>
-                     </button>
-                   </div>
-                 </div>
-               ) : paymentType === 'single' ? (
-                 // Tek ödeme - Ödeme yöntemi seçimi
-                 <div className="space-y-6">
-                   <h4 className="text-md font-semibold text-gray-900 mb-4">Ödeme Yöntemini Seçin</h4>
-                   <div className="grid grid-cols-2 gap-4">
-                     {[
-                       { id: 'cash', label: 'Nakit', icon: <FaMoneyBillWave className="text-2xl" /> },
-                       { id: 'card', label: 'Kart', icon: <FaCreditCard className="text-2xl" /> }
-                     ].map((method) => (
-                       <button
-                         key={method.id}
-                         onClick={() => setPaymentMethod(method.id as any)}
-                         className={`p-6 rounded-lg border-2 flex flex-col items-center gap-3 transition-colors ${
-                           paymentMethod === method.id
-                             ? 'border-blue-500 bg-blue-50 text-blue-700'
-                             : 'border-gray-200 hover:border-gray-300'
-                         }`}
-                       >
-                         {method.icon}
-                         <span className="font-medium">{method.label}</span>
-                       </button>
-                     ))}
-                   </div>
-                   
-                   {/* Toplam */}
-                   <div className="bg-gray-50 rounded-lg p-4">
-                     <div className="flex justify-between text-lg font-semibold text-gray-900">
-                       <span>Toplam:</span>
-                       <span>{selectedOrder.total.toFixed(2)}₺</span>
-                     </div>
-                   </div>
-                   
-                   {/* Ödeme Butonu */}
-                   <button
-                     onClick={handlePayment}
-                     disabled={isProcessing}
-                     className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                   >
-                     {isProcessing ? (
-                       <>
-                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                         İşleniyor...
-                       </>
-                     ) : (
-                       <>
-                         <FaCreditCard />
-                         Ödemeyi Al
-                       </>
-                     )}
-                   </button>
-                 </div>
-               ) : (
-                 // Bölünen ödeme - Ürün seçimi
-                 <div className="space-y-4">
-                   <h4 className="text-md font-semibold text-gray-900">Ödenecek Ürünleri ve Miktarları Seçin</h4>
-                   
-                   <div className="space-y-3">
-                     {selectedItemsForPayment.map((item) => (
-                       <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
-                         <div className="flex items-center justify-between mb-3">
-                           <div className="flex items-center gap-3">
-                             <input
-                               type="checkbox"
-                               checked={item.selected}
-                               onChange={() => toggleItemSelection(item.id)}
-                               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                             />
-                             <div>
-                               <span className="font-medium text-gray-900">{item.name.tr}</span>
-                               <span className="text-sm text-gray-600 ml-2">(Mevcut: {item.quantity} adet)</span>
-                             </div>
-                           </div>
-                           <span className="font-semibold text-gray-900">
-                             {item.price}₺/adet
-                           </span>
-                         </div>
-                         
-                         {item.selected && (
-                           <div className="flex items-center gap-3">
-                             <span className="text-sm text-gray-600">Ödenecek miktar:</span>
-                             <div className="flex items-center gap-2">
-                               <button
-                                 onClick={() => updatePaymentQuantity(item.id, item.paymentQuantity - 1)}
-                                 disabled={item.paymentQuantity <= 0}
-                                 className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                               >
-                                 <FaMinus className="text-xs" />
-                               </button>
-                               <span className="w-12 text-center font-medium">{item.paymentQuantity}</span>
-                               <button
-                                 onClick={() => updatePaymentQuantity(item.id, item.paymentQuantity + 1)}
-                                 disabled={item.paymentQuantity >= item.quantity}
-                                 className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                               >
-                                 <FaPlus className="text-xs" />
-                               </button>
-                             </div>
-                             <span className="text-sm font-semibold text-gray-900 ml-auto">
-                               = {(item.price * item.paymentQuantity).toFixed(2)}₺
-                             </span>
-                           </div>
-                         )}
-                       </div>
-                     ))}
-                   </div>
-                   
-                   {/* Seçili ürünlerin toplamı */}
-                   {selectedItemsForPayment.filter(item => item.selected && item.paymentQuantity > 0).length > 0 && (
-                     <div className="bg-blue-50 rounded-lg p-4">
-                       <div className="flex justify-between items-center">
-                         <span className="font-medium text-blue-900">Seçili Ürünlerin Toplamı:</span>
-                         <span className="text-xl font-bold text-blue-900">
-                           {selectedItemsForPayment
-                             .filter(item => item.selected && item.paymentQuantity > 0)
-                             .reduce((sum, item) => sum + (item.price * item.paymentQuantity), 0)
-                             .toFixed(2)}₺
-                         </span>
-                       </div>
-                     </div>
-                   )}
-                   
-                   {/* Ödeme butonları */}
-                   <div className="grid grid-cols-2 gap-3">
-                     <button
-                       onClick={() => addPartialPaymentWithItems('cash')}
-                       disabled={selectedItemsForPayment.filter(item => item.selected && item.paymentQuantity > 0).length === 0}
-                       className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                     >
-                       <FaMoneyBillWave />
-                       Nakit
-                     </button>
-                     <button
-                       onClick={() => addPartialPaymentWithItems('card')}
-                       disabled={selectedItemsForPayment.filter(item => item.selected && item.paymentQuantity > 0).length === 0}
-                       className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                     >
-                       <FaCreditCard />
-                       Kart
-                     </button>
-                   </div>
-                 </div>
-               )}
-             </div>
-             
-             <div className="p-6 border-t border-gray-200 flex gap-3">
-               <button
-                 onClick={() => {
-                   setShowPaymentModal(false);
-                   setPaymentType(null);
-                 }}
-                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-               >
-                 İptal
-               </button>
-               {paymentType && (
-                 <button
-                   onClick={() => setPaymentType(null)}
-                   className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                 >
-                   Geri
-                 </button>
-               )}
-             </div>
-           </div>
-         </div>
-       )}
+      {/* Ödeme Modal */}
+      {showPaymentModal && selectedOrder && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowPaymentModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">{t('Ödeme Al')}</h3>
+              <p className="text-sm text-gray-600">Masa {selectedOrder.tableNumber} - {selectedOrder.total.toFixed(2)}₺</p>
+            </div>
+
+            <div className="p-6">
+              {!paymentType ? (
+                // Ödeme türü seçimi
+                <div className="space-y-4">
+                  <h4 className="text-md font-semibold text-gray-900 mb-4">{t('Ödeme Türünü Seçin')}</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => handlePaymentTypeSelection('single')}
+                      className="p-6 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors flex flex-col items-center gap-3"
+                    >
+                      <FaCreditCard className="text-2xl text-gray-600" />
+                      <span className="font-medium text-gray-900">{t('Tek Ödeme')}</span>
+                      <span className="text-sm text-gray-600">{t('Tüm tutarı tek seferde öde')}</span>
+                    </button>
+                    <button
+                      onClick={() => handlePaymentTypeSelection('split')}
+                      className="p-6 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors flex flex-col items-center gap-3"
+                    >
+                      <FaMoneyBillWave className="text-2xl text-gray-600" />
+                      <span className="font-medium text-gray-900">{t('Bölünen Ödeme')}</span>
+                      <span className="text-sm text-gray-600">{t('Ürünleri seçerek öde')}</span>
+                    </button>
+                  </div>
+                </div>
+              ) : paymentType === 'single' ? (
+                // Tek ödeme - Ödeme yöntemi seçimi
+                <div className="space-y-6">
+                  <h4 className="text-md font-semibold text-gray-900 mb-4">{t('Ödeme Yöntemini Seçin')}</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { id: 'cash', label: 'Nakit', icon: <FaMoneyBillWave className="text-2xl" /> },
+                      { id: 'card', label: 'Kart', icon: <FaCreditCard className="text-2xl" /> }
+                    ].map((method) => (
+                      <button
+                        key={method.id}
+                        onClick={() => setPaymentMethod(method.id as any)}
+                        className={`p-6 rounded-lg border-2 flex flex-col items-center gap-3 transition-colors ${paymentMethod === method.id
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                      >
+                        {method.icon}
+                        <span className="font-medium">{method.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Toplam */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between text-lg font-semibold text-gray-900">
+                      <span>{t('Toplam')}:</span>
+                      <span>{selectedOrder.total.toFixed(2)}₺</span>
+                    </div>
+                  </div>
+
+                  {/* Ödeme Butonu */}
+                  <button
+                    onClick={handlePayment}
+                    disabled={isProcessing}
+                    className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        {t('İşleniyor...')}
+                      </>
+                    ) : (
+                      <>
+                        <FaCreditCard />
+                        {t('Ödemeyi Al')}
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                // Bölünen ödeme - Ürün seçimi
+                <div className="space-y-4">
+                  <h4 className="text-md font-semibold text-gray-900">{t('Ödenecek Ürünleri ve Miktarları Seçin')}</h4>
+
+                  <div className="space-y-3">
+                    {selectedItemsForPayment.map((item) => (
+                      <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={item.selected}
+                              onChange={() => toggleItemSelection(item.id)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <div>
+                              <span className="font-medium text-gray-900">{item.name.tr}</span>
+                              <span className="text-sm text-gray-600 ml-2">(Mevcut: {item.quantity} adet)</span>
+                            </div>
+                          </div>
+                          <span className="font-semibold text-gray-900">
+                            {item.price}₺/adet
+                          </span>
+                        </div>
+
+                        {item.selected && (
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-gray-600">{t('Ödenecek miktar')}:</span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => updatePaymentQuantity(item.id, item.paymentQuantity - 1)}
+                                disabled={item.paymentQuantity <= 0}
+                                className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <FaMinus className="text-xs" />
+                              </button>
+                              <span className="w-12 text-center font-medium">{item.paymentQuantity}</span>
+                              <button
+                                onClick={() => updatePaymentQuantity(item.id, item.paymentQuantity + 1)}
+                                disabled={item.paymentQuantity >= item.quantity}
+                                className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <FaPlus className="text-xs" />
+                              </button>
+                            </div>
+                            <span className="text-sm font-semibold text-gray-900 ml-auto">
+                              = {(item.price * item.paymentQuantity).toFixed(2)}₺
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Seçili ürünlerin toplamı */}
+                  {selectedItemsForPayment.filter(item => item.selected && item.paymentQuantity > 0).length > 0 && (
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-blue-900">{t('Seçili Ürünlerin Toplamı')}:</span>
+                        <span className="text-xl font-bold text-blue-900">
+                          {selectedItemsForPayment
+                            .filter(item => item.selected && item.paymentQuantity > 0)
+                            .reduce((sum, item) => sum + (item.price * item.paymentQuantity), 0)
+                            .toFixed(2)}₺
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Ödeme butonları */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => addPartialPaymentWithItems('cash')}
+                      disabled={selectedItemsForPayment.filter(item => item.selected && item.paymentQuantity > 0).length === 0}
+                      className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      <FaMoneyBillWave />
+                      {t('Nakit')}
+                    </button>
+                    <button
+                      onClick={() => addPartialPaymentWithItems('card')}
+                      disabled={selectedItemsForPayment.filter(item => item.selected && item.paymentQuantity > 0).length === 0}
+                      className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      <FaCreditCard />
+                      {t('Kart')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex gap-3">
+              <button
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  setPaymentType(null);
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                İptal
+              </button>
+              {paymentType && (
+                <button
+                  onClick={() => setPaymentType(null)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  {t('Geri')}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
 
       {/* Ödeme Geçmişi Modal */}
       {showPaymentHistory && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={() => setShowPaymentHistory(false)}
         >
-          <div 
+          <div
             className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">Ödeme Geçmişi</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('Ödeme Geçmişi')}</h3>
               <button
                 onClick={() => setShowPaymentHistory(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -1358,12 +1359,12 @@ export default function CashierDashboard() {
                 <FaTimes />
               </button>
             </div>
-            
+
             <div className="p-6">
               {paymentHistory.length === 0 ? (
                 <div className="text-center text-gray-500 py-8">
                   <FaReceipt className="mx-auto text-4xl mb-4 text-gray-300" />
-                  <p>Henüz ödeme kaydı yok</p>
+                  <p>{t('Henüz ödeme kaydı yok')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1372,24 +1373,24 @@ export default function CashierDashboard() {
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
                           <span className="text-sm font-medium text-gray-900">
-                            Masa {payment.tableNumber} - Sipariş #{payment.orderId}
+                            {t('Masa')} {payment.tableNumber} - {t('Sipariş No')}: {payment.orderId}
                           </span>
                           {payment.isSplit && (
                             <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                              Bölünen ({payment.splitIndex}/{payment.totalSplit})
+                              {t('Bölünen')} ({payment.splitIndex}/{payment.totalSplit})
                             </span>
                           )}
                         </div>
                         <div className="text-sm text-gray-600 mt-1">
-                          {new Date(payment.timestamp).toLocaleString('tr-TR')} - 
-                          {payment.method === 'cash' ? 'Nakit' : 'Kart'} - 
+                          {new Date(payment.timestamp).toLocaleString('tr-TR')} -
+                          {payment.method === 'cash' ? t('Nakit') : t('Kart')} -
                           {payment.cashier}
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="font-semibold text-gray-900">{payment.amount.toFixed(2)}₺</div>
                         {payment.tip > 0 && (
-                          <div className="text-sm text-gray-600">+{payment.tip.toFixed(2)}₺ bahşiş</div>
+                          <div className="text-sm text-gray-600">+{payment.tip.toFixed(2)}₺ {t('bahşiş')}</div>
                         )}
                       </div>
                     </div>
@@ -1399,110 +1400,110 @@ export default function CashierDashboard() {
             </div>
           </div>
         </div>
-       )}
+      )}
 
-       {/* Ürün Seçimi Modal */}
-       {showItemSelection && selectedOrder && (
-         <div 
-           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-           onClick={() => setShowItemSelection(false)}
-         >
-           <div 
-             className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-             onClick={(e) => e.stopPropagation()}
-           >
-             <div className="p-6 border-b border-gray-200">
-               <h3 className="text-lg font-semibold text-gray-900">Ödenecek Ürünleri Seçin</h3>
-               <p className="text-sm text-gray-600">Masa {selectedOrder.tableNumber} - Hangi ürünleri ödemek istiyorsunuz?</p>
-             </div>
-             
-             <div className="p-6">
-               <div className="space-y-3">
-                 {selectedItemsForPayment.map((item) => (
-                   <div key={item.id} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
-                     <div className="flex items-center gap-3">
-                       <input
-                         type="checkbox"
-                         checked={item.selected}
-                         onChange={() => toggleItemSelection(item.id)}
-                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                       />
-                       <div className="flex-1">
-                         <h4 className="font-medium text-gray-900">{item.name.tr}</h4>
-                         <p className="text-sm text-gray-600">Miktar: {item.quantity} - Birim Fiyat: {item.price}₺</p>
-                       </div>
-                     </div>
-                     <div className="text-right">
-                       <span className="font-semibold text-gray-900">
-                         {(item.price * item.quantity).toFixed(2)}₺
-                       </span>
-                     </div>
-                   </div>
-                 ))}
-               </div>
-               
-               {/* Seçili Ürünlerin Toplamı */}
-               {selectedItemsForPayment.filter(item => item.selected).length > 0 && (
-                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                   <div className="flex justify-between items-center">
-                     <span className="font-medium text-blue-900">Seçili Ürünlerin Toplamı:</span>
-                     <span className="text-xl font-bold text-blue-900">
-                       {selectedItemsForPayment
-                         .filter(item => item.selected)
-                         .reduce((sum, item) => sum + (item.price * item.quantity), 0)
-                         .toFixed(2)}₺
-                     </span>
-                   </div>
-                 </div>
-               )}
-             </div>
-             
-             <div className="p-6 border-t border-gray-200 flex gap-3">
-               <button
-                 onClick={() => setShowItemSelection(false)}
-                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-               >
-                 İptal
-               </button>
-               <button
-                 onClick={() => setShowItemSelection(false)}
-                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-               >
-                 Seçimi Tamamla
-               </button>
-             </div>
-           </div>
-         </div>
-       )}
+      {/* Ürün Seçimi Modal */}
+      {showItemSelection && selectedOrder && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowItemSelection(false)}
+        >
+          <div
+            className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">{t('Ödenecek Ürünleri Seçin')}</h3>
+              <p className="text-sm text-gray-600">{t('Masa')} {selectedOrder.tableNumber} - {t('Hangi ürünleri ödemek istiyorsunuz?')}</p>
+            </div>
 
-       {/* Sipariş Düzenleme Modal */}
+            <div className="p-6">
+              <div className="space-y-3">
+                {selectedItemsForPayment.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={item.selected}
+                        onChange={() => toggleItemSelection(item.id)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{item.name.tr}</h4>
+                        <p className="text-sm text-gray-600">{t('Miktar')}: {item.quantity} - {t('Birim Fiyat')}: {item.price}₺</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-semibold text-gray-900">
+                        {(item.price * item.quantity).toFixed(2)}₺
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Seçili Ürünlerin Toplamı */}
+              {selectedItemsForPayment.filter(item => item.selected).length > 0 && (
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-blue-900">Seçili Ürünlerin Toplamı:</span>
+                    <span className="text-xl font-bold text-blue-900">
+                      {selectedItemsForPayment
+                        .filter(item => item.selected)
+                        .reduce((sum, item) => sum + (item.price * item.quantity), 0)
+                        .toFixed(2)}₺
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex gap-3">
+              <button
+                onClick={() => setShowItemSelection(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                İptal
+              </button>
+              <button
+                onClick={() => setShowItemSelection(false)}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {t('Seçimi Tamamla')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sipariş Düzenleme Modal */}
       {showEditModal && editingOrder && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={() => setShowEditModal(false)}
         >
-          <div 
+          <div
             className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-gray-200 flex justify-between items-start">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Sipariş Düzenle</h3>
-                <p className="text-sm text-gray-600">Masa {editingOrder.tableNumber} - Sipariş #{editingOrder.id}</p>
+                <h3 className="text-lg font-semibold text-gray-900">{t('Sipariş Düzenle')}</h3>
+                <p className="text-sm text-gray-600">{t('Masa')} {editingOrder.tableNumber} - {t('Sipariş No')}: {editingOrder.id}</p>
               </div>
               <button
                 onClick={() => cancelOrder(editingOrder.id)}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
               >
                 <FaTimes />
-                Siparişi İptal Et
+                {t('Siparişi İptal Et')}
               </button>
             </div>
-            
+
             <div className="p-6">
               {/* Mevcut Ürünler */}
               <div className="mb-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Sipariş Ürünleri</h4>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('Sipariş Ürünleri')}</h4>
                 <div className="space-y-3">
                   {currentOrderItems.map((item) => (
                     <div key={item.id} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
@@ -1539,10 +1540,10 @@ export default function CashierDashboard() {
                     </div>
                   ))}
                 </div>
-                
+
                 {currentOrderItems.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
-                    <p>Siparişte ürün kalmadı. Sipariş otomatik olarak iptal edilecek.</p>
+                    <p>{t('Siparişte ürün kalmadı. Sipariş otomatik olarak iptal edilecek.')}</p>
                   </div>
                 )}
               </div>
@@ -1550,9 +1551,9 @@ export default function CashierDashboard() {
               {/* Yeni Ürün Ekleme */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-lg font-semibold text-gray-900">Yeni Ürün Ekle</h4>
+                  <h4 className="text-lg font-semibold text-gray-900">{t('Yeni Ürün Ekle')}</h4>
                 </div>
-                
+
                 {/* Arama ve Kategori Filtreleri */}
                 <div className="mb-4 space-y-3">
                   {/* Arama */}
@@ -1560,34 +1561,32 @@ export default function CashierDashboard() {
                     <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Ürün ara..."
+                      placeholder={t('Ürün ara...')}
                       value={menuSearchTerm}
                       onChange={(e) => setMenuSearchTerm(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  
+
                   {/* Kategori Butonları */}
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => setSelectedCategory('all')}
-                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                        selectedCategory === 'all'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${selectedCategory === 'all'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
-                      Tümü
+                      {t('Tümü')}
                     </button>
                     {getUniqueCategories().map((category) => (
                       <button
                         key={category}
                         onClick={() => setSelectedCategory(category)}
-                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                          selectedCategory === category
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${selectedCategory === category
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
                       >
                         {getCategoryName(category)}
                       </button>
@@ -1610,10 +1609,10 @@ export default function CashierDashboard() {
                       <FaPlus className="text-green-600" />
                     </button>
                   ))}
-                  
+
                   {getFilteredMenuItems().length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-500">
-                      <p>Arama kriterlerinize uygun ürün bulunamadı</p>
+                      <p>{t('Arama kriterlerinize uygun ürün bulunamadı')}</p>
                     </div>
                   )}
                 </div>
@@ -1622,14 +1621,14 @@ export default function CashierDashboard() {
               {/* Toplam */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-900">Yeni Toplam:</span>
+                  <span className="text-lg font-semibold text-gray-900">{t('Yeni Toplam')}:</span>
                   <span className="text-xl font-bold text-blue-600">
                     {currentOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}₺
                   </span>
                 </div>
               </div>
             </div>
-            
+
             <div className="p-6 border-t border-gray-200 flex gap-3">
               <button
                 onClick={() => {
@@ -1648,7 +1647,7 @@ export default function CashierDashboard() {
                 disabled={currentOrderItems.length === 0}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Değişiklikleri Kaydet
+                {t('Değişiklikleri Kaydet')}
               </button>
             </div>
           </div>
@@ -1665,29 +1664,29 @@ export default function CashierDashboard() {
                   <FaUtensils className="text-orange-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800">Masa Değişikliği</h3>
-                  <p className="text-sm text-gray-600">Sipariş taşındı</p>
+                  <h3 className="text-lg font-semibold text-gray-800">{t('Masa Değişikliği')}</h3>
+                  <p className="text-sm text-gray-600">{t('Sipariş taşındı')}</p>
                 </div>
               </div>
-              
+
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
                 <p className="text-orange-800 font-medium">
-                  Sipariş #{tableTransferNotification.orderId}
+                  {t('Sipariş No')}: {tableTransferNotification.orderId}
                 </p>
                 <p className="text-orange-700 text-sm">
-                  {tableTransferNotification.oldTableNumber} → {tableTransferNotification.newTableNumber} numaralı masa
+                  {tableTransferNotification.oldTableNumber} → {tableTransferNotification.newTableNumber} {t('numaralı masa')}
                 </p>
                 <p className="text-orange-600 text-xs mt-1">
                   {new Date(tableTransferNotification.timestamp).toLocaleString('tr-TR')}
                 </p>
               </div>
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowTableTransferNotification(false)}
                   className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Tamam
+                  {t('Tamam')}
                 </button>
                 <button
                   onClick={() => {
@@ -1697,7 +1696,7 @@ export default function CashierDashboard() {
                   }}
                   className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
                 >
-                  Yeni Masayı Görüntüle
+                  {t('Yeni Masayı Görüntüle')}
                 </button>
               </div>
             </div>

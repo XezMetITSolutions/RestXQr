@@ -6,9 +6,10 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFeature } from '@/hooks/useFeature';
 import { apiService } from '@/services/api';
-import { 
-  FaBrain, 
-  FaLightbulb, 
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
+import {
+  FaBrain,
+  FaLightbulb,
   FaChartLine,
   FaUsers,
   FaUtensils,
@@ -33,6 +34,7 @@ interface AIRecommendation {
 
 export default function AIPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated, logout, user } = useAuthStore();
   const hasAIRecommendations = useFeature('ai_recommendations');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -56,7 +58,7 @@ export default function AIPage() {
         setRecommendations(getDemoRecommendations());
         return;
       }
-      
+
       const response = await apiService.getAIRecommendations(restaurantId);
       if (response.success && response.data && response.data.length > 0) {
         setRecommendations(response.data);
@@ -78,52 +80,52 @@ export default function AIPage() {
       {
         id: '1',
         type: 'menu',
-        title: 'Vegan Menü Seçenekleri Ekleyin',
-        description: 'Bölgenizdeki vegan müşteri talebinde %45 artış görülüyor. Menünüze 3-4 vegan seçenek eklemek, haftalık cironuzu ₺8,500 artırabilir.',
+        title: t('Vegan Menü Seçenekleri Ekleyin'),
+        description: t('Bölgenizdeki vegan müşteri talebinde %45 artış görülüyor. Menünüze 3-4 vegan seçenek eklemek, haftalık cironuzu ₺8,500 artırabilir.'),
         impact: 'high',
         confidence: 87,
         potentialRevenue: 8500,
-        actionRequired: 'Menüye vegan ürünler ekleyin'
+        actionRequired: t('Menüye vegan ürünler ekleyin')
       },
       {
         id: '2',
         type: 'pricing',
-        title: 'Öğle Menüsü Fiyat Optimizasyonu',
-        description: 'Öğle menü fiyatlarınız rakiplerinizden %12 daha yüksek. Fiyatları ₺5-7 düşürmek, sipariş sayısını %30 artırabilir.',
+        title: t('Öğle Menüsü Fiyat Optimizasyonu'),
+        description: t('Öğle menü fiyatlarınız rakiplerinizden %12 daha yüksek. Fiyatları ₺5-7 düşürmek, sipariş sayısını %30 artırabilir.'),
         impact: 'high',
         confidence: 92,
         potentialRevenue: 12000,
-        actionRequired: 'Öğle menü fiyatlarını gözden geçirin'
+        actionRequired: t('Öğle menü fiyatlarını gözden geçirin')
       },
       {
         id: '3',
         type: 'inventory',
-        title: 'Stok Yönetimi İyileştirmesi',
-        description: 'Bazı ürünlerde %15 fire oranı tespit edildi. Stok rotasyonunu optimize ederek aylık ₺3,200 tasarruf edebilirsiniz.',
+        title: t('Stok Yönetimi İyileştirmesi'),
+        description: t('Bazı ürünlerde %15 fire oranı tespit edildi. Stok rotasyonunu optimize ederek aylık ₺3,200 tasarruf edebilirsiniz.'),
         impact: 'medium',
         confidence: 78,
         potentialRevenue: 3200,
-        actionRequired: 'Stok rotasyon sistemini güncelleyin'
+        actionRequired: t('Stok rotasyon sistemini güncelleyin')
       },
       {
         id: '4',
         type: 'marketing',
-        title: 'Sosyal Medya Kampanyası',
-        description: 'Rakipleriniz Instagram\'da aktif ancak siz pasifsiniz. Haftalık 3 gönderi ile müşteri sayınızı %25 artırabilirsiniz.',
+        title: t('Sosyal Medya Kampanyası'),
+        description: t('Rakipleriniz Instagram\'da aktif ancak siz pasifsiniz. Haftalık 3 gönderi ile müşteri sayınızı %25 artırabilirsiniz.'),
         impact: 'high',
         confidence: 85,
         potentialRevenue: 15000,
-        actionRequired: 'Sosyal medya stratejisi oluşturun'
+        actionRequired: t('Sosyal medya stratejisi oluşturun')
       },
       {
         id: '5',
         type: 'operations',
-        title: 'Personel Vardiya Optimizasyonu',
-        description: 'Yoğun saatlerde personel eksikliği, sakin saatlerde fazlalık var. Vardiya planlamasını optimize ederek aylık ₺5,000 tasarruf edebilirsiniz.',
+        title: t('Personel Vardiya Optimizasyonu'),
+        description: t('Yoğun saatlerde personel eksikliği, sakin saatlerde fazlalık var. Vardiya planlamasını optimize ederek aylık ₺5,000 tasarruf edebilirsiniz.'),
         impact: 'medium',
         confidence: 81,
         potentialRevenue: 5000,
-        actionRequired: 'Vardiya planlamasını yeniden düzenleyin'
+        actionRequired: t('Vardiya planlamasını yeniden düzenleyin')
       }
     ];
   };
@@ -151,15 +153,15 @@ export default function AIPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <FaBrain className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">AI Önerileri</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2"><TranslatedText text="AI Önerileri" /></h2>
           <p className="text-gray-600 mb-4">
-            Bu özellik planınızda bulunmuyor. Yapay zeka destekli öneriler özelliğini kullanmak için planınızı yükseltin.
+            <TranslatedText text="Bu özellik planınızda bulunmuyor. Yapay zeka destekli öneriler özelliğini kullanmak için planınızı yükseltin." />
           </p>
           <button
             onClick={() => router.push('/business/settings')}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Planı Yükselt
+            <TranslatedText text="Planı Yükselt" />
           </button>
         </div>
       </div>
@@ -182,9 +184,9 @@ export default function AIPage() {
 
   const getImpactText = (impact: string) => {
     switch (impact) {
-      case 'high': return 'Yüksek Etki';
-      case 'medium': return 'Orta Etki';
-      case 'low': return 'Düşük Etki';
+      case 'high': return t('Yüksek Etki');
+      case 'medium': return t('Orta Etki');
+      case 'low': return t('Düşük Etki');
       default: return impact;
     }
   };
@@ -202,11 +204,11 @@ export default function AIPage() {
 
   const getTypeText = (type: string) => {
     switch (type) {
-      case 'menu': return 'Menü';
-      case 'pricing': return 'Fiyatlandırma';
-      case 'inventory': return 'Stok';
-      case 'marketing': return 'Pazarlama';
-      case 'operations': return 'Operasyon';
+      case 'menu': return t('Menü');
+      case 'pricing': return t('Fiyatlandırma');
+      case 'inventory': return t('Stok');
+      case 'marketing': return t('Pazarlama');
+      case 'operations': return t('Operasyon');
       default: return type;
     }
   };
@@ -217,7 +219,7 @@ export default function AIPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -238,9 +240,9 @@ export default function AIPage() {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <FaBrain className="text-purple-600" />
-                    AI Önerileri
+                    <TranslatedText text="AI Önerileri" />
                   </h1>
-                  <p className="text-sm text-gray-600 mt-1">Yapay zeka destekli iş önerileri</p>
+                  <p className="text-sm text-gray-600 mt-1"><TranslatedText text="Yapay zeka destekli iş önerileri" /></p>
                 </div>
               </div>
             </div>
@@ -253,7 +255,7 @@ export default function AIPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Öneri</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Öneri" /></p>
                   <p className="text-2xl font-bold text-gray-900">{recommendations.length}</p>
                 </div>
                 <FaLightbulb className="text-3xl text-yellow-500" />
@@ -262,7 +264,7 @@ export default function AIPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Yüksek Öncelik</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Yüksek Öncelik" /></p>
                   <p className="text-2xl font-bold text-red-600">{highImpactCount}</p>
                 </div>
                 <FaExclamationTriangle className="text-3xl text-red-500" />
@@ -271,7 +273,7 @@ export default function AIPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Potansiyel Gelir</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Potansiyel Gelir" /></p>
                   <p className="text-2xl font-bold text-green-600">₺{totalPotentialRevenue.toLocaleString()}</p>
                 </div>
                 <FaArrowUp className="text-3xl text-green-500" />
@@ -280,7 +282,7 @@ export default function AIPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Ort. Güven</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Ort. Güven" /></p>
                   <p className="text-2xl font-bold text-purple-600">%{avgConfidence}</p>
                 </div>
                 <FaBrain className="text-3xl text-purple-500" />
@@ -293,10 +295,9 @@ export default function AIPage() {
             <div className="flex items-start gap-4">
               <FaBrain className="text-3xl text-purple-600 mt-1" />
               <div>
-                <h3 className="font-bold text-purple-900 mb-2">Yapay Zeka Analizi</h3>
+                <h3 className="font-bold text-purple-900 mb-2"><TranslatedText text="Yapay Zeka Analizi" /></h3>
                 <p className="text-sm text-purple-800">
-                  AI sistemimiz, işletme verilerinizi analiz ederek size özel öneriler sunuyor. 
-                  Bu öneriler, benzer işletmelerin başarı verilerine ve pazar trendlerine dayanmaktadır.
+                  <TranslatedText text="AI sistemimiz, işletme verilerinizi analiz ederek size özel öneriler sunuyor. Bu öneriler, benzer işletmelerin başarı verilerine ve pazar trendlerine dayanmaktadır." />
                 </p>
               </div>
             </div>
@@ -320,14 +321,14 @@ export default function AIPage() {
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mb-3">{rec.description}</p>
-                        
+
                         <div className="flex flex-wrap items-center gap-4 text-sm">
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-600">Kategori:</span>
+                            <span className="text-gray-600"><TranslatedText text="Kategori" />:</span>
                             <span className="font-medium text-gray-900">{getTypeText(rec.type)}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-600">Güven:</span>
+                            <span className="text-gray-600"><TranslatedText text="Güven" />:</span>
                             <span className="font-bold text-purple-600">%{rec.confidence}</span>
                           </div>
                           {rec.potentialRevenue && (
@@ -344,22 +345,22 @@ export default function AIPage() {
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <FaClock />
-                      <span>Aksiyon: {rec.actionRequired}</span>
+                      <span><TranslatedText text="Aksiyon" />: {rec.actionRequired}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button 
+                      <button
                         onClick={() => handleDeleteRecommendation(rec.id)}
                         className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
                       >
-                        Daha Sonra
+                        <TranslatedText text="Daha Sonra" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
-                          alert('Öneri uygulanıyor...');
+                          alert(t('Öneri uygulanıyor...'));
                         }}
                         className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium"
                       >
-                        Uygula
+                        <TranslatedText text="Uygula" />
                       </button>
                     </div>
                   </div>
@@ -372,17 +373,16 @@ export default function AIPage() {
           <div className="mt-6 bg-blue-50 rounded-lg p-6 border border-blue-200">
             <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
               <FaBrain />
-              AI Öğreniyor
+              <TranslatedText text="AI Öğreniyor" />
             </h3>
             <p className="text-sm text-blue-800 mb-4">
-              Yapay zeka sistemi, işletmenizi daha iyi anlamak için sürekli öğreniyor. 
-              Önerileri uyguladıkça ve geri bildirim verdikçe öneriler daha kişiselleşecek.
+              <TranslatedText text="Yapay zeka sistemi, işletmenizi daha iyi anlamak için sürekli öğreniyor. Önerileri uyguladıkça ve geri bildirim verdikçe öneriler daha kişiselleşecek." />
             </p>
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-blue-200 rounded-full h-2">
                 <div className="bg-blue-600 h-2 rounded-full" style={{ width: '65%' }}></div>
               </div>
-              <span className="text-sm font-medium text-blue-900">%65 Öğrenme</span>
+              <span className="text-sm font-medium text-blue-900">%65 <TranslatedText text="Öğrenme" /></span>
             </div>
           </div>
         </div>

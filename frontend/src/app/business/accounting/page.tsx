@@ -6,11 +6,12 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFeature } from '@/hooks/useFeature';
 import { apiService } from '@/services/api';
-import { 
-  FaFileInvoiceDollar, 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
+import {
+  FaFileInvoiceDollar,
+  FaPlus,
+  FaEdit,
+  FaTrash,
   FaSearch,
   FaDownload,
   FaChartPie,
@@ -34,6 +35,7 @@ interface Transaction {
 
 export default function AccountingPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated, logout, user } = useAuthStore();
   const hasAccountingSoftware = useFeature('accounting_software');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -69,7 +71,7 @@ export default function AccountingPage() {
       setLoading(true);
       const restaurantId = user?.id;
       if (!restaurantId) return;
-      
+
       const response = await apiService.getTransactions(restaurantId);
       if (response.success && response.data) {
         // Backend'den gelen veriyi frontend formatına çevir
@@ -94,7 +96,7 @@ export default function AccountingPage() {
 
   const handleAddTransaction = async () => {
     if (!formData.description || !formData.category || formData.amount <= 0) {
-      alert('Lütfen tüm zorunlu alanları doldurun ve tutarı girin.');
+      alert(t('Lütfen tüm zorunlu alanları doldurun ve tutarı girin.'));
       return;
     }
 
@@ -112,17 +114,17 @@ export default function AccountingPage() {
         invoiceNumber: formData.invoiceNumber || undefined,
         restaurantId
       });
-      
+
       if (response.success) {
         await fetchTransactions();
         setShowAddModal(false);
         resetForm();
       } else {
-        alert('İşlem eklenirken hata oluştu.');
+        alert(t('İşlem eklenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('İşlem eklenirken hata:', error);
-      alert('İşlem eklenirken bir hata oluştu.');
+      alert(t('İşlem eklenirken hata oluştu.'));
     }
   };
 
@@ -156,7 +158,7 @@ export default function AccountingPage() {
     if (!editingTransaction) return;
 
     if (!formData.description || !formData.category || formData.amount <= 0) {
-      alert('Lütfen tüm zorunlu alanları doldurun ve tutarı girin.');
+      alert(t('Lütfen tüm zorunlu alanları doldurun ve tutarı girin.'));
       return;
     }
 
@@ -176,11 +178,11 @@ export default function AccountingPage() {
         setEditingTransaction(null);
         resetForm();
       } else {
-        alert('İşlem güncellenirken hata oluştu.');
+        alert(t('İşlem güncellenirken hata oluştu.'));
       }
     } catch (error) {
       console.error('İşlem güncellenirken hata:', error);
-      alert('İşlem güncellenirken bir hata oluştu.');
+      alert(t('İşlem güncellenirken hata oluştu.'));
     }
   };
 
@@ -199,11 +201,11 @@ export default function AccountingPage() {
         setShowDeleteConfirm(false);
         setTransactionToDelete(null);
       } else {
-        alert('İşlem silinirken hata oluştu.');
+        alert(t('İşlem silinirken hata oluştu.'));
       }
     } catch (error) {
       console.error('İşlem silinirken hata:', error);
-      alert('İşlem silinirken hata oluştu.');
+      alert(t('İşlem silinirken hata oluştu.'));
     }
   };
 
@@ -219,15 +221,15 @@ export default function AccountingPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <FaFileInvoiceDollar className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Muhasebe Entegrasyonu</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2"><TranslatedText text="Muhasebe Entegrasyonu" /></h2>
           <p className="text-gray-600 mb-4">
-            Bu özellik planınızda bulunmuyor. Muhasebe yazılımı entegrasyonu özelliğini kullanmak için planınızı yükseltin.
+            <TranslatedText text="Bu özellik planınızda bulunmuyor. Muhasebe yazılımı entegrasyonu özelliğini kullanmak için planınızı yükseltin." />
           </p>
           <button
             onClick={() => router.push('/business/settings')}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Planı Yükselt
+            <TranslatedText text="Planı Yükselt" />
           </button>
         </div>
       </div>
@@ -241,8 +243,8 @@ export default function AccountingPage() {
 
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (transaction.invoiceNumber && transaction.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()));
+      transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (transaction.invoiceNumber && transaction.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesType = filterType === 'all' || transaction.type === filterType;
     return matchesSearch && matchesType;
   });
@@ -254,7 +256,7 @@ export default function AccountingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -275,22 +277,22 @@ export default function AccountingPage() {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <FaFileInvoiceDollar className="text-emerald-600" />
-                    Muhasebe Yönetimi
+                    <TranslatedText text="Muhasebe Yönetimi" />
                   </h1>
-                  <p className="text-sm text-gray-600 mt-1">Gelir ve giderlerinizi takip edin</p>
+                  <p className="text-sm text-gray-600 mt-1"><TranslatedText text="Gelir ve giderlerinizi takip edin" /></p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2">
                   <FaDownload />
-                  <span className="hidden sm:inline">Rapor Al</span>
+                  <span className="hidden sm:inline"><TranslatedText text="Rapor Al" /></span>
                 </button>
-                <button 
+                <button
                   onClick={() => setShowAddModal(true)}
                   className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
                 >
                   <FaPlus />
-                  <span className="hidden sm:inline">Yeni İşlem</span>
+                  <span className="hidden sm:inline"><TranslatedText text="Yeni İşlem" /></span>
                 </button>
               </div>
             </div>
@@ -303,7 +305,7 @@ export default function AccountingPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Gelir</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Gelir" /></p>
                   <p className="text-2xl font-bold text-green-600">₺{totalIncome.toLocaleString()}</p>
                 </div>
                 <FaArrowUp className="text-3xl text-green-500" />
@@ -312,7 +314,7 @@ export default function AccountingPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Gider</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Gider" /></p>
                   <p className="text-2xl font-bold text-red-600">₺{totalExpense.toLocaleString()}</p>
                 </div>
                 <FaArrowDown className="text-3xl text-red-500" />
@@ -321,7 +323,7 @@ export default function AccountingPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Net Kar</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Net Kar" /></p>
                   <p className={`text-2xl font-bold ${netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                     ₺{netProfit.toLocaleString()}
                   </p>
@@ -332,7 +334,7 @@ export default function AccountingPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Kar Marjı</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Kar Marjı" /></p>
                   <p className="text-2xl font-bold text-blue-600">%{profitMargin}</p>
                 </div>
                 <FaChartPie className="text-3xl text-blue-500" />
@@ -347,7 +349,7 @@ export default function AccountingPage() {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Açıklama, kategori veya fatura no ara..."
+                  placeholder={t('Açıklama, kategori veya fatura no ara...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -358,9 +360,9 @@ export default function AccountingPage() {
                 onChange={(e) => setFilterType(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
-                <option value="all">Tüm İşlemler</option>
-                <option value="income">Gelirler</option>
-                <option value="expense">Giderler</option>
+                <option value="all">{t('Tüm İşlemler')}</option>
+                <option value="income">{t('Gelirler')}</option>
+                <option value="expense">{t('Giderler')}</option>
               </select>
             </div>
           </div>
@@ -372,22 +374,22 @@ export default function AccountingPage() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tarih
+                      <TranslatedText text="Tarih" />
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Açıklama
+                      <TranslatedText text="Açıklama" />
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Kategori
+                      <TranslatedText text="Kategori" />
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ödeme Yöntemi
+                      <TranslatedText text="Ödeme Yöntemi" />
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tutar
+                      <TranslatedText text="Tutar" />
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      İşlemler
+                      <TranslatedText text="İşlemler" />
                     </th>
                   </tr>
                 </thead>
@@ -429,13 +431,13 @@ export default function AccountingPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button 
+                        <button
                           onClick={() => handleEditClick(transaction)}
                           className="text-blue-600 hover:text-blue-900 mr-3"
                         >
                           <FaEdit />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteClick(transaction.id)}
                           className="text-red-600 hover:text-red-900"
                         >
@@ -452,7 +454,7 @@ export default function AccountingPage() {
           {filteredTransactions.length === 0 && (
             <div className="text-center py-12 bg-white rounded-lg border border-gray-200 mt-6">
               <FaFileInvoiceDollar className="text-5xl text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">İşlem bulunamadı</p>
+              <p className="text-gray-600"><TranslatedText text="İşlem bulunamadı" /></p>
             </div>
           )}
 
@@ -460,13 +462,13 @@ export default function AccountingPage() {
           <div className="mt-6 bg-emerald-50 rounded-lg p-6 border border-emerald-200">
             <h3 className="font-bold text-emerald-900 mb-2 flex items-center gap-2">
               <FaFileInvoiceDollar />
-              Muhasebe Yazılımı Entegrasyonları
+              <TranslatedText text="Muhasebe Yazılımı Entegrasyonları" />
             </h3>
             <p className="text-sm text-emerald-800 mb-4">
-              Logo, Netsis, Mikro ve diğer muhasebe yazılımları ile entegre olun.
+              <TranslatedText text="Logo, Netsis, Mikro ve diğer muhasebe yazılımları ile entegre olun." />
             </p>
             <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-              Entegrasyon Ayarları
+              <TranslatedText text="Entegrasyon Ayarları" />
             </button>
           </div>
         </div>
@@ -477,13 +479,13 @@ export default function AccountingPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Yeni İşlem Ekle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="Yeni İşlem Ekle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tarih <span className="text-red-500">*</span>
+                    <TranslatedText text="Tarih" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
@@ -494,21 +496,21 @@ export default function AccountingPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    İşlem Tipi <span className="text-red-500">*</span>
+                    <TranslatedText text="İşlem Tipi" /> <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as 'income' | 'expense' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
-                    <option value="income">Gelir</option>
-                    <option value="expense">Gider</option>
+                    <option value="income">{t('Gelir')}</option>
+                    <option value="expense">{t('Gider')}</option>
                   </select>
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Açıklama <span className="text-red-500">*</span>
+                  <TranslatedText text="Açıklama" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -521,7 +523,7 @@ export default function AccountingPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kategori <span className="text-red-500">*</span>
+                    <TranslatedText text="Kategori" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -533,7 +535,7 @@ export default function AccountingPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tutar (₺) <span className="text-red-500">*</span>
+                    <TranslatedText text="Tutar (₺)" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -548,24 +550,24 @@ export default function AccountingPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ödeme Yöntemi
+                    <TranslatedText text="Ödeme Yöntemi" />
                   </label>
                   <select
                     value={formData.paymentMethod}
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
-                    <option value="">Seçiniz</option>
-                    <option value="Nakit">Nakit</option>
-                    <option value="Kredi Kartı">Kredi Kartı</option>
-                    <option value="Banka Transferi">Banka Transferi</option>
-                    <option value="Otomatik Ödeme">Otomatik Ödeme</option>
-                    <option value="Karışık">Karışık</option>
+                    <option value="">{t('Seçiniz')}</option>
+                    <option value="Nakit">{t('Nakit')}</option>
+                    <option value="Kredi Kartı">{t('Kredi Kartı')}</option>
+                    <option value="Banka Transferi">{t('Banka Transferi')}</option>
+                    <option value="Otomatik Ödeme">{t('Otomatik Ödeme')}</option>
+                    <option value="Karışık">{t('Karışık')}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fatura No
+                    <TranslatedText text="Fatura No" />
                   </label>
                   <input
                     type="text"
@@ -585,13 +587,13 @@ export default function AccountingPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleAddTransaction}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
               >
-                Kaydet
+                <TranslatedText text="Kaydet" />
               </button>
             </div>
           </div>
@@ -603,13 +605,13 @@ export default function AccountingPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">İşlemi Düzenle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="İşlemi Düzenle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tarih <span className="text-red-500">*</span>
+                    <TranslatedText text="Tarih" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
@@ -620,21 +622,21 @@ export default function AccountingPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    İşlem Tipi <span className="text-red-500">*</span>
+                    <TranslatedText text="İşlem Tipi" /> <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as 'income' | 'expense' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
-                    <option value="income">Gelir</option>
-                    <option value="expense">Gider</option>
+                    <option value="income">{t('Gelir')}</option>
+                    <option value="expense">{t('Gider')}</option>
                   </select>
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Açıklama <span className="text-red-500">*</span>
+                  <TranslatedText text="Açıklama" /> <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -647,7 +649,7 @@ export default function AccountingPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kategori <span className="text-red-500">*</span>
+                    <TranslatedText text="Kategori" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -659,7 +661,7 @@ export default function AccountingPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tutar (₺) <span className="text-red-500">*</span>
+                    <TranslatedText text="Tutar (₺)" /> <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -674,24 +676,24 @@ export default function AccountingPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ödeme Yöntemi
+                    <TranslatedText text="Ödeme Yöntemi" />
                   </label>
                   <select
                     value={formData.paymentMethod}
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
-                    <option value="">Seçiniz</option>
-                    <option value="Nakit">Nakit</option>
-                    <option value="Kredi Kartı">Kredi Kartı</option>
-                    <option value="Banka Transferi">Banka Transferi</option>
-                    <option value="Otomatik Ödeme">Otomatik Ödeme</option>
-                    <option value="Karışık">Karışık</option>
+                    <option value="">{t('Seçiniz')}</option>
+                    <option value="Nakit">{t('Nakit')}</option>
+                    <option value="Kredi Kartı">{t('Kredi Kartı')}</option>
+                    <option value="Banka Transferi">{t('Banka Transferi')}</option>
+                    <option value="Otomatik Ödeme">{t('Otomatik Ödeme')}</option>
+                    <option value="Karışık">{t('Karışık')}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fatura No
+                    <TranslatedText text="Fatura No" />
                   </label>
                   <input
                     type="text"
@@ -712,13 +714,13 @@ export default function AccountingPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleUpdateTransaction}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
               >
-                Güncelle
+                <TranslatedText text="Güncelle" />
               </button>
             </div>
           </div>
@@ -735,9 +737,9 @@ export default function AccountingPage() {
                   <FaTrash className="text-red-600 text-xl" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">İşlemi Sil</h3>
+                  <h3 className="text-lg font-bold text-gray-900"><TranslatedText text="İşlemi Sil" /></h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    Bu işlemi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                    <TranslatedText text="Bu işlemi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz." />
                   </p>
                 </div>
               </div>
@@ -749,13 +751,13 @@ export default function AccountingPage() {
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                 >
-                  İptal
+                  <TranslatedText text="İptal" />
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
-                  Sil
+                  <TranslatedText text="Sil" />
                 </button>
               </div>
             </div>

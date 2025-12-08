@@ -230,8 +230,8 @@ export default function StaffPage() {
   const handleAddStaff = async () => {
     const name = newStaff.name.trim();
     const email = newStaff.email.trim();
-    if (!name) { alert('Ad Soyad zorunludur.'); return; }
-    if (!email) { alert('E-posta zorunludur.'); return; }
+    if (!name) { alert(t('Ad Soyad zorunludur.')); return; }
+    if (!email) { alert(t('E-posta zorunludur.')); return; }
 
     const now = new Date();
     const newMember: any = {
@@ -300,11 +300,11 @@ export default function StaffPage() {
 
     // Rol bazlı yönlendirme bilgisi
     const rolePanelMap: { [key: string]: string } = {
-      'waiter': 'Garson Paneli',
-      'cashier': 'Kasa Paneli',
-      'chef': 'Mutfak Paneli',
-      'manager': 'Yönetim Paneli',
-      'admin': 'Admin Paneli'
+      'waiter': t('Garson Paneli'),
+      'cashier': t('Kasa Paneli'),
+      'chef': t('Mutfak Paneli'),
+      'manager': t('Yönetim Paneli'),
+      'admin': t('Admin Paneli')
     };
 
     const panelName = rolePanelMap[newStaff.role] || 'Panel';

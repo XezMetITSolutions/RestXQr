@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaBell, FaSignOutAlt, FaUtensils, FaClock, FaCheckCircle, FaExclamationTriangle, FaPlay, FaPause } from 'react-icons/fa';
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 
 interface OrderItem {
   name: string;
@@ -21,6 +22,7 @@ interface Order {
 }
 
 export default function KitchenDashboard() {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'preparing' | 'ready'>('all');
@@ -50,7 +52,7 @@ export default function KitchenDashboard() {
         setStaffInfo(null);
       }
     };
-    
+
     checkSession();
   }, []);
 
@@ -58,7 +60,7 @@ export default function KitchenDashboard() {
   useEffect(() => {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://masapp-backend.onrender.com';
     const eventSource = new EventSource(`${baseUrl}/api/events/orders`);
-    
+
     eventSource.onopen = () => {
       setIsConnected(true);
       console.log('Kitchen dashboard connected to real-time updates');
@@ -67,7 +69,7 @@ export default function KitchenDashboard() {
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
+
         if (data.type === 'new_order') {
           const newOrder: Order = {
             orderId: data.orderId,
@@ -78,14 +80,14 @@ export default function KitchenDashboard() {
             timestamp: data.timestamp,
             status: 'pending'
           };
-          
+
           setOrders(prev => [newOrder, ...prev]);
-          setNotifications(prev => [`Masa ${data.tableNumber} için yeni sipariş!`]);
-          
+          setNotifications(prev => [`${t('Masa {0} için yeni sipariş!').replace('{0}', data.tableNumber)}`]);
+
           // Bildirim sesi çal
           if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('Yeni Sipariş!', {
-              body: `Masa ${data.tableNumber} için sipariş geldi`,
+            new Notification(t('Yeni Sipariş!'), {
+              body: t('Masa {0} için sipariş geldi').replace('{0}', data.tableNumber),
               icon: '/favicon.svg'
             });
           }
@@ -118,7 +120,7 @@ export default function KitchenDashboard() {
       if (!silent) setLoading(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com'}/api/orders?restaurantId=aksaray&status=pending`);
       const data = await response.json();
-      
+
       if (data.success) {
         const formattedOrders: Order[] = data.data.map((order: any) => ({
           orderId: order.id,
@@ -129,7 +131,7 @@ export default function KitchenDashboard() {
           timestamp: order.created_at,
           status: order.status || 'pending'
         }));
-        
+
         setOrders(formattedOrders);
       }
     } catch (error) {
@@ -157,9 +159,9 @@ export default function KitchenDashboard() {
       });
 
       if (response.ok) {
-        setOrders(prev => 
-          prev.map(order => 
-            order.orderId === orderId 
+        setOrders(prev =>
+          prev.map(order =>
+            order.orderId === orderId
               ? { ...order, status, preparationTime: status === 'preparing' ? Date.now() : order.preparationTime }
               : order
           )
@@ -175,21 +177,21 @@ export default function KitchenDashboard() {
     const orderTime = new Date(timestamp);
     const diffMs = now.getTime() - orderTime.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffMins < 1) return 'Az önce';
-    if (diffMins < 60) return `${diffMins} dk önce`;
-    
+
+    if (diffMins < 1) return t('Az önce');
+    if (diffMins < 60) return t('{0} dk önce').replace('{0}', diffMins.toString());
+
     const diffHours = Math.floor(diffMins / 60);
-    return `${diffHours} saat önce`;
+    return t('{0} saat önce').replace('{0}', diffHours.toString());
   };
 
   const getPreparationTime = (order: Order) => {
     if (order.status !== 'preparing' || !order.preparationTime) return null;
-    
+
     const now = Date.now();
     const diffMs = now - order.preparationTime;
     const diffMins = Math.floor(diffMs / 60000);
-    
+
     return `${diffMins} dk`;
   };
 
@@ -209,10 +211,10 @@ export default function KitchenDashboard() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return 'Bekliyor';
-      case 'preparing': return 'Hazırlanıyor';
-      case 'ready': return 'Hazır';
-      default: return 'Bilinmiyor';
+      case 'pending': return t('Bekliyor');
+      case 'preparing': return t('Hazırlanıyor');
+      case 'ready': return t('Hazır');
+      default: return t('Bilinmiyor');
     }
   };
 
@@ -222,13 +224,13 @@ export default function KitchenDashboard() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full mx-4">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Mutfak Paneli</h2>
-            <p className="text-gray-600 mb-6">Mutfak paneline erişmek için giriş yapmanız gerekiyor.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4"><TranslatedText text="Mutfak Paneli" /></h2>
+            <p className="text-gray-600 mb-6"><TranslatedText text="Mutfak paneline erişmek için giriş yapmanız gerekiyor." /></p>
             <button
               onClick={() => window.location.href = '/isletme-giris'}
               className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
             >
-              Giriş Yap
+              <TranslatedText text="Giriş Yap" />
             </button>
           </div>
         </div>
@@ -245,11 +247,11 @@ export default function KitchenDashboard() {
             <div className="flex items-center space-x-4">
               <FaUtensils className="text-2xl" />
               <div>
-                <h1 className="text-2xl font-bold">Mutfak Paneli</h1>
+                <h1 className="text-2xl font-bold"><TranslatedText text="Mutfak Paneli" /></h1>
                 <p className="text-red-100 text-sm">Aksaray Restoran</p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               {/* Debug Button */}
               <button
@@ -261,7 +263,7 @@ export default function KitchenDashboard() {
                   console.log('Connection Status:', isConnected);
                   console.log('Orders Count:', orders.length);
                   console.log('Notifications:', notifications);
-                  
+
                   // API Health Check
                   fetch(`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://masapp-backend.onrender.com'}/health`)
                     .then(res => res.json())
@@ -272,15 +274,15 @@ export default function KitchenDashboard() {
               >
                 🔧 Debug
               </button>
-              
+
               {/* Connection Status */}
               <div className="flex items-center space-x-2">
                 <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
                 <span className="text-sm">
-                  {isConnected ? 'Bağlı' : 'Bağlantı Yok'}
+                  {isConnected ? t('Bağlı') : t('Bağlantı Yok')}
                 </span>
               </div>
-              
+
               {/* Notifications */}
               <div className="relative">
                 <FaBell className="text-xl cursor-pointer hover:text-red-200" />
@@ -290,10 +292,10 @@ export default function KitchenDashboard() {
                   </span>
                 )}
               </div>
-              
+
               <button className="flex items-center space-x-2 px-4 py-2 bg-red-700 hover:bg-red-800 rounded-lg transition-colors">
                 <FaSignOutAlt />
-                <span>Çıkış</span>
+                <span><TranslatedText text="Çıkış" /></span>
               </button>
             </div>
           </div>
@@ -304,19 +306,18 @@ export default function KitchenDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-wrap gap-3 mb-6">
           {[
-            { key: 'all', label: 'Tümü', count: orders.length },
-            { key: 'pending', label: 'Bekleyen', count: orders.filter(o => o.status === 'pending').length },
-            { key: 'preparing', label: 'Hazırlanan', count: orders.filter(o => o.status === 'preparing').length },
-            { key: 'ready', label: 'Hazır', count: orders.filter(o => o.status === 'ready').length },
+            { key: 'all', label: t('Tümü'), count: orders.length },
+            { key: 'pending', label: t('Bekleyen'), count: orders.filter(o => o.status === 'pending').length },
+            { key: 'preparing', label: t('Hazırlanan'), count: orders.filter(o => o.status === 'preparing').length },
+            { key: 'ready', label: t('Hazır'), count: orders.filter(o => o.status === 'ready').length },
           ].map(({ key, label, count }) => (
             <button
               key={key}
               onClick={() => setFilter(key as any)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                filter === key
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${filter === key
                   ? 'bg-red-600 text-white shadow-lg'
                   : 'bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
-              }`}
+                }`}
             >
               {label} ({count})
             </button>
@@ -328,24 +329,23 @@ export default function KitchenDashboard() {
           {filteredOrders.map((order) => (
             <div
               key={order.orderId}
-              className={`bg-white rounded-xl shadow-lg p-6 border-l-4 ${
-                order.status === 'pending' ? 'border-red-500' :
-                order.status === 'preparing' ? 'border-yellow-500' :
-                order.status === 'ready' ? 'border-green-500' : 'border-gray-500'
-              } hover:shadow-xl transition-all duration-300`}
+              className={`bg-white rounded-xl shadow-lg p-6 border-l-4 ${order.status === 'pending' ? 'border-red-500' :
+                  order.status === 'preparing' ? 'border-yellow-500' :
+                    order.status === 'ready' ? 'border-green-500' : 'border-gray-500'
+                } hover:shadow-xl transition-all duration-300`}
             >
               {/* Order Header */}
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">
-                    Masa {order.tableNumber}
+                    {t('Masa')} {order.tableNumber}
                   </h3>
                   <p className="text-sm text-gray-500 flex items-center mt-1">
                     <FaClock className="mr-1" />
                     {getTimeAgo(order.timestamp)}
                   </p>
                 </div>
-                
+
                 <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
                   {getStatusText(order.status)}
                 </div>
@@ -357,10 +357,10 @@ export default function KitchenDashboard() {
                   <div key={index} className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="font-medium text-gray-900">{item.name}</div>
-                      <div className="text-sm text-gray-500">Adet: {item.quantity}</div>
+                      <div className="text-sm text-gray-500">{t('Adet')}: {item.quantity}</div>
                       {item.notes && (
                         <div className="text-sm text-blue-600 mt-1 italic">
-                          Not: {item.notes}
+                          {t('Not')}: {item.notes}
                         </div>
                       )}
                     </div>
@@ -371,7 +371,7 @@ export default function KitchenDashboard() {
               {/* Total */}
               <div className="border-t pt-3 mb-4">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-700">Toplam:</span>
+                  <span className="font-medium text-gray-700">{t('Toplam')}:</span>
                   <span className="text-lg font-bold text-gray-900">
                     ₺{order.totalAmount.toFixed(2)}
                   </span>
@@ -382,7 +382,7 @@ export default function KitchenDashboard() {
               {order.status === 'preparing' && getPreparationTime(order) && (
                 <div className="mb-4 p-2 bg-yellow-50 rounded-lg">
                   <div className="text-sm text-yellow-700 font-medium">
-                    Hazırlanma Süresi: {getPreparationTime(order)}
+                    {t('Hazırlanma Süresi:')} {getPreparationTime(order)}
                   </div>
                 </div>
               )}
@@ -395,27 +395,27 @@ export default function KitchenDashboard() {
                     className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                   >
                     <FaPlay />
-                    <span>Hazırla</span>
+                    <span>{t('Hazırla')}</span>
                   </button>
                 )}
-                
+
                 {order.status === 'preparing' && (
                   <button
                     onClick={() => updateOrderStatus(order.orderId, 'ready')}
                     className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                   >
                     <FaCheckCircle />
-                    <span>Hazır</span>
+                    <span>{t('Hazır')}</span>
                   </button>
                 )}
-                
+
                 {order.status === 'ready' && (
                   <button
                     onClick={() => updateOrderStatus(order.orderId, 'completed')}
                     className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                   >
                     <FaCheckCircle />
-                    <span>Teslim Et</span>
+                    <span>{t('Teslim Et')}</span>
                   </button>
                 )}
               </div>
@@ -428,12 +428,12 @@ export default function KitchenDashboard() {
           <div className="text-center py-12">
             <FaUtensils className="text-6xl text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-medium text-gray-500 mb-2">
-              {filter === 'all' ? 'Henüz sipariş yok' : `${getStatusText(filter)} sipariş yok`}
+              {filter === 'all' ? t('Henüz sipariş yok') : t('{0} sipariş yok').replace('{0}', getStatusText(filter))}
             </h3>
             <p className="text-gray-400">
-              {filter === 'all' 
-                ? 'Yeni siparişler geldiğinde burada görünecek' 
-                : 'Bu durumda sipariş bulunmuyor'
+              {filter === 'all'
+                ? t('Yeni siparişler geldiğinde burada görünecek')
+                : t('Bu durumda sipariş bulunmuyor')
               }
             </p>
           </div>

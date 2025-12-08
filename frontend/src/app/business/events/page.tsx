@@ -6,11 +6,11 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFeature } from '@/hooks/useFeature';
 import { apiService } from '@/services/api';
-import { 
-  FaCalendarAlt, 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
+import {
+  FaCalendarAlt,
+  FaPlus,
+  FaEdit,
+  FaTrash,
   FaSearch,
   FaUsers,
   FaMapMarkerAlt,
@@ -21,6 +21,7 @@ import {
   FaMusic,
   FaUtensils
 } from 'react-icons/fa';
+import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 
 interface Event {
   id: string;
@@ -39,6 +40,7 @@ interface Event {
 
 export default function EventsPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated, logout, user } = useAuthStore();
   const hasEventManagement = useFeature('event_management');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -73,7 +75,7 @@ export default function EventsPage() {
       setLoading(true);
       const restaurantId = user?.id;
       if (!restaurantId) return;
-      
+
       const response = await apiService.getEvents(restaurantId);
       if (response.success && response.data) {
         setEvents(response.data);
@@ -87,7 +89,7 @@ export default function EventsPage() {
 
   const handleAddEvent = async () => {
     if (!formData.title || !formData.description || !formData.location) {
-      alert('Lütfen tüm zorunlu alanları doldurun.');
+      alert(t('Lütfen tüm zorunlu alanları doldurun.'));
       return;
     }
 
@@ -109,15 +111,15 @@ export default function EventsPage() {
         registered: 0,
         restaurantId
       });
-      
+
       if (response.success) {
         await fetchEvents();
         setShowAddModal(false);
         resetForm();
       }
     } catch (error) {
-      console.error('Etkinlik eklenirken hata:', error);
-      alert('Etkinlik eklenirken bir hata oluştu.');
+      console.error(t('Etkinlik eklenirken hata:'), error);
+      alert(t('Etkinlik eklenirken bir hata oluştu.'));
     }
   };
 
@@ -176,21 +178,21 @@ export default function EventsPage() {
         resetForm();
       }
     } catch (error) {
-      console.error('Etkinlik güncellenirken hata:', error);
-      alert('Etkinlik güncellenirken bir hata oluştu.');
+      console.error(t('Etkinlik güncellenirken hata:'), error);
+      alert(t('Etkinlik güncellenirken bir hata oluştu.'));
     }
   };
 
   const handleDeleteEvent = async (id: string) => {
-    if (!confirm('Bu etkinliği silmek istediğinizden emin misiniz?')) return;
-    
+    if (!confirm(t('Bu etkinliği silmek istediğinizden emin misiniz?'))) return;
+
     try {
       const response = await apiService.deleteEvent(id);
       if (response.success) {
         await fetchEvents();
       }
     } catch (error) {
-      console.error('Etkinlik silinirken hata:', error);
+      console.error(t('Etkinlik silinirken hata:'), error);
     }
   };
 
@@ -206,15 +208,15 @@ export default function EventsPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <FaCalendarAlt className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Etkinlik Yönetimi</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2"><TranslatedText text="Etkinlik Yönetimi" /></h2>
           <p className="text-gray-600 mb-4">
-            Bu özellik planınızda bulunmuyor. Etkinlik yönetimi özelliğini kullanmak için planınızı yükseltin.
+            <TranslatedText text="Bu özellik planınızda bulunmuyor. Etkinlik yönetimi özelliğini kullanmak için planınızı yükseltin." />
           </p>
           <button
             onClick={() => router.push('/business/settings')}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Planı Yükselt
+            <TranslatedText text="Planı Yükselt" />
           </button>
         </div>
       </div>
@@ -248,10 +250,10 @@ export default function EventsPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'upcoming': return 'Yaklaşan';
-      case 'ongoing': return 'Devam Ediyor';
-      case 'completed': return 'Tamamlandı';
-      case 'cancelled': return 'İptal';
+      case 'upcoming': return t('Yaklaşan');
+      case 'ongoing': return t('Devam Ediyor');
+      case 'completed': return t('Tamamlandı');
+      case 'cancelled': return t('İptal');
       default: return status;
     }
   };
@@ -268,8 +270,8 @@ export default function EventsPage() {
 
   const filteredEvents = events.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.location.toLowerCase().includes(searchTerm.toLowerCase());
+      event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || event.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -281,7 +283,7 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -302,17 +304,17 @@ export default function EventsPage() {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <FaCalendarAlt className="text-pink-600" />
-                    Etkinlik Yönetimi
+                    <TranslatedText text="Etkinlik Yönetimi" />
                   </h1>
-                  <p className="text-sm text-gray-600 mt-1">Özel etkinliklerinizi planlayın ve yönetin</p>
+                  <p className="text-sm text-gray-600 mt-1"><TranslatedText text="Özel etkinliklerinizi planlayın ve yönetin" /></p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowAddModal(true)}
                 className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 flex items-center gap-2"
               >
                 <FaPlus />
-                <span className="hidden sm:inline">Yeni Etkinlik</span>
+                <span className="hidden sm:inline"><TranslatedText text="Yeni Etkinlik" /></span>
               </button>
             </div>
           </div>
@@ -324,7 +326,7 @@ export default function EventsPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Yaklaşan Etkinlik</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Yaklaşan Etkinlik" /></p>
                   <p className="text-2xl font-bold text-blue-600">{upcomingEvents}</p>
                 </div>
                 <FaCalendarAlt className="text-3xl text-blue-500" />
@@ -333,7 +335,7 @@ export default function EventsPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Kapasite</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Kapasite" /></p>
                   <p className="text-2xl font-bold text-purple-600">{totalCapacity}</p>
                 </div>
                 <FaUsers className="text-3xl text-purple-500" />
@@ -342,7 +344,7 @@ export default function EventsPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Kayıtlı Katılımcı</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Kayıtlı Katılımcı" /></p>
                   <p className="text-2xl font-bold text-green-600">{totalRegistered}</p>
                 </div>
                 <FaCheckCircle className="text-3xl text-green-500" />
@@ -351,7 +353,7 @@ export default function EventsPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Gelir</p>
+                  <p className="text-sm text-gray-600"><TranslatedText text="Toplam Gelir" /></p>
                   <p className="text-2xl font-bold text-pink-600">₺{totalRevenue.toLocaleString()}</p>
                 </div>
                 <FaCalendarAlt className="text-3xl text-pink-500" />
@@ -366,7 +368,7 @@ export default function EventsPage() {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Etkinlik adı, açıklama veya lokasyon ara..."
+                  placeholder={t('Etkinlik adı, açıklama veya lokasyon ara...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
@@ -377,11 +379,11 @@ export default function EventsPage() {
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               >
-                <option value="all">Tüm Durumlar</option>
-                <option value="upcoming">Yaklaşan</option>
-                <option value="ongoing">Devam Ediyor</option>
-                <option value="completed">Tamamlandı</option>
-                <option value="cancelled">İptal</option>
+                <option value="all">{t('Tüm Durumlar')}</option>
+                <option value="upcoming">{t('Yaklaşan')}</option>
+                <option value="ongoing">{t('Devam Ediyor')}</option>
+                <option value="completed">{t('Tamamlandı')}</option>
+                <option value="cancelled">{t('İptal')}</option>
               </select>
             </div>
           </div>
@@ -405,7 +407,7 @@ export default function EventsPage() {
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mb-3">{event.description}</p>
-                        
+
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                           <div className="flex items-center gap-2 text-gray-600">
                             <FaCalendarAlt className="text-gray-400" />
@@ -421,7 +423,7 @@ export default function EventsPage() {
                           </div>
                           <div className="flex items-center gap-2 text-gray-600">
                             <FaUsers className="text-gray-400" />
-                            <span>{event.registered}/{event.capacity} kişi</span>
+                            <span>{event.registered}/{event.capacity} <TranslatedText text="Kişi" /></span>
                           </div>
                         </div>
                       </div>
@@ -431,24 +433,24 @@ export default function EventsPage() {
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                     <div className="flex items-center gap-4">
                       <div className="text-sm">
-                        <span className="text-gray-600">Bilet Fiyatı: </span>
+                        <span className="text-gray-600"><TranslatedText text="Bilet Fiyatı" />: </span>
                         <span className="font-bold text-pink-600">₺{event.price}</span>
                       </div>
                       <div className="text-sm">
-                        <span className="text-gray-600">Doluluk: </span>
+                        <span className="text-gray-600"><TranslatedText text="Doluluk" />: </span>
                         <span className="font-bold text-gray-900">
                           %{Math.round((event.registered / event.capacity) * 100)}
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button 
+                      <button
                         onClick={() => handleEditClick(event)}
                         className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-sm font-medium"
                       >
                         <FaEdit />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteEvent(event.id)}
                         className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
                       >
@@ -464,7 +466,7 @@ export default function EventsPage() {
           {filteredEvents.length === 0 && (
             <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
               <FaCalendarAlt className="text-5xl text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">Etkinlik bulunamadı</p>
+              <p className="text-gray-600"><TranslatedText text="Etkinlik bulunamadı" /></p>
             </div>
           )}
 
@@ -472,16 +474,16 @@ export default function EventsPage() {
           <div className="mt-6 bg-pink-50 rounded-lg p-6 border border-pink-200">
             <h3 className="font-bold text-pink-900 mb-2 flex items-center gap-2">
               <FaCalendarAlt />
-              Etkinlik Yönetimi Avantajları
+              <TranslatedText text="Etkinlik Yönetimi Avantajları" />
             </h3>
             <p className="text-sm text-pink-800 mb-4">
-              Özel etkinlikler düzenleyerek müşteri sadakatini artırın ve ek gelir elde edin.
+              <TranslatedText text="Özel etkinlikler düzenleyerek müşteri sadakatini artırın ve ek gelir elde edin." />
             </p>
             <ul className="text-sm text-pink-800 space-y-2">
-              <li>✓ Online rezervasyon sistemi</li>
-              <li>✓ Otomatik hatırlatma mesajları</li>
-              <li>✓ Kapasite ve katılımcı takibi</li>
-              <li>✓ Gelir raporlama</li>
+              <li>✓ <TranslatedText text="Online rezervasyon sistemi" /></li>
+              <li>✓ <TranslatedText text="Otomatik hatırlatma mesajları" /></li>
+              <li>✓ <TranslatedText text="Kapasite ve katılımcı takibi" /></li>
+              <li>✓ <TranslatedText text="Gelir raporlama" /></li>
             </ul>
           </div>
         </div>
@@ -492,7 +494,7 @@ export default function EventsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Yeni Etkinlik Ekle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="Yeni Etkinlik Ekle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
@@ -504,7 +506,7 @@ export default function EventsPage() {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  placeholder="Örn: Canlı Müzik Gecesi"
+                  placeholder={t('Örn: Canlı Müzik Gecesi')}
                 />
               </div>
               <div>
@@ -516,7 +518,7 @@ export default function EventsPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                   rows={3}
-                  placeholder="Etkinlik hakkında detaylı bilgi..."
+                  placeholder={t('Etkinlik hakkında detaylı bilgi...')}
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -540,11 +542,11 @@ export default function EventsPage() {
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                   >
-                    <option value="concert">Konser</option>
-                    <option value="dinner">Akşam Yemeği</option>
-                    <option value="party">Parti</option>
-                    <option value="workshop">Atölye</option>
-                    <option value="other">Diğer</option>
+                    <option value="concert">{t('Konser')}</option>
+                    <option value="dinner">{t('Akşam Yemeği')}</option>
+                    <option value="party">{t('Parti')}</option>
+                    <option value="workshop">{t('Atölye')}</option>
+                    <option value="other">{t('Diğer')}</option>
                   </select>
                 </div>
               </div>
@@ -582,7 +584,7 @@ export default function EventsPage() {
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    placeholder="Örn: Ana Salon"
+                    placeholder={t('Örn: Ana Salon')}
                   />
                 </div>
                 <div>
@@ -620,13 +622,13 @@ export default function EventsPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleAddEvent}
                 className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700"
               >
-                Kaydet
+                <TranslatedText text="Kaydet" />
               </button>
             </div>
           </div>
@@ -638,7 +640,7 @@ export default function EventsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Etkinliği Düzenle</h2>
+              <h2 className="text-2xl font-bold text-gray-900"><TranslatedText text="Etkinliği Düzenle" /></h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
@@ -650,7 +652,7 @@ export default function EventsPage() {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  placeholder="Örn: Canlı Müzik Gecesi"
+                  placeholder={t('Örn: Canlı Müzik Gecesi')}
                 />
               </div>
               <div>
@@ -662,7 +664,7 @@ export default function EventsPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                   rows={3}
-                  placeholder="Etkinlik hakkında detaylı bilgi..."
+                  placeholder={t('Etkinlik hakkında detaylı bilgi...')}
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -686,11 +688,11 @@ export default function EventsPage() {
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                   >
-                    <option value="concert">Konser</option>
-                    <option value="dinner">Akşam Yemeği</option>
-                    <option value="party">Parti</option>
-                    <option value="workshop">Atölye</option>
-                    <option value="other">Diğer</option>
+                    <option value="concert">{t('Konser')}</option>
+                    <option value="dinner">{t('Akşam Yemeği')}</option>
+                    <option value="party">{t('Parti')}</option>
+                    <option value="workshop">{t('Atölye')}</option>
+                    <option value="other">{t('Diğer')}</option>
                   </select>
                 </div>
               </div>
@@ -728,7 +730,7 @@ export default function EventsPage() {
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    placeholder="Örn: Ana Salon"
+                    placeholder={t('Örn: Ana Salon')}
                   />
                 </div>
                 <div>
@@ -766,13 +768,13 @@ export default function EventsPage() {
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                İptal
+                <TranslatedText text="İptal" />
               </button>
               <button
                 onClick={handleUpdateEvent}
                 className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700"
               >
-                Güncelle
+                <TranslatedText text="Güncelle" />
               </button>
             </div>
           </div>

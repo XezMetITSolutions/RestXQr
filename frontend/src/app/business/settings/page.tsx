@@ -352,7 +352,7 @@ export default function SettingsPage() {
       const data = await response.json();
       if (data?.url) window.location.href = data.url; else throw new Error('no_url');
     } catch {
-      alert('Canlı ödeme yapılandırılmadı. Demo akışında başarıya yönlendirileceksiniz.');
+      alert(getStatic('Canlı ödeme yapılandırılmadı. Demo akışında başarıya yönlendirileceksiniz.'));
       window.location.href = '/admin/payment/success';
     }
   };
@@ -429,8 +429,8 @@ export default function SettingsPage() {
           <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-800">{integrationModal.name} Bağlantısı</h3>
-                <p className="text-sm text-gray-600 mt-1">Test aşamasında bilgileri buraya gireceksiniz. Şimdilik sahte verilerle bağlantıyı simüle ediyoruz.</p>
+                <h3 className="text-lg font-semibold text-gray-800">{integrationModal.name} <TranslatedText>Bağlantısı</TranslatedText></h3>
+                <p className="text-sm text-gray-600 mt-1"><TranslatedText>Test aşamasında bilgileri buraya gireceksiniz. Şimdilik sahte verilerle bağlantıyı simüle ediyoruz.</TranslatedText></p>
               </div>
               <button onClick={() => setIntegrationModal(null)} className="p-2 rounded-lg hover:bg-gray-100">
                 <FaTimes />
@@ -438,20 +438,20 @@ export default function SettingsPage() {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sağlayıcı</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Sağlayıcı</TranslatedText></label>
                 <select className="w-full px-3 py-2 border rounded-lg">
-                  <option>Seçiniz (ör. Sunmi / Ingenico / Netsis / Logo)</option>
-                  <option>Demo Sağlayıcı</option>
+                  <option><TranslatedText>Seçiniz (ör. Sunmi / Ingenico / Netsis / Logo)</TranslatedText></option>
+                  <option><TranslatedText>Demo Sağlayıcı</TranslatedText></option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">API Anahtarı / Kimlik</label>
-                <input type="text" className="w-full px-3 py-2 border rounded-lg" placeholder="Testte paylaşacağınız anahtar" />
+                <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>API Anahtarı / Kimlik</TranslatedText></label>
+                <input type="text" className="w-full px-3 py-2 border rounded-lg" placeholder={getStatic('Testte paylaşacağınız anahtar')} />
               </div>
             </div>
             <div className="mt-6 flex items-center justify-end gap-2">
-              <button onClick={() => setIntegrationModal(null)} className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-50">Vazgeç</button>
-              <button onClick={() => { alert('Bağlantı testi başarılı (demo)'); setIntegrationModal(null); }} className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">Bağla</button>
+              <button onClick={() => setIntegrationModal(null)} className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-50"><TranslatedText>Vazgeç</TranslatedText></button>
+              <button onClick={() => { alert(getStatic('Bağlantı testi başarılı (demo)')); setIntegrationModal(null); }} className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700"><TranslatedText>Bağla</TranslatedText></button>
             </div>
           </div>
         </div>
@@ -794,7 +794,7 @@ export default function SettingsPage() {
                             onChange={(e) => updateBasicInfo({ workingHours: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
                             rows={7}
-                            placeholder={getStatic("Pazartesi: 08:00 - 22:00\nSalı: 08:00 - 22:00\nÇarşamba: 08:00 - 22:00\nPerşembe: 08:00 - 22:00\nCuma: 08:00 - 23:00\nCumartesi: 09:00 - 23:00\nPazar: 09:00 - 22:00")}
+                            placeholder={getStatic("Örnek Çalışma Saatleri")}
                           />
                         </div>
                         <div className="flex items-center gap-2">
