@@ -155,7 +155,6 @@ export default function WaiterDashboard() {
       oldTableNumber: oldTableNumber,
       newTableNumber: newTableNumber,
       timestamp: new Date().toISOString(),
-      timestamp: new Date().toISOString(),
       message: t('Sipariş #{0} {1} numaralı masadan {2} numaralı masaya taşındı.').replace('{0}', transferOrderId).replace('{1}', oldTableNumber.toString()).replace('{2}', newTableNumber.toString())
     };
 
@@ -199,7 +198,6 @@ export default function WaiterDashboard() {
       tableNumber: tableNumber,
       orderId: orderId,
       timestamp: new Date().toISOString(),
-      timestamp: new Date().toISOString(),
       message: t('Sepete eklendi! Sepeti görüntüleyebilirsiniz.')
     };
 
@@ -223,6 +221,16 @@ export default function WaiterDashboard() {
     console.log(`Payment completed for order ${orderId} at table ${tableNumber}`);
   };
 
+  const handleOrderAction = async (orderId: number | string, action: string) => {
+    if (action === 'serve') {
+      updateOrderStatus(orderId.toString(), 'served');
+      // alert(t('Sipariş servis edildi!'));
+    } else if (action === 'bill') {
+      // updateOrderStatus(orderId.toString(), 'bill_requested');
+      alert(t('Hesap talebi alındı.'));
+    }
+  };
+
   // Demo sipariş kartları - garson arayüzü
   const [callHistory, setCallHistory] = useState<any[]>([]);
   const [activeCalls, setActiveCalls] = useState<any[]>([]);
@@ -237,6 +245,7 @@ export default function WaiterDashboard() {
   }, [authenticatedRestaurant?.id]);
 
   const orders = getActiveOrders();
+  const selectedOrderDetail = orders.find(o => o.id === selectedOrder);
   console.log('🍽️ Garson paneli sipariş sayısı:', orders.length);
 
   // Bildirimleri yükle
@@ -572,7 +581,7 @@ export default function WaiterDashboard() {
               <FaConciergeBell />
               {authenticatedRestaurant?.name || authenticatedStaff?.name}
             </h1>
-            <p className="text-purple-200 text-sm"><TranslatedText text="Garson Paneli" /></p>
+            <p className="text-purple-200 text-sm"><TranslatedText>Garson Paneli</TranslatedText></p>
           </div>
           <div className="flex items-center gap-4">
             <button
@@ -820,152 +829,138 @@ export default function WaiterDashboard() {
           </div>
 
       {/* Sipariş Detay Modal */ }
-      { selectedOrder && (
+
+                        { selectedOrderDetail && (
             <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
               <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-                {(() => {
-                  const order = orders.find(o => o.id === selectedOrder);
-                  if (!order) return null;
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold">{t('Masa {0} - Sipariş Detayları').replace('{0}', selectedOrderDetail.tableNumber.toString())}</h3>
+                  <button
+                    onClick={() => setSelectedOrder(null)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                </div>
 
-                  return (
-                    <>
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-bold">{t('Masa {0} - Sipariş Detayları').replace('{0}', order.tableNumber.toString())}</h3>
-                        <button
-                          onClick={() => setSelectedOrder(null)}
-                          className="text-gray-500 hover:text-gray-700"
-                        >
-                          <FaTimes size={20} />
-                        </button>
+                <div className="space-y-4">
+                  {/* Sipariş Bilgileri */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">{t('Sipariş Zamanı')}</p>
+                        <p className="font-medium">{selectedOrderDetail.orderTime}</p>
                       </div>
+                      <div>
+                        <p className="text-sm text-gray-600">{t('Bekleme Süresi')}</p>
+                        <p className={`font-medium ${getWaitTimeColor(Math.floor((Date.now() - new Date(selectedOrderDetail.createdAt).getTime()) / (1000 * 60)))}`}>
+                          {t('{0} dakika').replace('{0}', Math.floor((Date.now() - new Date(selectedOrderDetail.createdAt).getTime()) / (1000 * 60)).toString())}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">{t('Kişi Sayısı')}</p>
+                        <p className="font-medium">{selectedOrderDetail.guests > 0 ? t('{0} kişi').replace('{0}', selectedOrderDetail.guests.toString()) : t('Belirtilmemiş')}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">{t('Toplam Tutar')}</p>
+                        <p className="font-bold text-purple-600">₺{selectedOrderDetail.totalAmount}</p>
+                      </div>
+                    </div>
+                  </div>
 
-                      <div className="space-y-4">
-                        {/* Sipariş Bilgileri */}
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-sm text-gray-600">{t('Sipariş Zamanı')}</p>
-                              <p className="font-medium">{order.orderTime}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-600">{t('Bekleme Süresi')}</p>
-                              <p className={`font-medium ${getWaitTimeColor(Math.floor((Date.now() - new Date(order.createdAt).getTime()) / (1000 * 60)))}`}>
-                                {t('{0} dakika').replace('{0}', Math.floor((Date.now() - new Date(order.createdAt).getTime()) / (1000 * 60)).toString())}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-600">{t('Kişi Sayısı')}</p>
-                              <p className="font-medium">{order.guests > 0 ? t('{0} kişi').replace('{0}', order.guests.toString()) : t('Belirtilmemiş')}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-600">{t('Toplam Tutar')}</p>
-                              <p className="font-bold text-purple-600">₺{order.totalAmount}</p>
-                            </div>
+                  {/* Ürünler */}
+                  <div>
+                    <h4 className="font-semibold mb-2">{t('Sipariş Edilen Ürünler')}</h4>
+                    <div className="space-y-2">
+                      {selectedOrderDetail.items.map((item, index) => (
+                        <div key={index} className="flex justify-between items-center p-3 bg-white border rounded-lg">
+                          <div className="flex-1">
+                            <p className="font-medium">{item.quantity}x {typeof item.name === 'string' ? item.name : item.name[language as 'tr' | 'en']}</p>
+                            {item.notes && (
+                              <p className="text-sm text-purple-600 italic">{item.notes}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${item.status === 'ready' ? 'bg-green-100 text-green-700' :
+                              item.status === 'served' ? 'bg-gray-100 text-gray-700' :
+                                'bg-yellow-100 text-yellow-700'
+                              }`}>
+                              {item.status === 'ready' ? t('Hazır') :
+                                item.status === 'served' ? t('Servis Edildi') :
+                                  t('Hazırlanıyor')}
+                            </span>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  </div>
 
-                        {/* Ürünler */}
-                        <div>
-                          <h4 className="font-semibold mb-2">{t('Sipariş Edilen Ürünler')}</h4>
-                          <div className="space-y-2">
-                            {order.items.map((item, index) => (
-                              <div key={index} className="flex justify-between items-center p-3 bg-white border rounded-lg">
-                                <div className="flex-1">
-                                  <p className="font-medium">{item.quantity}x {typeof item.name === 'string' ? item.name : item.name[language as 'tr' | 'en']}</p>
-                                  {item.notes && (
-                                    <p className="text-sm text-purple-600 italic">{item.notes}</p>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${item.status === 'ready' ? 'bg-green-100 text-green-700' :
-                                    item.status === 'served' ? 'bg-gray-100 text-gray-700' :
-                                      'bg-yellow-100 text-yellow-700'
-                                    }`}>
-                                    {item.status === 'ready' ? t('Hazır') :
-                                      item.status === 'served' ? t('Servis Edildi') :
-                                        t('Hazırlanıyor')}
+                  {/* Aktif Çağrılar */}
+                  {activeCalls.filter(call => call.tableNumber === selectedOrderDetail.tableNumber).length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="font-semibold mb-4 text-red-700 text-lg">{t('Aktif Çağrılar')}</h4>
+                      <div className="space-y-3">
+                        {activeCalls.filter(call => call.tableNumber === selectedOrderDetail.tableNumber).map((call, index) => (
+                          <div key={index} className="flex justify-between items-center p-4 bg-red-100 border-2 border-red-300 rounded-lg shadow-sm">
+                            <div className="flex items-center gap-3">
+                              <FaConciergeBell className="text-red-600 animate-pulse" size={18} />
+                              <div>
+                                <span className="text-red-800 font-bold text-lg block">
+                                  {call.type === 'waiter_call' && t('Garson çağrısı')}
+                                  {call.type === 'water_request' && t('Su isteniyor')}
+                                  {call.type === 'bill_request' && t('Hesap isteniyor')}
+                                  {call.type === 'clean_request' && t('Masa temizleme isteniyor')}
+                                </span>
+                                <span className="text-red-600 text-sm">
+                                  {t('Masa')} {selectedOrderDetail.tableNumber} - {new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => resolveCall(call.id)}
+                              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors duration-200"
+                            >
+                              {t('Çözüldü')}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+
+                  {/* Çağrı Geçmişi */}
+                  {(callHistory.filter(call => call.tableNumber === selectedOrderDetail.tableNumber).length > 0) && (
+                    <div className="mt-6">
+                      <h4 className="font-semibold mb-4 text-gray-700 text-lg">{t('Çağrı Geçmişi')}</h4>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {callHistory
+                          .filter(call => call.tableNumber === selectedOrderDetail.tableNumber)
+                          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                          .map((call, index) => (
+                            <div key={index} className="flex justify-between items-center p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <FaConciergeBell className="text-gray-600" size={16} />
+                                <div>
+                                  <span className="text-gray-800 font-medium text-sm block">
+                                    {call.type === 'waiter_call' && t('Garson çağrısı')}
+                                    {call.type === 'water_request' && t('Su isteniyor')}
+                                    {call.type === 'bill_request' && t('Hesap isteniyor')}
+                                  </span>
+                                  <span className="text-gray-500 text-xs">
+                                    {new Date(call.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                   </span>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Aktif Çağrılar */}
-                        {activeCalls.filter(call => call.tableNumber === order.tableNumber).length > 0 && (
-                          <div className="mt-6">
-                            <h4 className="font-semibold mb-4 text-red-700 text-lg">{t('Aktif Çağrılar')}</h4>
-                            <div className="space-y-3">
-                              {activeCalls.filter(call => call.tableNumber === order.tableNumber).map((call, index) => (
-                                <div key={index} className="flex justify-between items-center p-4 bg-red-100 border-2 border-red-300 rounded-lg shadow-sm">
-                                  <div className="flex items-center gap-3">
-                                    <FaConciergeBell className="text-red-600 animate-pulse" size={18} />
-                                    <div>
-                                      <span className="text-red-800 font-bold text-lg block">
-                                        {call === 'waiter' && t('Garson çağrısı')}
-                                        {call === 'water' && t('Su isteniyor')}
-                                        {call === 'bill' && t('Hesap isteniyor')}
-                                        {call === 'clean' && t('Masa temizleme isteniyor')}
-                                      </span>
-                                      <span className="text-red-600 text-sm">
-                                        Masa {order.tableNumber} - {new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <button
-                                    onClick={() => {
-                                      if (call === 'waiter') handleOrderAction(order.id, 'call_waiter');
-                                      if (call === 'water') handleOrderAction(order.id, 'call_water');
-                                      if (call === 'bill') handleOrderAction(order.id, 'call_bill');
-                                      if (call === 'clean') handleOrderAction(order.id, 'call_clean');
-                                      setSelectedOrder(null);
-                                    }}
-                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors duration-200"
-                                  >
-                                    {t('Çözüldü')}
-                                  </button>
-                                </div>
-                              ))}
+                              <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                {t('Çözüldü')}
+                              </span>
                             </div>
-                          </div>
-                        )}
-
-
-                        {/* Çağrı Geçmişi */}
-                        {callHistory.filter(call => call.tableNumber === order.tableNumber).length > 0 && (
-                          <div className="mt-6">
-                            <h4 className="font-semibold mb-4 text-gray-700 text-lg">{t('Çağrı Geçmişi')}</h4>
-                            <div className="space-y-2 max-h-40 overflow-y-auto">
-                              {callHistory
-                                .filter(call => call.tableNumber === order.tableNumber)
-                                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                                .map((call, index) => (
-                                  <div key={index} className="flex justify-between items-center p-3 bg-gray-100 border border-gray-300 rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                      <FaConciergeBell className="text-gray-600" size={16} />
-                                      <div>
-                                        <span className="text-gray-800 font-medium text-sm block">
-                                          {call.type === 'waiter_call' && t('Garson çağrısı')}
-                                          {call.type === 'water_request' && t('Su isteniyor')}
-                                          {call.type === 'bill_request' && t('Hesap isteniyor')}
-                                        </span>
-                                        <span className="text-gray-500 text-xs">
-                                          {new Date(call.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                                      {t('Çözüldü')}
-                                    </span>
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
-                        )}
+                          ))}
                       </div>
-                    </>
-                  );
-                })()}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
