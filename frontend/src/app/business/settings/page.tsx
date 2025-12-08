@@ -794,7 +794,7 @@ export default function SettingsPage() {
                             onChange={(e) => updateBasicInfo({ workingHours: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
                             rows={7}
-                            placeholder={t("Pazartesi: 08:00 - 22:00\nSalı: 08:00 - 22:00\nÇarşamba: 08:00 - 22:00\nPerşembe: 08:00 - 22:00\nCuma: 08:00 - 23:00\nCumartesi: 09:00 - 23:00\nPazar: 09:00 - 22:00")}
+                            placeholder={getStatic("Pazartesi: 08:00 - 22:00\nSalı: 08:00 - 22:00\nÇarşamba: 08:00 - 22:00\nPerşembe: 08:00 - 22:00\nCuma: 08:00 - 23:00\nCumartesi: 09:00 - 23:00\nPazar: 09:00 - 22:00")}
                           />
                         </div>
                         <div className="flex items-center gap-2">
