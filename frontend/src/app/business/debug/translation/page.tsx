@@ -5,6 +5,7 @@ import { getSupportedLanguages } from '@/lib/deepl';
 
 export default function TranslationDebugPage() {
     const [inputText, setInputText] = useState('');
+    const [apiKey, setApiKey] = useState('');
     const [targetLanguage, setTargetLanguage] = useState('tr');
     const [translatedText, setTranslatedText] = useState('');
     const [loading, setLoading] = useState(false);
@@ -26,7 +27,8 @@ export default function TranslationDebugPage() {
                 body: JSON.stringify({
                     text: inputText,
                     targetLanguage: targetLanguage.toUpperCase(),
-                    sourceLanguage: 'EN'
+                    sourceLanguage: 'EN',
+                    apiKey: apiKey || undefined
                 })
             });
 
@@ -50,6 +52,17 @@ export default function TranslationDebugPage() {
             <h1 className="text-2xl font-bold mb-6">Translation API Debugger</h1>
 
             <div className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium mb-1">API Key (Optional)</label>
+                    <input
+                        type="text"
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                        className="w-full p-2 border rounded"
+                        placeholder="Leave empty to use server env var"
+                    />
+                </div>
+
                 <div>
                     <label className="block text-sm font-medium mb-1">Text to Translate</label>
                     <textarea

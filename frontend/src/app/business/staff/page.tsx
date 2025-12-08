@@ -48,6 +48,7 @@ import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
 import BusinessSidebar from '@/components/BusinessSidebar';
 import { apiService } from '@/services/api';
 import TranslatedText, { useTranslation } from '@/components/TranslatedText';
+import LanguageSelector from '@/components/LanguageSelector';
 
 export default function StaffPage() {
   const { t } = useTranslation();
@@ -397,7 +398,7 @@ export default function StaffPage() {
       />
 
       {/* Main Content */}
-      <div className="ml-0 lg:ml-64">
+      <div className="ml-0 lg:ml-72 transition-all duration-300">
         {/* Header */}
         <header className="bg-white shadow-sm border-b">
           <div className="px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex justify-between items-center">
@@ -414,6 +415,7 @@ export default function StaffPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
+              <LanguageSelector />
               <button
                 onClick={() => setShowAddModal(true)}
                 className="px-2 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"

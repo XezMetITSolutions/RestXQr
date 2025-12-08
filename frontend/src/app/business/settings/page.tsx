@@ -43,6 +43,7 @@ import {
 } from 'react-icons/fa';
 import AnnouncementQuickModal from '@/components/AnnouncementQuickModal';
 import BusinessSidebar from '@/components/BusinessSidebar';
+import LanguageSelector from '@/components/LanguageSelector';
 
 import PhonePreview from '@/components/PhonePreview';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -55,7 +56,7 @@ import { useLanguage } from '@/context/LanguageContext';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { translate: t, currentLanguage } = useLanguage();
+  const { currentLanguage } = useLanguage();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
 
   const getStatic = (text: string) => {
@@ -406,16 +407,16 @@ export default function SettingsPage() {
       setSubdomainValidation({
         isValid: false,
         isChecking: false,
-        message: t('Kontrol sırasında hata oluştu')
+        message: getStatic('Kontrol sırasında hata oluştu')
       });
     }
   };
 
 
   const tabs = [
-    { id: 'general', name: t('Genel Ayarlar'), icon: FaCog },
-    { id: 'branding', name: t('Görsel Kimlik'), icon: FaPalette },
-    { id: 'languages', name: t('Diller'), icon: FaGlobe }
+    { id: 'general', name: getStatic('Genel Ayarlar'), icon: FaCog },
+    { id: 'branding', name: getStatic('Görsel Kimlik'), icon: FaPalette },
+    { id: 'languages', name: getStatic('Diller'), icon: FaGlobe }
     // Ödeme & Abonelik, Entegrasyonlar, Bildirimler - Kaldırıldı
   ];
 
@@ -462,7 +463,8 @@ export default function SettingsPage() {
       />
 
       {/* Main Content */}
-      <div className="ml-0 lg:ml-64">
+      {/* Main Content */}
+      <div className="ml-0 lg:ml-72 transition-all duration-300">
         {/* Header */}
         <header className="bg-white shadow-sm border-b">
           <div className="px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex justify-between items-center">
@@ -482,6 +484,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <LanguageSelector />
               <button
                 onClick={() => setShowAnnModal(true)}
                 className="flex items-center gap-2 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
@@ -744,7 +747,7 @@ export default function SettingsPage() {
                             value={settings.basicInfo.wifiPassword || ''}
                             onChange={(e) => updateBasicInfo({ wifiPassword: e.target.value })}
                             className="flex-1 px-4 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder={getStatic('WiFi Şifresi')}
+                            placeholder={getStatic('Ücretsiz Wi-Fi şifresi: 12345678')}
                           />
                           <button
                             onClick={() => handleSaveField('wifiPassword', settings.basicInfo.wifiPassword)}
@@ -831,7 +834,7 @@ export default function SettingsPage() {
                             type="text"
                             value={settings.basicInfo.dailySpecialTitle || 'Bugüne Özel!'}
                             onChange={(e) => updateBasicInfo({ dailySpecialTitle: e.target.value })}
-                            placeholder={t('Bugüne Özel!')}
+                            placeholder={getStatic('Bugüne Özel!')}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                           <div className="mt-2">
@@ -842,7 +845,7 @@ export default function SettingsPage() {
                               type="text"
                               value={settings.basicInfo.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}
                               onChange={(e) => updateBasicInfo({ dailySpecialDesc: e.target.value })}
-                              placeholder={t('Tüm tatlılarda %20 indirim - Sadece bugün geçerli')}
+                              placeholder={getStatic('Tüm tatlılarda %20 indirim - Sadece bugün geçerli')}
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
@@ -864,7 +867,7 @@ export default function SettingsPage() {
                             type="text"
                             value={settings.basicInfo.soupOfDayTitle || 'Günün Çorbası'}
                             onChange={(e) => updateBasicInfo({ soupOfDayTitle: e.target.value })}
-                            placeholder={t('Günün Çorbası')}
+                            placeholder={getStatic('Özel soslu, tereyağlı')}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                           <div className="mt-2">
@@ -875,7 +878,7 @@ export default function SettingsPage() {
                               type="text"
                               value={settings.basicInfo.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}
                               onChange={(e) => updateBasicInfo({ soupOfDayDesc: e.target.value })}
-                              placeholder={t('Ezogelin çorbası - Ev yapımı lezzet')}
+                              placeholder={getStatic('Mercimek Çorbası + Ekmek')}
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
@@ -907,7 +910,7 @@ export default function SettingsPage() {
                             value={settings.basicInfo.facebook || ''}
                             onChange={(e) => updateBasicInfo({ facebook: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            placeholder={t('Facebook profil linkiniz')}
+                            placeholder={getStatic('Facebook profil linkiniz')}
                           />
                         </div>
                         <div>
@@ -920,12 +923,12 @@ export default function SettingsPage() {
                               value={settings.basicInfo.instagram || ''}
                               onChange={(e) => updateBasicInfo({ instagram: e.target.value })}
                               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                              placeholder={t('Instagram profil linkiniz')}
+                              placeholder={getStatic('Instagram profil linkiniz')}
                             />
                             <button
                               onClick={() => handleSaveField('instagram', settings.basicInfo.instagram)}
                               className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                              title={t('Instagram Linkini Kaydet')}
+                              title={getStatic('Instagram Linkini Kaydet')}
                             >
                               <FaSave size={14} />
                             </button>

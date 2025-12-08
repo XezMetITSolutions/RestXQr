@@ -30,6 +30,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
 import { useEffect, useState } from 'react';
 import TranslatedText from './TranslatedText';
+import LanguageSelector from './LanguageSelector';
 
 interface BusinessSidebarProps {
   sidebarOpen: boolean;
@@ -304,6 +305,9 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
                 </h1>
                 <p className="text-white/60 text-xs font-semibold uppercase tracking-wider"><TranslatedText>Yönetim Paneli</TranslatedText></p>
               </div>
+            </div>
+            <div className="lg:hidden">
+              <LanguageSelector enabledLanguages={useBusinessSettingsStore(s => s.settings.menuSettings.language)} />
             </div>
             <button
               onClick={() => setSidebarOpen(false)}

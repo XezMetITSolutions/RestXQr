@@ -20,6 +20,7 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import apiService from '@/services/api';
 import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
 import { useLanguage } from '@/context/LanguageContext';
+import LanguageSelector from '@/components/LanguageSelector';
 
 export default function QRCodesPage() {
   const router = useRouter();
@@ -298,7 +299,7 @@ export default function QRCodesPage() {
         onLogout={onLogout}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pl-72 transition-all duration-300">
         {/* Header */}
         <div className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -317,13 +318,16 @@ export default function QRCodesPage() {
                   <p className="text-sm text-gray-600"><TranslatedText>Masa QR kodlarınızı oluşturun ve yönetin</TranslatedText></p>
                 </div>
               </div>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
-              >
-                <FaPlus />
-                <TranslatedText>QR Kod Oluştur</TranslatedText>
-              </button>
+              <div className="flex items-center gap-3">
+                <LanguageSelector />
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                >
+                  <FaPlus />
+                  <TranslatedText>QR Kod Oluştur</TranslatedText>
+                </button>
+              </div>
             </div>
           </div>
         </div>

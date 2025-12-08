@@ -205,6 +205,10 @@ export interface BusinessSettings {
     instagram?: string;
     showInstagramInMenu?: boolean;
     twitter?: string;
+    dailySpecialTitle?: string;
+    dailySpecialDesc?: string;
+    soupOfDayTitle?: string;
+    soupOfDayDesc?: string;
     status: 'active' | 'inactive';
   };
 

@@ -42,7 +42,8 @@ export async function translateWithDeepL({
       body: JSON.stringify({
         text,
         targetLanguage: deeplTarget,
-        sourceLanguage: sourceLangCode
+        sourceLanguage: sourceLangCode,
+        apiKey
       })
     });
 

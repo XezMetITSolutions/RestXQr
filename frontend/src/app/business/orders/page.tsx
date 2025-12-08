@@ -24,6 +24,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
 import BusinessSidebar from '@/components/BusinessSidebar';
+import LanguageSelector from '@/components/LanguageSelector';
 
 interface OrderItem {
   name: string;
@@ -52,7 +53,7 @@ export default function OrdersPage() {
   const router = useRouter();
   const { currentLanguage } = useLanguage();
   const { authenticatedRestaurant, logout } = useAuthStore();
-  const { restaurant } = useRestaurantStore();
+  const { currentRestaurant: restaurant } = useRestaurantStore();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -233,8 +234,18 @@ export default function OrdersPage() {
         setSidebarOpen={setSidebarOpen}
         onLogout={logout}
       />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="ml-0 lg:ml-72 transition-all duration-300">
         <div className="p-4 md:p-6 space-y-6">
+          {/* Page Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800"><TranslatedText>Sipariş Yönetimi</TranslatedText></h1>
+              <p className="text-sm text-gray-500"><TranslatedText>Gelen siparişleri takip edin ve yönetin</TranslatedText></p>
+            </div>
+            <div className="flex items-center gap-3">
+              <LanguageSelector />
+            </div>
+          </div>
           {/* Header Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {[

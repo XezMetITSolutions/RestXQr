@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
     try {
-        const { text, targetLanguage, sourceLanguage } = await request.json();
+        const { text, targetLanguage, sourceLanguage, apiKey: requestApiKey } = await request.json();
 
         if (!text) {
             return NextResponse.json({ error: 'Text is required' }, { status: 400 });
         }
 
-        const apiKey = process.env.DEEPL_API_KEY || process.env.NEXT_PUBLIC_DEEPL_API_KEY;
+        const apiKey = requestApiKey || process.env.DEEPL_API_KEY || process.env.NEXT_PUBLIC_DEEPL_API_KEY;
 
         if (!apiKey) {
             console.error('DeepL API key missing');
