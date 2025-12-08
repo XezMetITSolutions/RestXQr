@@ -53,6 +53,7 @@ const BulkImportModal = lazy(() => import('@/components/BulkImportModal'));
 
 export default function MenuManagement() {
   const router = useRouter();
+  const { currentLanguage } = useLanguage();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
   const {
     currentRestaurant,
@@ -108,12 +109,28 @@ export default function MenuManagement() {
   const categories = allCategories.filter(c => c.restaurantId === currentRestaurantId);
   const items = allMenuItems.filter(i => i.restaurantId === currentRestaurantId);
 
-  console.log('  filtered categories:', categories.length);
   console.log('  filtered items:', items.length);
   console.log('  first item restaurantId:', allMenuItems[0]?.restaurantId);
   console.log('  match?', allMenuItems[0]?.restaurantId === currentRestaurantId);
 
-  const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || t('Kullanıcı');
+  const getLangCode = (language: string) => {
+    switch (language) {
+      case 'German': return 'de';
+      case 'English': return 'en';
+      case 'Turkish': return 'tr';
+      case 'Arabic': return 'ar';
+      case 'Russian': return 'ru';
+      case 'French': return 'fr';
+      case 'Spanish': return 'es';
+      case 'Italian': return 'it';
+      default: return 'en';
+    }
+  };
+
+  const t = (text: string) => {
+    const code = getLangCode(currentLanguage);
+    return staticDictionary[text]?.[code] || text;
+  }; const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || t('Kullanıcı');
 
   const [activeTab, setActiveTab] = useState<'items' | 'categories' | 'stats'>('items');
   const [searchTerm, setSearchTerm] = useState('');
@@ -143,26 +160,9 @@ export default function MenuManagement() {
   const [selectedItemForTranslation, setSelectedItemForTranslation] = useState<any>(null);
   const [translations, setTranslations] = useState<{ [key: string]: { name: string, description: string } }>({});
   const [loadingTranslations, setLoadingTranslations] = useState(false);
-  const { currentLanguage } = useLanguage();
 
-  const getLangCode = (language: string) => {
-    switch (language) {
-      case 'German': return 'de';
-      case 'English': return 'en';
-      case 'Turkish': return 'tr';
-      case 'Arabic': return 'ar';
-      case 'Russian': return 'ru';
-      case 'French': return 'fr';
-      case 'Spanish': return 'es';
-      case 'Italian': return 'it';
-      default: return 'en';
-    }
-  };
 
-  const t = (text: string) => {
-    const code = getLangCode(currentLanguage);
-    return staticDictionary[text]?.[code] || text;
-  };
+
 
   const { settings } = useBusinessSettingsStore();
   const selectedLanguages = settings?.menuSettings?.language?.length
