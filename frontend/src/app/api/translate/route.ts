@@ -22,7 +22,12 @@ export async function POST(request: Request) {
             params.append('source_lang', sourceLanguage);
         }
 
-        const response = await fetch('https://api-free.deepl.com/v2/translate', {
+        const isFreeAccount = apiKey.endsWith(':fx');
+        const apiUrl = isFreeAccount
+            ? 'https://api-free.deepl.com/v2/translate'
+            : 'https://api.deepl.com/v2/translate';
+
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
