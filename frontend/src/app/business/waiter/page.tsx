@@ -619,8 +619,8 @@ export default function WaiterDashboard() {
         <button
           onClick={() => setActiveFilter('all')}
           className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${activeFilter === 'all'
-              ? 'bg-purple-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-purple-600 text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
         >
           {t('Tümü')} ({orders.length})
@@ -628,8 +628,8 @@ export default function WaiterDashboard() {
         <button
           onClick={() => setActiveFilter('active')}
           className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${activeFilter === 'active'
-              ? 'bg-blue-600 text-white'
-              : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+            ? 'bg-blue-600 text-white'
+            : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
             }`}
         >
           {t('Aktif')} ({stats.active})
@@ -637,8 +637,8 @@ export default function WaiterDashboard() {
         <button
           onClick={() => setActiveFilter('preparing')}
           className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${activeFilter === 'preparing'
-              ? 'bg-yellow-600 text-white'
-              : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+            ? 'bg-yellow-600 text-white'
+            : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
             }`}
         >
           {t('Hazırlanıyor')} ({stats.preparing})
@@ -646,8 +646,8 @@ export default function WaiterDashboard() {
         <button
           onClick={() => setActiveFilter('ready')}
           className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${activeFilter === 'ready'
-              ? 'bg-green-600 text-white'
-              : 'bg-green-50 text-green-700 hover:bg-green-100'
+            ? 'bg-green-600 text-white'
+            : 'bg-green-50 text-green-700 hover:bg-green-100'
             }`}
         >
           {t('Hazır')} ({stats.ready})
@@ -655,8 +655,8 @@ export default function WaiterDashboard() {
         <button
           onClick={() => setActiveFilter('bill_requested')}
           className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${activeFilter === 'bill_requested'
-              ? 'bg-purple-600 text-white'
-              : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
+            ? 'bg-purple-600 text-white'
+            : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
             }`}
         >
           {t('Hesap')} ({stats.billRequested})
@@ -672,7 +672,7 @@ export default function WaiterDashboard() {
           <div
             key={order.id}
             className={`bg-white rounded-lg shadow-md border-2 overflow-hidden ${order.status === 'ready' ? 'border-green-400' :
-                'border-gray-200'
+              'border-gray-200'
               } ${activeCalls.some(call => call.tableNumber === order.tableNumber) ? 'ring-2 ring-red-400 animate-pulse' : ''}`}
           >
             {/* Başlık */}
@@ -756,8 +756,8 @@ export default function WaiterDashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${item.status === 'ready' ? 'bg-green-100 text-green-700' :
-                          item.status === 'served' ? 'bg-gray-100 text-gray-700' :
-                            'bg-yellow-100 text-yellow-700'
+                        item.status === 'served' ? 'bg-gray-100 text-gray-700' :
+                          'bg-yellow-100 text-yellow-700'
                         }`}>
                         {item.status === 'ready' ? t('Hazır') :
                           item.status === 'served' ? t('Servis Edildi') :
@@ -878,8 +878,8 @@ export default function WaiterDashboard() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${item.status === 'ready' ? 'bg-green-100 text-green-700' :
-                                      item.status === 'served' ? 'bg-gray-100 text-gray-700' :
-                                        'bg-yellow-100 text-yellow-700'
+                                    item.status === 'served' ? 'bg-gray-100 text-gray-700' :
+                                      'bg-yellow-100 text-yellow-700'
                                     }`}>
                                     {item.status === 'ready' ? t('Hazır') :
                                       item.status === 'served' ? t('Servis Edildi') :
@@ -1041,6 +1041,7 @@ export default function WaiterDashboard() {
         )}
 
       </div>
-      );
+    </div>
+  );
 }
 

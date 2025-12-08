@@ -438,8 +438,8 @@ export default function BillModal({ isOpen, onClose, onPaymentComplete, order, r
               onClick={handleMarkAsPaid}
               disabled={isPaid}
               className={`px-6 py-2 rounded-lg font-medium transition-colors ${isPaid
-                  ? 'bg-green-600 text-white cursor-not-allowed'
-                  : 'bg-green-600 text-white hover:bg-green-700'
+                ? 'bg-green-600 text-white cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
             >
               {isPaid ? t('Ödeme Alındı') : t('Ödeme Alındı Olarak İşaretle')}
@@ -678,5 +678,6 @@ export default function BillModal({ isOpen, onClose, onPaymentComplete, order, r
           )}
         </div>
       </div>
-      );
+    </div>
+  );
 }
