@@ -401,22 +401,22 @@ export default function DemoKitchenContent() {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <div className="bg-white shadow-sm px-8 py-6 mb-4">
-                <div className="flex items-center justify-between max-w-7xl mx-auto">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-2xl">
+            <div className="bg-white shadow-sm px-4 sm:px-8 py-4 sm:py-6 mb-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-7xl mx-auto">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-xl sm:text-2xl">
                             👨‍🍳
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-800">{t('kitchenPanelTitle')}</h1>
-                            <p className="text-gray-600 text-sm">{t('kitchenPanelSubtitle')}</p>
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{t('kitchenPanelTitle')}</h1>
+                            <p className="text-gray-600 text-xs sm:text-sm">{t('kitchenPanelSubtitle')}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                         <DemoLanguageToggle theme="green" />
                         <button
                             onClick={handleMenuManagement}
-                            className="px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500 transition-colors"
+                            className="flex-1 sm:flex-initial px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500 transition-colors min-h-[44px]"
                         >
                             + {t('menuManagement')}
                         </button>
@@ -425,22 +425,22 @@ export default function DemoKitchenContent() {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-8">
-                <div className="bg-yellow-50 rounded-2xl p-8 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-8">
+                <div className="bg-yellow-50 rounded-2xl p-4 sm:p-8 shadow-sm">
                     {/* Search Bar */}
                     <input
                         type="text"
                         placeholder={`🔍 ${t('searchPlaceholder')}`}
-                        className="w-full mb-6 px-6 py-4 border border-gray-300 rounded-xl text-base focus:outline-none focus:border-green-500"
+                        className="w-full mb-6 px-4 sm:px-6 py-3 sm:py-4 border border-gray-300 rounded-xl text-sm sm:text-base focus:outline-none focus:border-green-500"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
 
                     {/* Filter Tabs */}
-                    <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
+                    <div className="flex gap-2 sm:gap-4 mb-6 overflow-x-auto pb-2 scrollbar-hide">
                         <button
                             onClick={() => setActiveTab('all')}
-                            className={`px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'all'
+                            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-colors whitespace-nowrap text-sm sm:text-base min-h-[44px] ${activeTab === 'all'
                                 ? 'bg-green-500 text-white'
                                 : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
@@ -513,8 +513,8 @@ export default function DemoKitchenContent() {
                                 const estimatedTime = calculateTime(order.created_at);
 
                                 return (
-                                    <div key={order.id} className="bg-white rounded-2xl p-6 shadow-md">
-                                        <div className="grid grid-cols-1 md:grid-cols-[2fr_2fr_1fr] gap-6">
+                                    <div key={order.id} className="bg-white rounded-2xl p-4 sm:p-6 shadow-md">
+                                        <div className="grid grid-cols-1 lg:grid-cols-[2fr_2fr_1fr] gap-4 sm:gap-6">
                                             {/* Sol Sütun - Sipariş Detayları */}
                                             <div>
                                                 <div className="flex items-start justify-between mb-4">
@@ -563,12 +563,12 @@ export default function DemoKitchenContent() {
                                                 </div>
                                             </div>
 
-                                            {/* Sağ Sütun - Aksiyon Butonları */}
-                                            <div className="flex flex-col gap-3">
+                                            {/* Sağ Sütun - Aksiyon Butonları*/}
+                                            <div className="flex flex-col sm:flex-row lg:flex-col gap-2 sm:gap-3">
                                                 {order.status === 'pending' && (
                                                     <button
                                                         onClick={() => updateOrderStatus(order.id, 'preparing')}
-                                                        className="px-6 py-4 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2 justify-center"
+                                                        className="px-4 sm:px-6 py-3 sm:py-4 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2 justify-center min-h-[44px]"
                                                     >
                                                         ▶ {t('startPreparing')}
                                                     </button>
@@ -576,14 +576,14 @@ export default function DemoKitchenContent() {
                                                 {order.status === 'preparing' && (
                                                     <button
                                                         onClick={() => updateOrderStatus(order.id, 'ready')}
-                                                        className="px-6 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center gap-2 justify-center"
+                                                        className="px-4 sm:px-6 py-3 sm:py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center gap-2 justify-center min-h-[44px]"
                                                     >
                                                         ✅ {t('ready')}
                                                     </button>
                                                 )}
                                                 <button
                                                     onClick={() => showOrderDetails(order)}
-                                                    className="px-6 py-4 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center gap-2 justify-center"
+                                                    className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center gap-2 justify-center min-h-[44px]"
                                                 >
                                                     👁 {t('details')}
                                                 </button>

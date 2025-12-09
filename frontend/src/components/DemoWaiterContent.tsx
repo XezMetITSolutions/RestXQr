@@ -296,22 +296,24 @@ export default function DemoWaiterContent() {
         <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-blue-800 p-4">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-4 mb-4 text-white">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-white bg-opacity-20 p-3 rounded-xl">
-                                <FaUser className="text-2xl" />
+                <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-3 sm:p-4 mb-4 text-white">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="bg-white bg-opacity-20 p-2 sm:p-3 rounded-xl">
+                                <FaUser className="text-xl sm:text-2xl" />
                             </div>
                             <div>
-                                <h1 className="text-xl font-bold">{t('waiterPanelTitle')}</h1>
-                                <p className="text-sm text-purple-200">{t('waiterPanelSubtitle')}</p>
+                                <h1 className="text-lg sm:text-xl font-bold">{t('waiterPanelTitle')}</h1>
+                                <p className="text-xs sm:text-sm text-purple-200">{t('waiterPanelSubtitle')}</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <DemoLanguageToggle />
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="hidden xs:block">
+                                <DemoLanguageToggle />
+                            </div>
                             <button
                                 onClick={fetchOrders}
-                                className="bg-yellow-400 text-purple-900 px-4 py-2 rounded-lg font-bold hover:bg-yellow-300 transition-colors text-sm"
+                                className="bg-yellow-400 text-purple-900 px-3 sm:px-4 py-2 rounded-lg font-bold hover:bg-yellow-300 transition-colors text-sm min-h-[44px] flex-1 sm:flex-initial"
                             >
                                 {t('refresh')}
                             </button>
@@ -321,7 +323,7 @@ export default function DemoWaiterContent() {
                                     localStorage.removeItem('staff_token');
                                     router.push('/staff-login');
                                 }}
-                                className="bg-red-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-600 transition-colors text-sm flex items-center gap-2"
+                                className="bg-red-500 text-white px-3 sm:px-4 py-2 rounded-lg font-bold hover:bg-red-600 transition-colors text-sm flex items-center justify-center gap-2 min-h-[44px]"
                             >
                                 <FaSignOutAlt />
                                 <span className="hidden sm:inline">{t('logout')}</span>
@@ -331,41 +333,41 @@ export default function DemoWaiterContent() {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-5 gap-3 mb-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3 mb-4">
                     <button
                         onClick={() => setActiveFilter('all')}
-                        className={`bg-white rounded-xl p-3 text-center transition-all ${activeFilter === 'all' ? 'ring-4 ring-yellow-400' : ''}`}
+                        className={`bg-white rounded-xl p-2 sm:p-3 text-center transition-all min-h-[60px] ${activeFilter === 'all' ? 'ring-4 ring-yellow-400' : ''}`}
                     >
-                        <div className="text-2xl font-bold text-gray-800">{stats.total}</div>
-                        <div className="text-xs text-gray-600 font-medium">{t('all')} ({stats.total})</div>
+                        <div className="text-xl sm:text-2xl font-bold text-gray-800">{stats.total}</div>
+                        <div className="text-[10px] sm:text-xs text-gray-600 font-medium">{t('all')} ({stats.total})</div>
                     </button>
                     <button
                         onClick={() => setActiveFilter('pending')}
-                        className={`bg-white rounded-xl p-3 text-center transition-all ${activeFilter === 'pending' ? 'ring-4 ring-yellow-400' : ''}`}
+                        className={`bg-white rounded-xl p-2 sm:p-3 text-center transition-all min-h-[60px] ${activeFilter === 'pending' ? 'ring-4 ring-yellow-400' : ''}`}
                     >
-                        <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-                        <div className="text-xs text-gray-600 font-medium">{t('active')} ({stats.pending})</div>
+                        <div className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.pending}</div>
+                        <div className="text-[10px] sm:text-xs text-gray-600 font-medium">{t('active')} ({stats.pending})</div>
                     </button>
                     <button
                         onClick={() => setActiveFilter('preparing')}
-                        className={`bg-white rounded-xl p-3 text-center transition-all ${activeFilter === 'preparing' ? 'ring-4 ring-yellow-400' : ''}`}
+                        className={`bg-white rounded-xl p-2 sm:p-3 text-center transition-all min-h-[60px] ${activeFilter === 'preparing' ? 'ring-4 ring-yellow-400' : ''}`}
                     >
-                        <div className="text-2xl font-bold text-blue-600">{stats.preparing}</div>
-                        <div className="text-xs text-gray-600 font-medium">{t('preparing')} ({stats.preparing})</div>
+                        <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.preparing}</div>
+                        <div className="text-[10px] sm:text-xs text-gray-600 font-medium">{t('preparing')} ({stats.preparing})</div>
                     </button>
                     <button
                         onClick={() => setActiveFilter('ready')}
-                        className={`bg-white rounded-xl p-3 text-center transition-all ${activeFilter === 'ready' ? 'ring-4 ring-yellow-400' : ''}`}
+                        className={`bg-white rounded-xl p-2 sm:p-3 text-center transition-all min-h-[60px] ${activeFilter === 'ready' ? 'ring-4 ring-yellow-400' : ''}`}
                     >
-                        <div className="text-2xl font-bold text-green-600">{stats.ready}</div>
-                        <div className="text-xs text-gray-600 font-medium">{t('ready')} ({stats.ready})</div>
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.ready}</div>
+                        <div className="text-[10px] sm:text-xs text-gray-600 font-medium">{t('ready')} ({stats.ready})</div>
                     </button>
                     <button
                         onClick={() => setActiveFilter('completed')}
-                        className={`bg-white rounded-xl p-3 text-center transition-all ${activeFilter === 'completed' ? 'ring-4 ring-yellow-400' : ''}`}
+                        className={`bg-white rounded-xl p-2 sm:p-3 text-center transition-all min-h-[60px] ${activeFilter === 'completed' ? 'ring-4 ring-yellow-400' : ''}`}
                     >
-                        <div className="text-2xl font-bold text-gray-600">{stats.completed}</div>
-                        <div className="text-xs text-gray-600 font-medium">{t('completed')} ({stats.completed})</div>
+                        <div className="text-xl sm:text-2xl font-bold text-gray-600">{stats.completed}</div>
+                        <div className="text-[10px] sm:text-xs text-gray-600 font-medium">{t('completed')} ({stats.completed})</div>
                     </button>
                 </div>
 

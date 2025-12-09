@@ -242,31 +242,39 @@ export default function DemoCashierContent() {
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <FaMoneyBillWave className="text-4xl text-green-500" />
-                            <div>
-                                <h1 className="text-3xl font-bold text-gray-800">{t('cashierPanelTitle')}</h1>
-                                <p className="text-gray-600">{t('cashierPanelSubtitle')}</p>
+                <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-6">
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <FaMoneyBillWave className="text-3xl sm:text-4xl text-green-500" />
+                                <div>
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{t('cashierPanelTitle')}</h1>
+                                    <p className="text-sm sm:text-base text-gray-600">{t('cashierPanelSubtitle')}</p>
+                                </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-6">
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-green-600">{getTotalRevenue().toFixed(2)}₺</div>
-                                <div className="text-sm text-gray-600">{t('totalRevenue')}</div>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
+                            <div className="flex-1 w-full sm:w-auto">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="text-center bg-green-50 rounded-lg p-3">
+                                        <div className="text-xl sm:text-2xl font-bold text-green-600">{getTotalRevenue().toFixed(2)}₺</div>
+                                        <div className="text-xs sm:text-sm text-gray-600">{t('totalRevenue')}</div>
+                                    </div>
+                                    <div className="text-center bg-orange-50 rounded-lg p-3">
+                                        <div className="text-xl sm:text-2xl font-bold text-orange-600">{getPendingPayments().toFixed(2)}₺</div>
+                                        <div className="text-xs sm:text-sm text-gray-600">{t('pendingPayment')}</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-orange-600">{getPendingPayments().toFixed(2)}₺</div>
-                                <div className="text-sm text-gray-600">{t('pendingPayment')}</div>
+                            <div className="flex gap-2 w-full sm:w-auto">
+                                <DemoLanguageToggle />
+                                <button
+                                    onClick={fetchOrders}
+                                    className="flex-1 sm:flex-initial px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold min-h-[44px]"
+                                >
+                                    {t('refresh')}
+                                </button>
                             </div>
-                            <DemoLanguageToggle />
-                            <button
-                                onClick={fetchOrders}
-                                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold"
-                            >
-                                {t('refresh')}
-                            </button>
                         </div>
                     </div>
                 </div>
