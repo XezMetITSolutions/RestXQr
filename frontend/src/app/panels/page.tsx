@@ -2,18 +2,28 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import useLanguageStore from '@/store/useLanguageStore';
 
 export default function PanelsPage() {
   const router = useRouter();
+  const { language } = useLanguageStore();
 
   useEffect(() => {
-    const browserLang = navigator.language.split('-')[0];
-    if (browserLang === 'de') {
-      router.push('/de/panels');
+    // First check if user has selected a language
+    if (language) {
+      router.push(`/${language}/panels`);
     } else {
-      router.push('/tr/panels'); // Default to Turkish
+      // Fall back to browser language
+      const browserLang = navigator.language.split('-')[0];
+      if (browserLang === 'de') {
+        router.push('/de/panels');
+      } else if (browserLang === 'en') {
+        router.push('/en/panels');
+      } else {
+        router.push('/tr/panels'); // Default to Turkish
+      }
     }
-  }, [router]);
+  }, [router, language]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
