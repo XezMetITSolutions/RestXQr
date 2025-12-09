@@ -312,12 +312,6 @@ export default function DemoWaiterContent() {
                                 <DemoLanguageToggle />
                             </div>
                             <button
-                                onClick={fetchOrders}
-                                className="bg-yellow-400 text-purple-900 px-3 sm:px-4 py-2 rounded-lg font-bold hover:bg-yellow-300 transition-colors text-sm min-h-[44px] flex-1 sm:flex-initial"
-                            >
-                                {t('refresh')}
-                            </button>
-                            <button
                                 onClick={() => {
                                     localStorage.removeItem('staff_user');
                                     localStorage.removeItem('staff_token');

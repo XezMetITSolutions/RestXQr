@@ -268,12 +268,6 @@ export default function DemoCashierContent() {
                             </div>
                             <div className="flex gap-2 w-full sm:w-auto">
                                 <DemoLanguageToggle />
-                                <button
-                                    onClick={fetchOrders}
-                                    className="flex-1 sm:flex-initial px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold min-h-[44px]"
-                                >
-                                    {t('refresh')}
-                                </button>
                             </div>
                         </div>
                     </div>
