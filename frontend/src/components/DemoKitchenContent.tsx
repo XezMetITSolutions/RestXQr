@@ -413,7 +413,7 @@ export default function DemoKitchenContent() {
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <DemoLanguageToggle />
+                        <DemoLanguageToggle theme="green" />
                         <button
                             onClick={handleMenuManagement}
                             className="px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500 transition-colors"
