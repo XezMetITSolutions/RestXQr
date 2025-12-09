@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { FaQrcode, FaUtensils, FaShoppingCart, FaBell, FaMagic, FaChartLine, FaUsers, FaClock, FaCheckCircle, FaRocket, FaShieldAlt, FaStar, FaPhone, FaWhatsapp, FaChevronDown, FaChevronUp, FaBrain, FaCamera, FaLightbulb, FaGem, FaFire, FaHeart, FaGlobe, FaMobile, FaTablet, FaDesktop } from 'react-icons/fa';
 import useLanguageStore from '@/store/useLanguageStore';
+import LandingLanguageToggle from '@/components/LandingLanguageToggle';
 
 export default function HomeContent() {
     const { t, language } = useLanguageStore();
@@ -66,6 +67,9 @@ export default function HomeContent() {
 
     return (
         <main className="min-h-screen bg-white relative overflow-hidden">
+            {/* Language Toggle - Fixed Position */}
+            <LandingLanguageToggle />
+
             {/* Modern Hero Section */}
             <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
                 {/* Animated Background */}
