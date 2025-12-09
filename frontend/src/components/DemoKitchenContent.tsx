@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useLanguageStore from '@/store/useLanguageStore';
+import DemoLanguageToggle from '@/components/DemoLanguageToggle';
 
 interface OrderItem {
     id: string;
@@ -237,7 +238,7 @@ export default function DemoKitchenContent() {
             const interval = setInterval(fetchOrders, 5000);
             return () => clearInterval(interval);
         }
-    }, [restaurantId]);
+    }, [restaurantId, language]);
 
     // Sipariş durumunu güncelle
     const updateOrderStatus = async (orderId: string, newStatus: string) => {
@@ -412,6 +413,7 @@ export default function DemoKitchenContent() {
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
+                        <DemoLanguageToggle />
                         <button
                             onClick={handleMenuManagement}
                             className="px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500 transition-colors"

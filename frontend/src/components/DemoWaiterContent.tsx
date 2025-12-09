@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaUser, FaUtensils, FaBell, FaCheckCircle, FaClock, FaMoneyBillWave, FaEdit, FaEye, FaTimes, FaChartBar, FaSignOutAlt } from 'react-icons/fa';
 import useLanguageStore from '@/store/useLanguageStore';
+import DemoLanguageToggle from '@/components/DemoLanguageToggle';
 
 interface OrderItem {
     id: string;
@@ -229,7 +230,7 @@ export default function DemoWaiterContent() {
             const interval = setInterval(fetchOrders, 5000);
             return () => clearInterval(interval);
         }
-    }, [restaurantId]);
+    }, [restaurantId, language]);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -307,6 +308,7 @@ export default function DemoWaiterContent() {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
+                            <DemoLanguageToggle />
                             <button
                                 onClick={fetchOrders}
                                 className="bg-yellow-400 text-purple-900 px-4 py-2 rounded-lg font-bold hover:bg-yellow-300 transition-colors text-sm"

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt } from 'react-icons/fa';
 import useLanguageStore from '@/store/useLanguageStore';
+import DemoLanguageToggle from '@/components/DemoLanguageToggle';
 
 interface OrderItem {
     id: string;
@@ -193,7 +194,7 @@ export default function DemoCashierContent() {
             const interval = setInterval(fetchOrders, 5000);
             return () => clearInterval(interval);
         }
-    }, [restaurantId]);
+    }, [restaurantId, language]);
 
     // Ödeme al
     const handlePayment = async (orderId: string) => {
@@ -259,6 +260,7 @@ export default function DemoCashierContent() {
                                 <div className="text-2xl font-bold text-orange-600">{getPendingPayments().toFixed(2)}₺</div>
                                 <div className="text-sm text-gray-600">{t('pendingPayment')}</div>
                             </div>
+                            <DemoLanguageToggle />
                             <button
                                 onClick={fetchOrders}
                                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold"
