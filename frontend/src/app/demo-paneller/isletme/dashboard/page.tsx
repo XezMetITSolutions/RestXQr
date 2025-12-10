@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AnnouncementQuickModal from '@/components/AnnouncementQuickModal';
 import BusinessSidebar from '@/components/BusinessSidebar';
-import { 
-  FaStore, 
-  FaUtensils, 
-  FaUsers, 
+import {
+  FaStore,
+  FaUtensils,
+  FaUsers,
   FaShoppingCart,
   FaChartLine,
   FaChartBar,
@@ -36,12 +36,12 @@ export default function BusinessDashboard() {
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
   const [isClient, setIsClient] = useState(false);
   const restaurantStore = useRestaurantStore();
-  
+
   // Client-side rendering kontrolü
   useEffect(() => {
     setIsClient(true);
   }, []);
-  
+
   // Store'dan değerleri güvenli şekilde al - store undefined olabilir
   const categories = restaurantStore?.categories ?? undefined;
   const menuItems = restaurantStore?.menuItems ?? undefined;
@@ -49,18 +49,18 @@ export default function BusinessDashboard() {
   const activeOrders = restaurantStore?.activeOrders ?? undefined;
   const fetchRestaurantMenu = restaurantStore?.fetchRestaurantMenu;
   const restaurantLoading = restaurantStore?.loading ?? false;
-  
+
   // Güvenli array'ler - undefined kontrolü (store henüz yüklenmemiş olabilir)
   const safeCategories = Array.isArray(categories) ? categories : [];
   const safeMenuItems = Array.isArray(menuItems) ? menuItems : [];
   const safeOrders = Array.isArray(orders) ? orders : [];
   const safeActiveOrders = Array.isArray(activeOrders) ? activeOrders : [];
-  
+
   // Sayfa yüklendiginde auth'u initialize et (demo için sadece bir kez)
   useEffect(() => {
     initializeAuth();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  
+
   // Restaurant menüsünü yükle (demo için sadece bir kez)
   useEffect(() => {
     if (authenticatedRestaurant?.id && fetchRestaurantMenu) {
@@ -73,24 +73,24 @@ export default function BusinessDashboard() {
       }
     }
   }, [authenticatedRestaurant?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-  
+
   // Demo kullanıcı bilgileri
   const displayName = 'RestXQr Demo Restoran';
   const displayEmail = 'demo@restxqr.com';
-  
+
   // Premium plan state'leri
   const [currentPlan, setCurrentPlan] = useState('premium'); // basic, premium, enterprise
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [selectedServices, setSelectedServices] = useState<{[key: string]: number}>({});
+  const [selectedServices, setSelectedServices] = useState<{ [key: string]: number }>({});
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'sixMonths' | 'yearly'>('monthly');
   const [corporateBillingCycle, setCorporateBillingCycle] = useState<'monthly' | 'sixMonths' | 'yearly'>('monthly');
   const [showAnnModal, setShowAnnModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'premium' | 'corporate'>('premium');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
+
   // Restoranlar sayfasından alınan planlar ve fiyatlar
   const plans = {
     premium: {
@@ -253,15 +253,15 @@ export default function BusinessDashboard() {
 
   const handlePaymentComplete = (paymentData: any) => {
     console.log(`💳 Ödeme tamamlandı:`, paymentData);
-    
+
     // Ödeme başarılı mesajı
     alert(`Ödeme Başarılı! 🎉\n\nPlan: ${paymentData.plan}\nFaturalandırma: ${paymentData.billingCycle}\nTutar: ₺${paymentData.total.toLocaleString('tr-TR')}\nÖdeme Yöntemi: ${paymentData.method}\n\nPlanınız aktifleştirildi!`);
-    
+
     // Modal'ları kapat
-      setShowUpgradeModal(false);
+    setShowUpgradeModal(false);
     setShowPaymentModal(false);
     setSelectedServices({});
-    
+
     console.log(`✅ Ödeme işlemi tamamlandı: ${paymentData.plan}`);
   };
 
@@ -282,7 +282,7 @@ export default function BusinessDashboard() {
   const today = new Date();
   const startOfDay = new Date(today.setHours(0, 0, 0, 0));
   const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-  
+
   // Bugünkü siparişler
   const todayOrders = safeOrders.filter(order => {
     if (!order?.createdAt) return false;
@@ -293,10 +293,10 @@ export default function BusinessDashboard() {
       return false;
     }
   });
-  
+
   // Bugünkü ciro
   const todayRevenue = todayOrders.reduce((total, order) => total + (order?.totalAmount || 0), 0);
-  
+
   // Bu ayki siparişler
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const monthlyOrders = safeOrders.filter(order => {
@@ -308,10 +308,10 @@ export default function BusinessDashboard() {
       return false;
     }
   });
-  
+
   // Aylık ciro
   const monthlyRevenue = monthlyOrders.reduce((total, order) => total + (order?.totalAmount || 0), 0);
-  
+
   // Demo verileri
   const stats = {
     todayOrders: 47, // Demo: Bugünkü sipariş
@@ -345,8 +345,8 @@ export default function BusinessDashboard() {
       <div className="absolute inset-0 opacity-40" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
       }}></div>
-      
-      <BusinessSidebar 
+
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -374,7 +374,7 @@ export default function BusinessDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <button 
+              <button
                 onClick={() => setShowUpgradeModal(true)}
                 className={`px-6 py-4 rounded-2xl text-base font-bold transition-all duration-300 hover:scale-105 shadow-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white hover:shadow-2xl`}
               >
@@ -396,7 +396,7 @@ export default function BusinessDashboard() {
             <div className="group bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden">
               {/* Background Gradient */}
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
                   <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300">
@@ -420,7 +420,7 @@ export default function BusinessDashboard() {
             <div className="group bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden">
               {/* Background Gradient */}
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
                   <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300">
@@ -444,7 +444,7 @@ export default function BusinessDashboard() {
             <div className="group bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden">
               {/* Background Gradient */}
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
                   <div className="h-16 w-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300">
@@ -468,7 +468,7 @@ export default function BusinessDashboard() {
             <div className="group bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden">
               {/* Background Gradient */}
               <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-red-500/5 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
                   <div className="h-16 w-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300">
@@ -496,7 +496,7 @@ export default function BusinessDashboard() {
             <div className="group bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 hover:shadow-3xl transition-all duration-500 relative overflow-hidden">
               {/* Background Gradient */}
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-pink-500/3 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div className="relative z-10">
                 <div className="flex justify-between items-center mb-8">
                   <div className="flex items-center gap-4">
@@ -514,7 +514,7 @@ export default function BusinessDashboard() {
                 <div className="space-y-6">
                   {safeActiveOrders.length > 0 ? (
                     safeActiveOrders.map(order => {
-                      if (!order) return null;
+                      if (!order || !order.items) return null;
                       const itemsLength = Array.isArray(order.items) ? order.items.length : 0;
                       return (
                         <div key={order?.id || Math.random()} className="group/item flex items-center justify-between p-6 bg-gradient-to-r from-gray-50/80 to-gray-100/80 rounded-2xl hover:from-gray-100 hover:to-gray-200 transition-all duration-300 border border-gray-200/50 hover:shadow-xl hover:scale-[1.02] backdrop-blur-sm">
@@ -528,11 +528,10 @@ export default function BusinessDashboard() {
                             </div>
                           </div>
                           <div className="flex items-center gap-4">
-                            <span className={`px-4 py-2 rounded-full text-sm font-black shadow-lg ${
-                              order?.status === 'ready' 
+                            <span className={`px-4 py-2 rounded-full text-sm font-black shadow-lg ${order?.status === 'ready'
                                 ? 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800'
                                 : 'bg-gradient-to-r from-yellow-100 to-orange-200 text-yellow-800'
-                            }`}>
+                              }`}>
                               {order?.status === 'ready' ? 'Hazır' : 'Hazırlanıyor'}
                             </span>
                             <span className="text-sm text-gray-500 font-bold">
@@ -555,7 +554,7 @@ export default function BusinessDashboard() {
             <div className="group bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 hover:shadow-3xl transition-all duration-500 relative overflow-hidden">
               {/* Background Gradient */}
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-green-500/3 to-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div className="relative z-10">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-green-600 rounded-2xl flex items-center justify-center shadow-xl">
@@ -594,7 +593,8 @@ export default function BusinessDashboard() {
               </div>
             </div>
             <AnnouncementQuickModal isOpen={showAnnModal} onClose={() => setShowAnnModal(false)} />
-            <script dangerouslySetInnerHTML={{__html:`
+            <script dangerouslySetInnerHTML={{
+              __html: `
               (function(){
                 window.addEventListener('masapp:open-announcements',function(){
                   var e = document.querySelector('[data-open-announcements]');
@@ -610,7 +610,7 @@ export default function BusinessDashboard() {
             <div className="absolute inset-0 opacity-50" style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
             }}></div>
-            
+
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-8">
                 <div className="flex items-center gap-6">
@@ -796,30 +796,27 @@ export default function BusinessDashboard() {
                 {/* Sol Kolon - Plan ve Hizmet Seçimi */}
                 <div className="lg:col-span-2 space-y-8">
                   {/* Mevcut Plan */}
-                  <div className={`bg-gradient-to-r border-2 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 ${
-                    selectedPlan === 'corporate' 
-                      ? 'from-purple-50 via-purple-100 to-purple-200 border-purple-300' 
+                  <div className={`bg-gradient-to-r border-2 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 ${selectedPlan === 'corporate'
+                      ? 'from-purple-50 via-purple-100 to-purple-200 border-purple-300'
                       : 'from-orange-50 via-orange-100 to-orange-200 border-orange-300'
-                  }`}>
+                    }`}>
                     <div className="flex items-center gap-4 mb-6">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
-                        selectedPlan === 'corporate' ? 'bg-gradient-to-r from-purple-500 to-purple-600' : 'bg-gradient-to-r from-orange-500 to-orange-600'
-                      }`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${selectedPlan === 'corporate' ? 'bg-gradient-to-r from-purple-500 to-purple-600' : 'bg-gradient-to-r from-orange-500 to-orange-600'
+                        }`}>
                         <FaCog className="text-white text-xl" />
                       </div>
                       <h4 className="text-2xl font-bold text-gray-800">Mevcut Planınız</h4>
                     </div>
                     <div className="flex justify-between items-center">
                       <div>
-                        <h5 className={`text-3xl font-bold mb-2 ${
-                          selectedPlan === 'corporate' ? 'text-purple-600' : 'text-orange-600'
-                        }`}>
+                        <h5 className={`text-3xl font-bold mb-2 ${selectedPlan === 'corporate' ? 'text-purple-600' : 'text-orange-600'
+                          }`}>
                           {plans[selectedPlan].name}
                         </h5>
                         <p className="text-gray-700 text-lg font-medium">
                           ₺{plans[selectedPlan].pricing[billingCycle].toLocaleString('tr-TR')}
-                          {billingCycle === 'monthly' ? '/ay' : 
-                           billingCycle === 'sixMonths' ? '/6 ay' : '/yıl'} - Aktif
+                          {billingCycle === 'monthly' ? '/ay' :
+                            billingCycle === 'sixMonths' ? '/6 ay' : '/yıl'} - Aktif
                         </p>
                       </div>
                       <div className="text-right bg-white/50 rounded-xl p-4">
@@ -836,55 +833,49 @@ export default function BusinessDashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <button
                         onClick={() => setBillingCycle('monthly')}
-                        className={`p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:scale-105 ${
-                          billingCycle === 'monthly'
-                            ? selectedPlan === 'corporate' 
+                        className={`p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:scale-105 ${billingCycle === 'monthly'
+                            ? selectedPlan === 'corporate'
                               ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-purple-100 shadow-lg'
                               : 'border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100 shadow-lg'
                             : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
                         <div className="font-bold text-lg">Aylık</div>
                         <div className="text-sm text-gray-600 mb-3">Her ay ödeme</div>
-                        <div className={`text-2xl font-bold ${
-                          selectedPlan === 'corporate' ? 'text-purple-600' : 'text-orange-600'
-                        }`}>
+                        <div className={`text-2xl font-bold ${selectedPlan === 'corporate' ? 'text-purple-600' : 'text-orange-600'
+                          }`}>
                           ₺{plans[selectedPlan].pricing.monthly}
                         </div>
                       </button>
                       <button
                         onClick={() => setBillingCycle('sixMonths')}
-                        className={`p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:scale-105 ${
-                          billingCycle === 'sixMonths'
-                            ? selectedPlan === 'corporate' 
+                        className={`p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:scale-105 ${billingCycle === 'sixMonths'
+                            ? selectedPlan === 'corporate'
                               ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-purple-100 shadow-lg'
                               : 'border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100 shadow-lg'
                             : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
                         <div className="font-bold text-lg">6 Aylık</div>
                         <div className="text-sm text-gray-600 mb-3">%17 indirim</div>
-                        <div className={`text-2xl font-bold ${
-                          selectedPlan === 'corporate' ? 'text-purple-600' : 'text-orange-600'
-                        }`}>
+                        <div className={`text-2xl font-bold ${selectedPlan === 'corporate' ? 'text-purple-600' : 'text-orange-600'
+                          }`}>
                           ₺{plans[selectedPlan].pricing.sixMonths}
                         </div>
                       </button>
                       <button
                         onClick={() => setBillingCycle('yearly')}
-                        className={`p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:scale-105 ${
-                          billingCycle === 'yearly'
-                            ? selectedPlan === 'corporate' 
+                        className={`p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:scale-105 ${billingCycle === 'yearly'
+                            ? selectedPlan === 'corporate'
                               ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-purple-100 shadow-lg'
                               : 'border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100 shadow-lg'
                             : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
                         <div className="font-bold text-lg">Yıllık</div>
                         <div className="text-sm text-gray-600 mb-3">%20 indirim</div>
-                        <div className={`text-2xl font-bold ${
-                          selectedPlan === 'corporate' ? 'text-purple-600' : 'text-orange-600'
-                        }`}>
+                        <div className={`text-2xl font-bold ${selectedPlan === 'corporate' ? 'text-purple-600' : 'text-orange-600'
+                          }`}>
                           ₺{plans[selectedPlan].pricing.yearly}
                         </div>
                       </button>
@@ -895,17 +886,17 @@ export default function BusinessDashboard() {
                   <div className="bg-white/80 backdrop-blur-lg border-2 border-gray-200 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300">
                     <h4 className="text-2xl font-bold text-gray-800 mb-6">Ek Hizmetler</h4>
                     <p className="text-gray-600 mb-8 text-lg">
-                      Dilediğiniz ek hizmet hangi paneldeyse hemen sepete ekleyin. 
-                      Birden fazla seçebilirsiniz. Örneğin mutfak panelinde kaç tane değişiklik istiyorsanız 
+                      Dilediğiniz ek hizmet hangi paneldeyse hemen sepete ekleyin.
+                      Birden fazla seçebilirsiniz. Örneğin mutfak panelinde kaç tane değişiklik istiyorsanız
                       o kadar sayı seçebilirsiniz, fiyat ona göre eklenecektir.
                     </p>
-                    
+
                     <div className="space-y-8">
                       {['Menü', 'QR Kodlar', 'Raporlar', 'Personel', 'Siparişler', 'Genel'].map(panel => {
                         const panelServices = getServicesByPanel(panel);
                         const safePanelServices = Array.isArray(panelServices) ? panelServices : [];
                         if (safePanelServices.length === 0) return null;
-                        
+
                         return (
                           <div key={panel} className="border-2 border-gray-200 rounded-2xl p-6 bg-gradient-to-r from-gray-50 to-gray-100 hover:shadow-lg transition-all duration-300">
                             <h5 className="font-bold text-gray-800 mb-4 flex items-center gap-3 text-xl">
@@ -991,8 +982,8 @@ export default function BusinessDashboard() {
                           <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">₺{calculateTotalPrice().toLocaleString('tr-TR')}</span>
                         </div>
                         <div className="text-sm text-gray-600 font-medium mt-2">
-                          {billingCycle === 'monthly' ? 'Aylık' : 
-                           billingCycle === 'sixMonths' ? '6 Aylık' : 'Yıllık'} ödeme
+                          {billingCycle === 'monthly' ? 'Aylık' :
+                            billingCycle === 'sixMonths' ? '6 Aylık' : 'Yıllık'} ödeme
                         </div>
                       </div>
                     </div>
@@ -1008,65 +999,65 @@ export default function BusinessDashboard() {
 
                   {/* Kurumsal Paket Tanıtımı kaldırıldı */}
                   {false && (
-                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <FaStore className="text-white text-lg" />
+                    <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <FaStore className="text-white text-lg" />
+                        </div>
+                        <div>
+                          <h5 className="text-lg font-bold text-purple-800">Kurumsal Paket</h5>
+                          <p className="text-sm text-purple-600">Büyük işletmeler ve zincirler için</p>
+                        </div>
                       </div>
-                      <div>
-                        <h5 className="text-lg font-bold text-purple-800">Kurumsal Paket</h5>
-                        <p className="text-sm text-purple-600">Büyük işletmeler ve zincirler için</p>
+
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                          <span className="text-sm text-purple-700">Özel Menü ve Logo Entegrasyonu</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                          <span className="text-sm text-purple-700">Sınırsız kullanıcı (tüm paneller)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                          <span className="text-sm text-purple-700">Çoklu şube yönetimi</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                          <span className="text-sm text-purple-700">API entegrasyonları</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                          <span className="text-sm text-purple-700">7/24 Telefon Desteği</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                          <span className="text-sm text-purple-700">Beyaz Etiket Çözümü</span>
+                        </div>
                       </div>
+
+                      {/* Ödeme Bilgileri */}
+                      <div className="bg-white rounded-lg p-4 mb-4">
+                        <h6 className="font-semibold text-gray-800 mb-3 text-sm">Ödeme Bilgileri</h6>
+                        <p className="text-sm text-gray-600 mb-4">Ödeme bilgileriniz güvenli bir şekilde saklanmaktadır.</p>
+                        <a href="tel:+905393222797" className="inline-block bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors">
+                          Hemen Arayın
+                        </a>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setSelectedPlan('corporate');
+                          setBillingCycle(corporateBillingCycle);
+                          alert('Kurumsal paket seçildi! Faturalandırma dönemini değiştirebilirsiniz.');
+                        }}
+                        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                      >
+                        Kurumsal Pakete Geç
+                      </button>
                     </div>
-                    
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span className="text-sm text-purple-700">Özel Menü ve Logo Entegrasyonu</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span className="text-sm text-purple-700">Sınırsız kullanıcı (tüm paneller)</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span className="text-sm text-purple-700">Çoklu şube yönetimi</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span className="text-sm text-purple-700">API entegrasyonları</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span className="text-sm text-purple-700">7/24 Telefon Desteği</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span className="text-sm text-purple-700">Beyaz Etiket Çözümü</span>
-                      </div>
-                    </div>
-                    
-                    {/* Ödeme Bilgileri */}
-                    <div className="bg-white rounded-lg p-4 mb-4">
-                      <h6 className="font-semibold text-gray-800 mb-3 text-sm">Ödeme Bilgileri</h6>
-                      <p className="text-sm text-gray-600 mb-4">Ödeme bilgileriniz güvenli bir şekilde saklanmaktadır.</p>
-                      <a href="tel:+905393222797" className="inline-block bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors">
-                        Hemen Arayın
-                      </a>
-                    </div>
-                    
-                    <button
-                      onClick={() => {
-                        setSelectedPlan('corporate');
-                        setBillingCycle(corporateBillingCycle);
-                        alert('Kurumsal paket seçildi! Faturalandırma dönemini değiştirebilirsiniz.');
-                      }}
-                      className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-                    >
-                      Kurumsal Pakete Geç
-                    </button>
-        </div>
-      )}
+                  )}
                 </div>
               </div>
             </div>
