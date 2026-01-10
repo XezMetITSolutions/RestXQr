@@ -541,9 +541,9 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-purple-800 mb-2"><TranslatedText>MasApp'e Hoş Geldiniz!</TranslatedText></h3>
+                        <h3 className="text-lg font-semibold text-purple-800 mb-2"><TranslatedText>RestXQr'e Hoş Geldiniz!</TranslatedText></h3>
                         <p className="text-purple-700 text-sm mb-4">
-                          <TranslatedText>İşletmenizi MasApp ile dijitalleştirin.</TranslatedText>
+                          <TranslatedText>İşletmenizi RestXQr ile dijitalleştirin.</TranslatedText>
                         </p>
                         <div className="flex flex-wrap gap-2">
                           <button

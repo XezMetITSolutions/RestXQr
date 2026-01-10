@@ -168,7 +168,7 @@ export default function ReportsPage() {
       try {
         const a = document.createElement('a');
         a.href = url;
-        a.download = `masapp-rapor-${activeTab}-${currentDate}.xlsx`;
+        a.download = `restxqr-rapor-${activeTab}-${currentDate}.xlsx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -190,7 +190,7 @@ export default function ReportsPage() {
         printWindow.document.write(`
           <html>
             <head>
-              <title>MasApp Rapor - ${activeTab}</title>
+              <title>RestXQr Rapor - ${activeTab}</title>
               <style>
                 body { font-family: Arial, sans-serif; margin: 20px; }
                 .header { text-align: center; margin-bottom: 30px; }
@@ -205,7 +205,7 @@ export default function ReportsPage() {
             </head>
             <body>
               <div class="header">
-                <h1>${t('MasApp İşletme Raporu')}</h1>
+                <h1>${t('RestXQr İşletme Raporu')}</h1>
                 <p>${t('Rapor Türü')}: ${activeTab === 'overview' ? t('Genel Bakış') :
             activeTab === 'products' ? t('Ürün Performansı') :
               activeTab === 'revenue' ? t('Ciro Analizi') : t('Saat Analizi')}</p>
