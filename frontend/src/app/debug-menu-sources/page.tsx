@@ -15,6 +15,7 @@ export default function DebugMenuSources() {
   const [businessMenuData, setBusinessMenuData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [subdomain, setSubdomain] = useState<string>('');
+  const [imageTests, setImageTests] = useState<Record<string, { loading: boolean; success: boolean; error?: string }>>({});
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -111,9 +112,15 @@ export default function DebugMenuSources() {
           } catch (error) {
             console.error('Business menu fetch error:', error);
             setBusinessMenuData({
-              error: error instanceof Error ? error.message : 'Unknown error'
+              error: error instanceof Error ? error.message : 'Unknown error',
+              errorDetails: error
             });
           }
+        } else {
+          setBusinessMenuData({
+            error: 'Giriş yapılmamış veya restoran bilgisi bulunamadı',
+            needsAuth: true
+          });
         }
       } catch (error) {
         console.error('Debug data fetch error:', error);
@@ -124,8 +131,40 @@ export default function DebugMenuSources() {
 
     if (subdomain || authenticatedRestaurant) {
       fetchData();
+    } else {
+      setLoading(false);
     }
   }, [subdomain, authenticatedRestaurant, fetchRestaurantByUsername, fetchRestaurantMenu]);
+
+  // Resim URL'lerini test et
+  useEffect(() => {
+    if (customerMenuData?.menuItems) {
+      const testImages: Record<string, { loading: boolean; success: boolean; error?: string }> = {};
+      
+      customerMenuData.menuItems.forEach((item: any) => {
+        if (item.fullImageUrl && item.fullImageUrl !== '/placeholder-food.jpg') {
+          testImages[item.id] = { loading: true, success: false };
+          
+          const img = new Image();
+          img.onload = () => {
+            setImageTests(prev => ({
+              ...prev,
+              [item.id]: { loading: false, success: true }
+            }));
+          };
+          img.onerror = () => {
+            setImageTests(prev => ({
+              ...prev,
+              [item.id]: { loading: false, success: false, error: 'Resim yüklenemedi' }
+            }));
+          };
+          img.src = item.fullImageUrl;
+        }
+      });
+      
+      setImageTests(testImages);
+    }
+  }, [customerMenuData]);
 
   if (loading) {
     return (
@@ -176,32 +215,69 @@ export default function DebugMenuSources() {
                 <p className="text-2xl font-bold">{customerMenuData.menuItems.length} ürün</p>
               </div>
 
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <h3 className="font-semibold text-purple-900 mb-2">Resim Kaynakları</h3>
-                <div className="space-y-2 text-sm">
-                  {customerMenuData.menuItems.slice(0, 5).map((item: any, index: number) => (
-                    <div key={item.id || index} className="bg-white p-3 rounded border">
-                      <p><strong>{item.name}</strong></p>
-                      <p className="text-xs text-gray-600">Kaynak: {item.imageSource}</p>
-                      <p className="text-xs text-gray-600 break-all">URL: {item.fullImageUrl}</p>
-                      {item.imageUrl && (
-                        <img 
-                          src={item.fullImageUrl} 
-                          alt={item.name}
-                          className="mt-2 w-20 h-20 object-cover rounded"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder-food.jpg';
-                            e.currentTarget.alt = 'Image failed to load';
-                          }}
-                        />
-                      )}
-                    </div>
-                  ))}
-                  {customerMenuData.menuItems.length > 5 && (
-                    <p className="text-xs text-gray-500">... ve {customerMenuData.menuItems.length - 5} ürün daha</p>
-                  )}
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-purple-900 mb-2">Resim Kaynakları</h3>
+                  <div className="space-y-2 text-sm">
+                    {customerMenuData.menuItems.slice(0, 10).map((item: any, index: number) => {
+                      const imageTest = imageTests[item.id];
+                      const isBackendUrl = item.fullImageUrl?.includes('masapp-backend.onrender.com');
+                      const isUnsplashUrl = item.fullImageUrl?.includes('unsplash.com');
+                      
+                      return (
+                        <div key={item.id || index} className="bg-white p-3 rounded border">
+                          <div className="flex justify-between items-start mb-2">
+                            <p><strong>{item.name}</strong></p>
+                            <div className="flex gap-2">
+                              {isBackendUrl && (
+                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Backend URL</span>
+                              )}
+                              {isUnsplashUrl && (
+                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Unsplash</span>
+                              )}
+                              {imageTest && (
+                                <span className={`text-xs px-2 py-1 rounded ${
+                                  imageTest.loading 
+                                    ? 'bg-blue-100 text-blue-800' 
+                                    : imageTest.success 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {imageTest.loading ? '⏳ Yükleniyor...' : imageTest.success ? '✅ Yüklendi' : '❌ Hata'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-600">Kaynak: {item.imageSource}</p>
+                          <p className="text-xs text-gray-600 break-all">URL: {item.fullImageUrl}</p>
+                          {item.imageUrl && (
+                            <div className="mt-2">
+                              <img 
+                                src={item.fullImageUrl} 
+                                alt={item.name}
+                                className="w-20 h-20 object-cover rounded border"
+                                onError={(e) => {
+                                  e.currentTarget.src = '/placeholder-food.jpg';
+                                  e.currentTarget.alt = 'Image failed to load';
+                                }}
+                              />
+                              {isBackendUrl && (
+                                <button
+                                  onClick={() => window.open(item.fullImageUrl, '_blank')}
+                                  className="mt-1 text-xs text-blue-600 hover:underline"
+                                >
+                                  URL'yi test et →
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {customerMenuData.menuItems.length > 10 && (
+                      <p className="text-xs text-gray-500">... ve {customerMenuData.menuItems.length - 10} ürün daha</p>
+                    )}
+                  </div>
                 </div>
-              </div>
 
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <h3 className="font-semibold text-gray-900 mb-2">Resim URL Mantığı</h3>
@@ -233,6 +309,23 @@ export default function DebugMenuSources() {
             businessMenuData.error ? (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <p className="text-red-800"><strong>Hata:</strong> {businessMenuData.error}</p>
+                {businessMenuData.needsAuth && (
+                  <div className="mt-3">
+                    <p className="text-sm text-red-700 mb-2">Yönetim paneli menüsünü görmek için:</p>
+                    <ol className="list-decimal list-inside text-sm text-red-700 space-y-1">
+                      <li>Yönetim paneline giriş yapın: <a href="/business/login" className="underline">/business/login</a></li>
+                      <li>Veya bu sayfayı yönetim panelinden açın</li>
+                    </ol>
+                  </div>
+                )}
+                {businessMenuData.errorDetails && (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-sm font-medium text-red-700">Hata detayları</summary>
+                    <pre className="text-xs bg-white p-3 rounded mt-2 overflow-x-auto">
+                      {JSON.stringify(businessMenuData.errorDetails, null, 2)}
+                    </pre>
+                  </details>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
