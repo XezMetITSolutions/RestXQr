@@ -239,6 +239,73 @@ export default function MenuManagement() {
     }
   }, [isAuthenticated, router]);
 
+  // Modal açıkken clipboard'dan paste desteği
+  useEffect(() => {
+    if (!showItemForm) return;
+
+    const handlePaste = async (e: ClipboardEvent) => {
+      e.preventDefault();
+      const items = e.clipboardData?.items;
+      
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          if (file) {
+            console.log('📋 Modal açıkken yapıştırılan resim:', file.name || 'Clipboard', 'Boyut:', file.size, 'Tip:', file.type);
+            
+            // Dosya boyutunu kontrol et (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+              alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
+              return;
+            }
+
+            // Resim yükleme
+            try {
+              const formData = new FormData();
+              formData.append('image', file);
+
+              const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
+                method: 'POST',
+                body: formData,
+              });
+
+              if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+              }
+
+              const result = await response.json();
+
+              if (result.success) {
+                console.log('✅ Yapıştırılan resim başarıyla yüklendi:', result.data.imageUrl);
+                setCapturedImage(result.data.imageUrl);
+                alert(t('Resim başarıyla yapıştırıldı ve yüklendi!'));
+              } else {
+                console.error('❌ Upload failed:', result.message);
+                alert(t('Resim yüklenemedi: ') + result.message);
+              }
+            } catch (error) {
+              console.error('❌ Resim yükleme hatası:', error);
+              alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
+            }
+            break;
+          }
+        }
+      }
+    };
+
+    // Global paste event listener ekle
+    window.addEventListener('paste', handlePaste);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('paste', handlePaste);
+    };
+  }, [showItemForm, t]);
+
   const handleLogout = () => {
     logout();
     router.push('/isletme-giris');
