@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -93,6 +93,24 @@ export default function SettingsPage() {
   useEffect(() => {
     initializeAuth();
   }, [initializeAuth]);
+
+  // Emoji picker dışına tıklanınca kapat
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(null);
+      }
+    };
+
+    if (showEmojiPicker !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showEmojiPicker]);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
 
@@ -126,11 +144,16 @@ export default function SettingsPage() {
 
   const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({});
   const [showAnnModal, setShowAnnModal] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<number | null>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const [subdomainValidation, setSubdomainValidation] = useState<{
     isValid: boolean;
     isChecking: boolean;
     message: string;
   }>({ isValid: true, isChecking: false, message: '' });
+
+  // Popüler emojiler listesi
+  const popularEmojis = ['⭐', '🎉', '🍲', '🍕', '🍔', '🍟', '🌮', '🌯', '🥗', '🍝', '🍜', '🍱', '🍣', '🍤', '🍗', '🍖', '🥩', '🍳', '🥘', '🍲', '🥣', '🍨', '🍧', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🥤', '🍹', '🍸', '🍷', '🍺', '☕', '🥛', '💯', '🔥', '✨', '🎊', '🎈', '🎁', '🏆', '🥇', '💎', '🌟', '💫', '🎯', '🎪'];
 
   // Simple integration connect modal state
   const [integrationModal, setIntegrationModal] = useState<null | { name: string }>(null);
