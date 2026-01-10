@@ -236,12 +236,52 @@ router.put('/:id', async (req, res) => {
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
     // Status güncelle
+    const previousStatus = order.status;
     if (status) order.status = status;
     
     // Table number güncelle
     if (tableNumber) order.tableNumber = tableNumber;
     
     await order.save();
+    
+    // Ödeme tamamlandığında QR token'ı yenile (eski token'ı deaktive et, yeni token oluştur)
+    if (status === 'completed' && previousStatus !== 'completed' && order.tableNumber) {
+      try {
+        console.log(`💳 Ödeme tamamlandı, QR token yenileniyor: Masa ${order.tableNumber}, Restoran ${order.restaurantId}`);
+        
+        // Mevcut aktif token'ı deaktive et
+        await QRToken.update(
+          { isActive: false },
+          {
+            where: {
+              restaurantId: order.restaurantId,
+              tableNumber: order.tableNumber,
+              isActive: true
+            }
+          }
+        );
+        
+        // Yeni token oluştur (10 yıl geçerli)
+        const crypto = require('crypto');
+        const generateToken = () => crypto.randomBytes(32).toString('hex');
+        const newToken = generateToken();
+        const expiresAt = new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000); // 10 yıl
+        
+        const newQRToken = await QRToken.create({
+          restaurantId: order.restaurantId,
+          tableNumber: order.tableNumber,
+          token: newToken,
+          expiresAt: expiresAt,
+          isActive: true,
+          createdBy: 'system'
+        });
+        
+        console.log(`✅ Yeni QR token oluşturuldu: Masa ${order.tableNumber}, Token: ${newToken.substring(0, 20)}...`);
+      } catch (error) {
+        console.error('❌ QR token yenileme hatası:', error);
+        // Hata olsa bile sipariş güncellemesi devam etsin
+      }
+    }
     
     // Items değiştiyse güncelle
     if (items && Array.isArray(items)) {
