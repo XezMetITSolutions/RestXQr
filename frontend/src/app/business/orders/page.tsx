@@ -25,6 +25,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
 import BusinessSidebar from '@/components/BusinessSidebar';
 import LanguageSelector from '@/components/LanguageSelector';
+import apiService from '@/services/api';
 
 interface OrderItem {
   name: string;
@@ -82,83 +83,58 @@ export default function OrdersPage() {
   };
 
   useEffect(() => {
-    // Mock data for demonstration
-    const mockOrders: Order[] = [
-      {
-        id: 'ORD-1001',
-        tableId: 'T1',
-        tableName: 'Masa 1',
-        customerName: 'Ahmet Yılmaz',
-        customerPhone: '0532 123 45 67',
-        items: [
-          { name: 'Izgara Tavuk', quantity: 1, price: 250, options: ['Az pişmiş', 'Patates kızartması ile'] },
-          { name: 'Mercimek Çorbası', quantity: 1, price: 80 },
-          { name: 'Kola', quantity: 1, price: 40 }
-        ],
-        totalAmount: 370,
-        status: 'pending',
-        createdAt: new Date(),
-        paymentMethod: 'card',
-        note: 'Tavuk soslu olsun lütfen',
-        waiterCalls: ['waiter']
-      },
-      {
-        id: 'ORD-1002',
-        tableId: 'T3',
-        tableName: 'Masa 3',
-        items: [
-          { name: 'Hamburger Menü', quantity: 2, price: 300, options: ['Orta boy', 'Soğan halkası'] },
-          { name: 'Ayran', quantity: 2, price: 30 }
-        ],
-        totalAmount: 660,
-        status: 'preparing',
-        createdAt: new Date(Date.now() - 1000 * 60 * 15), // 15 mins ago
-        paymentMethod: 'cash'
-      },
-      {
-        id: 'ORD-1003',
-        tableId: 'T5',
-        tableName: 'Bahçe 2',
-        customerName: 'Ayşe Demir',
-        items: [
-          { name: 'Sezar Salata', quantity: 1, price: 180 },
-          { name: 'Su', quantity: 1, price: 15 }
-        ],
-        totalAmount: 195,
-        status: 'ready',
-        createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
-      },
-      {
-        id: 'ORD-1004',
-        tableId: 'T2',
-        tableName: 'Masa 2',
-        items: [
-          { name: 'Pizza Margherita', quantity: 1, price: 220 },
-          { name: 'Limonata', quantity: 1, price: 50 }
-        ],
-        totalAmount: 270,
-        status: 'delivered',
-        createdAt: new Date(Date.now() - 1000 * 60 * 45), // 45 mins ago
-      },
-      {
-        id: 'ORD-1005',
-        tableId: 'T8',
-        tableName: 'Teras 1',
-        items: [
-          { name: 'Latte', quantity: 2, price: 120 },
-          { name: 'Cheesecake', quantity: 1, price: 140 }
-        ],
-        totalAmount: 260,
-        status: 'completed',
-        createdAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+    const fetchOrders = async () => {
+      if (!authenticatedRestaurant?.id) {
+        setLoading(false);
+        return;
       }
-    ];
 
-    setTimeout(() => {
-      setOrders(mockOrders);
-      setLoading(false);
-    }, 1000);
-  }, []);
+      try {
+        setLoading(true);
+        const response = await apiService.getOrders(authenticatedRestaurant.id);
+        
+        if (response.success && response.data) {
+          // Backend'den gelen verileri frontend formatına dönüştür
+          const formattedOrders: Order[] = response.data.map((order: any) => ({
+            id: order.id || order.orderId || `ORD-${order.id?.substring(0, 8)}`,
+            tableId: order.tableId || order.tableNumber?.toString() || '',
+            tableName: order.tableNumber ? `Masa ${order.tableNumber}` : order.tableName || 'Masa Bilinmiyor',
+            customerName: order.customerName || order.customer?.name,
+            customerPhone: order.customerPhone || order.customer?.phone,
+            items: order.items?.map((item: any) => ({
+              name: item.name || item.menuItem?.name || 'Ürün',
+              quantity: item.quantity || 1,
+              price: item.unitPrice || item.price || 0,
+              notes: item.notes,
+              options: item.options || []
+            })) || [],
+            totalAmount: order.totalAmount || order.total || 0,
+            status: order.status || 'pending',
+            createdAt: order.createdAt || order.created_at || new Date(),
+            paymentMethod: order.paymentMethod || order.payment_method,
+            note: order.note || order.notes,
+            waiterCalls: order.waiterCalls || order.service_calls || []
+          }));
+          
+          setOrders(formattedOrders);
+        } else {
+          // API'den veri gelmezse boş array
+          setOrders([]);
+        }
+      } catch (error) {
+        console.error('Siparişler yüklenirken hata:', error);
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+    
+    // Her 30 saniyede bir siparişleri yenile
+    const interval = setInterval(fetchOrders, 30000);
+    return () => clearInterval(interval);
+  }, [authenticatedRestaurant?.id]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
