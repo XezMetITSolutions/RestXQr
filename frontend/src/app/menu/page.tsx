@@ -1017,6 +1017,7 @@ function MenuPageContent() {
           item={selectedItem}
           isOpen={isModalOpen}
           onClose={closeModal}
+          imageCacheVersion={imageCacheVersion}
         />
       )}
 
