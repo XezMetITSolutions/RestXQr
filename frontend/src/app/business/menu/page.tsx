@@ -1095,7 +1095,9 @@ export default function MenuManagement() {
                                     : '/placeholder-food.jpg'
                                 }
                                 alt={item.name}
-                                className="h-12 w-12 rounded-lg object-cover mr-4"
+                                className="h-12 w-12 rounded-lg object-cover mr-4 cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => handleEditItem(item)}
+                                title="Resme tıklayarak ürünü düzenleyin"
                                 onError={(e) => {
                                   console.log('Resim yüklenemedi:', item.imageUrl || item.image);
                                   e.currentTarget.src = '/placeholder-food.jpg';
@@ -1206,7 +1208,9 @@ export default function MenuManagement() {
                             : '/placeholder-food.jpg'
                         }
                         alt={item.name}
-                        className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
+                        className="h-16 w-16 rounded-lg object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => handleEditItem(item)}
+                        title="Resme tıklayarak ürünü düzenleyin"
                         onError={(e) => {
                           console.log('Mobile - Resim yüklenemedi:', item.imageUrl || item.image);
                           e.currentTarget.src = '/placeholder-food.jpg';
