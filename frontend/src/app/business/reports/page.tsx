@@ -335,11 +335,38 @@ export default function ReportsPage() {
     }
   };
 
-  // Günlük trend (son 7 gün)
+  // Uygulamanın başlangıç tarihi (ilk siparişin tarihi veya restoran oluşturulma tarihi)
+  const getStartDate = () => {
+    if (orders.length === 0) {
+      // Eğer sipariş yoksa, restoran oluşturulma tarihini kullan
+      const restaurantCreatedAt = authenticatedRestaurant?.createdAt || authenticatedRestaurant?.created_at;
+      if (restaurantCreatedAt) {
+        return new Date(restaurantCreatedAt);
+      }
+      // Eğer o da yoksa, bugünden itibaren
+      return new Date();
+    }
+    // İlk siparişin tarihini bul
+    const firstOrder = orders.reduce((earliest, order) => {
+      const orderDate = new Date(order.createdAt || order.created_at);
+      const earliestDate = new Date(earliest.createdAt || earliest.created_at);
+      return orderDate < earliestDate ? order : earliest;
+    });
+    return new Date(firstOrder.createdAt || firstOrder.created_at);
+  };
+
+  const startDate = getStartDate();
+  const today = new Date();
+  const daysSinceStart = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  // Günlük trend (uygulamanın başladığı tarihten itibaren, maksimum son 30 gün)
   const dailyTrend: { date: string; revenue: number; orders: number }[] = [];
-  for (let i = 6; i >= 0; i--) {
+  const daysToShow = Math.min(daysSinceStart, 30);
+  for (let i = daysToShow - 1; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
+    // Başlangıç tarihinden önceki günleri atla
+    if (date < startDate) continue;
     const dateStr = date.toISOString().split('T')[0];
     const dayOrders = orders.filter(order => {
       const orderDate = new Date(order.createdAt || order.created_at);
@@ -353,11 +380,15 @@ export default function ReportsPage() {
   }
   const maxDailyRevenue = Math.max(...dailyTrend.map(d => d.revenue), 1);
 
-  // Haftalık trend (son 8 hafta)
+  // Haftalık trend (uygulamanın başladığı tarihten itibaren, maksimum son 12 hafta)
   const weeklyTrend: { week: string; revenue: number; orders: number }[] = [];
-  for (let i = 7; i >= 0; i--) {
+  const weeksSinceStart = Math.ceil(daysSinceStart / 7);
+  const weeksToShow = Math.min(weeksSinceStart, 12);
+  for (let i = weeksToShow - 1; i >= 0; i--) {
     const weekStart = new Date();
     weekStart.setDate(weekStart.getDate() - (weekStart.getDay() + i * 7));
+    // Başlangıç tarihinden önceki haftaları atla
+    if (weekStart < startDate) continue;
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
     const weekOrders = orders.filter(order => {
@@ -371,11 +402,15 @@ export default function ReportsPage() {
     });
   }
 
-  // Aylık trend (son 6 ay)
+  // Aylık trend (uygulamanın başladığı tarihten itibaren, maksimum son 12 ay)
   const monthlyTrend: { month: string; revenue: number; orders: number }[] = [];
-  for (let i = 5; i >= 0; i--) {
+  const monthsSinceStart = Math.ceil(daysSinceStart / 30);
+  const monthsToShow = Math.min(monthsSinceStart, 12);
+  for (let i = monthsToShow - 1; i >= 0; i--) {
     const monthDate = new Date();
     monthDate.setMonth(monthDate.getMonth() - i);
+    // Başlangıç tarihinden önceki ayları atla
+    if (monthDate < startDate) continue;
     const monthOrders = orders.filter(order => {
       const orderDate = new Date(order.createdAt || order.created_at);
       return orderDate.getMonth() === monthDate.getMonth() && orderDate.getFullYear() === monthDate.getFullYear();
@@ -422,11 +457,13 @@ export default function ReportsPage() {
 
   // Saatlik satışlar (8:00 - 20:00)
   const hourlySales: number[] = Array(12).fill(0);
+  const hourlyOrders: number[] = Array(12).fill(0);
   orders.forEach(order => {
     const orderDate = new Date(order.createdAt || order.created_at);
     const hour = orderDate.getHours();
     if (hour >= 8 && hour < 20) {
       hourlySales[hour - 8] += order.totalAmount || order.total || 0;
+      hourlyOrders[hour - 8] += 1;
     }
   });
   const maxHourly = Math.max(...hourlySales, 1);
@@ -437,6 +474,18 @@ export default function ReportsPage() {
       profitableHours.add(index + 8);
     }
   });
+
+  // En yoğun saatler (sipariş sayısına göre)
+  const topHoursByOrders = hourlyOrders
+    .map((count, index) => ({ hour: index + 8, count, revenue: hourlySales[index] }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+
+  // En karlı saatler (ciroya göre)
+  const topHoursByRevenue = hourlySales
+    .map((revenue, index) => ({ hour: index + 8, revenue, count: hourlyOrders[index] }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 3);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('tr-TR', {
@@ -728,16 +777,11 @@ export default function ReportsPage() {
                       {formatTime(currentDailyReport?.averageTableTime || 0)}
                     </div>
                     <p className="text-gray-600 text-sm"><TranslatedText>Ortalama Masa Süresi</TranslatedText></p>
-                    <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                      <div className="bg-green-50 p-3 rounded-lg">
-                        <p className="text-green-600 font-bold"><TranslatedText>En Hızlı</TranslatedText></p>
-                        <p className="text-xs text-gray-600">25 <TranslatedText>dk</TranslatedText></p>
+                    {todayOrders.length === 0 && (
+                      <div className="mt-4 text-sm text-gray-500">
+                        <TranslatedText>Bugün henüz sipariş bulunmamaktadır.</TranslatedText>
                       </div>
-                      <div className="bg-red-50 p-3 rounded-lg">
-                        <p className="text-red-600 font-bold"><TranslatedText>En Yavaş</TranslatedText></p>
-                        <p className="text-xs text-gray-600">1<TranslatedText>sa</TranslatedText> 15<TranslatedText>dk</TranslatedText></p>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -954,32 +998,61 @@ export default function ReportsPage() {
                 </div>
                 <div className="p-6">
                   {/* Özet analiz kartları */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-blue-800 mb-3"><TranslatedText>En Yoğun Saatler</TranslatedText></h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center"><span className="text-sm">12:00 - 13:00</span><span className="text-sm font-bold text-blue-600">45 <TranslatedText>sipariş</TranslatedText></span></div>
-                        <div className="flex justify-between items-center"><span className="text-sm">19:00 - 20:00</span><span className="text-sm font-bold text-blue-600">38 <TranslatedText>sipariş</TranslatedText></span></div>
-                        <div className="flex justify-between items-center"><span className="text-sm">20:00 - 21:00</span><span className="text-sm font-bold text-blue-600">32 <TranslatedText>sipariş</TranslatedText></span></div>
+                  {orders.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-blue-800 mb-3"><TranslatedText>En Yoğun Saatler</TranslatedText></h4>
+                        <div className="space-y-2">
+                          {topHoursByOrders.length > 0 ? (
+                            topHoursByOrders.map((item, idx) => (
+                              <div key={idx} className="flex justify-between items-center">
+                                <span className="text-sm">{item.hour}:00 - {item.hour + 1}:00</span>
+                                <span className="text-sm font-bold text-blue-600">{item.count} <TranslatedText>sipariş</TranslatedText></span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-gray-500"><TranslatedText>Veri bulunamadı</TranslatedText></p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-green-800 mb-3"><TranslatedText>En Karlı Saatler</TranslatedText></h4>
+                        <div className="space-y-2">
+                          {topHoursByRevenue.length > 0 ? (
+                            topHoursByRevenue.map((item, idx) => (
+                              <div key={idx} className="flex justify-between items-center">
+                                <span className="text-sm">{item.hour}:00 - {item.hour + 1}:00</span>
+                                <span className="text-sm font-bold text-green-600">{formatCurrency(item.revenue)}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-gray-500"><TranslatedText>Veri bulunamadı</TranslatedText></p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="bg-purple-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-purple-800 mb-3"><TranslatedText>Saatlik Özet</TranslatedText></h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm"><TranslatedText>Toplam Sipariş</TranslatedText></span>
+                            <span className="text-sm font-bold text-purple-600">{orders.length}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm"><TranslatedText>Toplam Ciro</TranslatedText></span>
+                            <span className="text-sm font-bold text-purple-600">{formatCurrency(orders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0))}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm"><TranslatedText>Ortalama Sipariş</TranslatedText></span>
+                            <span className="text-sm font-bold text-purple-600">{formatCurrency(orders.length > 0 ? orders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0) / orders.length : 0)}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="bg-green-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-green-800 mb-3"><TranslatedText>En Karlı Saatler</TranslatedText></h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center"><span className="text-sm">19:00 - 20:00</span><span className="text-sm font-bold text-green-600">₺2,450</span></div>
-                        <div className="flex justify-between items-center"><span className="text-sm">20:00 - 21:00</span><span className="text-sm font-bold text-green-600">₺2,180</span></div>
-                        <div className="flex justify-between items-center"><span className="text-sm">12:00 - 13:00</span><span className="text-sm font-bold text-green-600">₺1,890</span></div>
-                      </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 mb-6">
+                      <TranslatedText>Henüz sipariş verisi bulunmamaktadır.</TranslatedText>
                     </div>
-                    <div className="bg-purple-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-purple-800 mb-3"><TranslatedText>Masa Süreleri</TranslatedText></h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center"><span className="text-sm"><TranslatedText>Öğle</TranslatedText> (12-15)</span><span className="text-sm font-bold text-purple-600">35 <TranslatedText>dk</TranslatedText></span></div>
-                        <div className="flex justify-between items-center"><span className="text-sm"><TranslatedText>Akşam</TranslatedText> (18-22)</span><span className="text-sm font-bold text-purple-600">65 <TranslatedText>dk</TranslatedText></span></div>
-                        <div className="flex justify-between items-center"><span className="text-sm"><TranslatedText>Gece</TranslatedText> (22-24)</span><span className="text-sm font-bold text-purple-600">45 <TranslatedText>dk</TranslatedText></span></div>
-                      </div>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Tek bir grafik: saatlik yoğunluk + kârlı saat vurgusu */}
                   <div className="bg-gray-50 p-4 rounded-lg overflow-x-auto">
