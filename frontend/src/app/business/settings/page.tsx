@@ -39,7 +39,9 @@ import {
   FaCheck,
   FaExclamationTriangle,
   FaDownload,
-  FaSync
+  FaSync,
+  FaPlus,
+  FaTrash
 } from 'react-icons/fa';
 import AnnouncementQuickModal from '@/components/AnnouncementQuickModal';
 import BusinessSidebar from '@/components/BusinessSidebar';
@@ -819,79 +821,127 @@ export default function SettingsPage() {
 
                       {/* Menü Özel İçerik */}
                       <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
-                        <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                          <span className="text-2xl">🎉</span>
-                          Menü Özel İçerikler
-                        </h4>
-                        <p className="text-sm text-gray-600 mb-6">Müşteri menüsünde gösterilen günlük duyurular ve özel içerikler</p>
-
-                        {/* Bugüne Özel */}
-                        <div className="mb-6 bg-white p-4 rounded-lg">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            ⭐ <TranslatedText>Bugüne Özel Başlık</TranslatedText>
-                          </label>
-                          <input
-                            type="text"
-                            value={settings.basicInfo.dailySpecialTitle || 'Bugüne Özel!'}
-                            onChange={(e) => updateBasicInfo({ dailySpecialTitle: e.target.value })}
-                            placeholder={getStatic('Bugüne Özel!')}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                          <div className="mt-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              <TranslatedText>Detaylı Açıklama</TranslatedText>
-                            </label>
-                            <input
-                              type="text"
-                              value={settings.basicInfo.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}
-                              onChange={(e) => updateBasicInfo({ dailySpecialDesc: e.target.value })}
-                              placeholder={getStatic('Tüm tatlılarda %20 indirim - Sadece bugün geçerli')}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            />
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h4 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                              <span className="text-2xl">🎉</span>
+                              Menü Özel İçerikler
+                            </h4>
+                            <p className="text-sm text-gray-600 mt-2">Müşteri menüsünde gösterilen günlük duyurular ve özel içerikler</p>
                           </div>
                           <button
-                            onClick={() => handleSaveField('dailySpecialTitle', settings.basicInfo.dailySpecialTitle)}
-                            className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            onClick={() => {
+                              const currentContents = settings.basicInfo.menuSpecialContents || [];
+                              const newContent = {
+                                id: Date.now().toString(),
+                                emoji: '⭐',
+                                title: '',
+                                description: ''
+                              };
+                              updateBasicInfo({ menuSpecialContents: [...currentContents, newContent] });
+                            }}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
                           >
-                            <FaSave size={14} className="inline mr-2" />
-                            <TranslatedText>Kaydet</TranslatedText>
+                            <FaPlus />
+                            <TranslatedText>Yeni İçerik Ekle</TranslatedText>
                           </button>
                         </div>
 
-                        {/* Günün Çorbası */}
-                        <div className="mb-6 bg-white p-4 rounded-lg">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            🍲 <TranslatedText>Günün Çorbası Başlık</TranslatedText>
-                          </label>
-                          <input
-                            type="text"
-                            value={settings.basicInfo.soupOfDayTitle || 'Günün Çorbası'}
-                            onChange={(e) => updateBasicInfo({ soupOfDayTitle: e.target.value })}
-                            placeholder={getStatic('Özel soslu, tereyağlı')}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                          <div className="mt-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              <TranslatedText>Çorba İsmi ve Açıklama</TranslatedText>
-                            </label>
-                            <input
-                              type="text"
-                              value={settings.basicInfo.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}
-                              onChange={(e) => updateBasicInfo({ soupOfDayDesc: e.target.value })}
-                              placeholder={getStatic('Mercimek Çorbası + Ekmek')}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            />
+                        {/* Dinamik İçerikler */}
+                        {(!settings.basicInfo.menuSpecialContents || settings.basicInfo.menuSpecialContents.length === 0) ? (
+                          <div className="text-center py-8 bg-white rounded-lg border-2 border-dashed border-gray-300">
+                            <p className="text-gray-500 mb-4"><TranslatedText>Henüz içerik eklenmemiş</TranslatedText></p>
+                            <button
+                              onClick={() => {
+                                const newContent = {
+                                  id: Date.now().toString(),
+                                  emoji: '⭐',
+                                  title: '',
+                                  description: ''
+                                };
+                                updateBasicInfo({ menuSpecialContents: [newContent] });
+                              }}
+                              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 mx-auto"
+                            >
+                              <FaPlus />
+                              <TranslatedText>İlk İçeriği Ekle</TranslatedText>
+                            </button>
                           </div>
-                          <button
-                            onClick={() => handleSaveField('soupOfDayTitle', settings.basicInfo.soupOfDayTitle)}
-                            className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                          >
-                            <FaSave size={14} className="inline mr-2" />
-                            <TranslatedText>Kaydet</TranslatedText>
-                          </button>
-                        </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {(settings.basicInfo.menuSpecialContents || []).map((content: any, index: number) => (
+                              <div key={content.id || index} className="bg-white p-4 rounded-lg border border-gray-200">
+                                <div className="flex items-start justify-between mb-4">
+                                  <div className="flex items-center gap-3">
+                                    <input
+                                      type="text"
+                                      value={content.emoji || '⭐'}
+                                      onChange={(e) => {
+                                        const contents = [...(settings.basicInfo.menuSpecialContents || [])];
+                                        contents[index] = { ...contents[index], emoji: e.target.value };
+                                        updateBasicInfo({ menuSpecialContents: contents });
+                                      }}
+                                      className="w-12 h-12 text-2xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                      placeholder="⭐"
+                                      maxLength={2}
+                                    />
+                                    <div className="flex-1">
+                                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <TranslatedText>Başlık</TranslatedText>
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={content.title || ''}
+                                        onChange={(e) => {
+                                          const contents = [...(settings.basicInfo.menuSpecialContents || [])];
+                                          contents[index] = { ...contents[index], title: e.target.value };
+                                          updateBasicInfo({ menuSpecialContents: contents });
+                                        }}
+                                        placeholder={getStatic('Örn: Bugüne Özel!')}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                      />
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      const contents = (settings.basicInfo.menuSpecialContents || []).filter((_: any, i: number) => i !== index);
+                                      updateBasicInfo({ menuSpecialContents: contents });
+                                    }}
+                                    className="ml-3 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    title={getStatic('Sil')}
+                                  >
+                                    <FaTrash />
+                                  </button>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <TranslatedText>Detaylı Açıklama</TranslatedText>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={content.description || ''}
+                                    onChange={(e) => {
+                                      const contents = [...(settings.basicInfo.menuSpecialContents || [])];
+                                      contents[index] = { ...contents[index], description: e.target.value };
+                                      updateBasicInfo({ menuSpecialContents: contents });
+                                    }}
+                                    placeholder={getStatic('Örn: Tüm tatlılarda %20 indirim - Sadece bugün geçerli')}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  />
+                                </div>
+                                <button
+                                  onClick={() => handleSaveField('menuSpecialContents', settings.basicInfo.menuSpecialContents)}
+                                  className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                >
+                                  <FaSave size={14} className="inline mr-2" />
+                                  <TranslatedText>Kaydet</TranslatedText>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
 
-                        <div className="bg-blue-100 border border-blue-300 rounded-lg p-4">
+                        <div className="mt-4 bg-blue-100 border border-blue-300 rounded-lg p-4">
                           <p className="text-sm text-blue-800">
                             💡 <TranslatedText>Bu içerikler müşteri menüsünün en üstünde slider olarak gösterilecektir.</TranslatedText>
                           </p>
