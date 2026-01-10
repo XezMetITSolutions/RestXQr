@@ -258,10 +258,21 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
       attributes: ['id', 'tableNumber', 'token', 'expiresAt', 'usedAt', 'createdAt']
     });
     
-    // Add QR URLs
+    // Get restaurant to use correct subdomain
+    const restaurant = await Restaurant.findByPk(restaurantId);
+    if (!restaurant || !restaurant.username) {
+      return res.status(404).json({
+        success: false,
+        message: 'Restaurant not found or username missing'
+      });
+    }
+    
+    // Add QR URLs with correct subdomain
+    const sub = restaurant.username;
+    const baseUrl = process.env.FRONTEND_URL || `https://${sub}.restxqr.com`;
     const tokensWithUrls = tokens.map(token => ({
       ...token.toJSON(),
-      qrUrl: `${process.env.FRONTEND_URL || 'https://aksaray.restxqr.com'}/menu/?t=${token.token}&table=${token.tableNumber}`,
+      qrUrl: `${baseUrl}/menu/?t=${token.token}&table=${token.tableNumber}`,
       remainingMinutes: Math.floor((new Date(token.expiresAt) - new Date()) / 60000)
     }));
     
