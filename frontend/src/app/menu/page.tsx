@@ -114,6 +114,7 @@ function MenuPageContent() {
                 // Aynı masa + token için eski clientId'yi kontrol et
                 const sessionStorageKey = `client_id_${currentRestaurant.id}_${response.data.tableNumber}_${tokenParam}`;
                 const existingClientId = sessionStorage.getItem(sessionStorageKey);
+                let sessionRes: any = null;
                 
                 let sessionRes;
                 if (existingClientId) {
