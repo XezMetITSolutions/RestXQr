@@ -12,7 +12,10 @@ import {
   FaCheck,
   FaTimes,
   FaSpinner,
-  FaEye
+  FaEye,
+  FaExternalLinkAlt,
+  FaCheckSquare,
+  FaSquare
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useQRStore, type QRCodeData } from '@/store/useQRStore';
@@ -51,6 +54,8 @@ export default function QRCodesPage() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [selectedQRCodes, setSelectedQRCodes] = useState<Set<string>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Initialize auth on mount
@@ -405,7 +410,39 @@ export default function QRCodesPage() {
           {/* QR Codes Grid */}
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900"><TranslatedText>QR Kodlarım</TranslatedText></h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900"><TranslatedText>QR Kodlarım</TranslatedText></h2>
+                {qrCodes.length > 0 && (
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={handleSelectAll}
+                      className="flex items-center gap-2 px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      {selectAll ? <FaCheckSquare className="text-blue-600" /> : <FaSquare />}
+                      <span><TranslatedText>Tümünü Seç</TranslatedText></span>
+                    </button>
+                    {selectedQRCodes.size > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">
+                          {selectedQRCodes.size} <TranslatedText>seçili</TranslatedText>
+                        </span>
+                        <button
+                          onClick={handleBulkDownload}
+                          className="px-3 py-1 text-sm bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
+                        >
+                          <TranslatedText>Toplu İndir</TranslatedText>
+                        </button>
+                        <button
+                          onClick={handleBulkDelete}
+                          className="px-3 py-1 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                        >
+                          <TranslatedText>Toplu Sil</TranslatedText>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="p-6">
               {qrCodes.length === 0 ? (
@@ -424,8 +461,17 @@ export default function QRCodesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {qrCodes.map((qrCode) => {
                     console.log('Rendering QR Code:', qrCode);
+                    const isSelected = selectedQRCodes.has(qrCode.id);
                     return (
-                      <div key={qrCode.id} className="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+                      <div key={qrCode.id} className={`border rounded-lg p-4 hover:shadow-lg transition-shadow ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
+                        <div className="flex items-start justify-between mb-2">
+                          <button
+                            onClick={() => handleToggleSelect(qrCode.id)}
+                            className="mt-1 text-gray-600 hover:text-blue-600 transition-colors"
+                          >
+                            {isSelected ? <FaCheckSquare className="text-blue-600" /> : <FaSquare />}
+                          </button>
+                        </div>
                         <div className="text-center mb-4">
                           {qrCode.qrCode ? (
                             <img
@@ -447,6 +493,13 @@ export default function QRCodesPage() {
                         </div>
 
                         <div className="space-y-2">
+                          <button
+                            onClick={() => handleOpenURL(qrCode.url)}
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-purple-50 text-purple-600 rounded hover:bg-purple-100 transition-colors"
+                          >
+                            <FaExternalLinkAlt />
+                            <TranslatedText>URL'yi Aç</TranslatedText>
+                          </button>
                           <button
                             onClick={() => handleCopyURL(qrCode.url, qrCode.tableNumber)}
                             className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
