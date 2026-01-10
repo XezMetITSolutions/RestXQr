@@ -1630,76 +1630,140 @@ export default function MenuManagement() {
                           <p className="text-xs text-gray-500"><TranslatedText>Telefon kamerası</TranslatedText></p>
                         </button>
 
-                        {/* Dosyadan Yükle */}
-                        <label className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors text-center cursor-pointer">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                console.log('Seçilen dosya:', file.name, 'Boyut:', file.size, 'Tip:', file.type);
-
-                                // Dosya boyutunu kontrol et (max 5MB)
-                                if (file.size > 5 * 1024 * 1024) {
-                                  alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
-                                  return;
-                                }
-
-                                // Dosya tipini kontrol et
-                                if (!file.type.startsWith('image/')) {
-                                  alert(t('Lütfen sadece resim dosyası seçin.'));
-                                  return;
-                                }
-
-                                // Basit ve güvenilir resim yükleme sistemi
-                                try {
-                                  console.log('📤 Resim yükleniyor:', file.name, file.size, 'bytes');
-
-                                  const formData = new FormData();
-                                  formData.append('image', file);
-
-                                  console.log('📡 API URL:', process.env.NEXT_PUBLIC_API_URL);
-
-                                  const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
-                                    method: 'POST',
-                                    body: formData,
-                                  });
-
-                                  console.log('📊 Response status:', response.status);
-                                  console.log('📊 Response ok:', response.ok);
-
-                                  if (!response.ok) {
-                                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        {/* Dosyadan Yükle veya Yapıştır */}
+                        <div 
+                          className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors text-center cursor-pointer relative"
+                          onPaste={async (e) => {
+                            e.preventDefault();
+                            const items = e.clipboardData.items;
+                            
+                            for (let i = 0; i < items.length; i++) {
+                              const item = items[i];
+                              
+                              if (item.type.indexOf('image') !== -1) {
+                                const file = item.getAsFile();
+                                if (file) {
+                                  console.log('📋 Yapıştırılan resim:', file.name || 'Clipboard', 'Boyut:', file.size, 'Tip:', file.type);
+                                  
+                                  // Dosya boyutunu kontrol et (max 5MB)
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
+                                    return;
                                   }
 
-                                  const result = await response.json();
-                                  console.log('📊 Response data:', result);
+                                  // Resim yükleme
+                                  try {
+                                    const formData = new FormData();
+                                    formData.append('image', file);
 
-                                  if (result.success) {
-                                    console.log('✅ Resim başarıyla yüklendi:', result.data.imageUrl);
-                                    setCapturedImage(result.data.imageUrl);
-                                    alert(t('Resim başarıyla yüklendi!'));
-                                  } else {
-                                    console.error('❌ Upload failed:', result.message);
-                                    alert(t('Resim yüklenemedi: ') + result.message);
+                                    const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
+                                      method: 'POST',
+                                      body: formData,
+                                    });
+
+                                    if (!response.ok) {
+                                      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                                    }
+
+                                    const result = await response.json();
+
+                                    if (result.success) {
+                                      console.log('✅ Yapıştırılan resim başarıyla yüklendi:', result.data.imageUrl);
+                                      setCapturedImage(result.data.imageUrl);
+                                      alert(t('Resim başarıyla yapıştırıldı ve yüklendi!'));
+                                    } else {
+                                      console.error('❌ Upload failed:', result.message);
+                                      alert(t('Resim yüklenemedi: ') + result.message);
+                                    }
+                                  } catch (error) {
+                                    console.error('❌ Resim yükleme hatası:', error);
+                                    alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
                                   }
-                                } catch (error) {
-                                  console.error('❌ Resim yükleme hatası:', error);
-                                  alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
+                                  break;
                                 }
                               }
-                            }}
-                            className="hidden"
-                          />
-                          <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
-                            <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                          <p className="text-sm font-medium text-gray-600"><TranslatedText>Dosyadan Yükle</TranslatedText></p>
-                          <p className="text-xs text-gray-500"><TranslatedText>PNG, JPG, GIF</TranslatedText></p>
-                        </label>
+                            }
+                          }}
+                          tabIndex={0}
+                          onFocus={(e) => {
+                            e.currentTarget.style.outline = '2px solid #9333ea';
+                            e.currentTarget.style.outlineOffset = '2px';
+                          }}
+                          onBlur={(e) => {
+                            e.currentTarget.style.outline = 'none';
+                          }}
+                        >
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  console.log('Seçilen dosya:', file.name, 'Boyut:', file.size, 'Tip:', file.type);
+
+                                  // Dosya boyutunu kontrol et (max 5MB)
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
+                                    return;
+                                  }
+
+                                  // Dosya tipini kontrol et
+                                  if (!file.type.startsWith('image/')) {
+                                    alert(t('Lütfen sadece resim dosyası seçin.'));
+                                    return;
+                                  }
+
+                                  // Basit ve güvenilir resim yükleme sistemi
+                                  try {
+                                    console.log('📤 Resim yükleniyor:', file.name, file.size, 'bytes');
+
+                                    const formData = new FormData();
+                                    formData.append('image', file);
+
+                                    console.log('📡 API URL:', process.env.NEXT_PUBLIC_API_URL);
+
+                                    const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
+                                      method: 'POST',
+                                      body: formData,
+                                    });
+
+                                    console.log('📊 Response status:', response.status);
+                                    console.log('📊 Response ok:', response.ok);
+
+                                    if (!response.ok) {
+                                      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                                    }
+
+                                    const result = await response.json();
+                                    console.log('📊 Response data:', result);
+
+                                    if (result.success) {
+                                      console.log('✅ Resim başarıyla yüklendi:', result.data.imageUrl);
+                                      setCapturedImage(result.data.imageUrl);
+                                      alert(t('Resim başarıyla yüklendi!'));
+                                    } else {
+                                      console.error('❌ Upload failed:', result.message);
+                                      alert(t('Resim yüklenemedi: ') + result.message);
+                                    }
+                                  } catch (error) {
+                                    console.error('❌ Resim yükleme hatası:', error);
+                                    alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
+                                  }
+                                }
+                              }}
+                              className="hidden"
+                            />
+                            <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                              <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <p className="text-sm font-medium text-gray-600"><TranslatedText>Dosyadan Yükle</TranslatedText></p>
+                            <p className="text-xs text-gray-500"><TranslatedText>PNG, JPG, GIF</TranslatedText></p>
+                            <p className="text-xs text-purple-600 mt-1 font-medium"><TranslatedText>veya Ctrl+V ile yapıştır</TranslatedText></p>
+                          </label>
+                        </div>
                       </div>
 
                       {/* AI Görsel İşleme */}
