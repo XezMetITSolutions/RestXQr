@@ -600,10 +600,10 @@ class ApiService {
   }
 
   // Session management for real-time cart
-  async joinSession(restaurantId: string, tableNumber: number, qrToken: string) {
+  async joinSession(restaurantId: string, tableNumber: number, qrToken: string, clientId?: string) {
     return this.request<any>('/sessions/join', {
       method: 'POST',
-      body: JSON.stringify({ restaurantId, tableNumber, qrToken })
+      body: JSON.stringify({ restaurantId, tableNumber, qrToken, clientId })
     });
   }
 

@@ -108,23 +108,82 @@ function MenuPageContent() {
             sessionStorage.setItem('qr_token', tokenParam);
             console.log('✅ Token doğrulandı:', tokenParam);
 
-            // Session'a katıl
+            // Session'a katıl - Aynı cihaz aynı masaya tekrar geldiğinde eski clientId'yi kullan
             if (currentRestaurant?.id && response.data?.tableNumber) {
               try {
-                const sessionRes = await apiService.joinSession(
-                  currentRestaurant.id,
-                  response.data.tableNumber,
-                  tokenParam
-                );
-                if (sessionRes.success && sessionRes.data) {
+                // Aynı masa + token için eski clientId'yi kontrol et
+                const sessionStorageKey = `client_id_${currentRestaurant.id}_${response.data.tableNumber}_${tokenParam}`;
+                const existingClientId = sessionStorage.getItem(sessionStorageKey);
+                
+                let sessionRes;
+                if (existingClientId) {
+                  // Eski clientId ile session'a geri katıl (yeni session oluşturma)
+                  console.log('🔄 Aynı cihaz aynı masaya tekrar geldi, eski clientId kullanılıyor:', existingClientId);
+                  
+                  // Önce session bilgilerini al
+                  const sessionKey = `${currentRestaurant.id}-${response.data.tableNumber}-${tokenParam}`;
+                  const sessionInfo = await apiService.getSession(sessionKey, existingClientId);
+                  
+                  if (sessionInfo.success && sessionInfo.data) {
+                    // Session hala aktif, eski clientId'yi kullan
+                    setSessionKey(sessionKey);
+                    setClientId(existingClientId);
+                    setActiveUsersCount(sessionInfo.data.activeUsersCount || 1);
+                    sessionStorage.setItem('session_key', sessionKey);
+                    sessionStorage.setItem('client_id', existingClientId);
+                    
+                    // Session'dan sepeti yükle
+                    if (sessionInfo.data.cart && sessionInfo.data.cart.length > 0) {
+                      sessionInfo.data.cart.forEach((item: any) => {
+                        addItem({
+                          itemId: item.itemId || item.id,
+                          name: item.name,
+                          price: item.price,
+                          quantity: item.quantity,
+                          image: item.image,
+                          notes: item.notes,
+                          preparationTime: item.preparationTime
+                        });
+                      });
+                      console.log('✅ Sepet session\'dan yüklendi:', sessionInfo.data.cart.length, 'ürün');
+                    }
+                    
+                    console.log('✅ Eski session\'a geri katıldı:', {
+                      sessionKey,
+                      clientId: existingClientId,
+                      activeUsers: sessionInfo.data.activeUsersCount
+                    });
+                  } else {
+                    // Session bulunamadı veya geçersiz, eski clientId ile yeni session oluştur
+                    sessionRes = await apiService.joinSession(
+                      currentRestaurant.id,
+                      response.data.tableNumber,
+                      tokenParam,
+                      existingClientId // Eski clientId'yi gönder
+                    );
+                  }
+                } else {
+                  // İlk kez bu masaya katılıyor, yeni session oluştur
+                  sessionRes = await apiService.joinSession(
+                    currentRestaurant.id,
+                    response.data.tableNumber,
+                    tokenParam
+                  );
+                }
+                
+                // Yeni session oluşturulduysa bilgileri kaydet
+                if (sessionRes && sessionRes.success && sessionRes.data) {
                   setSessionKey(sessionRes.data.sessionKey);
                   setClientId(sessionRes.data.clientId);
                   setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
                   
-                  // Session bilgilerini sessionStorage'a kaydet
+                  // Session bilgilerini sessionStorage'a kaydet (kalıcı)
                   sessionStorage.setItem('session_key', sessionRes.data.sessionKey);
                   sessionStorage.setItem('client_id', sessionRes.data.clientId);
-                  console.log('✅ Session\'a katıldı:', {
+                  // Bu masa + token için clientId'yi kaydet (tekrar geldiğinde kullanmak için)
+                  sessionStorage.setItem(sessionStorageKey, sessionRes.data.clientId);
+                  
+                  console.log('✅ Yeni session\'a katıldı:', {
                     sessionKey: sessionRes.data.sessionKey,
                     clientId: sessionRes.data.clientId,
                     activeUsers: sessionRes.data.activeUsersCount

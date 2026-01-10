@@ -29,7 +29,7 @@ const generateClientId = () => {
 // POST /api/sessions/join - Join a session (QR kod okutulduğunda)
 router.post('/join', async (req, res) => {
   try {
-    const { restaurantId, tableNumber, qrToken } = req.body;
+    const { restaurantId, tableNumber, qrToken, clientId: providedClientId } = req.body;
     
     if (!restaurantId || !tableNumber || !qrToken) {
       return res.status(400).json({
@@ -39,14 +39,25 @@ router.post('/join', async (req, res) => {
     }
 
     const sessionKey = getSessionKey(restaurantId, tableNumber, qrToken);
-    const clientId = generateClientId();
+    
+    // Eğer clientId sağlandıysa (aynı cihaz tekrar geldi), onu kullan
+    // Yoksa yeni clientId oluştur
+    let clientId = providedClientId || generateClientId();
 
     // Session varsa kullanıcı ekle, yoksa oluştur
     if (sessions.has(sessionKey)) {
       const session = sessions.get(sessionKey);
-      session.activeUsers.add(clientId);
-      session.lastUpdated = new Date();
-      console.log(`👤 User ${clientId} joined session ${sessionKey}. Active users: ${session.activeUsers.size}`);
+      
+      // Eğer bu clientId zaten session'da varsa, sadece güncelle
+      if (session.activeUsers.has(clientId)) {
+        session.lastUpdated = new Date();
+        console.log(`🔄 User ${clientId} reconnected to session ${sessionKey}. Active users: ${session.activeUsers.size}`);
+      } else {
+        // Yeni kullanıcı ekle
+        session.activeUsers.add(clientId);
+        session.lastUpdated = new Date();
+        console.log(`👤 User ${clientId} joined session ${sessionKey}. Active users: ${session.activeUsers.size}`);
+      }
     } else {
       // Yeni session oluştur
       const newSession = {
