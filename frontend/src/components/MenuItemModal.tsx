@@ -11,7 +11,7 @@ interface MenuItemModalProps {
   onClose: () => void;
 }
 
-export default function MenuItemModal({ item, isOpen, onClose }: MenuItemModalProps) {
+export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion }: MenuItemModalProps) {
   const { addItem } = useCartStore();
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
@@ -57,7 +57,7 @@ export default function MenuItemModal({ item, isOpen, onClose }: MenuItemModalPr
         {/* Image */}
         <div className="relative h-48 w-full cursor-pointer" onClick={() => window.open(item.image, '_blank')}>
           <img
-            src={item.image}
+            src={item.image ? `${item.image}${item.image.includes('?') ? '&' : '?'}v=${imageCacheVersion || Date.now()}` : '/placeholder-food.jpg'}
             alt={getName()}
             className="w-full h-full object-cover hover:opacity-90 transition-opacity"
             onError={(e) => {

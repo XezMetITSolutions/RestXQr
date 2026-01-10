@@ -381,6 +381,23 @@ function MenuPageContent() {
     } catch { }
   }, [restaurants.length, currentRestaurant?.id, fetchRestaurants, fetchRestaurantMenu]);
 
+  // Periyodik olarak menüyü yenile (resim güncellemelerini görmek için)
+  useEffect(() => {
+    if (!currentRestaurant?.id) return;
+
+    // Her 30 saniyede bir menüyü yenile ve cache versiyonunu güncelle
+    const intervalId = setInterval(() => {
+      console.log('🔄 Menü periyodik yenileme...');
+      fetchRestaurantMenu(currentRestaurant.id).then(() => {
+        // Menü yenilendiğinde resim cache versiyonunu güncelle
+        setImageCacheVersion(Date.now());
+        console.log('✅ Resim cache versiyonu güncellendi');
+      });
+    }, 30000); // 30 saniye
+
+    return () => clearInterval(intervalId);
+  }, [currentRestaurant?.id, fetchRestaurantMenu]);
+
   // Update search placeholder based on language
   useEffect(() => {
     if (currentLanguage === 'Turkish') {
@@ -827,13 +844,14 @@ function MenuPageContent() {
                   <Image
                     src={item.imageUrl ?
                       (item.imageUrl.startsWith('http') ?
-                        item.imageUrl :
-                        `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}`)
+                        `${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}` :
+                        `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`)
                       : '/placeholder-food.jpg'}
                     alt={typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Menu item')}
                     width={80}
                     height={80}
                     className="object-cover w-full h-full rounded-lg"
+                    unoptimized
                   />
                   {item.isPopular && (
                     <div className="absolute top-0 left-0 text-white text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--brand-strong)' }}>
