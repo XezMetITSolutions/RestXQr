@@ -282,6 +282,82 @@ export default function QRCodesPage() {
     }
   };
 
+  // URL'yi yeni sekmede aç
+  const handleOpenURL = (url: string) => {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      showToast(getStatic('URL bulunamadı'), 'error');
+    }
+  };
+
+  // Checkbox seçim işlemleri
+  const handleToggleSelect = (qrId: string) => {
+    const newSelected = new Set(selectedQRCodes);
+    if (newSelected.has(qrId)) {
+      newSelected.delete(qrId);
+    } else {
+      newSelected.add(qrId);
+    }
+    setSelectedQRCodes(newSelected);
+    setSelectAll(newSelected.size === qrCodes.length && qrCodes.length > 0);
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedQRCodes(new Set());
+      setSelectAll(false);
+    } else {
+      const allIds = new Set(qrCodes.map(qr => qr.id));
+      setSelectedQRCodes(allIds);
+      setSelectAll(true);
+    }
+  };
+
+  // Seçili QR kodları toplu işlemler
+  const handleBulkDelete = async () => {
+    if (selectedQRCodes.size === 0) {
+      showToast(getStatic('Lütfen silmek için QR kod seçin'), 'error');
+      return;
+    }
+
+    if (!confirm(`${selectedQRCodes.size} ${getStatic('adet QR kod silinecek. Emin misiniz?')}`)) {
+      return;
+    }
+
+    try {
+      const selectedCount = selectedQRCodes.size;
+      for (const qrId of selectedQRCodes) {
+        const qrCode = qrCodes.find(qr => qr.id === qrId);
+        if (qrCode?.token) {
+          await apiService.deactivateQRToken(qrCode.token);
+        }
+      }
+      setSelectedQRCodes(new Set());
+      setSelectAll(false);
+      await reloadQRCodes();
+      showToast(`${selectedCount} ${getStatic('adet QR kod silindi')}`, 'success');
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+      showToast(getStatic('Toplu silme işlemi başarısız'), 'error');
+    }
+  };
+
+  const handleBulkDownload = () => {
+    if (selectedQRCodes.size === 0) {
+      showToast(getStatic('Lütfen indirmek için QR kod seçin'), 'error');
+      return;
+    }
+
+    selectedQRCodes.forEach(qrId => {
+      const qrCode = qrCodes.find(qr => qr.id === qrId);
+      if (qrCode) {
+        handleDownloadQR(qrCode);
+      }
+    });
+    showToast(`${selectedQRCodes.size} ${getStatic('adet QR kod indiriliyor...')}`, 'success');
+  };
+
   // QR kod indirme
   const handleDownloadQR = (qrCode: QRCodeData) => {
     const link = document.createElement('a');
