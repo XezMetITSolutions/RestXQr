@@ -577,6 +577,28 @@ class ApiService {
     });
   }
 
+  // QR Token endpoints
+  async generateQRToken(data: { restaurantId: string; tableNumber: number; duration?: number }) {
+    return this.request<any>('/qr/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getRestaurantQRTokens(restaurantId: string) {
+    return this.request<any[]>(`/qr/restaurant/${restaurantId}/tables`);
+  }
+
+  async deactivateQRToken(token: string) {
+    return this.request<any>(`/qr/deactivate/${token}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async verifyQRToken(token: string) {
+    return this.request<any>(`/qr/verify/${token}`);
+  }
+
 }
 
 export const apiService = new ApiService();
