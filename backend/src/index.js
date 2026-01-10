@@ -141,6 +141,7 @@ app.use('/api/ai', require('./routes/ai')); // AI recommendations
 app.use('/api/videomenu', require('./routes/videomenu')); // Video menu
 app.use('/api/events', require('./routes/events')); // Event management
 app.use('/api/translate', require('./routes/translate')); // Translation service
+app.use('/api/sessions', require('./routes/sessions')); // Session management for real-time cart
 // File upload routes - Gerçek dosya yükleme sistemi
 const multer = require('multer');
 const sharp = require('sharp');

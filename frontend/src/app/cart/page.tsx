@@ -14,7 +14,8 @@ import {
   FaHeart,
   FaGift,
   FaUtensils,
-  FaUser
+  FaUser,
+  FaUsers
 } from 'react-icons/fa';
 import { useCartStore } from '@/store';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
@@ -42,11 +43,24 @@ function CartPageContent() {
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [confirmationCountdown, setConfirmationCountdown] = useState<number | null>(null);
   const [pendingOrderItems, setPendingOrderItems] = useState<any[]>([]);
+  const [sessionKey, setSessionKey] = useState<string | null>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
 
   const primary = settings.branding.primaryColor;
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Session bilgilerini yükle
+    if (typeof window !== 'undefined') {
+      const storedSessionKey = sessionStorage.getItem('session_key');
+      const storedClientId = sessionStorage.getItem('client_id');
+      if (storedSessionKey && storedClientId) {
+        setSessionKey(storedSessionKey);
+        setClientId(storedClientId);
+      }
+    }
   }, []);
 
   // Countdown timer
@@ -270,6 +284,16 @@ function CartPageContent() {
           })));
         }
 
+        // Session'a sipariş tamamlandı bildirimi gönder
+        if (sessionKey && clientId && orderId) {
+          try {
+            await apiService.notifyOrderComplete(sessionKey, clientId, orderId);
+            console.log('✅ Session\'a sipariş tamamlandı bildirimi gönderildi');
+          } catch (error) {
+            console.error('Session bildirim hatası:', error);
+          }
+        }
+
         // Clear cart after successful order
         clearCart();
         setShowPaymentModal(false);
@@ -352,8 +376,16 @@ function CartPageContent() {
               <h1 className="text-dynamic-lg font-bold text-primary">
                 <TranslatedText>Sepet</TranslatedText>
               </h1>
-              <div className="ml-2 px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
-                <TranslatedText>Masa #{tableNumber}</TranslatedText>
+              <div className="ml-2 flex items-center gap-2">
+                <div className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
+                  <TranslatedText>Masa #{tableNumber}</TranslatedText>
+                </div>
+                {activeUsersCount > 1 && (
+                  <div className="px-2 py-1 rounded-lg text-xs bg-blue-100 text-blue-700 flex items-center gap-1">
+                    <FaUsers className="text-xs" />
+                    <span>{activeUsersCount} kişi</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -599,6 +599,40 @@ class ApiService {
     return this.request<any>(`/qr/verify/${token}`);
   }
 
+  // Session management for real-time cart
+  async joinSession(restaurantId: string, tableNumber: number, qrToken: string) {
+    return this.request<any>('/sessions/join', {
+      method: 'POST',
+      body: JSON.stringify({ restaurantId, tableNumber, qrToken })
+    });
+  }
+
+  async getSession(sessionKey: string, clientId?: string) {
+    const params = clientId ? `?clientId=${clientId}` : '';
+    return this.request<any>(`/sessions/${sessionKey}${params}`);
+  }
+
+  async updateSessionCart(sessionKey: string, cart: any[], clientId: string) {
+    return this.request<any>(`/sessions/${sessionKey}/cart`, {
+      method: 'PUT',
+      body: JSON.stringify({ cart, clientId })
+    });
+  }
+
+  async leaveSession(sessionKey: string, clientId: string) {
+    return this.request<any>(`/sessions/${sessionKey}/leave`, {
+      method: 'DELETE',
+      body: JSON.stringify({ clientId })
+    });
+  }
+
+  async notifyOrderComplete(sessionKey: string, clientId: string, orderId: string) {
+    return this.request<any>(`/sessions/${sessionKey}/order-complete`, {
+      method: 'POST',
+      body: JSON.stringify({ clientId, orderId })
+    });
+  }
+
 }
 
 export const apiService = new ApiService();

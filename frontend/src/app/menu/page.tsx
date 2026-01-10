@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaShoppingCart, FaBell, FaArrowLeft, FaStar, FaPlus, FaInfo, FaUtensils, FaFilter } from 'react-icons/fa';
+import { FaShoppingCart, FaBell, FaArrowLeft, FaStar, FaPlus, FaInfo, FaUtensils, FaFilter, FaUsers } from 'react-icons/fa';
 import useRestaurantStore from '@/store/useRestaurantStore';
 import { useCartStore } from '@/store';
 import Toast from '@/components/Toast';
@@ -47,6 +47,9 @@ function MenuPageContent() {
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [tokenMessage, setTokenMessage] = useState('');
   const [showDebugModal, setShowDebugModal] = useState(false);
+  const [sessionKey, setSessionKey] = useState<string | null>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
   const primary = settings.branding.primaryColor;
   const secondary = settings.branding.secondaryColor || settings.branding.primaryColor;
 
@@ -103,6 +106,50 @@ function MenuPageContent() {
             // Token'ı sessionStorage'a kaydet
             sessionStorage.setItem('qr_token', tokenParam);
             console.log('✅ Token doğrulandı:', tokenParam);
+
+            // Session'a katıl
+            if (currentRestaurant?.id && response.data?.tableNumber) {
+              try {
+                const sessionRes = await apiService.joinSession(
+                  currentRestaurant.id,
+                  response.data.tableNumber,
+                  tokenParam
+                );
+                if (sessionRes.success && sessionRes.data) {
+                  setSessionKey(sessionRes.data.sessionKey);
+                  setClientId(sessionRes.data.clientId);
+                  setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
+                  
+                  // Session bilgilerini sessionStorage'a kaydet
+                  sessionStorage.setItem('session_key', sessionRes.data.sessionKey);
+                  sessionStorage.setItem('client_id', sessionRes.data.clientId);
+                  console.log('✅ Session\'a katıldı:', {
+                    sessionKey: sessionRes.data.sessionKey,
+                    clientId: sessionRes.data.clientId,
+                    activeUsers: sessionRes.data.activeUsersCount
+                  });
+
+                  // Session'dan sepeti yükle
+                  if (sessionRes.data.cart && sessionRes.data.cart.length > 0) {
+                    // Sepeti cart store'a yükle
+                    sessionRes.data.cart.forEach((item: any) => {
+                      addItem({
+                        itemId: item.itemId || item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        image: item.image,
+                        notes: item.notes,
+                        preparationTime: item.preparationTime
+                      });
+                    });
+                    console.log('✅ Sepet session\'dan yüklendi:', sessionRes.data.cart.length, 'ürün');
+                  }
+                }
+              } catch (error) {
+                console.error('Session join hatası:', error);
+              }
+            }
           } else {
             // Token deaktifse veya geçersizse, masa numarası varsa yeni token oluştur
             if (tableParam) {
@@ -269,6 +316,84 @@ function MenuPageContent() {
       translatePlaceholder();
     }
   }, [currentLanguage, translate]);
+
+  // Session cart synchronization - Sepet güncellemelerini session'a gönder
+  useEffect(() => {
+    if (!sessionKey || !clientId || !currentRestaurant?.id) return;
+
+    // Sepet değiştiğinde session'a gönder
+    const syncCartToSession = async () => {
+      try {
+        const cartData = cartItems.map(item => ({
+          id: item.id,
+          itemId: item.itemId,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+          notes: item.notes,
+          preparationTime: item.preparationTime
+        }));
+
+        await apiService.updateSessionCart(sessionKey, cartData, clientId);
+      } catch (error) {
+        console.error('Sepet senkronizasyon hatası:', error);
+      }
+    };
+
+    // Debounce: 500ms bekle, sonra gönder
+    const timeoutId = setTimeout(syncCartToSession, 500);
+    return () => clearTimeout(timeoutId);
+  }, [cartItems, sessionKey, clientId, currentRestaurant?.id]);
+
+  // Session'dan sepet güncellemelerini dinle (polling)
+  useEffect(() => {
+    if (!sessionKey || !clientId) return;
+
+    const pollSession = async () => {
+      try {
+        const sessionRes = await apiService.getSession(sessionKey, clientId);
+        if (sessionRes.success && sessionRes.data) {
+          // Aktif kullanıcı sayısını güncelle
+          setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
+
+          // Sepet güncellemelerini kontrol et (sadece farklıysa güncelle)
+          if (sessionRes.data.cart && Array.isArray(sessionRes.data.cart)) {
+            const sessionCart = sessionRes.data.cart;
+            const currentCart = cartItems;
+
+            // Sepet farklıysa güncelle (başka bir kullanıcı eklemiş olabilir)
+            if (JSON.stringify(sessionCart) !== JSON.stringify(currentCart.map(item => ({
+              id: item.id,
+              itemId: item.itemId,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity
+            })))) {
+              // Sepeti temizle ve session'dan yükle
+              // Not: Bu sadece session'dan gelen sepeti yükler, kullanıcının eklediği ürünleri kaybetmemek için dikkatli olmalıyız
+              // Şimdilik sadece aktif kullanıcı sayısını güncelliyoruz, sepet senkronizasyonu için daha gelişmiş bir mekanizma gerekebilir
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Session polling hatası:', error);
+      }
+    };
+
+    // Her 2 saniyede bir session'ı kontrol et
+    const intervalId = setInterval(pollSession, 2000);
+    return () => clearInterval(intervalId);
+  }, [sessionKey, clientId, cartItems]);
+
+  // Component unmount olduğunda session'dan ayrıl
+  useEffect(() => {
+    return () => {
+      if (sessionKey && clientId) {
+        apiService.leaveSession(sessionKey, clientId).catch(console.error);
+      }
+    };
+  }, [sessionKey, clientId]);
 
   // Helper functions - defined inside component to avoid dependency issues
   const getPopularItems = () => {
@@ -489,8 +614,16 @@ function MenuPageContent() {
                 <TranslatedText>Menü</TranslatedText>
               </h1>
               {tableNumber > 0 && (
-                <div className="ml-2 px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
-                  {currentRestaurant?.name || 'Restoran'} Masa {tableNumber}
+                <div className="ml-2 flex items-center gap-2">
+                  <div className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
+                    {currentRestaurant?.name || 'Restoran'} Masa {tableNumber}
+                  </div>
+                  {activeUsersCount > 1 && (
+                    <div className="px-2 py-1 rounded-lg text-xs bg-blue-100 text-blue-700 flex items-center gap-1">
+                      <FaUsers className="text-xs" />
+                      <span>{activeUsersCount} kişi</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
