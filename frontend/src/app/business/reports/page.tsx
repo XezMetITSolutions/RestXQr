@@ -21,6 +21,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import BusinessSidebar from '@/components/BusinessSidebar';
 import { useFeature } from '@/hooks/useFeature';
 import TranslatedText, { useTranslation } from '@/components/TranslatedText';
+import apiService from '@/services/api';
+import { useState, useEffect } from 'react';
 
 export default function ReportsPage() {
   const { t } = useTranslation();
@@ -40,6 +42,8 @@ export default function ReportsPage() {
     end: new Date().toISOString().split('T')[0]
   });
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<any[]>([]);
 
   const handleLogout = () => {
     logout();
@@ -218,30 +222,222 @@ export default function ReportsPage() {
     }
   };
 
-  // Gerçek veriler API'den gelecek - şu an için boş
+  // API'den siparişleri çek
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!authenticatedRestaurant?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await apiService.getOrders(authenticatedRestaurant.id);
+        
+        if (response.success && response.data) {
+          setOrders(response.data || []);
+        }
+      } catch (error) {
+        console.error('Siparişler yüklenirken hata:', error);
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [authenticatedRestaurant?.id]);
+
+  // Bugünkü siparişleri filtrele
+  const todayOrders = orders.filter(order => {
+    const orderDate = new Date(order.createdAt || order.created_at);
+    const today = new Date();
+    return orderDate.toDateString() === today.toDateString();
+  });
+
+  // Dünkü siparişleri filtrele
+  const yesterdayOrders = orders.filter(order => {
+    const orderDate = new Date(order.createdAt || order.created_at);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return orderDate.toDateString() === yesterday.toDateString();
+  });
+
+  // Bu haftanın siparişleri
+  const thisWeekOrders = orders.filter(order => {
+    const orderDate = new Date(order.createdAt || order.created_at);
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay());
+    return orderDate >= weekStart;
+  });
+
+  // Geçen haftanın siparişleri
+  const lastWeekOrders = orders.filter(order => {
+    const orderDate = new Date(order.createdAt || order.created_at);
+    const today = new Date();
+    const lastWeekStart = new Date(today);
+    lastWeekStart.setDate(today.getDate() - today.getDay() - 7);
+    const lastWeekEnd = new Date(today);
+    lastWeekEnd.setDate(today.getDate() - today.getDay());
+    return orderDate >= lastWeekStart && orderDate < lastWeekEnd;
+  });
+
+  // Bu ayın siparişleri
+  const thisMonthOrders = orders.filter(order => {
+    const orderDate = new Date(order.createdAt || order.created_at);
+    const today = new Date();
+    return orderDate.getMonth() === today.getMonth() && orderDate.getFullYear() === today.getFullYear();
+  });
+
+  // Geçen ayın siparişleri
+  const lastMonthOrders = orders.filter(order => {
+    const orderDate = new Date(order.createdAt || order.created_at);
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    return orderDate >= lastMonth && orderDate < thisMonth;
+  });
+
+  // Günlük rapor hesapla
   const currentDailyReport = {
-    totalSales: 0,
-    totalOrders: 0,
-    averageOrderValue: 0,
-    totalTables: 0,
-    averageTableTime: 0
+    totalSales: todayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0),
+    totalOrders: todayOrders.length,
+    averageOrderValue: todayOrders.length > 0 
+      ? todayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0) / todayOrders.length 
+      : 0,
+    totalTables: new Set(todayOrders.map(order => order.tableNumber || order.table_id)).size,
+    averageTableTime: 0 // Bu bilgi siparişlerde yok, backend'den gelmeli
   };
+
+  // Gelir verileri
+  const todayRevenue = todayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
+  const yesterdayRevenue = yesterdayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
+  const thisWeekRevenue = thisWeekOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
+  const lastWeekRevenue = lastWeekOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
+  const thisMonthRevenue = thisMonthOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
+  const lastMonthRevenue = lastMonthOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
 
   const revenueData = {
-    daily: { today: 0, yesterday: 0, change: 0 },
-    weekly: { thisWeek: 0, lastWeek: 0, change: 0 },
-    monthly: { thisMonth: 0, lastMonth: 0, change: 0 }
+    daily: { 
+      today: todayRevenue, 
+      yesterday: yesterdayRevenue, 
+      change: yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0 
+    },
+    weekly: { 
+      thisWeek: thisWeekRevenue, 
+      lastWeek: lastWeekRevenue, 
+      change: lastWeekRevenue > 0 ? ((thisWeekRevenue - lastWeekRevenue) / lastWeekRevenue) * 100 : 0 
+    },
+    monthly: { 
+      thisMonth: thisMonthRevenue, 
+      lastMonth: lastMonthRevenue, 
+      change: lastMonthRevenue > 0 ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0 
+    }
   };
 
+  // Günlük trend (son 7 gün)
   const dailyTrend: { date: string; revenue: number; orders: number }[] = [];
-  const maxDailyRevenue = 0;
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    const dayOrders = orders.filter(order => {
+      const orderDate = new Date(order.createdAt || order.created_at);
+      return orderDate.toISOString().split('T')[0] === dateStr;
+    });
+    dailyTrend.push({
+      date: dateStr,
+      revenue: dayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0),
+      orders: dayOrders.length
+    });
+  }
+  const maxDailyRevenue = Math.max(...dailyTrend.map(d => d.revenue), 1);
+
+  // Haftalık trend (son 8 hafta)
   const weeklyTrend: { week: string; revenue: number; orders: number }[] = [];
+  for (let i = 7; i >= 0; i--) {
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - (weekStart.getDay() + i * 7));
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    const weekOrders = orders.filter(order => {
+      const orderDate = new Date(order.createdAt || order.created_at);
+      return orderDate >= weekStart && orderDate <= weekEnd;
+    });
+    weeklyTrend.push({
+      week: `${weekStart.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })} - ${weekEnd.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}`,
+      revenue: weekOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0),
+      orders: weekOrders.length
+    });
+  }
+
+  // Aylık trend (son 6 ay)
   const monthlyTrend: { month: string; revenue: number; orders: number }[] = [];
-  const topProducts: { productId: string; productName: string; totalQuantity: number; totalRevenue: number; orderCount: number }[] = [];
-  const hourlySales: number[] = [];
-  const maxHourly = 0;
+  for (let i = 5; i >= 0; i--) {
+    const monthDate = new Date();
+    monthDate.setMonth(monthDate.getMonth() - i);
+    const monthOrders = orders.filter(order => {
+      const orderDate = new Date(order.createdAt || order.created_at);
+      return orderDate.getMonth() === monthDate.getMonth() && orderDate.getFullYear() === monthDate.getFullYear();
+    });
+    monthlyTrend.push({
+      month: monthDate.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }),
+      revenue: monthOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0),
+      orders: monthOrders.length
+    });
+  }
+
+  // En çok satan ürünler
+  const productMap = new Map<string, { productName: string; totalQuantity: number; totalRevenue: number; orderCount: number }>();
+  
+  orders.forEach(order => {
+    if (order.items && Array.isArray(order.items)) {
+      order.items.forEach((item: any) => {
+        const productName = item.name || item.menuItem?.name || 'Bilinmeyen Ürün';
+        const productId = item.menuItemId || item.id || productName;
+        const quantity = item.quantity || 1;
+        const price = item.unitPrice || item.price || 0;
+        const revenue = quantity * price;
+
+        if (productMap.has(productId)) {
+          const existing = productMap.get(productId)!;
+          existing.totalQuantity += quantity;
+          existing.totalRevenue += revenue;
+          existing.orderCount += 1;
+        } else {
+          productMap.set(productId, {
+            productName,
+            totalQuantity: quantity,
+            totalRevenue: revenue,
+            orderCount: 1
+          });
+        }
+      });
+    }
+  });
+
+  const topProducts = Array.from(productMap.values())
+    .sort((a, b) => b.totalRevenue - a.totalRevenue)
+    .slice(0, 10);
+
+  // Saatlik satışlar (8:00 - 20:00)
+  const hourlySales: number[] = Array(12).fill(0);
+  orders.forEach(order => {
+    const orderDate = new Date(order.createdAt || order.created_at);
+    const hour = orderDate.getHours();
+    if (hour >= 8 && hour < 20) {
+      hourlySales[hour - 8] += order.totalAmount || order.total || 0;
+    }
+  });
+  const maxHourly = Math.max(...hourlySales, 1);
   const hourLabels = Array.from({ length: 12 }, (_, i) => `${i + 8}:00`);
   const profitableHours = new Set<number>();
+  hourlySales.forEach((sales, index) => {
+    if (sales > maxHourly * 0.5) {
+      profitableHours.add(index + 8);
+    }
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('tr-TR', {

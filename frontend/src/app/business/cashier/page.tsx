@@ -59,8 +59,7 @@ export default function CashierDashboard() {
   } = useNotificationStore();
   const {
     getActiveOrders,
-    updateOrderStatus: updateCentralOrderStatus,
-    initializeDemoData
+    updateOrderStatus: updateCentralOrderStatus
   } = useCentralOrderStore();
 
   // Demo veriler kaldırıldı - gerçek veriler API'den gelecek
