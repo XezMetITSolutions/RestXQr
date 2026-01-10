@@ -518,13 +518,27 @@ export default function OrdersPage() {
                     {selectedOrder.status !== 'completed' && selectedOrder.status !== 'cancelled' && (
                       <>
                         <button
-                          onClick={() => {
-                            // In a real app, update status here
+                          onClick={async () => {
                             const nextStatus = selectedOrder.status === 'pending' ? 'preparing' :
                               selectedOrder.status === 'preparing' ? 'ready' :
                                 selectedOrder.status === 'ready' ? 'delivered' : 'completed';
-                            // For demo just console log
-                            console.log('Advance status to', nextStatus);
+                            
+                            try {
+                              await apiService.updateOrderStatus(selectedOrder.id, nextStatus);
+                              // Sipariş listesini güncelle
+                              setOrders(prevOrders => 
+                                prevOrders.map(order => 
+                                  order.id === selectedOrder.id 
+                                    ? { ...order, status: nextStatus as any }
+                                    : order
+                                )
+                              );
+                              // Seçili siparişi güncelle
+                              setSelectedOrder({ ...selectedOrder, status: nextStatus as any });
+                            } catch (error) {
+                              console.error('Sipariş durumu güncellenirken hata:', error);
+                              alert('Sipariş durumu güncellenemedi. Lütfen tekrar deneyin.');
+                            }
                           }}
                           className="col-span-2 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-colors"
                         >
