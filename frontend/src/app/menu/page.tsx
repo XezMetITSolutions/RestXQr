@@ -22,6 +22,7 @@ function MenuPageContent() {
   const cartItems = useCartStore(state => state.items);
   const tableNumber = useCartStore(state => state.tableNumber);
   const setTableNumber = useCartStore(state => state.setTableNumber);
+  const clearCart = useCartStore(state => state.clearCart);
 
   // Restaurant store - backend'den gerçek veriler
   const {
@@ -357,22 +358,41 @@ function MenuPageContent() {
           // Aktif kullanıcı sayısını güncelle
           setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
 
-          // Sepet güncellemelerini kontrol et (sadece farklıysa güncelle)
+          // Sepet güncellemelerini kontrol et ve senkronize et
           if (sessionRes.data.cart && Array.isArray(sessionRes.data.cart)) {
             const sessionCart = sessionRes.data.cart;
             const currentCart = cartItems;
 
-            // Sepet farklıysa güncelle (başka bir kullanıcı eklemiş olabilir)
-            if (JSON.stringify(sessionCart) !== JSON.stringify(currentCart.map(item => ({
-              id: item.id,
+            // Sepet farklıysa güncelle (başka bir kullanıcı eklemiş/çıkarmış olabilir)
+            const sessionCartNormalized = sessionCart.map((item: any) => ({
+              itemId: item.itemId || item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity
+            })).sort((a: any, b: any) => (a.itemId || '').localeCompare(b.itemId || ''));
+
+            const currentCartNormalized = currentCart.map(item => ({
               itemId: item.itemId,
               name: item.name,
               price: item.price,
               quantity: item.quantity
-            })))) {
-              // Sepeti temizle ve session'dan yükle
-              // Not: Bu sadece session'dan gelen sepeti yükler, kullanıcının eklediği ürünleri kaybetmemek için dikkatli olmalıyız
-              // Şimdilik sadece aktif kullanıcı sayısını güncelliyoruz, sepet senkronizasyonu için daha gelişmiş bir mekanizma gerekebilir
+            })).sort((a, b) => (a.itemId || '').localeCompare(b.itemId || ''));
+
+            if (JSON.stringify(sessionCartNormalized) !== JSON.stringify(currentCartNormalized)) {
+              // Session'dan gelen sepeti yükle (tüm kullanıcılar aynı sepeti görsün)
+              clearCart();
+              sessionCart.forEach((item: any) => {
+                addItem({
+                  itemId: item.itemId || item.id,
+                  name: item.name,
+                  price: item.price,
+                  quantity: item.quantity,
+                  image: item.image,
+                  notes: item.notes,
+                  preparationTime: item.preparationTime
+                });
+              });
+              console.log('🔄 Sepet session\'dan senkronize edildi:', sessionCart.length, 'ürün');
             }
           }
         }
