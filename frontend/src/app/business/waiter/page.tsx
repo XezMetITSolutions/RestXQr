@@ -54,8 +54,7 @@ export default function WaiterDashboard() {
   const {
     getActiveOrders,
     updateOrderStatus,
-    updateItemStatus,
-    initializeDemoData
+    updateItemStatus
   } = useCentralOrderStore();
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);

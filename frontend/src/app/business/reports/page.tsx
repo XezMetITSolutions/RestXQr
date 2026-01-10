@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -22,7 +22,6 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import { useFeature } from '@/hooks/useFeature';
 import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 import apiService from '@/services/api';
-import { useState, useEffect } from 'react';
 
 export default function ReportsPage() {
   const { t } = useTranslation();
