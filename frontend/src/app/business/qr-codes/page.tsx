@@ -85,16 +85,38 @@ export default function QRCodesPage() {
 
       if (res?.success && Array.isArray(res.data)) {
         const mapped: QRCodeData[] = res.data.map((t: any) => {
-          // QR kod URL'i oluştur (backend'den gelen qrUrl öncelikli, yoksa doğru subdomain ile oluştur)
-          if (!authenticatedRestaurant.username) {
-            console.error('❌ Restaurant username is missing:', authenticatedRestaurant.id);
-          }
+          // Backend'den gelen qrUrl'i MUTLAKA kullan (backend doğru subdomain ile oluşturuyor)
+          // Eğer backend'den qrUrl gelmiyorsa, frontend'de doğru subdomain ile oluştur
           const restaurantSlug = authenticatedRestaurant.username;
-          if (!restaurantSlug) {
-            console.error('❌ Cannot create QR URL without restaurant username');
+          
+          console.log('🔍 Processing QR token:', {
+            tableNumber: t.tableNumber,
+            backendQrUrl: t.qrUrl,
+            restaurantSlug: restaurantSlug,
+            token: t.token?.substring(0, 20) + '...'
+          });
+          
+          // Backend'den gelen qrUrl'i öncelikli kullan
+          let backendQrUrl = t.qrUrl;
+          
+          // Eğer backend'den qrUrl gelmemişse veya yanlış subdomain içeriyorsa, düzelt
+          if (!backendQrUrl) {
+            if (!restaurantSlug) {
+              console.error('❌ Cannot create QR URL without restaurant username');
+              backendQrUrl = '';
+            } else {
+              backendQrUrl = `https://${restaurantSlug}.restxqr.com/menu/?t=${t.token}&table=${t.tableNumber}`;
+              console.warn('⚠️ Backend qrUrl missing, created in frontend:', backendQrUrl);
+            }
+          } else if (backendQrUrl.includes('aksaray.restxqr.com') && restaurantSlug && restaurantSlug !== 'aksaray') {
+            // Backend yanlış subdomain göndermişse düzelt
+            console.warn('⚠️ Backend sent wrong subdomain, fixing:', {
+              oldUrl: backendQrUrl,
+              correctSubdomain: restaurantSlug
+            });
+            backendQrUrl = backendQrUrl.replace('aksaray.restxqr.com', `${restaurantSlug}.restxqr.com`);
+            console.log('✅ Fixed URL:', backendQrUrl);
           }
-          // Backend'den gelen qrUrl'i kullan, yoksa doğru subdomain ile oluştur
-          const backendQrUrl = t.qrUrl || (restaurantSlug ? `https://${restaurantSlug}.restxqr.com/menu/?t=${t.token}&table=${t.tableNumber}` : '');
 
           // QR kod resmi için URL'yi QR code generator API'ye gönder
           // QuickChart API kullanarak QR kod resmi oluştur

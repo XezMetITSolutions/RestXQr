@@ -295,11 +295,29 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
     // Add QR URLs with correct subdomain
     const sub = restaurant.username;
     const baseUrl = process.env.FRONTEND_URL || `https://${sub}.restxqr.com`;
-    const tokensWithUrls = tokens.map(token => ({
-      ...token.toJSON(),
-      qrUrl: `${baseUrl}/menu/?t=${token.token}&table=${token.tableNumber}`,
-      remainingMinutes: Math.floor((new Date(token.expiresAt) - new Date()) / 60000)
-    }));
+    
+    console.log('📋 Generating QR URLs for restaurant:', {
+      restaurantId: restaurant.id,
+      restaurantName: restaurant.name,
+      username: restaurant.username,
+      subdomain: sub,
+      baseUrl: baseUrl,
+      tokenCount: tokens.length
+    });
+    
+    const tokensWithUrls = tokens.map(token => {
+      const qrUrl = `${baseUrl}/menu/?t=${token.token}&table=${token.tableNumber}`;
+      console.log('🔗 QR URL for token:', {
+        tableNumber: token.tableNumber,
+        token: token.token?.substring(0, 20) + '...',
+        qrUrl: qrUrl
+      });
+      return {
+        ...token.toJSON(),
+        qrUrl: qrUrl,
+        remainingMinutes: Math.floor((new Date(token.expiresAt) - new Date()) / 60000)
+      };
+    });
     
     res.json({
       success: true,
