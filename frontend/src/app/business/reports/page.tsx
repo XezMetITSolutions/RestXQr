@@ -609,9 +609,13 @@ export default function ReportsPage() {
                       <p className="text-2xl font-bold text-green-600">
                         {formatCurrency(currentDailyReport?.totalSales || 0)}
                       </p>
-                      <div className="flex items-center mt-1">
-                        <span className="text-xs text-green-600">📈 +12% {t('dün')}</span>
-                      </div>
+                      {revenueData.daily.change !== 0 && (
+                        <div className="flex items-center mt-1">
+                          <span className={`text-xs ${revenueData.daily.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {revenueData.daily.change > 0 ? '📈' : '📉'} {revenueData.daily.change > 0 ? '+' : ''}{revenueData.daily.change.toFixed(1)}% {t('dün')}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <span className="text-green-600 text-2xl">💰</span>
                   </div>
@@ -624,9 +628,20 @@ export default function ReportsPage() {
                       <p className="text-2xl font-bold text-blue-600">
                         {currentDailyReport?.totalOrders || 0}
                       </p>
-                      <div className="flex items-center mt-1">
-                        <span className="text-xs text-green-600">📈 +8% {t('dün')}</span>
-                      </div>
+                      {yesterdayOrders.length > 0 && (
+                        <div className="flex items-center mt-1">
+                          {(() => {
+                            const orderChange = yesterdayOrders.length > 0 
+                              ? ((todayOrders.length - yesterdayOrders.length) / yesterdayOrders.length) * 100 
+                              : 0;
+                            return (
+                              <span className={`text-xs ${orderChange > 0 ? 'text-green-600' : orderChange < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                                {orderChange > 0 ? '📈' : orderChange < 0 ? '📉' : '➡️'} {orderChange > 0 ? '+' : ''}{orderChange.toFixed(1)}% {t('dün')}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                      )}
                     </div>
                     <span className="text-blue-600 text-2xl">🛒</span>
                   </div>
@@ -639,9 +654,22 @@ export default function ReportsPage() {
                       <p className="text-2xl font-bold text-purple-600">
                         {formatCurrency(currentDailyReport?.averageOrderValue || 0)}
                       </p>
-                      <div className="flex items-center mt-1">
-                        <span className="text-xs text-green-600">📈 +5% {t('dün')}</span>
-                      </div>
+                      {yesterdayOrders.length > 0 && todayOrders.length > 0 && (
+                        <div className="flex items-center mt-1">
+                          {(() => {
+                            const yesterdayAvg = yesterdayOrders.length > 0 
+                              ? yesterdayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0) / yesterdayOrders.length 
+                              : 0;
+                            const todayAvg = currentDailyReport.averageOrderValue;
+                            const avgChange = yesterdayAvg > 0 ? ((todayAvg - yesterdayAvg) / yesterdayAvg) * 100 : 0;
+                            return (
+                              <span className={`text-xs ${avgChange > 0 ? 'text-green-600' : avgChange < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                                {avgChange > 0 ? '📈' : avgChange < 0 ? '📉' : '➡️'} {avgChange > 0 ? '+' : ''}{avgChange.toFixed(1)}% {t('dün')}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                      )}
                     </div>
                     <span className="text-purple-600 text-2xl">📊</span>
                   </div>
