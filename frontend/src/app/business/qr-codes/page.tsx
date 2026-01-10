@@ -85,9 +85,16 @@ export default function QRCodesPage() {
 
       if (res?.success && Array.isArray(res.data)) {
         const mapped: QRCodeData[] = res.data.map((t: any) => {
-          // QR kod URL'i oluştur (backend'den gelen veya kendi oluşturduğumuz)
-          const restaurantSlug = authenticatedRestaurant.username || 'aksaray';
-          const backendQrUrl = t.qrUrl || `https://${restaurantSlug}.restxqr.com/menu/?t=${t.token}&table=${t.tableNumber}`;
+          // QR kod URL'i oluştur (backend'den gelen qrUrl öncelikli, yoksa doğru subdomain ile oluştur)
+          if (!authenticatedRestaurant.username) {
+            console.error('❌ Restaurant username is missing:', authenticatedRestaurant.id);
+          }
+          const restaurantSlug = authenticatedRestaurant.username;
+          if (!restaurantSlug) {
+            console.error('❌ Cannot create QR URL without restaurant username');
+          }
+          // Backend'den gelen qrUrl'i kullan, yoksa doğru subdomain ile oluştur
+          const backendQrUrl = t.qrUrl || (restaurantSlug ? `https://${restaurantSlug}.restxqr.com/menu/?t=${t.token}&table=${t.tableNumber}` : '');
 
           // QR kod resmi için URL'yi QR code generator API'ye gönder
           // QuickChart API kullanarak QR kod resmi oluştur
@@ -233,9 +240,13 @@ export default function QRCodesPage() {
   // URL kopyalama - backend'in ürettiği qrUrl varsa onu kullan
   const handleCopyURL = (fallbackUrl: string, tableNumber?: number) => {
     try {
-      const sub = authenticatedRestaurant?.username || 'aksaray';
+      if (!authenticatedRestaurant?.username) {
+        showToast(getStatic('Restoran subdomain bilgisi bulunamadı'), 'error');
+        return;
+      }
+      const sub = authenticatedRestaurant.username;
       const base = `https://${sub}.restxqr.com`;
-      // fallbackUrl öncelik, yoksa subdomain + table paramı ile kur
+      // fallbackUrl öncelik, yoksa doğru subdomain + table paramı ile kur
       const url = fallbackUrl || `${base}/menu/?table=${tableNumber || ''}`;
       navigator.clipboard.writeText(url);
       showToast(getStatic('URL kopyalandı!'), 'success');
