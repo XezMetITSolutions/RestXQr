@@ -17,7 +17,12 @@ const categoriesWithProducts = [
         description: 'Özel soslu ganbian makarnası',
         price: 694,
         imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80',
+        calories: 520,
+        preparationTime: 20,
+        ingredients: 'Makarna, Özel sos, Sebzeler, Baharatlar',
+        allergens: ['gluten', 'soy'],
         isAvailable: true,
+        isPopular: true,
         displayOrder: 1
       },
       {
@@ -25,7 +30,12 @@ const categoriesWithProducts = [
         description: 'Taze sebzelerle hazırlanmış noodle',
         price: 522,
         imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80',
+        calories: 380,
+        preparationTime: 15,
+        ingredients: 'Noodle, Brokoli, Havuç, Mantar, Soğan, Sarımsak',
+        allergens: ['gluten', 'soy'],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 2
       },
       {
@@ -33,7 +43,12 @@ const categoriesWithProducts = [
         description: 'Tavuk parçaları ile noodle',
         price: 566,
         imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80',
+        calories: 450,
+        preparationTime: 18,
+        ingredients: 'Noodle, Tavuk göğsü, Sebzeler, Özel sos',
+        allergens: ['gluten', 'soy'],
         isAvailable: true,
+        isPopular: true,
         displayOrder: 3
       },
       {
@@ -41,7 +56,12 @@ const categoriesWithProducts = [
         description: 'Dana eti ile noodle',
         price: 648,
         imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80',
+        calories: 580,
+        preparationTime: 22,
+        ingredients: 'Noodle, Dana eti, Sebzeler, Özel sos, Baharatlar',
+        allergens: ['gluten', 'soy'],
         isAvailable: true,
+        isPopular: true,
         displayOrder: 4
       }
     ]
@@ -58,7 +78,12 @@ const categoriesWithProducts = [
         description: 'Acılı lokum soslu tavuk',
         price: 650,
         imageUrl: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=800&q=80',
+        calories: 420,
+        preparationTime: 25,
+        ingredients: 'Tavuk but, Acılı lokum sosu, Biber, Soğan, Sarımsak',
+        allergens: ['gluten', 'soy'],
         isAvailable: true,
+        isPopular: true,
         displayOrder: 1
       },
       {
@@ -66,7 +91,12 @@ const categoriesWithProducts = [
         description: 'Portakal soslu çıtır tavuk',
         price: 650,
         imageUrl: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=800&q=80',
+        calories: 480,
+        preparationTime: 28,
+        ingredients: 'Tavuk göğsü, Portakal suyu, Bal, Un, Yumurta',
+        allergens: ['gluten', 'eggs', 'soy'],
         isAvailable: true,
+        isPopular: true,
         displayOrder: 2
       },
       {
@@ -74,7 +104,12 @@ const categoriesWithProducts = [
         description: 'Tatlı ekşi soslu tavuk',
         price: 550,
         imageUrl: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=800&q=80',
+        calories: 450,
+        preparationTime: 20,
+        ingredients: 'Tavuk göğsü, Domates sosu, Ananas, Biber, Soğan',
+        allergens: ['gluten', 'soy'],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 3
       }
     ]
@@ -91,7 +126,12 @@ const categoriesWithProducts = [
         description: 'Geleneksel buharda pişirilmiş mantı',
         price: 651,
         imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80',
+        calories: 320,
+        preparationTime: 30,
+        ingredients: 'Hamur, Kıyma, Soğan, Baharatlar, Tereyağı',
+        allergens: ['gluten'],
         isAvailable: true,
+        isPopular: true,
         displayOrder: 1
       },
       {
@@ -99,7 +139,12 @@ const categoriesWithProducts = [
         description: 'Dana eti ile hazırlanmış rojamo',
         price: 545,
         imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80',
+        calories: 550,
+        preparationTime: 15,
+        ingredients: 'Dana eti, Ekmek, Soğan, Biber, Baharatlar',
+        allergens: ['gluten'],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 2
       },
       {
@@ -107,7 +152,12 @@ const categoriesWithProducts = [
         description: 'Özel sos ile hazırlanmış tofu',
         price: 651,
         imageUrl: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=800&q=80',
+        calories: 280,
+        preparationTime: 18,
+        ingredients: 'Tofu, Özel sos, Sebzeler, Susam',
+        allergens: ['soy'],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 3
       }
     ]
@@ -124,7 +174,12 @@ const categoriesWithProducts = [
         description: 'Geleneksel sade pilav',
         price: 227,
         imageUrl: 'https://images.unsplash.com/photo-1589301760014-4c5c0e5e0a5e?w=800&q=80',
+        calories: 200,
+        preparationTime: 20,
+        ingredients: 'Pirinç, Su, Tuz, Tereyağı',
+        allergens: [],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 1
       },
       {
@@ -132,7 +187,12 @@ const categoriesWithProducts = [
         description: 'Çıtır karides krakeri',
         price: 245,
         imageUrl: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=800&q=80',
+        calories: 180,
+        preparationTime: 5,
+        ingredients: 'Karides unu, Nişasta, Tuz, Baharatlar',
+        allergens: ['shellfish', 'gluten'],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 2
       },
       {
@@ -140,7 +200,12 @@ const categoriesWithProducts = [
         description: 'Buharda pişirilmiş sade ekmek',
         price: 82.50,
         imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=80',
+        calories: 150,
+        preparationTime: 15,
+        ingredients: 'Un, Su, Maya, Tuz',
+        allergens: ['gluten'],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 3
       }
     ]
@@ -157,7 +222,12 @@ const categoriesWithProducts = [
         description: 'Erişte ile hazırlanmış özel salata',
         price: 220,
         imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80',
+        calories: 250,
+        preparationTime: 12,
+        ingredients: 'Erişte, Sebzeler, Susam, Özel sos',
+        allergens: ['gluten', 'soy'],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 1
       }
     ]
@@ -174,7 +244,12 @@ const categoriesWithProducts = [
         description: '50 cl su',
         price: 30,
         imageUrl: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=800&q=80',
+        calories: 0,
+        preparationTime: 0,
+        ingredients: 'Su',
+        allergens: [],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 1
       },
       {
@@ -182,7 +257,12 @@ const categoriesWithProducts = [
         description: 'Cola, Fanta, Ice Tea vb.',
         price: 115,
         imageUrl: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=800&q=80',
+        calories: 150,
+        preparationTime: 0,
+        ingredients: 'Gazlı içecek',
+        allergens: [],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 2
       },
       {
@@ -190,7 +270,12 @@ const categoriesWithProducts = [
         description: 'Geleneksel Niğde gazozu',
         price: 50,
         imageUrl: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=800&q=80',
+        calories: 120,
+        preparationTime: 0,
+        ingredients: 'Gazoz, Şeker, Doğal aromalar',
+        allergens: [],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 3
       },
       {
@@ -198,7 +283,12 @@ const categoriesWithProducts = [
         description: 'Elmalı soda',
         price: 55,
         imageUrl: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=800&q=80',
+        calories: 100,
+        preparationTime: 0,
+        ingredients: 'Soda, Elma aroması, Şeker',
+        allergens: [],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 4
       },
       {
@@ -206,7 +296,12 @@ const categoriesWithProducts = [
         description: 'Sütlü çay, mango çayı veya harbi çay',
         price: 244,
         imageUrl: 'https://images.unsplash.com/photo-1576092762791-fd190a490058?w=800&q=80',
+        calories: 180,
+        preparationTime: 5,
+        ingredients: 'Çay, Süt, Mango/Harbi aroması, Şeker',
+        allergens: ['dairy'],
         isAvailable: true,
+        isPopular: true,
         displayOrder: 5
       }
     ]
@@ -223,7 +318,12 @@ const categoriesWithProducts = [
         description: 'Taşıma poşeti',
         price: 0.50,
         imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80',
+        calories: 0,
+        preparationTime: 0,
+        ingredients: 'Plastik poşet',
+        allergens: [],
         isAvailable: true,
+        isPopular: false,
         displayOrder: 1
       }
     ]
@@ -267,7 +367,11 @@ async function addKrorenProducts() {
         // 2. Bu kategoriye ait ürünleri ekle
         console.log(`🍽️ "${categoryData.category.name}" kategorisine ${categoryData.products.length} ürün ekleniyor...`);
         for (const product of categoryData.products) {
-          const productWithCategory = { ...product, categoryId };
+          const productWithCategory = { 
+            ...product, 
+            categoryId,
+            order: product.displayOrder
+          };
           
           const response = await fetch(`${API_BASE}/restaurants/${KROREN_RESTAURANT_ID}/menu/items`, {
             method: 'POST',
@@ -279,7 +383,7 @@ async function addKrorenProducts() {
           
           if (response.ok) {
             const result = await response.json();
-            console.log(`  ✅ ${product.name} eklendi - Fiyat: ${product.price} TL`);
+            console.log(`  ✅ ${product.name} eklendi - Fiyat: ${product.price} TL, Kalori: ${product.calories}, Hazırlık: ${product.preparationTime} dk`);
             successProducts++;
             totalProducts++;
           } else {
@@ -317,8 +421,6 @@ async function findRestaurantByName(restaurantName) {
   console.log(`🔍 "${restaurantName}" adlı restoran aranıyor...`);
   
   try {
-    // Not: API endpoint'i tam olarak bilinmiyor, bu yüzden genel bir arama yapıyoruz
-    // Eğer farklı bir endpoint varsa, bunu güncelleyin
     const response = await fetch(`${API_BASE}/restaurants?search=${encodeURIComponent(restaurantName)}`, {
       method: 'GET',
       headers: {
