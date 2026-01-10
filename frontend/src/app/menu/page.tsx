@@ -161,6 +161,29 @@ function MenuPageContent() {
                       tokenParam,
                       existingClientId // Eski clientId'yi gönder
                     );
+                    
+                    if (sessionRes && sessionRes.success && sessionRes.data) {
+                      setSessionKey(sessionRes.data.sessionKey);
+                      setClientId(sessionRes.data.clientId);
+                      setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
+                      sessionStorage.setItem('session_key', sessionRes.data.sessionKey);
+                      sessionStorage.setItem('client_id', sessionRes.data.clientId);
+                      sessionStorage.setItem(sessionStorageKey, sessionRes.data.clientId);
+                      
+                      if (sessionRes.data.cart && sessionRes.data.cart.length > 0) {
+                        sessionRes.data.cart.forEach((item: any) => {
+                          addItem({
+                            itemId: item.itemId || item.id,
+                            name: item.name,
+                            price: item.price,
+                            quantity: item.quantity,
+                            image: item.image,
+                            notes: item.notes,
+                            preparationTime: item.preparationTime
+                          });
+                        });
+                      }
+                    }
                   }
                 } else {
                   // İlk kez bu masaya katılıyor, yeni session oluştur
