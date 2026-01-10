@@ -547,7 +547,10 @@ export default function SettingsPage() {
                         </p>
                         <div className="flex flex-wrap gap-2">
                           <button
-                            onClick={() => window.open('/menu', '_blank')}
+                            onClick={() => {
+                              const subdomain = authenticatedRestaurant?.username || settings.basicInfo.subdomain || 'kroren';
+                              window.open(`https://${subdomain}.restxqr.com/menu`, '_blank');
+                            }}
                             className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200 transition-colors"
                           >
                             <FaQrcode className="inline mr-1" /> <TranslatedText>QR Kod Menü</TranslatedText>
@@ -769,7 +772,6 @@ export default function SettingsPage() {
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <div className="flex items-center justify-between mb-4">
                           <h4 className="font-medium text-gray-800 flex items-center gap-2">
-
                             <TranslatedText>Çalışma Saatleri (7 Gün)</TranslatedText>
                           </h4>
                           <button
@@ -779,14 +781,70 @@ export default function SettingsPage() {
                             <TranslatedText>Çalışma Saatlerini Kaydet</TranslatedText>
                           </button>
                         </div>
-                        <div className="mb-4">
-                          <textarea
-                            value={settings.basicInfo.workingHours || ''}
-                            onChange={(e) => updateBasicInfo({ workingHours: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
-                            rows={7}
-                            placeholder={getStatic("Örnek Çalışma Saatleri")}
-                          />
+                        <div className="space-y-3 mb-4">
+                          {[
+                            { key: 'monday', label: getStatic('Pazartesi'), day: 'monday' },
+                            { key: 'tuesday', label: getStatic('Salı'), day: 'tuesday' },
+                            { key: 'wednesday', label: getStatic('Çarşamba'), day: 'wednesday' },
+                            { key: 'thursday', label: getStatic('Perşembe'), day: 'thursday' },
+                            { key: 'friday', label: getStatic('Cuma'), day: 'friday' },
+                            { key: 'saturday', label: getStatic('Cumartesi'), day: 'saturday' },
+                            { key: 'sunday', label: getStatic('Pazar'), day: 'sunday' }
+                          ].map((dayInfo) => {
+                            const workingHours = settings.basicInfo.workingHours ? 
+                              (typeof settings.basicInfo.workingHours === 'string' 
+                                ? JSON.parse(settings.basicInfo.workingHours || '{}')
+                                : settings.basicInfo.workingHours)
+                              : {};
+                            const dayData = workingHours[dayInfo.key] || { isOpen: true, openTime: '09:00', closeTime: '22:00' };
+                            
+                            return (
+                              <div key={dayInfo.key} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200">
+                                <div className="w-24 text-sm font-medium text-gray-700">{dayInfo.label}</div>
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={dayData.isOpen !== false}
+                                    onChange={(e) => {
+                                      const newHours = { ...workingHours };
+                                      newHours[dayInfo.key] = { ...dayData, isOpen: e.target.checked };
+                                      updateBasicInfo({ workingHours: JSON.stringify(newHours) });
+                                    }}
+                                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                  />
+                                  <span className="text-xs text-gray-500 w-12"><TranslatedText>Açık</TranslatedText></span>
+                                </div>
+                                {dayData.isOpen !== false && (
+                                  <>
+                                    <input
+                                      type="time"
+                                      value={dayData.openTime || '09:00'}
+                                      onChange={(e) => {
+                                        const newHours = { ...workingHours };
+                                        newHours[dayInfo.key] = { ...dayData, openTime: e.target.value };
+                                        updateBasicInfo({ workingHours: JSON.stringify(newHours) });
+                                      }}
+                                      className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-purple-500"
+                                    />
+                                    <span className="text-gray-500">-</span>
+                                    <input
+                                      type="time"
+                                      value={dayData.closeTime || '22:00'}
+                                      onChange={(e) => {
+                                        const newHours = { ...workingHours };
+                                        newHours[dayInfo.key] = { ...dayData, closeTime: e.target.value };
+                                        updateBasicInfo({ workingHours: JSON.stringify(newHours) });
+                                      }}
+                                      className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-purple-500"
+                                    />
+                                  </>
+                                )}
+                                {dayData.isOpen === false && (
+                                  <span className="text-sm text-gray-400"><TranslatedText>Kapalı</TranslatedText></span>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                         <div className="flex items-center gap-2">
                           <input
@@ -862,18 +920,51 @@ export default function SettingsPage() {
                               <div key={content.id || index} className="bg-white p-4 rounded-lg border border-gray-200">
                                 <div className="flex items-start justify-between mb-4">
                                   <div className="flex items-center gap-3">
-                                    <input
-                                      type="text"
-                                      value={content.emoji || '⭐'}
-                                      onChange={(e) => {
-                                        const contents = [...(settings.basicInfo.menuSpecialContents || [])];
-                                        contents[index] = { ...contents[index], emoji: e.target.value };
-                                        updateBasicInfo({ menuSpecialContents: contents });
-                                      }}
-                                      className="w-12 h-12 text-2xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                                      placeholder="⭐"
-                                      maxLength={2}
-                                    />
+                                    <div className="relative" ref={emojiPickerRef}>
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowEmojiPicker(showEmojiPicker === index ? null : index)}
+                                        className="w-12 h-12 text-2xl border border-gray-300 rounded-lg hover:border-purple-500 transition-colors flex items-center justify-center bg-white cursor-pointer"
+                                        title={getStatic('Emoji Seç')}
+                                      >
+                                        {content.emoji || '⭐'}
+                                      </button>
+                                      {showEmojiPicker === index && (
+                                        <div className="absolute z-50 mt-2 bg-white border border-gray-300 rounded-lg shadow-xl p-3 w-64 max-h-64 overflow-y-auto">
+                                          <div className="grid grid-cols-8 gap-2">
+                                            {popularEmojis.map((emoji) => (
+                                              <button
+                                                key={emoji}
+                                                type="button"
+                                                onClick={() => {
+                                                  const contents = [...(settings.basicInfo.menuSpecialContents || [])];
+                                                  contents[index] = { ...contents[index], emoji: emoji };
+                                                  updateBasicInfo({ menuSpecialContents: contents });
+                                                  setShowEmojiPicker(null);
+                                                }}
+                                                className="w-8 h-8 text-xl hover:bg-purple-100 rounded transition-colors flex items-center justify-center"
+                                              >
+                                                {emoji}
+                                              </button>
+                                            ))}
+                                          </div>
+                                          <div className="mt-3 pt-3 border-t border-gray-200">
+                                            <input
+                                              type="text"
+                                              value={content.emoji || '⭐'}
+                                              onChange={(e) => {
+                                                const contents = [...(settings.basicInfo.menuSpecialContents || [])];
+                                                contents[index] = { ...contents[index], emoji: e.target.value };
+                                                updateBasicInfo({ menuSpecialContents: contents });
+                                              }}
+                                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-purple-500"
+                                              placeholder="Emoji yazın veya seçin"
+                                              maxLength={2}
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
                                     <div className="flex-1">
                                       <label className="block text-sm font-medium text-gray-700 mb-2">
                                         <TranslatedText>Başlık</TranslatedText>
