@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import useRestaurantStore from '@/store/useRestaurantStore';
 import apiService from '@/services/api';
 import { useAuthStore } from '@/store/useAuthStore';
+import { FaEye, FaEyeSlash, FaLock, FaUser, FaArrowRight } from 'react-icons/fa';
 
 export default function DebugMenuSources() {
   const router = useRouter();
@@ -16,6 +17,13 @@ export default function DebugMenuSources() {
   const [loading, setLoading] = useState(true);
   const [subdomain, setSubdomain] = useState<string>('');
   const [imageTests, setImageTests] = useState<Record<string, { loading: boolean; success: boolean; error?: string }>>({});
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const { loginRestaurant } = useAuthStore();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -135,6 +143,82 @@ export default function DebugMenuSources() {
       setLoading(false);
     }
   }, [subdomain, authenticatedRestaurant, fetchRestaurantByUsername, fetchRestaurantMenu]);
+
+  // Login başarılı olduğunda verileri yeniden yükle
+  useEffect(() => {
+    if (authenticatedRestaurant && !businessMenuData) {
+      const fetchData = async () => {
+        try {
+          const response = await apiService.getRestaurantMenu(authenticatedRestaurant.id);
+          
+          setBusinessMenuData({
+            restaurant: {
+              id: authenticatedRestaurant.id,
+              name: authenticatedRestaurant.name,
+              username: authenticatedRestaurant.username
+            },
+            rawApiResponse: response,
+            menuItems: response.data?.categories?.flatMap((cat: any) => 
+              (cat.items || []).map((item: any) => ({
+                id: item.id,
+                name: item.name,
+                imageUrl: item.imageUrl || item.image,
+                imageSource: item.imageUrl ? 'imageUrl field' : (item.image ? 'image field' : 'no image'),
+                fullImageUrl: item.imageUrl 
+                  ? (item.imageUrl.startsWith('http') 
+                      ? item.imageUrl 
+                      : `https://masapp-backend.onrender.com${item.imageUrl}`)
+                  : (item.image 
+                      ? (item.image.startsWith('http') 
+                          ? item.image 
+                          : `https://masapp-backend.onrender.com${item.image}`)
+                      : '/placeholder-food.jpg'),
+                categoryId: item.categoryId,
+                price: item.price,
+                rawItem: item
+              }))
+            ) || [],
+            categories: response.data?.categories || [],
+            apiUrl: process.env.NEXT_PUBLIC_API_URL,
+            apiEndpoint: `/api/restaurants/${authenticatedRestaurant.id}/menu`
+          });
+        } catch (error) {
+          console.error('Business menu fetch error:', error);
+          setBusinessMenuData({
+            error: error instanceof Error ? error.message : 'Unknown error',
+            errorDetails: error
+          });
+        }
+      };
+      fetchData();
+    }
+  }, [authenticatedRestaurant, businessMenuData]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    setLoginError('');
+
+    try {
+      const response = await apiService.login({ username: loginUsername, password: loginPassword });
+
+      if (response.success && response.data) {
+        loginRestaurant(response.data);
+        setShowLoginForm(false);
+        setLoginUsername('');
+        setLoginPassword('');
+        // Sayfayı yenile ki veriler yüklensin
+        window.location.reload();
+      } else {
+        setLoginError('Kullanıcı adı veya şifre hatalı');
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setLoginError(error?.message || 'Giriş başarısız');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
 
   // Resim URL'lerini test et
   useEffect(() => {
@@ -312,8 +396,91 @@ export default function DebugMenuSources() {
                 {businessMenuData.needsAuth && (
                   <div className="mt-3">
                     <p className="text-sm text-red-700 mb-2">Yönetim paneli menüsünü görmek için:</p>
-                    <ol className="list-decimal list-inside text-sm text-red-700 space-y-1">
-                      <li>Yönetim paneline giriş yapın: <a href="/business/login" className="underline">/business/login</a></li>
+                    {!showLoginForm ? (
+                      <button
+                        onClick={() => setShowLoginForm(true)}
+                        className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        🔐 Burada Giriş Yap
+                      </button>
+                    ) : (
+                      <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
+                        <h4 className="font-semibold text-gray-800 mb-3">Giriş Yap</h4>
+                        <form onSubmit={handleLogin} className="space-y-3">
+                          {loginError && (
+                            <div className="bg-red-100 border border-red-300 text-red-700 px-3 py-2 rounded text-sm">
+                              {loginError}
+                            </div>
+                          )}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Kullanıcı Adı
+                            </label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FaUser className="h-4 w-4 text-gray-400" />
+                              </div>
+                              <input
+                                type="text"
+                                value={loginUsername}
+                                onChange={(e) => setLoginUsername(e.target.value)}
+                                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Kullanıcı adınızı girin"
+                                required
+                                disabled={loginLoading}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Şifre
+                            </label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FaLock className="h-4 w-4 text-gray-400" />
+                              </div>
+                              <input
+                                type={showPassword ? "text" : "password"}
+                                value={loginPassword}
+                                onChange={(e) => setLoginPassword(e.target.value)}
+                                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="••••••••"
+                                required
+                                disabled={loginLoading}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                              >
+                                {showPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
+                              </button>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="submit"
+                              disabled={loginLoading}
+                              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {loginLoading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowLoginForm(false);
+                                setLoginError('');
+                              }}
+                              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                            >
+                              İptal
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    )}
+                    <ol className="list-decimal list-inside text-sm text-red-700 space-y-1 mt-3">
+                      <li>Yönetim paneline giriş yapın: <a href="/business/login" className="underline" target="_blank">/business/login</a></li>
                       <li>Veya bu sayfayı yönetim panelinden açın</li>
                     </ol>
                   </div>
