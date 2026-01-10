@@ -30,12 +30,13 @@ export default function KasaPanel() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string>('');
+  const [restaurantName, setRestaurantName] = useState<string>('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
-  // Login kontrolü
+  // Login kontrolü ve restoran bilgilerini al
   useEffect(() => {
     const checkAuth = () => {
       const user = localStorage.getItem('staff_user');
@@ -54,31 +55,18 @@ export default function KasaPanel() {
         router.push('/staff-login');
         return;
       }
+      
+      // Staff'ın restoran bilgilerini al
+      if (parsedUser.restaurantId) {
+        setRestaurantId(parsedUser.restaurantId);
+      }
+      if (parsedUser.restaurantName) {
+        setRestaurantName(parsedUser.restaurantName);
+      }
     };
     
     checkAuth();
   }, [router]);
-
-  // Restoran ID'sini al
-  useEffect(() => {
-    const fetchRestaurant = async () => {
-      try {
-        const response = await fetch(`${API_URL}/staff/restaurants`);
-        const data = await response.json();
-        
-        if (data.success && data.data) {
-          const aksaray = data.data.find((r: any) => r.username === 'aksaray');
-          if (aksaray) {
-            setRestaurantId(aksaray.id);
-          }
-        }
-      } catch (error) {
-        console.error('Restoran bilgisi alınamadı:', error);
-      }
-    };
-
-    fetchRestaurant();
-  }, []);
 
   // Siparişleri çek (sadece ready ve completed)
   const fetchOrders = async () => {
@@ -164,7 +152,7 @@ export default function KasaPanel() {
               <FaMoneyBillWave className="text-4xl text-green-500" />
               <div>
                 <h1 className="text-3xl font-bold text-gray-800">Kasa Paneli</h1>
-                <p className="text-gray-600">Aksaray Restoran</p>
+                <p className="text-gray-600">{restaurantName || 'Restoran'}</p>
               </div>
             </div>
             <div className="flex items-center gap-6">

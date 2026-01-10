@@ -30,6 +30,7 @@ export default function GarsonPanel() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string>('');
+  const [restaurantName, setRestaurantName] = useState<string>('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showTableModal, setShowTableModal] = useState(false);
@@ -43,7 +44,7 @@ export default function GarsonPanel() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
-  // Login kontrolü
+  // Login kontrolü ve restoran bilgilerini al
   useEffect(() => {
     const checkAuth = () => {
       const user = localStorage.getItem('staff_user');
@@ -63,31 +64,18 @@ export default function GarsonPanel() {
         router.push('/staff-login');
         return;
       }
+      
+      // Staff'ın restoran bilgilerini al
+      if (parsedUser.restaurantId) {
+        setRestaurantId(parsedUser.restaurantId);
+      }
+      if (parsedUser.restaurantName) {
+        setRestaurantName(parsedUser.restaurantName);
+      }
     };
     
     checkAuth();
   }, [router]);
-
-  // Restoran ID'sini al
-  useEffect(() => {
-    const fetchRestaurant = async () => {
-      try {
-        const response = await fetch(`${API_URL}/staff/restaurants`);
-        const data = await response.json();
-        
-        if (data.success && data.data) {
-          const aksaray = data.data.find((r: any) => r.username === 'aksaray');
-          if (aksaray) {
-            setRestaurantId(aksaray.id);
-          }
-        }
-      } catch (error) {
-        console.error('Restoran bilgisi alınamadı:', error);
-      }
-    };
-
-    fetchRestaurant();
-  }, []);
 
   // Menu items'ları çek
   const fetchMenuItems = async () => {
@@ -224,8 +212,8 @@ export default function GarsonPanel() {
                 <FaUser className="text-2xl" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">MasApp Garson</h1>
-                <p className="text-sm text-purple-200">Aksaray Restoran • Canlı Durum</p>
+                <h1 className="text-xl font-bold">RestXQr Garson</h1>
+                <p className="text-sm text-purple-200">{restaurantName || 'Restoran'} • Canlı Durum</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
