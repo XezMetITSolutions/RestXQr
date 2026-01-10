@@ -62,7 +62,11 @@ router.post('/generate', async (req, res) => {
       });
     }
     
-    console.log('✅ Restaurant found:', restaurant.name);
+    console.log('✅ Restaurant found:', {
+      id: restaurant.id,
+      name: restaurant.name,
+      username: restaurant.username
+    });
     
     // Plan limiti kontrolü - Maksimum masa sayısı
     const maxTables = restaurant.maxTables || 10;
@@ -124,6 +128,14 @@ router.post('/generate', async (req, res) => {
     const sub = restaurant.username;
     const origin = process.env.FRONTEND_URL || `https://${sub}.restxqr.com`;
     const qrUrl = `${origin}/menu/?t=${qrToken.token}&table=${qrToken.tableNumber}`;
+    
+    console.log('🔗 QR URL generated:', {
+      restaurantId: restaurant.id,
+      restaurantName: restaurant.name,
+      username: restaurant.username,
+      subdomain: sub,
+      qrUrl: qrUrl
+    });
 
     res.status(existing ? 200 : 201).json({
       success: true,
