@@ -500,7 +500,9 @@ router.post('/login', async (req, res) => {
     // Find staff member by username (not password yet - we need to check hash)
     // Case-insensitive username search
     console.log('🔍 Looking for staff:', { username });
-    const staff = await Staff.findOne({
+    
+    // Try case-insensitive search first (PostgreSQL)
+    let staff = await Staff.findOne({
       where: {
         username: {
           [Op.iLike]: username // PostgreSQL için case-insensitive
@@ -510,24 +512,13 @@ router.post('/login', async (req, res) => {
     });
     
     // Fallback for databases that don't support iLike (MySQL, SQLite)
-    let foundStaff = staff;
-    if (!foundStaff) {
+    if (!staff) {
       const allStaff = await Staff.findAll({
         where: { status: 'active' }
       });
-      foundStaff = allStaff.find(s => s.username && s.username.toLowerCase() === username.toLowerCase());
+      staff = allStaff.find(s => s.username && s.username.toLowerCase() === username.toLowerCase());
     }
     
-    if (!foundStaff) {
-      console.log('❌ Staff not found');
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
-    
-    const staff = foundStaff;
-
     if (!staff) {
       console.log('❌ Staff not found');
       return res.status(401).json({
