@@ -51,6 +51,7 @@ function MenuPageContent() {
   const [sessionKey, setSessionKey] = useState<string | null>(null);
   const [clientId, setClientId] = useState<string | null>(null);
   const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
+  const [imageCacheVersion, setImageCacheVersion] = useState<number>(Date.now());
   const primary = settings.branding.primaryColor;
   const secondary = settings.branding.secondaryColor || settings.branding.primaryColor;
 
