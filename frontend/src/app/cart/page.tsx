@@ -14,8 +14,7 @@ import {
   FaHeart,
   FaGift,
   FaUtensils,
-  FaUser,
-  FaBug
+  FaUser
 } from 'react-icons/fa';
 import { useCartStore } from '@/store';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
@@ -299,34 +298,6 @@ function CartPageContent() {
     setShowDonationModal(true);
   };
 
-  const showDebugInfo = () => {
-    const debugData = {
-      timestamp: new Date().toLocaleString(),
-      restaurant: {
-        id: currentRestaurant?.id,
-        name: currentRestaurant?.name,
-        username: currentRestaurant?.username
-      },
-      cart: {
-        itemCount: (items || []).length,
-        items: (items || []).map(i => ({
-          name: i.name,
-          quantity: i.quantity,
-          price: i.price + '₺',
-          total: (i.price * i.quantity) + '₺'
-        })),
-        subtotal: subtotal + '₺',
-        tip: tipAmount + '₺',
-        donation: donationAmount + '₺',
-        total: total + '₺'
-      },
-      table: tableNumber || 'Belirtilmemiş',
-      paymentMethod: paymentMethod
-    };
-
-    console.log('🐛 SEPET DEBUG BİLGİLERİ:', debugData);
-    alert(JSON.stringify(debugData, null, 2));
-  };
 
   // Handle quick service
   const handleQuickService = async (serviceType: string, customNote?: string) => {
@@ -385,13 +356,6 @@ function CartPageContent() {
                 <TranslatedText>Masa #{tableNumber}</TranslatedText>
               </div>
             </div>
-            <button
-              onClick={showDebugInfo}
-              className="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
-              title="Debug Bilgileri"
-            >
-              <FaBug />
-            </button>
           </div>
         </header>
 
