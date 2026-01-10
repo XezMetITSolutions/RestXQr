@@ -92,11 +92,27 @@ router.post('/generate', async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
+    // Build subdomain-based URL if possible (restaurant.username kontrolü önce yapılmalı)
+    if (!restaurant.username) {
+      console.error('❌ Restaurant username is missing:', restaurant.id, restaurant.name);
+      return res.status(400).json({
+        success: false,
+        message: 'Restaurant username is required for QR code generation'
+      });
+    }
+    const sub = restaurant.username;
+    const origin = process.env.FRONTEND_URL || `https://${sub}.restxqr.com`;
+
     let qrToken;
     if (existing) {
       const newExpiresAt = new Date(Date.now() + duration * 60 * 60 * 1000);
       await existing.update({ expiresAt: newExpiresAt });
       qrToken = existing;
+      console.log('♻️ Reusing existing QR token:', {
+        token: qrToken.token,
+        tableNumber: qrToken.tableNumber,
+        restaurantUsername: restaurant.username
+      });
     } else {
       // Deactivate any lingering actives
       await QRToken.update(
@@ -115,18 +131,14 @@ router.post('/generate', async (req, res) => {
         isActive: true,
         createdBy: req.body.createdBy || 'waiter'
       });
-    }
-
-    // Build subdomain-based URL if possible
-    if (!restaurant.username) {
-      console.error('❌ Restaurant username is missing:', restaurant.id, restaurant.name);
-      return res.status(400).json({
-        success: false,
-        message: 'Restaurant username is required for QR code generation'
+      console.log('✨ Created new QR token:', {
+        token: qrToken.token,
+        tableNumber: qrToken.tableNumber,
+        restaurantUsername: restaurant.username
       });
     }
-    const sub = restaurant.username;
-    const origin = process.env.FRONTEND_URL || `https://${sub}.restxqr.com`;
+
+    // Her zaman doğru subdomain ile URL oluştur
     const qrUrl = `${origin}/menu/?t=${qrToken.token}&table=${qrToken.tableNumber}`;
     
     console.log('🔗 QR URL generated:', {
@@ -134,7 +146,8 @@ router.post('/generate', async (req, res) => {
       restaurantName: restaurant.name,
       username: restaurant.username,
       subdomain: sub,
-      qrUrl: qrUrl
+      qrUrl: qrUrl,
+      isExisting: !!existing
     });
 
     res.status(existing ? 200 : 201).json({
