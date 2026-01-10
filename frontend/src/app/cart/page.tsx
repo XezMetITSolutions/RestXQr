@@ -63,6 +63,65 @@ function CartPageContent() {
     }
   }, []);
 
+  // Session'dan sepet ve aktif kullanıcı sayısını güncelle (polling)
+  useEffect(() => {
+    if (!sessionKey || !clientId) return;
+
+    const pollSession = async () => {
+      try {
+        const sessionRes = await apiService.getSession(sessionKey, clientId);
+        if (sessionRes.success && sessionRes.data) {
+          // Aktif kullanıcı sayısını güncelle
+          setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
+
+          // Sepet güncellemelerini kontrol et ve senkronize et
+          if (sessionRes.data.cart && Array.isArray(sessionRes.data.cart)) {
+            const sessionCart = sessionRes.data.cart;
+            const currentCart = items;
+
+            // Sepet farklıysa güncelle
+            const sessionCartNormalized = sessionCart.map((item: any) => ({
+              itemId: item.itemId || item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity
+            })).sort((a: any, b: any) => (a.itemId || '').localeCompare(b.itemId || ''));
+
+            const currentCartNormalized = currentCart.map(item => ({
+              itemId: item.itemId,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity
+            })).sort((a, b) => (a.itemId || '').localeCompare(b.itemId || ''));
+
+            if (JSON.stringify(sessionCartNormalized) !== JSON.stringify(currentCartNormalized)) {
+              // Session'dan gelen sepeti yükle
+              clearCart();
+              sessionCart.forEach((item: any) => {
+                addItem({
+                  itemId: item.itemId || item.id,
+                  name: item.name,
+                  price: item.price,
+                  quantity: item.quantity,
+                  image: item.image,
+                  notes: item.notes,
+                  preparationTime: item.preparationTime
+                });
+              });
+              console.log('🔄 Sepet session\'dan senkronize edildi:', sessionCart.length, 'ürün');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Session polling hatası:', error);
+      }
+    };
+
+    // Her 2 saniyede bir session'ı kontrol et
+    const intervalId = setInterval(pollSession, 2000);
+    return () => clearInterval(intervalId);
+  }, [sessionKey, clientId, items, clearCart, addItem]);
+
   // Countdown timer
   useEffect(() => {
     if (confirmationCountdown !== null && confirmationCountdown > 0) {
