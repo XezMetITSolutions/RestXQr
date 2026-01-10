@@ -115,8 +115,6 @@ function MenuPageContent() {
                 const sessionStorageKey = `client_id_${currentRestaurant.id}_${response.data.tableNumber}_${tokenParam}`;
                 const existingClientId = sessionStorage.getItem(sessionStorageKey);
                 let sessionRes: any = null;
-                
-                let sessionRes;
                 if (existingClientId) {
                   // Eski clientId ile session'a geri katıl (yeni session oluşturma)
                   console.log('🔄 Aynı cihaz aynı masaya tekrar geldi, eski clientId kullanılıyor:', existingClientId);
