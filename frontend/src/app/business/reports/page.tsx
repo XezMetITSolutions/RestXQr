@@ -749,7 +749,7 @@ export default function ReportsPage() {
                   </h3>
                   <div className="space-y-3">
                     {topProducts.slice(0, 3).map((product, index) => (
-                      <div key={product.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-3">
                           <div className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
                             {index + 1}
@@ -803,8 +803,8 @@ export default function ReportsPage() {
                     <p className="text-gray-500 text-center py-8"><TranslatedText>Bu tarih aralığında veri bulunamadı.</TranslatedText></p>
                   ) : (
                     <div className="space-y-4">
-                      {topProducts.map((product, index) => (
-                        <div key={product.productId} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    {topProducts.map((product, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-4">
                             <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
                               {index + 1}
