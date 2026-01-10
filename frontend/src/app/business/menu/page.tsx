@@ -948,18 +948,6 @@ export default function MenuManagement() {
                 <span><TranslatedText>Toplu İçe Aktar</TranslatedText></span>
               </button>
 
-              {/* Toplu Çeviri (Almanca) */}
-              <button
-                onClick={handleBulkTranslate}
-                disabled={isBulkTranslating}
-                className={`flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-xl hover:from-yellow-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold ${isBulkTranslating ? 'opacity-70 cursor-not-allowed' : ''
-                  }`}
-              >
-                <FaLanguage className="text-white text-xl" />
-                <span className="font-bold">
-                  {isBulkTranslating ? <TranslatedText>Çevriliyor...</TranslatedText> : <TranslatedText>Tümünü Almancaya Çevir</TranslatedText>}
-                </span>
-              </button>
             </div>
           </div>
 
