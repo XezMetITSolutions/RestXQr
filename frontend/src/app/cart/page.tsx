@@ -702,7 +702,7 @@ function CartPageContent() {
                 <TranslatedText>Siparişi Tamamla</TranslatedText>
               </button>
             </>
-          ) : null}
+          )}
           
           {/* Normal sepet görünümü (sipariş verilmediyse) */}
           {!pendingOrderId && (!items || items.length === 0) ? (
