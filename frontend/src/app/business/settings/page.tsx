@@ -617,42 +617,31 @@ export default function SettingsPage() {
                         </div>
                       </div>
 
-                      {/* Subdomain */}
+                      {/* Subdomain - Read Only */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <TranslatedText>Subdomain</TranslatedText>
+                          <span className="ml-2 text-xs text-gray-500">(<TranslatedText>Değiştirilemez</TranslatedText>)</span>
                         </label>
                         <div className="flex items-center gap-2">
                           <div className="flex-1 relative">
                             <input
                               type="text"
-                              value={settings.basicInfo.subdomain || ''}
-                              onChange={(e) => {
-                                const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                                updateBasicInfo({ subdomain: val });
-                                handleSubdomainChange(val);
-                              }}
-                              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${subdomainValidation.isValid === true ? 'border-green-500 focus:ring-green-500 text-green-700' :
-                                subdomainValidation.isValid === false ? 'border-red-500 focus:ring-red-500 text-red-700' :
-                                  'border-gray-300 focus:ring-purple-500'
-                                }`}
+                              value={settings.basicInfo.subdomain || authenticatedRestaurant?.username || ''}
+                              readOnly
+                              disabled
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                               placeholder="aksaray"
                             />
-                            {subdomainValidation.isChecking && (
-                              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <FaSpinner className="animate-spin text-purple-600" />
-                              </div>
-                            )}
                           </div>
                           <span className="text-gray-500 font-medium">.restxqr.com</span>
                         </div>
-                        {subdomainValidation.message && (
-                          <p className={`text-xs mt-1 ${subdomainValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
-                            {subdomainValidation.message}
-                          </p>
-                        )}
                         <p className="text-xs text-gray-500 mt-1">
-                          <TranslatedText>Menü adresiniz:</TranslatedText> <span className="font-medium text-purple-600">https://{settings.basicInfo.subdomain || 'aksaray'}.restxqr.com</span>
+                          <TranslatedText>Menü adresiniz:</TranslatedText> <span className="font-medium text-purple-600">https://{settings.basicInfo.subdomain || authenticatedRestaurant?.username || 'aksaray'}.restxqr.com</span>
+                        </p>
+                        <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                          <FaExclamationTriangle size={12} />
+                          <TranslatedText>Subdomain değişikliği için lütfen destek ekibi ile iletişime geçin.</TranslatedText>
                         </p>
                       </div>
 
