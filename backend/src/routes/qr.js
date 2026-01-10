@@ -114,7 +114,14 @@ router.post('/generate', async (req, res) => {
     }
 
     // Build subdomain-based URL if possible
-    const sub = restaurant.username || 'aksaray';
+    if (!restaurant.username) {
+      console.error('❌ Restaurant username is missing:', restaurant.id, restaurant.name);
+      return res.status(400).json({
+        success: false,
+        message: 'Restaurant username is required for QR code generation'
+      });
+    }
+    const sub = restaurant.username;
     const origin = process.env.FRONTEND_URL || `https://${sub}.restxqr.com`;
     const qrUrl = `${origin}/menu/?t=${qrToken.token}&table=${qrToken.tableNumber}`;
 
