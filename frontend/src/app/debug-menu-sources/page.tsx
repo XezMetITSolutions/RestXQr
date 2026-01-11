@@ -191,9 +191,15 @@ export default function DebugMenuSources() {
     if (subdomain || authenticatedRestaurant) {
       fetchData();
     } else {
-      setLoading(false);
+      // Auth state'i kontrol et
+      const authState = useAuthStore.getState();
+      if (authState.authenticatedRestaurant) {
+        fetchData();
+      } else {
+        setLoading(false);
+      }
     }
-  }, [subdomain, authenticatedRestaurant, fetchRestaurantByUsername, fetchRestaurantMenu]);
+  }, [subdomain, authenticatedRestaurant, fetchRestaurantByUsername, fetchRestaurantMenu, loginRestaurant]);
 
   // authenticatedRestaurant değiştiğinde veya localStorage'dan yüklendiğinde verileri yeniden yükle
   useEffect(() => {
