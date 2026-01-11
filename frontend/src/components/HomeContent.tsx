@@ -511,14 +511,18 @@ export default function HomeContent() {
                         {/* Contact Info */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
                             <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                                <FaPhone className="text-3xl text-green-400 mb-4 mx-auto" />
-                                <div className="text-xl font-bold text-white mb-2">{t('phone')}</div>
-                                <div className="text-gray-300">{t('phoneNumber')}</div>
+                                <a href={`tel:+436608682201`} className="block hover:scale-105 transition-transform">
+                                    <FaPhone className="text-3xl text-green-400 mb-4 mx-auto" />
+                                    <div className="text-xl font-bold text-white mb-2">{t('phone')}</div>
+                                    <div className="text-gray-300">{t('phoneNumber')}</div>
+                                </a>
                             </div>
                             <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                                <FaWhatsapp className="text-3xl text-green-400 mb-4 mx-auto" />
-                                <div className="text-xl font-bold text-white mb-2">WhatsApp</div>
-                                <div className="text-gray-300">+90 (555) 123 45 67</div>
+                                <a href={`https://wa.me/436608682201`} target="_blank" rel="noopener noreferrer" className="block hover:scale-105 transition-transform">
+                                    <FaWhatsapp className="text-3xl text-green-400 mb-4 mx-auto" />
+                                    <div className="text-xl font-bold text-white mb-2">WhatsApp</div>
+                                    <div className="text-gray-300">+43 660 868 22 01</div>
+                                </a>
                             </div>
                             <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
                                 <FaGlobe className="text-3xl text-blue-400 mb-4 mx-auto" />
@@ -529,6 +533,59 @@ export default function HomeContent() {
                     </div>
                 </div>
             </section>
+
+            {/* Footer */}
+            <footer className="bg-gray-900 text-white py-12 px-4">
+                <div className="container mx-auto max-w-6xl">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                        <div>
+                            <h3 className="text-xl font-bold mb-4">restXqr</h3>
+                            <p className="text-gray-400">
+                                {language === 'de' 
+                                    ? 'Moderne QR-Menü-Lösung für Restaurants' 
+                                    : language === 'en' 
+                                    ? 'Modern QR menu solution for restaurants'
+                                    : 'Restoranlar için modern QR menü çözümü'}
+                            </p>
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold mb-4">
+                                {language === 'de' ? 'Kontakt' : language === 'en' ? 'Contact' : 'İletişim'}
+                            </h3>
+                            <div className="space-y-2 text-gray-400">
+                                <p>
+                                    <a href="tel:+436608682201" className="hover:text-white transition-colors">+43 660 868 22 01</a>
+                                </p>
+                                <p>
+                                    <a href="https://wa.me/436608682201" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">WhatsApp</a>
+                                </p>
+                                <p>
+                                    <a href="mailto:info@restxqr.com" className="hover:text-white transition-colors">info@restxqr.com</a>
+                                </p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold mb-4">
+                                {language === 'de' ? 'Rechtliches' : language === 'en' ? 'Legal' : 'Yasal'}
+                            </h3>
+                            <div className="space-y-2">
+                                <Link href="/cookies" className="block text-gray-400 hover:text-white transition-colors">
+                                    {language === 'de' ? 'Cookie-Richtlinie' : language === 'en' ? 'Cookie Policy' : 'Çerez Politikası'}
+                                </Link>
+                                <Link href="/datenschutz" className="block text-gray-400 hover:text-white transition-colors">
+                                    {language === 'de' ? 'Datenschutzerklärung' : language === 'en' ? 'Privacy Policy' : 'Gizlilik Politikası'}
+                                </Link>
+                                <Link href="/impressum" className="block text-gray-400 hover:text-white transition-colors">
+                                    {language === 'de' ? 'Impressum' : language === 'en' ? 'Legal Information' : 'Yasal Bilgiler'}
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
+                        <p>&copy; {new Date().getFullYear()} restXqr. {language === 'de' ? 'Alle Rechte vorbehalten.' : language === 'en' ? 'All rights reserved.' : 'Tüm hakları saklıdır.'}</p>
+                    </div>
+                </div>
+            </footer>
         </main>
     );
 }

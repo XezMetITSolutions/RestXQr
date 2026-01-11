@@ -601,7 +601,7 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Telefon',
     },
     phoneNumber: {
-      en: '+90 (555) 123 45 67',
+      en: '+43 660 868 22 01',
       tr: '+90 (555) 123 45 67',
       de: '+43 660 868 22 01',
     },
