@@ -26,6 +26,29 @@ export default function DebugImages() {
       console.log('🔍 Fetching files from:', url);
       
       const response = await fetch(url);
+      
+      // Response status kontrolü
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText, status: response.status };
+        }
+        
+        console.error('❌ HTTP Error:', response.status, errorData);
+        setError(`HTTP ${response.status}: ${errorData.error || errorData.message || 'Bilinmeyen hata'}`);
+        setDebugInfo({
+          status: response.status,
+          statusText: response.statusText,
+          url: url,
+          error: errorData
+        });
+        setLoading(false);
+        return;
+      }
+      
       const data = await response.json();
       
       console.log('📦 Response:', data);
@@ -47,6 +70,10 @@ export default function DebugImages() {
     } catch (error) {
       console.error('Dosya yükleme hatası:', error);
       setError(error instanceof Error ? error.message : 'Bilinmeyen hata');
+      setDebugInfo({
+        error: error instanceof Error ? error.message : 'Bilinmeyen hata',
+        stack: error instanceof Error ? error.stack : undefined
+      });
     } finally {
       setLoading(false);
     }
