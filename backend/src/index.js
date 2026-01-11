@@ -240,6 +240,81 @@ app.post('/api/upload/image', upload.single('image'), async (req, res) => {
 });
 
 
+// Dosya arama endpoint'i
+app.get('/api/debug/search-file', async (req, res) => {
+  try {
+    const { filename } = req.query;
+    
+    if (!filename) {
+      return res.status(400).json({
+        success: false,
+        message: 'Dosya adı gerekli'
+      });
+    }
+
+    console.log('🔍 Dosya aranıyor:', filename);
+
+    // Upload klasörünü kontrol et
+    const uploadDir = path.join(__dirname, 'public/uploads');
+    
+    if (!fs.existsSync(uploadDir)) {
+      return res.json({
+        success: true,
+        found: false,
+        message: 'Upload klasörü bulunamadı',
+        uploadDir: uploadDir,
+        files: []
+      });
+    }
+
+    // Klasördeki tüm dosyaları listele
+    const files = fs.readdirSync(uploadDir);
+    console.log('📁 Toplam dosya sayısı:', files.length);
+
+    // Dosya adını içeren dosyaları bul
+    const matchingFiles = files.filter(file => 
+      file.toLowerCase().includes(filename.toLowerCase())
+    );
+
+    const fileDetails = matchingFiles.map(file => {
+      const filePath = path.join(uploadDir, file);
+      const stats = fs.statSync(filePath);
+      return {
+        filename: file,
+        path: filePath,
+        relativePath: `/uploads/${file}`,
+        fullUrl: `https://masapp-backend.onrender.com/uploads/${file}`,
+        apiUrl: `https://masapp-backend.onrender.com/api/uploads/${file}`,
+        size: stats.size,
+        sizeKB: (stats.size / 1024).toFixed(2),
+        created: stats.birthtime,
+        modified: stats.mtime
+      };
+    });
+
+    console.log('✅ Bulunan dosyalar:', matchingFiles.length);
+
+    res.json({
+      success: true,
+      found: matchingFiles.length > 0,
+      searchTerm: filename,
+      uploadDir: uploadDir,
+      totalFiles: files.length,
+      matchingFiles: matchingFiles.length,
+      files: fileDetails,
+      allFiles: files.slice(0, 20) // İlk 20 dosyayı göster
+    });
+
+  } catch (error) {
+    console.error('❌ Dosya arama hatası:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Dosya arama hatası',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // Test endpoint for QR system
 app.get('/api/qr/test', async (req, res) => {
   try {

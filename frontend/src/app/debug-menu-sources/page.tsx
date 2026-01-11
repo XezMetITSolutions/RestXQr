@@ -27,6 +27,8 @@ export default function DebugMenuSources() {
   const [searchFileName, setSearchFileName] = useState('3284315.webp');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+  const [backendSearchResults, setBackendSearchResults] = useState<any>(null);
+  const [backendSearching, setBackendSearching] = useState(false);
 
   // Auth state'i başlat
   useEffect(() => {
@@ -399,7 +401,7 @@ export default function DebugMenuSources() {
     }
   }, [customerMenuData]);
 
-  // Dosya arama fonksiyonu
+  // Dosya arama fonksiyonu (Frontend)
   const searchFile = () => {
     if (!searchFileName.trim()) return;
     
@@ -448,6 +450,33 @@ export default function DebugMenuSources() {
     setSearching(false);
   };
 
+  // Backend'de dosya arama fonksiyonu
+  const searchFileInBackend = async () => {
+    if (!searchFileName.trim()) return;
+    
+    setBackendSearching(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+      const response = await fetch(`${apiUrl}/debug/search-file?filename=${encodeURIComponent(searchFileName)}`);
+      const data = await response.json();
+      setBackendSearchResults(data);
+    } catch (error) {
+      console.error('Backend arama hatası:', error);
+      setBackendSearchResults({
+        success: false,
+        error: error instanceof Error ? error.message : 'Bilinmeyen hata'
+      });
+    } finally {
+      setBackendSearching(false);
+    }
+  };
+
+  // Hem frontend hem backend'de ara
+  const searchAll = () => {
+    searchFile();
+    searchFileInBackend();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -483,11 +512,11 @@ export default function DebugMenuSources() {
               }}
             />
             <button
-              onClick={searchFile}
-              disabled={searching || !searchFileName.trim()}
+              onClick={searchAll}
+              disabled={(searching || backendSearching) || !searchFileName.trim()}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {searching ? 'Aranıyor...' : 'Ara'}
+              {(searching || backendSearching) ? 'Aranıyor...' : 'Ara (Frontend + Backend)'}
             </button>
           </div>
           
@@ -563,7 +592,109 @@ export default function DebugMenuSources() {
             </div>
           )}
           
-          {searchResults.length === 0 && !searching && searchFileName && (
+          {/* Backend Arama Sonuçları */}
+          {backendSearchResults && (
+            <div className="mt-4">
+              <h3 className="font-semibold text-gray-800 mb-2">
+                🖥️ Backend Arama Sonuçları:
+              </h3>
+              {backendSearchResults.success ? (
+                backendSearchResults.found ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <p className="text-green-800 font-semibold mb-2">
+                      ✅ {backendSearchResults.matchingFiles} dosya bulundu!
+                    </p>
+                    <div className="space-y-3 mt-3">
+                      {backendSearchResults.files.map((file: any, index: number) => (
+                        <div key={index} className="bg-white p-4 rounded border border-green-200">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-semibold text-green-900">{file.filename}</p>
+                              <p className="text-xs text-green-700 mt-1">
+                                Boyut: {file.sizeKB} KB | 
+                                Oluşturulma: {new Date(file.created).toLocaleString('tr-TR')} |
+                                Değiştirilme: {new Date(file.modified).toLocaleString('tr-TR')}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-2 space-y-1">
+                            <p className="text-xs text-gray-600">
+                              <strong>Backend Path:</strong> <span className="break-all">{file.path}</span>
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              <strong>Relative Path:</strong> <span className="break-all">{file.relativePath}</span>
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              <strong>Full URL:</strong> <span className="break-all text-blue-600">{file.fullUrl}</span>
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              <strong>API URL:</strong> <span className="break-all text-blue-600">{file.apiUrl}</span>
+                            </p>
+                            <div className="mt-2 flex gap-2">
+                              <button
+                                onClick={() => window.open(file.fullUrl, '_blank')}
+                                className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                              >
+                                Full URL'yi Aç
+                              </button>
+                              <button
+                                onClick={() => window.open(file.apiUrl, '_blank')}
+                                className="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+                              >
+                                API URL'yi Aç
+                              </button>
+                            </div>
+                            <div className="mt-2">
+                              <img
+                                src={file.fullUrl}
+                                alt={file.filename}
+                                className="w-32 h-32 object-cover rounded border"
+                                onError={(e) => {
+                                  e.currentTarget.src = '/placeholder-food.jpg';
+                                  e.currentTarget.alt = 'Image failed to load';
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 text-xs text-gray-600">
+                      <p><strong>Upload Klasörü:</strong> {backendSearchResults.uploadDir}</p>
+                      <p><strong>Toplam Dosya Sayısı:</strong> {backendSearchResults.totalFiles}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p className="text-yellow-800">❌ Backend'de "{searchFileName}" dosyası bulunamadı</p>
+                    <p className="text-sm text-yellow-700 mt-2">
+                      Upload klasörü: {backendSearchResults.uploadDir}
+                    </p>
+                    <p className="text-sm text-yellow-700">
+                      Toplam dosya sayısı: {backendSearchResults.totalFiles}
+                    </p>
+                    {backendSearchResults.allFiles && backendSearchResults.allFiles.length > 0 && (
+                      <details className="mt-2">
+                        <summary className="cursor-pointer text-xs text-yellow-700">İlk 20 dosyayı göster</summary>
+                        <ul className="text-xs text-yellow-600 mt-1 list-disc list-inside">
+                          {backendSearchResults.allFiles.map((file: string, index: number) => (
+                            <li key={index}>{file}</li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
+                  </div>
+                )
+              ) : (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-800">❌ Backend arama hatası</p>
+                  <p className="text-sm text-red-700">{backendSearchResults.error || 'Bilinmeyen hata'}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {searchResults.length === 0 && !searching && !backendSearching && searchFileName && !backendSearchResults && (
             <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-yellow-800">❌ "{searchFileName}" dosyası bulunamadı</p>
               <p className="text-sm text-yellow-700 mt-2">
