@@ -15,6 +15,7 @@ export default function DebugImages() {
 
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [endpointTest, setEndpointTest] = useState<any>(null);
 
   const fetchFiles = async (pageNum: number = 1, searchTerm: string = '') => {
     setLoading(true);
@@ -80,6 +81,26 @@ export default function DebugImages() {
   };
 
   useEffect(() => {
+    // Önce test endpoint'ini kontrol et
+    const testEndpoint = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+        const testResponse = await fetch(`${apiUrl}/debug/test`);
+        const testData = await testResponse.json();
+        setEndpointTest({
+          success: testResponse.ok,
+          data: testData,
+          status: testResponse.status
+        });
+      } catch (error) {
+        setEndpointTest({
+          success: false,
+          error: error instanceof Error ? error.message : 'Bilinmeyen hata'
+        });
+      }
+    };
+    
+    testEndpoint();
     fetchFiles(page, search);
   }, [page, search]);
 
@@ -112,6 +133,21 @@ export default function DebugImages() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">🖼️ Backend Görseller</h1>
           <p className="text-gray-600">Backend'de kayıtlı tüm görselleri görüntüleyin</p>
+          
+          {/* Endpoint Test */}
+          {endpointTest && (
+            <div className={`mt-4 p-3 rounded-lg ${endpointTest.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+              <p className={`text-sm font-semibold ${endpointTest.success ? 'text-green-800' : 'text-red-800'}`}>
+                {endpointTest.success ? '✅ Test Endpoint Çalışıyor' : '❌ Test Endpoint Çalışmıyor'}
+              </p>
+              {endpointTest.data && (
+                <p className="text-xs text-gray-600 mt-1">{JSON.stringify(endpointTest.data)}</p>
+              )}
+              {endpointTest.error && (
+                <p className="text-xs text-red-600 mt-1">{endpointTest.error}</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Arama ve İstatistikler */}
