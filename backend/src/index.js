@@ -487,6 +487,41 @@ app.get('/api/debug/search-file', async (req, res) => {
     }
   });
 
+// Demo talep endpoint'i
+app.post('/api/demo-request', async (req, res) => {
+  try {
+    const { name, email, phone, company, message, language, source } = req.body;
+    
+    console.log('📧 Demo talep alındı:', { name, email, phone, company, language, source });
+
+    // Burada email gönderme servisi kullanılabilir
+    // Şimdilik sadece logluyoruz
+    // TODO: Email servisi entegrasyonu (SendGrid, Mailgun, vb.)
+
+    res.json({
+      success: true,
+      message: 'Demo request received successfully',
+      data: {
+        name,
+        email,
+        phone,
+        company,
+        message,
+        language,
+        source,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('❌ Demo talep hatası:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Demo request failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // Kayıp resimleri bulma endpoint'i
 app.get('/api/debug/missing-images', async (req, res) => {
   try {

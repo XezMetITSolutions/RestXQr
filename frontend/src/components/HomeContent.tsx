@@ -5,10 +5,12 @@ import { useState } from 'react';
 import { FaQrcode, FaUtensils, FaShoppingCart, FaBell, FaMagic, FaChartLine, FaUsers, FaClock, FaCheckCircle, FaRocket, FaShieldAlt, FaStar, FaPhone, FaWhatsapp, FaChevronDown, FaChevronUp, FaBrain, FaCamera, FaLightbulb, FaGem, FaFire, FaHeart, FaGlobe, FaMobile, FaTablet, FaDesktop } from 'react-icons/fa';
 import useLanguageStore from '@/store/useLanguageStore';
 import LandingLanguageToggle from '@/components/LandingLanguageToggle';
+import DemoRequestModal from '@/components/DemoRequestModal';
 
 export default function HomeContent() {
     const { t, language } = useLanguageStore();
     const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+    const [showDemoModal, setShowDemoModal] = useState(false);
 
     const toggleFAQ = (index: number) => {
         setOpenFAQ(openFAQ === index ? null : index);
@@ -113,14 +115,20 @@ export default function HomeContent() {
 
                     {/* CTA Buttons */}
                     <div className="flex flex-col sm:flex-row justify-center gap-4 md:gap-8 max-w-3xl mx-auto mb-16">
-                        <Link href="/panels" className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 hover:from-blue-500 hover:to-purple-500">
+                        <button
+                            onClick={() => setShowDemoModal(true)}
+                            className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 hover:from-blue-500 hover:to-purple-500"
+                        >
                             <FaUsers className="text-2xl group-hover:animate-bounce" />
-                            <span>{t('viewPanels')}</span>
-                        </Link>
-                        <Link href={language === 'tr' ? "https://aksaray.restxqr.com/menu" : "/panels"} className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105">
+                            <span>{t('requestDemo')}</span>
+                        </button>
+                        <button
+                            onClick={() => setShowDemoModal(true)}
+                            className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105"
+                        >
                             <FaRocket className="inline mr-4 text-2xl group-hover:animate-bounce" />
-                            <span>{t('viewDemo')}</span>
-                        </Link>
+                            <span>{t('requestDemo')}</span>
+                        </button>
                     </div>
 
                     {/* Stats */}
@@ -498,14 +506,20 @@ export default function HomeContent() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row justify-center gap-4 md:gap-8 mb-16">
-                            <Link href="/panels" className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 hover:from-blue-500 hover:to-purple-500">
+                            <button
+                                onClick={() => setShowDemoModal(true)}
+                                className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 hover:from-blue-500 hover:to-purple-500"
+                            >
                                 <FaUsers className="text-2xl group-hover:animate-bounce" />
-                                <span>{t('freeDemo')}</span>
-                            </Link>
-                            <Link href="/panels" className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105">
+                                <span>{t('requestDemo')}</span>
+                            </button>
+                            <button
+                                onClick={() => setShowDemoModal(true)}
+                                className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105"
+                            >
                                 <FaPhone className="inline mr-4 text-2xl group-hover:animate-bounce" />
                                 <span>{t('contactNow')}</span>
-                            </Link>
+                            </button>
                         </div>
 
                         {/* Contact Info */}
@@ -586,6 +600,9 @@ export default function HomeContent() {
                     </div>
                 </div>
             </footer>
+
+            {/* Demo Request Modal */}
+            <DemoRequestModal isOpen={showDemoModal} onClose={() => setShowDemoModal(false)} />
         </main>
     );
 }
