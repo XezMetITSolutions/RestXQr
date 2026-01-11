@@ -477,11 +477,139 @@ app.get('/api/debug/search-file', async (req, res) => {
       allFiles: files.slice(0, 20) // İlk 20 dosyayı göster
     });
 
+    } catch (error) {
+      console.error('❌ Dosya arama hatası:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Dosya arama hatası',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+
+// Kayıp resimleri bulma endpoint'i
+app.get('/api/debug/missing-images', async (req, res) => {
+  try {
+    const { restaurantId } = req.query;
+    console.log('🔍 Kayıp resimler aranıyor...', restaurantId ? `Restoran ID: ${restaurantId}` : 'Tüm restoranlar');
+
+    const { MenuItem } = require('./models');
+    const uploadDir = path.join(__dirname, 'public/uploads');
+
+    // Database'deki tüm menu item'ları al
+    const whereClause = restaurantId ? { restaurantId } : {};
+    const menuItems = await MenuItem.findAll({
+      where: whereClause,
+      attributes: ['id', 'restaurantId', 'name', 'imageUrl', 'image'],
+      order: [['restaurantId', 'ASC'], ['name', 'ASC']]
+    });
+
+    console.log(`📊 ${menuItems.length} menu item bulundu`);
+
+    // Backend'deki tüm dosyaları al
+    const allFiles = fs.existsSync(uploadDir) ? getAllImageFiles(uploadDir) : [];
+    const existingFileNames = new Set(allFiles.map(f => f.filename));
+    const existingPaths = new Set(allFiles.map(f => f.relativePath));
+
+    console.log(`📁 Backend'de ${allFiles.length} dosya bulundu`);
+
+    // Kayıp resimleri bul
+    const missingImages = [];
+    const foundImages = [];
+
+    for (const item of menuItems) {
+      const imageUrl = item.imageUrl || item.image;
+      
+      if (!imageUrl) {
+        // Resim URL'i yok
+        missingImages.push({
+          itemId: item.id,
+          restaurantId: item.restaurantId,
+          name: item.name,
+          imageUrl: null,
+          reason: 'imageUrl yok',
+          status: 'missing'
+        });
+        continue;
+      }
+
+      // Eğer external URL ise (http/https ile başlıyorsa), kontrol etmeye gerek yok
+      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        foundImages.push({
+          itemId: item.id,
+          restaurantId: item.restaurantId,
+          name: item.name,
+          imageUrl: imageUrl,
+          reason: 'External URL',
+          status: 'external'
+        });
+        continue;
+      }
+
+      // Local path kontrolü
+      let filePath = imageUrl;
+      if (!filePath.startsWith('/')) {
+        filePath = '/' + filePath;
+      }
+
+      // Dosya adını çıkar
+      const fileName = filePath.split('/').pop();
+      
+      // Dosya var mı kontrol et
+      const fileExists = existingFileNames.has(fileName) || existingPaths.has(filePath);
+      
+      // Fiziksel dosya kontrolü
+      let physicalPath = path.join(uploadDir, fileName);
+      if (!fs.existsSync(physicalPath) && filePath.startsWith('/uploads/')) {
+        // /uploads/image.jpg -> uploadDir/image.jpg
+        physicalPath = path.join(uploadDir, filePath.replace('/uploads/', ''));
+      }
+
+      const physicalExists = fs.existsSync(physicalPath);
+
+      if (!fileExists && !physicalExists) {
+        missingImages.push({
+          itemId: item.id,
+          restaurantId: item.restaurantId,
+          name: item.name,
+          imageUrl: imageUrl,
+          fileName: fileName,
+          expectedPath: filePath,
+          physicalPath: physicalPath,
+          reason: 'Dosya backend\'de bulunamadı',
+          status: 'missing'
+        });
+      } else {
+        foundImages.push({
+          itemId: item.id,
+          restaurantId: item.restaurantId,
+          name: item.name,
+          imageUrl: imageUrl,
+          fileName: fileName,
+          status: 'found'
+        });
+      }
+    }
+
+    console.log(`✅ ${foundImages.length} resim bulundu, ${missingImages.length} resim kayıp`);
+
+    res.json({
+      success: true,
+      data: {
+        total: menuItems.length,
+        found: foundImages.length,
+        missing: missingImages.length,
+        missingImages: missingImages,
+        foundImages: foundImages.slice(0, 10) // İlk 10'u göster
+      },
+      message: `${missingImages.length} kayıp resim bulundu`
+    });
+
   } catch (error) {
-    console.error('❌ Dosya arama hatası:', error);
+    console.error('❌ Kayıp resim arama hatası:', error);
     res.status(500).json({
       success: false,
-      message: 'Dosya arama hatası',
+      message: 'Kayıp resim arama hatası',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
