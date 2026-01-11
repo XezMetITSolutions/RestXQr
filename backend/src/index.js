@@ -240,6 +240,36 @@ app.post('/api/upload/image', upload.single('image'), async (req, res) => {
 });
 
 
+// Recursive dosya arama fonksiyonu
+const getAllImageFiles = (dir, fileList = []) => {
+  const files = fs.readdirSync(dir);
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+  
+  files.forEach(file => {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+    
+    if (stat.isDirectory()) {
+      // Alt klasörleri de tara
+      getAllImageFiles(filePath, fileList);
+    } else {
+      // Sadece resim dosyalarını ekle
+      const ext = path.extname(file).toLowerCase();
+      if (imageExtensions.includes(ext)) {
+        fileList.push({
+          filename: file,
+          fullPath: filePath,
+          relativePath: filePath.replace(path.join(__dirname, 'public'), '').replace(/\\/g, '/'),
+          dir: dir,
+          relativeDir: dir.replace(path.join(__dirname, 'public'), '').replace(/\\/g, '/')
+        });
+      }
+    }
+  });
+  
+  return fileList;
+};
+
 // Tüm dosyaları listele endpoint'i
 app.get('/api/debug/list-files', async (req, res) => {
   try {
@@ -247,7 +277,7 @@ app.get('/api/debug/list-files', async (req, res) => {
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
 
-    console.log('📁 Tüm dosyalar listeleniyor...');
+    console.log('📁 Tüm dosyalar listeleniyor (recursive)...');
 
     // Upload klasörünü kontrol et
     const uploadDir = path.join(__dirname, 'public/uploads');
@@ -265,52 +295,49 @@ app.get('/api/debug/list-files', async (req, res) => {
       });
     }
 
-    // Klasördeki tüm dosyaları listele
-    let files = fs.readdirSync(uploadDir);
+    // Recursive olarak tüm resim dosyalarını bul
+    let allFiles = getAllImageFiles(uploadDir);
     
-    // Sadece resim dosyalarını filtrele
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
-    files = files.filter(file => {
-      const ext = path.extname(file).toLowerCase();
-      return imageExtensions.includes(ext);
-    });
+    console.log(`📊 Toplam ${allFiles.length} resim dosyası bulundu`);
 
     // Arama filtresi
     if (search) {
-      files = files.filter(file => 
-        file.toLowerCase().includes(search.toLowerCase())
+      allFiles = allFiles.filter(file => 
+        file.filename.toLowerCase().includes(search.toLowerCase())
       );
     }
 
     // Tarihe göre sırala (en yeni önce)
-    files.sort((a, b) => {
-      const statA = fs.statSync(path.join(uploadDir, a));
-      const statB = fs.statSync(path.join(uploadDir, b));
+    allFiles.sort((a, b) => {
+      const statA = fs.statSync(a.fullPath);
+      const statB = fs.statSync(b.fullPath);
       return statB.mtime.getTime() - statA.mtime.getTime();
     });
 
-    const total = files.length;
+    const total = allFiles.length;
     const totalPages = Math.ceil(total / limitNum);
     const startIndex = (pageNum - 1) * limitNum;
     const endIndex = startIndex + limitNum;
-    const paginatedFiles = files.slice(startIndex, endIndex);
+    const paginatedFiles = allFiles.slice(startIndex, endIndex);
 
     // Dosya detaylarını al
     const fileDetails = paginatedFiles.map(file => {
-      const filePath = path.join(uploadDir, file);
-      const stats = fs.statSync(filePath);
+      const stats = fs.statSync(file.fullPath);
+      const baseUrl = process.env.BACKEND_URL || 'https://masapp-backend.onrender.com';
+      
       return {
-        filename: file,
-        path: filePath,
-        relativePath: `/uploads/${file}`,
-        fullUrl: `https://masapp-backend.onrender.com/uploads/${file}`,
-        apiUrl: `https://masapp-backend.onrender.com/api/uploads/${file}`,
+        filename: file.filename,
+        path: file.fullPath,
+        relativePath: file.relativePath,
+        relativeDir: file.relativeDir,
+        fullUrl: `${baseUrl}${file.relativePath}`,
+        apiUrl: `${baseUrl}/api${file.relativePath}`,
         size: stats.size,
         sizeKB: (stats.size / 1024).toFixed(2),
         sizeMB: (stats.size / (1024 * 1024)).toFixed(2),
         created: stats.birthtime,
         modified: stats.mtime,
-        extension: path.extname(file).toLowerCase()
+        extension: path.extname(file.filename).toLowerCase()
       };
     });
 
@@ -324,7 +351,8 @@ app.get('/api/debug/list-files', async (req, res) => {
       limit: limitNum,
       totalPages: totalPages,
       uploadDir: uploadDir,
-      hasMore: pageNum < totalPages
+      hasMore: pageNum < totalPages,
+      scannedDirectories: [uploadDir]
     });
 
   } catch (error) {
