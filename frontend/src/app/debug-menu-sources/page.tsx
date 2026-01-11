@@ -87,25 +87,49 @@ export default function DebugMenuSources() {
         }
 
         // 2. Business Menu Data (yönetim paneli)
-        // Önce auth state'i kontrol et
+        // Önce auth state'i kontrol et - hem hook'tan hem de store'dan
         const authState = useAuthStore.getState();
-        const currentAuthRestaurant = authState.authenticatedRestaurant || authenticatedRestaurant;
+        let currentAuthRestaurant = authState.authenticatedRestaurant || authenticatedRestaurant;
+        
+        // localStorage'dan da kontrol et
+        let localStorageRestaurant = null;
+        if (typeof window !== 'undefined') {
+          try {
+            const saved = localStorage.getItem('currentRestaurant');
+            if (saved) {
+              localStorageRestaurant = JSON.parse(saved);
+            }
+          } catch (e) {
+            console.error('localStorage parse error:', e);
+          }
+        }
+        
+        // Önce store'dan, sonra localStorage'dan kontrol et
+        const finalRestaurant = currentAuthRestaurant || localStorageRestaurant;
+        
+        // Eğer localStorage'da varsa ama store'da yoksa, store'a set et
+        if (localStorageRestaurant && !currentAuthRestaurant) {
+          loginRestaurant(localStorageRestaurant);
+          currentAuthRestaurant = localStorageRestaurant;
+        }
         
         console.log('🔍 Auth check:', {
           authenticatedRestaurant,
           currentAuthRestaurant,
-          authState: authState.authenticatedRestaurant
+          authState: authState.authenticatedRestaurant,
+          localStorageRestaurant,
+          finalRestaurant
         });
         
-        if (currentAuthRestaurant?.id) {
+        if (finalRestaurant?.id) {
           try {
-            const response = await apiService.getRestaurantMenu(currentAuthRestaurant.id);
+            const response = await apiService.getRestaurantMenu(finalRestaurant.id);
             
             setBusinessMenuData({
               restaurant: {
-                id: currentAuthRestaurant.id,
-                name: currentAuthRestaurant.name,
-                username: currentAuthRestaurant.username
+                id: finalRestaurant.id,
+                name: finalRestaurant.name,
+                username: finalRestaurant.username
               },
               rawApiResponse: response,
               menuItems: response.data?.categories?.flatMap((cat: any) => 
@@ -130,7 +154,7 @@ export default function DebugMenuSources() {
               ) || [],
               categories: response.data?.categories || [],
               apiUrl: process.env.NEXT_PUBLIC_API_URL,
-              apiEndpoint: `/api/restaurants/${currentAuthRestaurant.id}/menu`
+              apiEndpoint: `/api/restaurants/${finalRestaurant.id}/menu`
             });
           } catch (error) {
             console.error('Business menu fetch error:', error);
@@ -147,7 +171,10 @@ export default function DebugMenuSources() {
               authenticatedRestaurant,
               currentAuthRestaurant,
               authState: authState.authenticatedRestaurant,
+              localStorageRestaurant,
+              finalRestaurant,
               localStorage: typeof window !== 'undefined' ? {
+                currentRestaurant: localStorage.getItem('currentRestaurant'),
                 restaurant: localStorage.getItem('restaurant'),
                 auth: localStorage.getItem('auth')
               } : null
