@@ -241,31 +241,42 @@ app.post('/api/upload/image', upload.single('image'), async (req, res) => {
 
 
 // Recursive dosya arama fonksiyonu
-const getAllImageFiles = (dir, fileList = []) => {
-  const files = fs.readdirSync(dir);
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+const getAllImageFiles = (dir, fileList = [], baseDir = null) => {
+  if (!baseDir) baseDir = dir;
   
-  files.forEach(file => {
-    const filePath = path.join(dir, file);
-    const stat = fs.statSync(filePath);
+  try {
+    const files = fs.readdirSync(dir);
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
     
-    if (stat.isDirectory()) {
-      // Alt klasörleri de tara
-      getAllImageFiles(filePath, fileList);
-    } else {
-      // Sadece resim dosyalarını ekle
-      const ext = path.extname(file).toLowerCase();
-      if (imageExtensions.includes(ext)) {
-        fileList.push({
-          filename: file,
-          fullPath: filePath,
-          relativePath: filePath.replace(path.join(__dirname, 'public'), '').replace(/\\/g, '/'),
-          dir: dir,
-          relativeDir: dir.replace(path.join(__dirname, 'public'), '').replace(/\\/g, '/')
-        });
+    files.forEach(file => {
+      try {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+        
+        if (stat.isDirectory()) {
+          // Alt klasörleri de tara
+          getAllImageFiles(filePath, fileList, baseDir);
+        } else {
+          // Sadece resim dosyalarını ekle
+          const ext = path.extname(file).toLowerCase();
+          if (imageExtensions.includes(ext)) {
+            const relativePath = filePath.replace(baseDir, '').replace(/\\/g, '/');
+            fileList.push({
+              filename: file,
+              fullPath: filePath,
+              relativePath: relativePath.startsWith('/') ? relativePath : '/' + relativePath,
+              dir: dir,
+              relativeDir: dir.replace(baseDir, '').replace(/\\/g, '/')
+            });
+          }
+        }
+      } catch (fileError) {
+        console.error(`❌ Dosya işleme hatası (${file}):`, fileError.message);
       }
-    }
-  });
+    });
+  } catch (dirError) {
+    console.error(`❌ Klasör okuma hatası (${dir}):`, dirError.message);
+  }
   
   return fileList;
 };
@@ -282,23 +293,50 @@ app.get('/api/debug/list-files', async (req, res) => {
     // Upload klasörünü kontrol et
     const uploadDir = path.join(__dirname, 'public/uploads');
     
+    console.log('📁 Upload klasörü yolu:', uploadDir);
+    console.log('📁 __dirname:', __dirname);
+    console.log('📁 Klasör var mı?', fs.existsSync(uploadDir));
+    
     if (!fs.existsSync(uploadDir)) {
-      return res.json({
-        success: true,
-        files: [],
-        total: 0,
-        page: pageNum,
-        limit: limitNum,
-        totalPages: 0,
-        uploadDir: uploadDir,
-        message: 'Upload klasörü bulunamadı'
-      });
+      // Klasör yoksa oluşturmayı dene
+      try {
+        fs.mkdirSync(uploadDir, { recursive: true });
+        console.log('✅ Upload klasörü oluşturuldu');
+      } catch (mkdirError) {
+        console.error('❌ Klasör oluşturma hatası:', mkdirError);
+        return res.json({
+          success: false,
+          files: [],
+          total: 0,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: 0,
+          uploadDir: uploadDir,
+          message: 'Upload klasörü bulunamadı ve oluşturulamadı',
+          error: process.env.NODE_ENV === 'development' ? mkdirError.message : undefined
+        });
+      }
+    }
+
+    // Klasördeki tüm dosya ve klasörleri listele (debug için)
+    try {
+      const dirContents = fs.readdirSync(uploadDir);
+      console.log('📋 Klasör içeriği:', dirContents.length, 'öğe');
+      if (dirContents.length > 0) {
+        console.log('📋 İlk 10 öğe:', dirContents.slice(0, 10));
+      }
+    } catch (readError) {
+      console.error('❌ Klasör okuma hatası:', readError);
     }
 
     // Recursive olarak tüm resim dosyalarını bul
     let allFiles = getAllImageFiles(uploadDir);
     
     console.log(`📊 Toplam ${allFiles.length} resim dosyası bulundu`);
+    
+    if (allFiles.length > 0) {
+      console.log('📋 İlk 5 dosya:', allFiles.slice(0, 5).map(f => f.filename));
+    }
 
     // Arama filtresi
     if (search) {

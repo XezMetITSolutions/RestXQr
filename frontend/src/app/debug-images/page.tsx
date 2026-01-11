@@ -13,23 +13,40 @@ export default function DebugImages() {
   const [searchInput, setSearchInput] = useState('');
   const [uploadDir, setUploadDir] = useState('');
 
+  const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+
   const fetchFiles = async (pageNum: number = 1, searchTerm: string = '') => {
     setLoading(true);
+    setError(null);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
-      const response = await fetch(
-        `${apiUrl}/debug/list-files?page=${pageNum}&limit=30&search=${encodeURIComponent(searchTerm)}`
-      );
+      const url = `${apiUrl}/debug/list-files?page=${pageNum}&limit=30&search=${encodeURIComponent(searchTerm)}`;
+      
+      console.log('🔍 Fetching files from:', url);
+      
+      const response = await fetch(url);
       const data = await response.json();
+      
+      console.log('📦 Response:', data);
       
       if (data.success) {
         setFiles(data.files || []);
         setTotalPages(data.totalPages || 1);
         setTotal(data.total || 0);
         setUploadDir(data.uploadDir || '');
+        setDebugInfo({
+          uploadDir: data.uploadDir,
+          scannedDirectories: data.scannedDirectories,
+          message: data.message
+        });
+      } else {
+        setError(data.message || 'Dosyalar yüklenemedi');
+        setDebugInfo(data);
       }
     } catch (error) {
       console.error('Dosya yükleme hatası:', error);
+      setError(error instanceof Error ? error.message : 'Bilinmeyen hata');
     } finally {
       setLoading(false);
     }
@@ -132,6 +149,19 @@ export default function DebugImages() {
             <FaSpinner className="animate-spin text-4xl text-blue-600 mx-auto mb-4" />
             <p className="text-gray-600">Yükleniyor...</p>
           </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <p className="text-red-800 font-semibold mb-2">❌ Hata</p>
+            <p className="text-red-700">{error}</p>
+            {debugInfo && (
+              <details className="mt-4">
+                <summary className="cursor-pointer text-sm text-red-700 font-medium">Debug Bilgileri</summary>
+                <pre className="text-xs bg-white p-3 rounded mt-2 overflow-x-auto">
+                  {JSON.stringify(debugInfo, null, 2)}
+                </pre>
+              </details>
+            )}
+          </div>
         ) : files.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
             <FaImage className="text-6xl text-gray-400 mx-auto mb-4" />
@@ -140,6 +170,24 @@ export default function DebugImages() {
               <p className="text-gray-500 text-sm mt-2">
                 "{search}" için sonuç bulunamadı
               </p>
+            )}
+            {!search && (
+              <div className="mt-4 text-left max-w-2xl mx-auto">
+                <p className="text-gray-500 text-sm mb-2">Olası nedenler:</p>
+                <ul className="text-gray-500 text-sm list-disc list-inside space-y-1">
+                  <li>Backend'de upload klasörü boş olabilir</li>
+                  <li>Production ortamında dosyalar farklı bir yerde olabilir</li>
+                  <li>Backend endpoint'i çalışmıyor olabilir</li>
+                </ul>
+                {debugInfo && (
+                  <details className="mt-4">
+                    <summary className="cursor-pointer text-sm text-gray-700 font-medium">Debug Bilgileri</summary>
+                    <pre className="text-xs bg-gray-50 p-3 rounded mt-2 overflow-x-auto">
+                      {JSON.stringify(debugInfo, null, 2)}
+                    </pre>
+                  </details>
+                )}
+              </div>
             )}
           </div>
         ) : (
