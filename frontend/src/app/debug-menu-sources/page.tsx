@@ -24,6 +24,9 @@ export default function DebugMenuSources() {
   const [loginError, setLoginError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { loginRestaurant } = useAuthStore();
+  const [searchFileName, setSearchFileName] = useState('3284315.webp');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
 
   // Auth state'i başlat
   useEffect(() => {
@@ -396,6 +399,55 @@ export default function DebugMenuSources() {
     }
   }, [customerMenuData]);
 
+  // Dosya arama fonksiyonu
+  const searchFile = () => {
+    if (!searchFileName.trim()) return;
+    
+    setSearching(true);
+    const results: any[] = [];
+    
+    // Müşteri menüsünde ara
+    if (customerMenuData?.menuItems) {
+      customerMenuData.menuItems.forEach((item: any) => {
+        const imageUrl = item.imageUrl || item.image || '';
+        const fullImageUrl = item.fullImageUrl || '';
+        
+        if (imageUrl.includes(searchFileName) || fullImageUrl.includes(searchFileName)) {
+          results.push({
+            source: 'Müşteri Menüsü',
+            itemName: item.name,
+            imageUrl: imageUrl,
+            fullImageUrl: fullImageUrl,
+            imageSource: item.imageSource,
+            itemId: item.id
+          });
+        }
+      });
+    }
+    
+    // Yönetim paneli menüsünde ara
+    if (businessMenuData?.menuItems && !businessMenuData.error) {
+      businessMenuData.menuItems.forEach((item: any) => {
+        const imageUrl = item.imageUrl || item.image || '';
+        const fullImageUrl = item.fullImageUrl || '';
+        
+        if (imageUrl.includes(searchFileName) || fullImageUrl.includes(searchFileName)) {
+          results.push({
+            source: 'Yönetim Paneli',
+            itemName: item.name,
+            imageUrl: imageUrl,
+            fullImageUrl: fullImageUrl,
+            imageSource: item.imageSource,
+            itemId: item.id
+          });
+        }
+      });
+    }
+    
+    setSearchResults(results);
+    setSearching(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -410,6 +462,115 @@ export default function DebugMenuSources() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">🔍 Menü Veri Kaynakları Debug</h1>
           <p className="text-gray-600">Müşteri menüsü ve yönetim paneli menüsünün veri kaynaklarını gösterir</p>
+        </div>
+
+        {/* Dosya Arama Bölümü */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+            🔎 Dosya Arama
+          </h2>
+          <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              value={searchFileName}
+              onChange={(e) => setSearchFileName(e.target.value)}
+              placeholder="Dosya adını girin (örn: 3284315.webp)"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  searchFile();
+                }
+              }}
+            />
+            <button
+              onClick={searchFile}
+              disabled={searching || !searchFileName.trim()}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {searching ? 'Aranıyor...' : 'Ara'}
+            </button>
+          </div>
+          
+          {searchResults.length > 0 && (
+            <div className="mt-4">
+              <h3 className="font-semibold text-gray-800 mb-2">
+                ✅ {searchResults.length} sonuç bulundu:
+              </h3>
+              <div className="space-y-3">
+                {searchResults.map((result, index) => (
+                  <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-semibold text-blue-900">{result.itemName}</p>
+                        <p className="text-sm text-blue-700">Kaynak: {result.source}</p>
+                        <p className="text-xs text-blue-600 mt-1">Image Source: {result.imageSource}</p>
+                      </div>
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        {result.source}
+                      </span>
+                    </div>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs text-gray-600">
+                        <strong>imageUrl:</strong> <span className="break-all">{result.imageUrl || 'Yok'}</span>
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        <strong>fullImageUrl:</strong> <span className="break-all">{result.fullImageUrl || 'Yok'}</span>
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        <strong>Path Analizi:</strong>
+                      </p>
+                      <div className="bg-white p-2 rounded text-xs">
+                        <p className="text-gray-700">
+                          <strong>Backend Path:</strong> {result.imageUrl?.startsWith('/') ? result.imageUrl : `/${result.imageUrl}`}
+                        </p>
+                        <p className="text-gray-700 mt-1">
+                          <strong>Full URL:</strong> {result.fullImageUrl}
+                        </p>
+                        <p className="text-gray-700 mt-1">
+                          <strong>Backend Base:</strong> {process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}
+                        </p>
+                        <p className="text-gray-700 mt-1">
+                          <strong>Expected Path:</strong> {result.imageUrl?.startsWith('/uploads/') 
+                            ? `https://masapp-backend.onrender.com${result.imageUrl}`
+                            : result.imageUrl?.startsWith('/')
+                            ? `https://masapp-backend.onrender.com/api${result.imageUrl}`
+                            : `https://masapp-backend.onrender.com/api/${result.imageUrl}`}
+                        </p>
+                      </div>
+                      {result.fullImageUrl && (
+                        <div className="mt-2">
+                          <img
+                            src={result.fullImageUrl}
+                            alt={result.itemName}
+                            className="w-32 h-32 object-cover rounded border"
+                            onError={(e) => {
+                              e.currentTarget.src = '/placeholder-food.jpg';
+                              e.currentTarget.alt = 'Image failed to load';
+                            }}
+                          />
+                          <button
+                            onClick={() => window.open(result.fullImageUrl, '_blank')}
+                            className="mt-1 text-xs text-blue-600 hover:underline"
+                          >
+                            URL'yi aç →
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {searchResults.length === 0 && !searching && searchFileName && (
+            <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-yellow-800">❌ "{searchFileName}" dosyası bulunamadı</p>
+              <p className="text-sm text-yellow-700 mt-2">
+                Dosya adını kontrol edin veya menü verilerinin yüklendiğinden emin olun.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Customer Menu Section */}
