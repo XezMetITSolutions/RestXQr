@@ -330,7 +330,7 @@ export default function DebugMenuSources() {
                   categories: menuResponse.data?.categories || [],
                   apiUrl: process.env.NEXT_PUBLIC_API_URL,
                   apiEndpoint: `/api/restaurants/${authState.authenticatedRestaurant.id}/menu`
-                }));
+                });
               })
               .catch((error) => {
                 console.error('Menu fetch error after login:', error);
