@@ -68,6 +68,178 @@ app.use(express.urlencoded({ extended: true }));
 // Static dosya servisi (uploads klasörü için)
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
+// Recursive dosya arama fonksiyonu (debug için)
+const getAllImageFiles = (dir, fileList = [], baseDir = null) => {
+  if (!baseDir) baseDir = dir;
+  
+  try {
+    const files = fs.readdirSync(dir);
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+    
+    files.forEach(file => {
+      try {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+        
+        if (stat.isDirectory()) {
+          // Alt klasörleri de tara
+          getAllImageFiles(filePath, fileList, baseDir);
+        } else {
+          // Sadece resim dosyalarını ekle
+          const ext = path.extname(file).toLowerCase();
+          if (imageExtensions.includes(ext)) {
+            const relativePath = filePath.replace(baseDir, '').replace(/\\/g, '/');
+            fileList.push({
+              filename: file,
+              fullPath: filePath,
+              relativePath: relativePath.startsWith('/') ? relativePath : '/' + relativePath,
+              dir: dir,
+              relativeDir: dir.replace(baseDir, '').replace(/\\/g, '/')
+            });
+          }
+        }
+      } catch (fileError) {
+        console.error(`❌ Dosya işleme hatası (${file}):`, fileError.message);
+      }
+    });
+  } catch (dirError) {
+    console.error(`❌ Klasör okuma hatası (${dir}):`, dirError.message);
+  }
+  
+  return fileList;
+};
+
+// Debug endpoint test (routes'lardan önce)
+app.get('/api/debug/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Debug endpoint çalışıyor',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Tüm dosyaları listele endpoint'i (routes'lardan önce)
+app.get('/api/debug/list-files', async (req, res) => {
+  try {
+    const { page = 1, limit = 50, search = '' } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    console.log('📁 Tüm dosyalar listeleniyor (recursive)...');
+
+    // Upload klasörünü kontrol et
+    const uploadDir = path.join(__dirname, 'public/uploads');
+    
+    console.log('📁 Upload klasörü yolu:', uploadDir);
+    console.log('📁 __dirname:', __dirname);
+    console.log('📁 Klasör var mı?', fs.existsSync(uploadDir));
+    
+    if (!fs.existsSync(uploadDir)) {
+      // Klasör yoksa oluşturmayı dene
+      try {
+        fs.mkdirSync(uploadDir, { recursive: true });
+        console.log('✅ Upload klasörü oluşturuldu');
+      } catch (mkdirError) {
+        console.error('❌ Klasör oluşturma hatası:', mkdirError);
+        return res.json({
+          success: false,
+          files: [],
+          total: 0,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: 0,
+          uploadDir: uploadDir,
+          message: 'Upload klasörü bulunamadı ve oluşturulamadı',
+          error: process.env.NODE_ENV === 'development' ? mkdirError.message : undefined
+        });
+      }
+    }
+
+    // Klasördeki tüm dosya ve klasörleri listele (debug için)
+    try {
+      const dirContents = fs.readdirSync(uploadDir);
+      console.log('📋 Klasör içeriği:', dirContents.length, 'öğe');
+      if (dirContents.length > 0) {
+        console.log('📋 İlk 10 öğe:', dirContents.slice(0, 10));
+      }
+    } catch (readError) {
+      console.error('❌ Klasör okuma hatası:', readError);
+    }
+
+    // Recursive olarak tüm resim dosyalarını bul
+    let allFiles = getAllImageFiles(uploadDir);
+    
+    console.log(`📊 Toplam ${allFiles.length} resim dosyası bulundu`);
+    
+    if (allFiles.length > 0) {
+      console.log('📋 İlk 5 dosya:', allFiles.slice(0, 5).map(f => f.filename));
+    }
+
+    // Arama filtresi
+    if (search) {
+      allFiles = allFiles.filter(file => 
+        file.filename.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Tarihe göre sırala (en yeni önce)
+    allFiles.sort((a, b) => {
+      const statA = fs.statSync(a.fullPath);
+      const statB = fs.statSync(b.fullPath);
+      return statB.mtime.getTime() - statA.mtime.getTime();
+    });
+
+    const total = allFiles.length;
+    const totalPages = Math.ceil(total / limitNum);
+    const startIndex = (pageNum - 1) * limitNum;
+    const endIndex = startIndex + limitNum;
+    const paginatedFiles = allFiles.slice(startIndex, endIndex);
+
+    // Dosya detaylarını al
+    const fileDetails = paginatedFiles.map(file => {
+      const stats = fs.statSync(file.fullPath);
+      const baseUrl = process.env.BACKEND_URL || 'https://masapp-backend.onrender.com';
+      
+      return {
+        filename: file.filename,
+        path: file.fullPath,
+        relativePath: file.relativePath,
+        relativeDir: file.relativeDir,
+        fullUrl: `${baseUrl}${file.relativePath}`,
+        apiUrl: `${baseUrl}/api${file.relativePath}`,
+        size: stats.size,
+        sizeKB: (stats.size / 1024).toFixed(2),
+        sizeMB: (stats.size / (1024 * 1024)).toFixed(2),
+        created: stats.birthtime,
+        modified: stats.mtime,
+        extension: path.extname(file.filename).toLowerCase()
+      };
+    });
+
+    console.log(`✅ ${total} dosya bulundu, ${paginatedFiles.length} dosya gösteriliyor`);
+
+    res.json({
+      success: true,
+      files: fileDetails,
+      total: total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: totalPages,
+      uploadDir: uploadDir,
+      hasMore: pageNum < totalPages,
+      scannedDirectories: [uploadDir]
+    });
+
+  } catch (error) {
+    console.error('❌ Dosya listeleme hatası:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Dosya listeleme hatası',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // Rate limiting - GEVŞEK (Development için)
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
@@ -239,178 +411,6 @@ app.post('/api/upload/image', upload.single('image'), async (req, res) => {
   }
 });
 
-
-// Recursive dosya arama fonksiyonu
-const getAllImageFiles = (dir, fileList = [], baseDir = null) => {
-  if (!baseDir) baseDir = dir;
-  
-  try {
-    const files = fs.readdirSync(dir);
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
-    
-    files.forEach(file => {
-      try {
-        const filePath = path.join(dir, file);
-        const stat = fs.statSync(filePath);
-        
-        if (stat.isDirectory()) {
-          // Alt klasörleri de tara
-          getAllImageFiles(filePath, fileList, baseDir);
-        } else {
-          // Sadece resim dosyalarını ekle
-          const ext = path.extname(file).toLowerCase();
-          if (imageExtensions.includes(ext)) {
-            const relativePath = filePath.replace(baseDir, '').replace(/\\/g, '/');
-            fileList.push({
-              filename: file,
-              fullPath: filePath,
-              relativePath: relativePath.startsWith('/') ? relativePath : '/' + relativePath,
-              dir: dir,
-              relativeDir: dir.replace(baseDir, '').replace(/\\/g, '/')
-            });
-          }
-        }
-      } catch (fileError) {
-        console.error(`❌ Dosya işleme hatası (${file}):`, fileError.message);
-      }
-    });
-  } catch (dirError) {
-    console.error(`❌ Klasör okuma hatası (${dir}):`, dirError.message);
-  }
-  
-  return fileList;
-};
-
-// Debug endpoint test
-app.get('/api/debug/test', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Debug endpoint çalışıyor',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Tüm dosyaları listele endpoint'i
-app.get('/api/debug/list-files', async (req, res) => {
-  try {
-    const { page = 1, limit = 50, search = '' } = req.query;
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-
-    console.log('📁 Tüm dosyalar listeleniyor (recursive)...');
-
-    // Upload klasörünü kontrol et
-    const uploadDir = path.join(__dirname, 'public/uploads');
-    
-    console.log('📁 Upload klasörü yolu:', uploadDir);
-    console.log('📁 __dirname:', __dirname);
-    console.log('📁 Klasör var mı?', fs.existsSync(uploadDir));
-    
-    if (!fs.existsSync(uploadDir)) {
-      // Klasör yoksa oluşturmayı dene
-      try {
-        fs.mkdirSync(uploadDir, { recursive: true });
-        console.log('✅ Upload klasörü oluşturuldu');
-      } catch (mkdirError) {
-        console.error('❌ Klasör oluşturma hatası:', mkdirError);
-        return res.json({
-          success: false,
-          files: [],
-          total: 0,
-          page: pageNum,
-          limit: limitNum,
-          totalPages: 0,
-          uploadDir: uploadDir,
-          message: 'Upload klasörü bulunamadı ve oluşturulamadı',
-          error: process.env.NODE_ENV === 'development' ? mkdirError.message : undefined
-        });
-      }
-    }
-
-    // Klasördeki tüm dosya ve klasörleri listele (debug için)
-    try {
-      const dirContents = fs.readdirSync(uploadDir);
-      console.log('📋 Klasör içeriği:', dirContents.length, 'öğe');
-      if (dirContents.length > 0) {
-        console.log('📋 İlk 10 öğe:', dirContents.slice(0, 10));
-      }
-    } catch (readError) {
-      console.error('❌ Klasör okuma hatası:', readError);
-    }
-
-    // Recursive olarak tüm resim dosyalarını bul
-    let allFiles = getAllImageFiles(uploadDir);
-    
-    console.log(`📊 Toplam ${allFiles.length} resim dosyası bulundu`);
-    
-    if (allFiles.length > 0) {
-      console.log('📋 İlk 5 dosya:', allFiles.slice(0, 5).map(f => f.filename));
-    }
-
-    // Arama filtresi
-    if (search) {
-      allFiles = allFiles.filter(file => 
-        file.filename.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    // Tarihe göre sırala (en yeni önce)
-    allFiles.sort((a, b) => {
-      const statA = fs.statSync(a.fullPath);
-      const statB = fs.statSync(b.fullPath);
-      return statB.mtime.getTime() - statA.mtime.getTime();
-    });
-
-    const total = allFiles.length;
-    const totalPages = Math.ceil(total / limitNum);
-    const startIndex = (pageNum - 1) * limitNum;
-    const endIndex = startIndex + limitNum;
-    const paginatedFiles = allFiles.slice(startIndex, endIndex);
-
-    // Dosya detaylarını al
-    const fileDetails = paginatedFiles.map(file => {
-      const stats = fs.statSync(file.fullPath);
-      const baseUrl = process.env.BACKEND_URL || 'https://masapp-backend.onrender.com';
-      
-      return {
-        filename: file.filename,
-        path: file.fullPath,
-        relativePath: file.relativePath,
-        relativeDir: file.relativeDir,
-        fullUrl: `${baseUrl}${file.relativePath}`,
-        apiUrl: `${baseUrl}/api${file.relativePath}`,
-        size: stats.size,
-        sizeKB: (stats.size / 1024).toFixed(2),
-        sizeMB: (stats.size / (1024 * 1024)).toFixed(2),
-        created: stats.birthtime,
-        modified: stats.mtime,
-        extension: path.extname(file.filename).toLowerCase()
-      };
-    });
-
-    console.log(`✅ ${total} dosya bulundu, ${paginatedFiles.length} dosya gösteriliyor`);
-
-    res.json({
-      success: true,
-      files: fileDetails,
-      total: total,
-      page: pageNum,
-      limit: limitNum,
-      totalPages: totalPages,
-      uploadDir: uploadDir,
-      hasMore: pageNum < totalPages,
-      scannedDirectories: [uploadDir]
-    });
-
-  } catch (error) {
-    console.error('❌ Dosya listeleme hatası:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Dosya listeleme hatası',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
 
 // Dosya arama endpoint'i
 app.get('/api/debug/search-file', async (req, res) => {
