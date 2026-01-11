@@ -166,8 +166,10 @@ const upload = multer({
   }
 });
 
-// Static dosya servisi (uploads klasörü için)
+// Static dosya servisi (uploads klasörü için) - tekrar tanımlama (yukarıda zaten var ama burada da tutuyoruz)
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+// API path'i için de aynı klasörü servis et (frontend uyumluluğu için)
+app.use('/api/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Gerçek upload endpoint
 app.post('/api/upload/image', upload.single('image'), async (req, res) => {
