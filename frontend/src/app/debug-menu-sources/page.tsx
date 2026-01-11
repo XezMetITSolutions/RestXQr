@@ -9,7 +9,7 @@ import { FaEye, FaEyeSlash, FaLock, FaUser, FaArrowRight } from 'react-icons/fa'
 
 export default function DebugMenuSources() {
   const router = useRouter();
-  const { authenticatedRestaurant } = useAuthStore();
+  const { authenticatedRestaurant, initializeAuth } = useAuthStore();
   const { currentRestaurant, menuItems, categories, fetchRestaurantByUsername, fetchRestaurantMenu } = useRestaurantStore();
   
   const [customerMenuData, setCustomerMenuData] = useState<any>(null);
@@ -24,6 +24,11 @@ export default function DebugMenuSources() {
   const [loginError, setLoginError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { loginRestaurant } = useAuthStore();
+
+  // Auth state'i başlat
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -82,15 +87,25 @@ export default function DebugMenuSources() {
         }
 
         // 2. Business Menu Data (yönetim paneli)
-        if (authenticatedRestaurant?.id) {
+        // Önce auth state'i kontrol et
+        const authState = useAuthStore.getState();
+        const currentAuthRestaurant = authState.authenticatedRestaurant || authenticatedRestaurant;
+        
+        console.log('🔍 Auth check:', {
+          authenticatedRestaurant,
+          currentAuthRestaurant,
+          authState: authState.authenticatedRestaurant
+        });
+        
+        if (currentAuthRestaurant?.id) {
           try {
-            const response = await apiService.getRestaurantMenu(authenticatedRestaurant.id);
+            const response = await apiService.getRestaurantMenu(currentAuthRestaurant.id);
             
             setBusinessMenuData({
               restaurant: {
-                id: authenticatedRestaurant.id,
-                name: authenticatedRestaurant.name,
-                username: authenticatedRestaurant.username
+                id: currentAuthRestaurant.id,
+                name: currentAuthRestaurant.name,
+                username: currentAuthRestaurant.username
               },
               rawApiResponse: response,
               menuItems: response.data?.categories?.flatMap((cat: any) => 
@@ -115,7 +130,7 @@ export default function DebugMenuSources() {
               ) || [],
               categories: response.data?.categories || [],
               apiUrl: process.env.NEXT_PUBLIC_API_URL,
-              apiEndpoint: `/api/restaurants/${authenticatedRestaurant.id}/menu`
+              apiEndpoint: `/api/restaurants/${currentAuthRestaurant.id}/menu`
             });
           } catch (error) {
             console.error('Business menu fetch error:', error);
@@ -127,7 +142,16 @@ export default function DebugMenuSources() {
         } else {
           setBusinessMenuData({
             error: 'Giriş yapılmamış veya restoran bilgisi bulunamadı',
-            needsAuth: true
+            needsAuth: true,
+            debugInfo: {
+              authenticatedRestaurant,
+              currentAuthRestaurant,
+              authState: authState.authenticatedRestaurant,
+              localStorage: typeof window !== 'undefined' ? {
+                restaurant: localStorage.getItem('restaurant'),
+                auth: localStorage.getItem('auth')
+              } : null
+            }
           });
         }
       } catch (error) {
@@ -144,18 +168,21 @@ export default function DebugMenuSources() {
     }
   }, [subdomain, authenticatedRestaurant, fetchRestaurantByUsername, fetchRestaurantMenu]);
 
-  // Login başarılı olduğunda verileri yeniden yükle
+  // authenticatedRestaurant değiştiğinde verileri yeniden yükle
   useEffect(() => {
-    if (authenticatedRestaurant && !businessMenuData) {
-      const fetchData = async () => {
+    const loadBusinessData = async () => {
+      const authState = useAuthStore.getState();
+      const currentAuthRestaurant = authState.authenticatedRestaurant || authenticatedRestaurant;
+      
+      if (currentAuthRestaurant?.id && (!businessMenuData || businessMenuData.error)) {
         try {
-          const response = await apiService.getRestaurantMenu(authenticatedRestaurant.id);
+          const response = await apiService.getRestaurantMenu(currentAuthRestaurant.id);
           
           setBusinessMenuData({
             restaurant: {
-              id: authenticatedRestaurant.id,
-              name: authenticatedRestaurant.name,
-              username: authenticatedRestaurant.username
+              id: currentAuthRestaurant.id,
+              name: currentAuthRestaurant.name,
+              username: currentAuthRestaurant.username
             },
             rawApiResponse: response,
             menuItems: response.data?.categories?.flatMap((cat: any) => 
@@ -180,7 +207,7 @@ export default function DebugMenuSources() {
             ) || [],
             categories: response.data?.categories || [],
             apiUrl: process.env.NEXT_PUBLIC_API_URL,
-            apiEndpoint: `/api/restaurants/${authenticatedRestaurant.id}/menu`
+            apiEndpoint: `/api/restaurants/${currentAuthRestaurant.id}/menu`
           });
         } catch (error) {
           console.error('Business menu fetch error:', error);
@@ -189,9 +216,10 @@ export default function DebugMenuSources() {
             errorDetails: error
           });
         }
-      };
-      fetchData();
-    }
+      }
+    };
+    
+    loadBusinessData();
   }, [authenticatedRestaurant, businessMenuData]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -203,12 +231,61 @@ export default function DebugMenuSources() {
       const response = await apiService.login({ username: loginUsername, password: loginPassword });
 
       if (response.success && response.data) {
+        console.log('✅ Login başarılı:', response.data);
         loginRestaurant(response.data);
         setShowLoginForm(false);
         setLoginUsername('');
         setLoginPassword('');
-        // Sayfayı yenile ki veriler yüklensin
-        window.location.reload();
+        
+        // Kısa bir gecikme sonrası verileri yükle (state güncellemesi için)
+        setTimeout(() => {
+          const authState = useAuthStore.getState();
+          console.log('🔄 Auth state after login:', authState.authenticatedRestaurant);
+          if (authState.authenticatedRestaurant?.id) {
+            // Verileri manuel olarak yükle
+            apiService.getRestaurantMenu(authState.authenticatedRestaurant.id)
+              .then((menuResponse) => {
+                setBusinessMenuData({
+                  restaurant: {
+                    id: authState.authenticatedRestaurant.id,
+                    name: authState.authenticatedRestaurant.name,
+                    username: authState.authenticatedRestaurant.username
+                  },
+                  rawApiResponse: menuResponse,
+                  menuItems: menuResponse.data?.categories?.flatMap((cat: any) => 
+                    (cat.items || []).map((item: any) => ({
+                      id: item.id,
+                      name: item.name,
+                      imageUrl: item.imageUrl || item.image,
+                      imageSource: item.imageUrl ? 'imageUrl field' : (item.image ? 'image field' : 'no image'),
+                      fullImageUrl: item.imageUrl 
+                        ? (item.imageUrl.startsWith('http') 
+                            ? item.imageUrl 
+                            : `https://masapp-backend.onrender.com${item.imageUrl}`)
+                        : (item.image 
+                            ? (item.image.startsWith('http') 
+                                ? item.image 
+                                : `https://masapp-backend.onrender.com${item.image}`)
+                            : '/placeholder-food.jpg'),
+                      categoryId: item.categoryId,
+                      price: item.price,
+                      rawItem: item
+                    }))
+                  ) || [],
+                  categories: menuResponse.data?.categories || [],
+                  apiUrl: process.env.NEXT_PUBLIC_API_URL,
+                  apiEndpoint: `/api/restaurants/${authState.authenticatedRestaurant.id}/menu`
+                }));
+              })
+              .catch((error) => {
+                console.error('Menu fetch error after login:', error);
+                setBusinessMenuData({
+                  error: error instanceof Error ? error.message : 'Unknown error',
+                  errorDetails: error
+                });
+              });
+          }
+        }, 500);
       } else {
         setLoginError('Kullanıcı adı veya şifre hatalı');
       }
@@ -396,6 +473,14 @@ export default function DebugMenuSources() {
                 {businessMenuData.needsAuth && (
                   <div className="mt-3">
                     <p className="text-sm text-red-700 mb-2">Yönetim paneli menüsünü görmek için:</p>
+                    {businessMenuData.debugInfo && (
+                      <details className="mb-3">
+                        <summary className="cursor-pointer text-xs text-gray-600">Debug Bilgileri</summary>
+                        <pre className="text-xs bg-white p-2 rounded mt-1 overflow-x-auto">
+                          {JSON.stringify(businessMenuData.debugInfo, null, 2)}
+                        </pre>
+                      </details>
+                    )}
                     {!showLoginForm ? (
                       <button
                         onClick={() => setShowLoginForm(true)}
