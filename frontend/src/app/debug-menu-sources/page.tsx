@@ -29,6 +29,9 @@ export default function DebugMenuSources() {
   const [searching, setSearching] = useState(false);
   const [backendSearchResults, setBackendSearchResults] = useState<any>(null);
   const [backendSearching, setBackendSearching] = useState(false);
+  const [productSearchName, setProductSearchName] = useState('Sultan Elmalı Soda');
+  const [productSearchResults, setProductSearchResults] = useState<any[]>([]);
+  const [productSearching, setProductSearching] = useState(false);
 
   // Auth state'i başlat
   useEffect(() => {
@@ -477,6 +480,63 @@ export default function DebugMenuSources() {
     searchFileInBackend();
   };
 
+  // Ürün adına göre arama
+  const searchProduct = () => {
+    if (!productSearchName.trim()) return;
+    
+    setProductSearching(true);
+    const results: any[] = [];
+    
+    // Müşteri menüsünde ara
+    if (customerMenuData?.menuItems) {
+      customerMenuData.menuItems.forEach((item: any) => {
+        const itemName = typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || '');
+        if (itemName.toLowerCase().includes(productSearchName.toLowerCase())) {
+          const imageUrl = item.imageUrl || item.image || '';
+          const fullImageUrl = item.fullImageUrl || '';
+          
+          results.push({
+            source: 'Müşteri Menüsü',
+            itemName: itemName,
+            itemId: item.id,
+            imageUrl: imageUrl,
+            fullImageUrl: fullImageUrl,
+            imageSource: item.imageSource,
+            categoryId: item.categoryId,
+            price: item.price,
+            rawItem: item
+          });
+        }
+      });
+    }
+    
+    // Yönetim paneli menüsünde ara
+    if (businessMenuData?.menuItems && !businessMenuData.error) {
+      businessMenuData.menuItems.forEach((item: any) => {
+        const itemName = typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || '');
+        if (itemName.toLowerCase().includes(productSearchName.toLowerCase())) {
+          const imageUrl = item.imageUrl || item.image || '';
+          const fullImageUrl = item.fullImageUrl || '';
+          
+          results.push({
+            source: 'Yönetim Paneli',
+            itemName: itemName,
+            itemId: item.id,
+            imageUrl: imageUrl,
+            fullImageUrl: fullImageUrl,
+            imageSource: item.imageSource,
+            categoryId: item.categoryId,
+            price: item.price,
+            rawItem: item.rawItem || item
+          });
+        }
+      });
+    }
+    
+    setProductSearchResults(results);
+    setProductSearching(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -491,6 +551,155 @@ export default function DebugMenuSources() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">🔍 Menü Veri Kaynakları Debug</h1>
           <p className="text-gray-600">Müşteri menüsü ve yönetim paneli menüsünün veri kaynaklarını gösterir</p>
+        </div>
+
+        {/* Ürün Adına Göre Arama Bölümü */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+            🍽️ Ürün Adına Göre Arama
+          </h2>
+          <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              value={productSearchName}
+              onChange={(e) => setProductSearchName(e.target.value)}
+              placeholder="Ürün adını girin (örn: Sultan Elmalı Soda)"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  searchProduct();
+                }
+              }}
+            />
+            <button
+              onClick={searchProduct}
+              disabled={productSearching || !productSearchName.trim()}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {productSearching ? 'Aranıyor...' : 'Ürünü Ara'}
+            </button>
+          </div>
+          
+          {productSearchResults.length > 0 && (
+            <div className="mt-4">
+              <h3 className="font-semibold text-gray-800 mb-2">
+                ✅ {productSearchResults.length} ürün bulundu:
+              </h3>
+              <div className="space-y-3">
+                {productSearchResults.map((result, index) => (
+                  <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-semibold text-green-900 text-lg">{result.itemName}</p>
+                        <p className="text-sm text-green-700">Kaynak: {result.source}</p>
+                        <p className="text-xs text-green-600 mt-1">Ürün ID: {result.itemId}</p>
+                        <p className="text-xs text-green-600">Kategori ID: {result.categoryId}</p>
+                        <p className="text-xs text-green-600">Fiyat: {result.price} ₺</p>
+                      </div>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                        {result.source}
+                      </span>
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <div className="bg-white p-3 rounded border">
+                        <p className="text-xs text-gray-600 mb-1">
+                          <strong>imageUrl (Database'deki):</strong>
+                        </p>
+                        <p className="text-xs break-all font-mono bg-gray-50 p-2 rounded">
+                          {result.imageUrl || 'Yok'}
+                        </p>
+                      </div>
+                      <div className="bg-white p-3 rounded border">
+                        <p className="text-xs text-gray-600 mb-1">
+                          <strong>fullImageUrl (Kullanılan URL):</strong>
+                        </p>
+                        <p className="text-xs break-all font-mono bg-gray-50 p-2 rounded text-blue-600">
+                          {result.fullImageUrl || 'Yok'}
+                        </p>
+                      </div>
+                      <div className="bg-white p-3 rounded border">
+                        <p className="text-xs text-gray-600 mb-1">
+                          <strong>Image Source:</strong> {result.imageSource}
+                        </p>
+                      </div>
+                      <div className="bg-white p-3 rounded border">
+                        <p className="text-xs text-gray-600 mb-1">
+                          <strong>Path Analizi:</strong>
+                        </p>
+                        <div className="text-xs space-y-1">
+                          <p className="text-gray-700">
+                            <strong>Backend Path:</strong> {result.imageUrl?.startsWith('/') ? result.imageUrl : `/${result.imageUrl}`}
+                          </p>
+                          <p className="text-gray-700">
+                            <strong>Full URL:</strong> {result.fullImageUrl}
+                          </p>
+                          <p className="text-gray-700">
+                            <strong>Backend Base:</strong> {process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}
+                          </p>
+                          <p className="text-gray-700">
+                            <strong>Expected Path:</strong> {result.imageUrl?.startsWith('/uploads/') 
+                              ? `https://masapp-backend.onrender.com${result.imageUrl}`
+                              : result.imageUrl?.startsWith('/')
+                              ? `https://masapp-backend.onrender.com/api${result.imageUrl}`
+                              : `https://masapp-backend.onrender.com/api/${result.imageUrl}`}
+                          </p>
+                        </div>
+                      </div>
+                      {result.fullImageUrl && (
+                        <div className="mt-2">
+                          <img
+                            src={result.fullImageUrl}
+                            alt={result.itemName}
+                            className="w-48 h-48 object-cover rounded border"
+                            onError={(e) => {
+                              e.currentTarget.src = '/placeholder-food.jpg';
+                              e.currentTarget.alt = 'Image failed to load';
+                            }}
+                          />
+                          <div className="mt-2 flex gap-2">
+                            <button
+                              onClick={() => window.open(result.fullImageUrl, '_blank')}
+                              className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                              URL'yi Aç
+                            </button>
+                            <button
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = result.fullImageUrl;
+                                link.download = result.itemName.replace(/\s+/g, '-') + '.jpg';
+                                link.click();
+                              }}
+                              className="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                            >
+                              İndir
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {result.rawItem && (
+                        <details className="mt-2">
+                          <summary className="cursor-pointer text-xs text-gray-600 font-medium">Ham Veri (Database)</summary>
+                          <pre className="text-xs bg-gray-50 p-2 rounded mt-1 overflow-x-auto max-h-64 overflow-y-auto">
+                            {JSON.stringify(result.rawItem, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {productSearchResults.length === 0 && !productSearching && productSearchName && (
+            <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-yellow-800">❌ "{productSearchName}" ürünü bulunamadı</p>
+              <p className="text-sm text-yellow-700 mt-2">
+                Ürün adını kontrol edin veya menü verilerinin yüklendiğinden emin olun.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Dosya Arama Bölümü */}
