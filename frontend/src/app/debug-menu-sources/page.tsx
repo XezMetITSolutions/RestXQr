@@ -600,108 +600,157 @@ export default function DebugMenuSources() {
                 ✅ {productSearchResults.length} ürün bulundu:
               </h3>
               <div className="space-y-3">
-                {productSearchResults.map((result, index) => (
-                  <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-semibold text-green-900 text-lg">{result.itemName}</p>
-                        <p className="text-sm text-green-700">Kaynak: {result.source}</p>
-                        <p className="text-xs text-green-600 mt-1">Ürün ID: {result.itemId}</p>
-                        <p className="text-xs text-green-600">Kategori ID: {result.categoryId}</p>
-                        <p className="text-xs text-green-600">Fiyat: {result.price} ₺</p>
+                {productSearchResults.map((result, index) => {
+                  // Dosya adını çıkar
+                  const fileName = result.imageUrl?.split('/').pop() || '';
+                  const fileBaseName = fileName.split('-').slice(0, -1).join('-'); // "image-1768094621294" gibi
+                  
+                  return (
+                    <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-semibold text-green-900 text-lg">{result.itemName}</p>
+                          <p className="text-sm text-green-700">Kaynak: {result.source}</p>
+                          <p className="text-xs text-green-600 mt-1">Ürün ID: {result.itemId}</p>
+                          <p className="text-xs text-green-600">Kategori ID: {result.categoryId}</p>
+                          <p className="text-xs text-green-600">Fiyat: {result.price} ₺</p>
+                        </div>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                          {result.source}
+                        </span>
                       </div>
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                        {result.source}
-                      </span>
-                    </div>
-                    <div className="mt-3 space-y-2">
-                      <div className="bg-white p-3 rounded border">
-                        <p className="text-xs text-gray-600 mb-1">
-                          <strong>imageUrl (Database'deki):</strong>
-                        </p>
-                        <p className="text-xs break-all font-mono bg-gray-50 p-2 rounded">
-                          {result.imageUrl || 'Yok'}
-                        </p>
-                      </div>
-                      <div className="bg-white p-3 rounded border">
-                        <p className="text-xs text-gray-600 mb-1">
-                          <strong>fullImageUrl (Kullanılan URL):</strong>
-                        </p>
-                        <p className="text-xs break-all font-mono bg-gray-50 p-2 rounded text-blue-600">
-                          {result.fullImageUrl || 'Yok'}
-                        </p>
-                      </div>
-                      <div className="bg-white p-3 rounded border">
-                        <p className="text-xs text-gray-600 mb-1">
-                          <strong>Image Source:</strong> {result.imageSource}
-                        </p>
-                      </div>
-                      <div className="bg-white p-3 rounded border">
-                        <p className="text-xs text-gray-600 mb-1">
-                          <strong>Path Analizi:</strong>
-                        </p>
-                        <div className="text-xs space-y-1">
-                          <p className="text-gray-700">
-                            <strong>Backend Path:</strong> {result.imageUrl?.startsWith('/') ? result.imageUrl : `/${result.imageUrl}`}
+                      <div className="mt-3 space-y-2">
+                        <div className="bg-white p-3 rounded border">
+                          <p className="text-xs text-gray-600 mb-1">
+                            <strong>imageUrl (Database'deki):</strong>
                           </p>
-                          <p className="text-gray-700">
-                            <strong>Full URL:</strong> {result.fullImageUrl}
-                          </p>
-                          <p className="text-gray-700">
-                            <strong>Backend Base:</strong> {process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}
-                          </p>
-                          <p className="text-gray-700">
-                            <strong>Expected Path:</strong> {result.imageUrl?.startsWith('/uploads/') 
-                              ? `https://masapp-backend.onrender.com${result.imageUrl}`
-                              : result.imageUrl?.startsWith('/')
-                              ? `https://masapp-backend.onrender.com/api${result.imageUrl}`
-                              : `https://masapp-backend.onrender.com/api/${result.imageUrl}`}
+                          <p className="text-xs break-all font-mono bg-gray-50 p-2 rounded">
+                            {result.imageUrl || 'Yok'}
                           </p>
                         </div>
-                      </div>
-                      {result.fullImageUrl && (
-                        <div className="mt-2">
-                          <img
-                            src={result.fullImageUrl}
-                            alt={result.itemName}
-                            className="w-48 h-48 object-cover rounded border"
-                            onError={(e) => {
-                              e.currentTarget.src = '/placeholder-food.jpg';
-                              e.currentTarget.alt = 'Image failed to load';
-                            }}
-                          />
-                          <div className="mt-2 flex gap-2">
-                            <button
-                              onClick={() => window.open(result.fullImageUrl, '_blank')}
-                              className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                            >
-                              URL'yi Aç
-                            </button>
-                            <button
-                              onClick={() => {
-                                const link = document.createElement('a');
-                                link.href = result.fullImageUrl;
-                                link.download = result.itemName.replace(/\s+/g, '-') + '.jpg';
-                                link.click();
-                              }}
-                              className="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                            >
-                              İndir
-                            </button>
+                        <div className="bg-white p-3 rounded border">
+                          <p className="text-xs text-gray-600 mb-1">
+                            <strong>fullImageUrl (Kullanılan URL):</strong>
+                          </p>
+                          <p className="text-xs break-all font-mono bg-gray-50 p-2 rounded text-blue-600">
+                            {result.fullImageUrl || 'Yok'}
+                          </p>
+                        </div>
+                        <div className="bg-white p-3 rounded border">
+                          <p className="text-xs text-gray-600 mb-1">
+                            <strong>Dosya Adı:</strong> {fileName}
+                          </p>
+                          {fileBaseName && (
+                            <div className="mt-2">
+                              <p className="text-xs text-gray-600 mb-1">
+                                <strong>Aynı klasördeki benzer dosyalar:</strong>
+                              </p>
+                              <button
+                                onClick={async () => {
+                                  // Backend'de bu dosya ile aynı klasördeki dosyaları ara
+                                  try {
+                                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+                                    const searchTerm = fileBaseName.split('-')[1] || fileName.split('-')[0]; // Timestamp veya "image"
+                                    const response = await fetch(`${apiUrl}/debug/list-files?search=${encodeURIComponent(searchTerm)}&limit=50`);
+                                    const data = await response.json();
+                                    
+                                    if (data.success && data.files.length > 0) {
+                                      alert(`Aynı klasörde ${data.files.length} dosya bulundu!\n\nİlk 10 dosya:\n${data.files.slice(0, 10).map((f: any) => f.filename).join('\n')}\n\nTüm dosyaları görmek için /debug-images sayfasını ziyaret edin.`);
+                                    } else {
+                                      alert('Benzer dosya bulunamadı veya backend endpoint çalışmıyor.');
+                                    }
+                                  } catch (error) {
+                                    alert('Dosya arama hatası: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
+                                  }
+                                }}
+                                className="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+                              >
+                                🔍 Aynı Klasördeki Dosyaları Ara
+                              </button>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Bu buton backend'deki upload klasöründe benzer dosyaları arar
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="bg-white p-3 rounded border">
+                          <p className="text-xs text-gray-600 mb-1">
+                            <strong>Image Source:</strong> {result.imageSource}
+                          </p>
+                        </div>
+                        <div className="bg-white p-3 rounded border">
+                          <p className="text-xs text-gray-600 mb-1">
+                            <strong>Path Analizi:</strong>
+                          </p>
+                          <div className="text-xs space-y-1">
+                            <p className="text-gray-700">
+                              <strong>Backend Path:</strong> {result.imageUrl?.startsWith('/') ? result.imageUrl : `/${result.imageUrl}`}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Full URL:</strong> {result.fullImageUrl}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Backend Base:</strong> {process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Expected Path:</strong> {result.imageUrl?.startsWith('/uploads/') 
+                                ? `https://masapp-backend.onrender.com${result.imageUrl}`
+                                : result.imageUrl?.startsWith('/')
+                                ? `https://masapp-backend.onrender.com/api${result.imageUrl}`
+                                : `https://masapp-backend.onrender.com/api/${result.imageUrl}`}
+                            </p>
                           </div>
                         </div>
-                      )}
-                      {result.rawItem && (
-                        <details className="mt-2">
-                          <summary className="cursor-pointer text-xs text-gray-600 font-medium">Ham Veri (Database)</summary>
-                          <pre className="text-xs bg-gray-50 p-2 rounded mt-1 overflow-x-auto max-h-64 overflow-y-auto">
-                            {JSON.stringify(result.rawItem, null, 2)}
-                          </pre>
-                        </details>
-                      )}
+                        {result.fullImageUrl && (
+                          <div className="mt-2">
+                            <img
+                              src={result.fullImageUrl}
+                              alt={result.itemName}
+                              className="w-48 h-48 object-cover rounded border"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder-food.jpg';
+                                e.currentTarget.alt = 'Image failed to load';
+                              }}
+                            />
+                            <div className="mt-2 flex gap-2">
+                              <button
+                                onClick={() => window.open(result.fullImageUrl, '_blank')}
+                                className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                              >
+                                URL'yi Aç
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const link = document.createElement('a');
+                                  link.href = result.fullImageUrl;
+                                  link.download = result.itemName.replace(/\s+/g, '-') + '.jpg';
+                                  link.click();
+                                }}
+                                className="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                              >
+                                İndir
+                              </button>
+                              <button
+                                onClick={() => window.open('/debug-images', '_blank')}
+                                className="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+                              >
+                                📁 Tüm Görseller
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        {result.rawItem && (
+                          <details className="mt-2">
+                            <summary className="cursor-pointer text-xs text-gray-600 font-medium">Ham Veri (Database)</summary>
+                            <pre className="text-xs bg-gray-50 p-2 rounded mt-1 overflow-x-auto max-h-64 overflow-y-auto">
+                              {JSON.stringify(result.rawItem, null, 2)}
+                            </pre>
+                          </details>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
