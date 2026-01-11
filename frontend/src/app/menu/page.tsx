@@ -846,7 +846,14 @@ function MenuPageContent() {
                     src={item.imageUrl ?
                       (item.imageUrl.startsWith('http') ?
                         `${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}` :
-                        `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`)
+                        (() => {
+                            // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
+                            if (item.imageUrl.startsWith('/uploads/')) {
+                              const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                              return `${baseUrl}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
+                            }
+                            return `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
+                          })())
                       : '/placeholder-food.jpg'}
                     alt={typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Menu item')}
                     width={80}

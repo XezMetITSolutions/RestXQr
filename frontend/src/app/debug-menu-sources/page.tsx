@@ -141,11 +141,25 @@ export default function DebugMenuSources() {
                   fullImageUrl: item.imageUrl 
                     ? (item.imageUrl.startsWith('http') 
                         ? item.imageUrl 
-                        : `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${item.imageUrl}`)
+                        : (() => {
+                            // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
+                            if (item.imageUrl.startsWith('/uploads/')) {
+                              const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                              return `${baseUrl}${item.imageUrl}`;
+                            }
+                            return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${item.imageUrl}`;
+                          })())
                     : (item.image 
                         ? (item.image.startsWith('http') 
                             ? item.image 
-                            : `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${item.image}`)
+                            : (() => {
+                                // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
+                                if (item.image.startsWith('/uploads/')) {
+                                  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                                  return `${baseUrl}${item.image}`;
+                                }
+                                return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${item.image}`;
+                              })())
                         : '/placeholder-food.jpg'),
                   categoryId: item.categoryId,
                   price: item.price,

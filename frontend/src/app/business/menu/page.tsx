@@ -1158,7 +1158,16 @@ export default function MenuManagement() {
                                   (item.imageUrl || item.image)
                                     ? (item.imageUrl || item.image)?.startsWith('http')
                                       ? (item.imageUrl || item.image)
-                                      : `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${item.imageUrl || item.image}`
+                                      : (() => {
+                                          const imagePath = item.imageUrl || item.image;
+                                          // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
+                                          if (imagePath.startsWith('/uploads/')) {
+                                            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                                            return `${baseUrl}${imagePath}`;
+                                          }
+                                          // Diğer durumlarda normal API URL kullan
+                                          return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${imagePath}`;
+                                        })()
                                     : '/placeholder-food.jpg'
                                 }
                                 alt={item.name}
@@ -1271,7 +1280,16 @@ export default function MenuManagement() {
                           (item.imageUrl || item.image)
                             ? (item.imageUrl || item.image)?.startsWith('http')
                               ? (item.imageUrl || item.image)
-                              : `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${item.imageUrl || item.image}`
+                              : (() => {
+                                  const imagePath = item.imageUrl || item.image;
+                                  // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
+                                  if (imagePath.startsWith('/uploads/')) {
+                                    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                                    return `${baseUrl}${imagePath}`;
+                                  }
+                                  // Diğer durumlarda normal API URL kullan
+                                  return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${imagePath}`;
+                                })()
                             : '/placeholder-food.jpg'
                         }
                         alt={item.name}
