@@ -141,11 +141,11 @@ export default function DebugMenuSources() {
                   fullImageUrl: item.imageUrl 
                     ? (item.imageUrl.startsWith('http') 
                         ? item.imageUrl 
-                        : `https://masapp-backend.onrender.com${item.imageUrl}`)
+                        : `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${item.imageUrl}`)
                     : (item.image 
                         ? (item.image.startsWith('http') 
                             ? item.image 
-                            : `https://masapp-backend.onrender.com${item.image}`)
+                            : `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${item.image}`)
                         : '/placeholder-food.jpg'),
                   categoryId: item.categoryId,
                   price: item.price,

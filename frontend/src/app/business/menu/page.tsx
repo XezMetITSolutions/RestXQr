@@ -1158,7 +1158,7 @@ export default function MenuManagement() {
                                   (item.imageUrl || item.image)
                                     ? (item.imageUrl || item.image)?.startsWith('http')
                                       ? (item.imageUrl || item.image)
-                                      : `https://masapp-backend.onrender.com${item.imageUrl || item.image}`
+                                      : `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${item.imageUrl || item.image}`
                                     : '/placeholder-food.jpg'
                                 }
                                 alt={item.name}
@@ -1271,7 +1271,7 @@ export default function MenuManagement() {
                           (item.imageUrl || item.image)
                             ? (item.imageUrl || item.image)?.startsWith('http')
                               ? (item.imageUrl || item.image)
-                              : `https://masapp-backend.onrender.com${item.imageUrl || item.image}`
+                              : `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${item.imageUrl || item.image}`
                             : '/placeholder-food.jpg'
                         }
                         alt={item.name}
