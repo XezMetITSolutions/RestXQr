@@ -168,13 +168,30 @@ export default function DebugMenuSources() {
     }
   }, [subdomain, authenticatedRestaurant, fetchRestaurantByUsername, fetchRestaurantMenu]);
 
-  // authenticatedRestaurant değiştiğinde verileri yeniden yükle
+  // authenticatedRestaurant değiştiğinde veya localStorage'dan yüklendiğinde verileri yeniden yükle
   useEffect(() => {
     const loadBusinessData = async () => {
+      // Store'dan ve localStorage'dan kontrol et
       const authState = useAuthStore.getState();
-      const currentAuthRestaurant = authState.authenticatedRestaurant || authenticatedRestaurant;
+      let currentAuthRestaurant = authState.authenticatedRestaurant || authenticatedRestaurant;
       
-      if (currentAuthRestaurant?.id && (!businessMenuData || businessMenuData.error)) {
+      // localStorage'dan da kontrol et
+      if (!currentAuthRestaurant && typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('currentRestaurant');
+          if (saved) {
+            currentAuthRestaurant = JSON.parse(saved);
+            // Store'a da set et
+            if (currentAuthRestaurant) {
+              loginRestaurant(currentAuthRestaurant);
+            }
+          }
+        } catch (e) {
+          console.error('localStorage parse error:', e);
+        }
+      }
+      
+      if (currentAuthRestaurant?.id && (!businessMenuData || businessMenuData.error || businessMenuData.needsAuth)) {
         try {
           const response = await apiService.getRestaurantMenu(currentAuthRestaurant.id);
           
@@ -219,8 +236,13 @@ export default function DebugMenuSources() {
       }
     };
     
-    loadBusinessData();
-  }, [authenticatedRestaurant, businessMenuData]);
+    // Kısa bir gecikme ile yükle (state güncellemesi için)
+    const timer = setTimeout(() => {
+      loadBusinessData();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [authenticatedRestaurant, businessMenuData, loginRestaurant]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
