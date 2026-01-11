@@ -250,6 +250,11 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Demo QR Menü incele',
       de: 'Demo testen',
     },
+    requestDemo: {
+      en: 'Request Demo',
+      tr: 'Demo Talep Et',
+      de: 'Demo anfordern',
+    },
     statSales: {
       en: 'Sales Increase',
       tr: 'Satış Artışı',
