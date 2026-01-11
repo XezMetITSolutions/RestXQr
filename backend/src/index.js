@@ -281,6 +281,15 @@ const getAllImageFiles = (dir, fileList = [], baseDir = null) => {
   return fileList;
 };
 
+// Debug endpoint test
+app.get('/api/debug/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Debug endpoint çalışıyor',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Tüm dosyaları listele endpoint'i
 app.get('/api/debug/list-files', async (req, res) => {
   try {
