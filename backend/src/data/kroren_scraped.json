@@ -1,0 +1,317 @@
+[
+    {
+        "category": "Başlangıçlar",
+        "name": "Beyaz pilav",
+        "price": "₺128.00",
+        "description": "Baldo pirinci , tane tane pişirilmiş sade beyaz pilav. Alerjenler: Yok",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzlmMTFkNmJjLTc5ZDItNGQxZS1hMGM2LTJlM2M4NDM1N2M1My5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Başlangıçlar",
+        "name": "Çay yumurtası",
+        "price": "₺38.00",
+        "description": "Çay, soya sosu ve Çin baharatlarıyla uzun süre haşlanarak hazırlanan aromatik ve koyu renkli yumurta. Alerjenler: Yumurta, Soya",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzkyOGQwMDkyLTUwN2YtNGJiOC05YjY1LWM1NWNlMjljMDEzYS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Başlangıçlar",
+        "name": "Dana etli rojamo",
+        "price": "₺298.00",
+        "description": "Soya sosu ile kavrulmuş, marine dana eti köy biberiyle birlikte dengeli ve doyurucu bir lezzet sunar; buharda pişirilmiş, yumuşak mayalı ekmeğin arasında servis edilir. Alerjenler: Gluten, Soya",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzBlM2JjYmE4LTJlOTEtNGY3Yi04NWY4LTQ5MGEwMzgyODdjZi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Başlangıçlar",
+        "name": "Haşlanmış mantı",
+        "price": "₺358.00",
+        "description": "3 çeşit Çin baharatı ve soya sosu ile harmanlanmış dana kıyma, havuç ve soğan dolgulu elle açılmış incecik hamurun içine alınıp kapatılır ve o şekilde haşlanılır.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzI2YjYxM2I4LTc1YzktNDM5Yi1hZWJkLTYxZGVkYjlhNDMxMy5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Başlangıçlar",
+        "name": "Hoxan (2 adet)",
+        "price": "₺238.00",
+        "description": "13 çeşit Çin baharatı ve soya sosu ile harmanlanmış dana kıyma, havuç ve soğan dolgulu; altı çıtır, üstü yumuşak olacak şekilde buharda pişirilip tavada kızartılır.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2ZiYzUwNWE3LWIxYWMtNDQ3Mi1hZmQ4LTM1ZDA1ZjlmYjJhOC5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Başlangıçlar",
+        "name": "Karides krekleri",
+        "price": "₺148.00",
+        "description": "Eşsiz deniz aromasıyla çıtır çıtır bir lezzet sunan, kızarmış karides krekleri. Alerjenler: Karides.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2ZkMDNiOThhLTQxNDEtNDg0OS1iYTA0LTVlNmNjYjQzMWVjMy5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Başlangıçlar",
+        "name": "Sade ekmek",
+        "price": "₺48.00",
+        "description": "Buharda pişirilmiş, yumuşak ve hafif dokulu geleneksel Çin ekmeği. Alerjenler: Gluten",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2VmMDAwMzExLTgwZjItNDQzOS1iZDkyLWUxZjViZTdkYTk3My5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Başlangıçlar",
+        "name": "Uygur mantı",
+        "price": "₺398.00",
+        "description": "soğan ve biraz tuz karabiberle harmanlanmış kuzu eti incecik açılmış hamurla sarılır ve buharda pişer pişme süresi 15-20 dk arasında.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2FkZjY5MzRkLWFlMzMtNDg3Mi04ODUzLTZjYTFkNmNlY2YwNS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Salatalar",
+        "name": "Erişte salatası (凉皮)",
+        "price": "₺178.00",
+        "description": "El yapımı özel buğday nişastası eriştesi; taze sarımsak, fermente sirke, el yapımı acı biber yağı, susam yağı ve yer fıstığı sosu ile hazırlanan soğuk ve ferahlatıcı bir lezzet. Alerjenler: Gluten,Susam,Yer fıstığı",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzMwMzhiYzVlLTExYzUtNDdkYS04NTdkLWFlMDAwYmU5MzVjYS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Salatalar",
+        "name": "Sığır eti salatası (凉拌牛肉)",
+        "price": "₺858.00",
+        "description": "Özel baharatlarla haşlanmış sığır eti dilimleri; fermente sirke, taze sarımsak, el yapımı acı biber yağı ve taze kişnişle harmanlanan doyurucu ve aromatik bir soğuk lezzet. Alerjenler: Soya, Susam",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzUxZGUyZjUwLWE3MjItNGViOC04ZjU3LTI5MGRiOTBiYjI2Zi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Makarnalar (Erişteler)",
+        "name": "Dana etli ramen",
+        "price": "₺248.00",
+        "description": "El yapımı erişte şifa kaynağı olan çeşitli baharatlarla saatlerce kaynatılmış kemik suyu ve özel tarifimizle pişirilmiş et , pırasa , taze kişniş , beyaz turp, ile servis edilir.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2M3OTM4MDAxLTkzNjQtNGQzMC1iZjg0LWRlOWZmNDRjNjI3OS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Makarnalar (Erişteler)",
+        "name": "Dana noodle (牛肉炒面)",
+        "price": "₺368.00",
+        "description": "Wok tavada yüksek ateşte sotelenmiş el yapımı erişte; Çin lahanası, soğan ve marine edilmiş dana eti dilimleri ile harmanlanarak sunulan doyurucu bir lezzet. Alerjenler: Gluten, Yumurta, Soya",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2YzM2RiYWE0LTA3MmItNDQyYy04Yzk2LWNiZDJmZDQ2NmViMi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Makarnalar (Erişteler)",
+        "name": "Ganbian makarnası (干煸炒面)",
+        "price": "₺398.00",
+        "description": "Sotelenmiş el yapımı erişte; marine dana eti, köy biberi, soğan ve kereviz ile yüksek ateşte hazırlanan, hafif acılı ve aromatik bir lezzet. Alerjenler: Gluten, Yumurta, Soya, Kereviz.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzMwZTU1OGJjLWJkMDktNGQxZC05YzcyLWFmOWQ4NzM5ZWJlNy5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Makarnalar (Erişteler)",
+        "name": "Guyro lagmen (过油肉拌面)",
+        "price": "₺428.00",
+        "description": "El yapımı haşlanmış erişte üzerine; wok tavada marine edilmiş dana eti, Çin lahanası, köy biberi ve özel sosla hazırlanan klasik Uygur usulü bir yemek. Alerjenler: Gluten, Yumurta, Soya.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzQwMTFkYjQ2LTkxNWQtNDAwOC1hZTc4LTVlYThhN2JlMWYzZC5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Makarnalar (Erişteler)",
+        "name": "Kızarmış dana döş (红烧牛腩面)",
+        "price": "₺328.00",
+        "description": "Özel teknikle uzun süre pişirilmiş, ağızda dağılan yumuşak dana döş eti; şifa kaynağı aromatik baharatlı kemik suyu ve taze el yapımı erişte ile servis edilir. Alerjenler: Gluten, Soya",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzQ3NGNlNDVkLWMzOWMtNDEwNS04OTNiLWE1MTljNDUyYjk3OS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Makarnalar (Erişteler)",
+        "name": "Sebzeli noodle",
+        "price": "₺298.00",
+        "description": "Wok tavada yüksek ateşte sotelenmiş el yapımı erişte; taze sebzelerle (Çin lahanası, havuç, köy biberi, soğan) harmanlanarak sunulan hafif ve lezzetli bir seçenek. Alerjenler: Gluten, Yumurta, Soya.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzNhYzVjODQ0LWZiYTItNGJiMi1iZDQxLWVmNzA0NTI5N2RjNC5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Makarnalar (Erişteler)",
+        "name": "Tavuk noodle",
+        "price": "₺328.00",
+        "description": "Wok tavada yüksek ateşte sotelenmiş el yapımı erişte; taze sebzeler ve marine edilmiş tavuk parçalarıyla harmanlanan klasik bir lezzet merkezi. Alerjenler: Gluten, Yumurta, Soya",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzNmODdkMDRmLTU3MDktNDMxNy1hMjNmLTNjMmFmMThmNDc5Mi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Etli Yemekler",
+        "name": "Acılı haşlanmış dana",
+        "price": "₺1,328.00",
+        "description": "Çin biberi, sarımsak ve Sichuan baharatlarıyla hazırlanan bol acılı aromatik sos içinde haşlanmış dana eti; altında Çin lahanası, pirinç eriştesi ve siyah mantar ile servis edilir.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2M1MjViOTY1LTlkOTMtNDRmOC04OWU5LTVhNWFlZGJlZWI5Ni5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Etli Yemekler",
+        "name": "Guyro (铁板牛肉)",
+        "price": "₺528.00",
+        "description": "Wok tavada yüksek ateşte marine dana eti dilimleri; Çin lahanası, köy biberi ve soğan ile hızlıca kavrularak sunulan klasik bir Asya lezzeti. Alerjenler: Soya.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzE4ODE0OTFlLTVjMzYtNDU0Mi05OGY1LTllMjk5OTFiMDk4MS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Etli Yemekler",
+        "name": "Pırasalı dana (葱爆牛肉)",
+        "price": "₺528.00",
+        "description": "Wok tavada yüksek ateşte marine edilmiş dana eti dilimleri ve bol pırasa ile hazırlanan, aromatik ve hafif karamelize bir lezzet. Alerjenler: Soya",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2ZiOWE3YWY4LTVhZjItNDQ0ZS05NzBlLThkZTdmYzJlNDAwMS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Etli Yemekler",
+        "name": "Özel soslu dana (烧汁牛肉)",
+        "price": "₺528.00",
+        "description": "Wok tavada yüksek ateşte marine dana eti dilimleri; köy biberi, soğan ve Teriyaki sosla karamelize edilerek hazırlanan tatlı-tuzlu dengeli bir lezzet. Alerjenler: Soya, Susam.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzE5MWIwNTNjLWRhNTQtNGE4OC05NmVlLTQ2NDRkMzBlNWVlYS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Tavuklu Yemekler",
+        "name": "Acılı lokum tavuk",
+        "price": "₺428.00",
+        "description": "Kemiksiz çıtır tavuk butu parçaları; bol acı, sarımsak ve özel Asya baharatlı sos ile wok'ta harmanlanan, iştah açıcı ve enerjik bir lezzet patlaması. Alerjenler: Gluten, Yumurta, Susam",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2YzM2M0MTgxLTRiMWEtNDEzZS04NDlkLWY3ZDQ0YjFhOTk2Ny5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Tavuklu Yemekler",
+        "name": "Dapanji (大盘鸡)",
+        "price": "₺558.00",
+        "description": "Tavuk kanatları, patates, köy biberi ve özel Uygur baharatları ile hazırlanan klasik 'Büyük Tabak Tavuk'; altında sunulan el açması geniş erişte ile doyurucu bir şölen. Alerjenler: Gluten,Soya",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzFiMzYyN2M4LWFlOTYtNGU4Ni1hMmU3LWRmNjUyMjNiOTIyMC5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Tavuklu Yemekler",
+        "name": "Monzhou Usulü Tavuk",
+        "price": "₺498.00",
+        "description": "Marine edilen tavuklar renkli biberler ve soğan eşliğinde wok tavada acı-ekşi-tatlı bir sosta harmanlanarak servis edilir. Alerjenler: Gluten, Soya ve Susam",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2U2MjFkYmIxLTA4M2EtNGZjNS04YTEwLWU5ODAxYzU3OTUxYi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Tavuklu Yemekler",
+        "name": "Portakallı tavuk",
+        "price": "₺428.00",
+        "description": "Taze portakal suyu ve özel sosla hazırlanan aromatik, hafif tatlı-ekşi bir lezzet; kemiksiz tavuk butu parçaları çıtır kızartılıp wok'ta harmanlanır.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzczMWQzMWUxLWE1NTEtNDEzMi1hNzQwLTYzNmY1MjNkMTE2Mi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Tavuklu Yemekler",
+        "name": "Tatlı Ekşi Tavuk",
+        "price": "₺428.00",
+        "description": "Klasik Asya lezzeti; çıtır kızarmış kemiksiz tavuk parçaları, renkli biberler, soğan ve ananas ile hazırlanan geleneksel tatlı-ekşi sosla buluşuyor. Alerjenler: Gluten,Susam",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzc0OTM2NzY4LTE1YzgtNDUwMS1hNDEzLWJlMTllYWIwMmVlNC5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Patates Kavurması (Ana Yemek)",
+        "name": "Patates kavurması",
+        "price": "₺258.00",
+        "description": "Kibrit şeklinde doğranmış patatesler wok tavada fermente sirke, taze sarımsak ve kurutulmuş acı biberle yüksek ateşte hızlıca kavrularak çıtır ve aromatik bir formda servis edilir.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzNiODc4ODAwLTUxMTMtNGU3NC1iNTBkLThlNDVkYTczMzFmMC5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Sushiler",
+        "name": "Balık sushi",
+        "price": "₺378.00",
+        "description": "Haşlanmış sushili pirinç ve kurutulmuş deniz yosunu (nori) içinde ton balığı eti , salatalık, havuç ve marul ile hazırlanan klasik bir rulo. Alerjenler: Balık",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzQ5ODUzN2U2LTdmNzItNGE0Mi04MzRiLWEyZmM4MzhhZTdiMi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Sushiler",
+        "name": "Dana etli sushi",
+        "price": "₺378.00",
+        "description": "Haşlanmış sushili pirinç ve kurutulmuş deniz yosunu (nori) içinde marine dana eti dilimleri , salatalık, havuç ve marul ile hazırlanan rulo. Alerjenler: Soya",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzE3ZDdlMjM4LTI2ZDMtNGEyYy1iZmYzLTlkMDIwOGJjYzUyNC5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Sushiler",
+        "name": "Sebze sushi",
+        "price": "₺278.00",
+        "description": "Haşlanmış sushili pirinç ve kurutulmuş deniz yosunu (nori) içinde taze salatalık, havuç ve marul ile hazırlanan hafif ve ferahlatıcı bir vejetaryen rulo.",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzViNjM3ZTRkLTM2OTMtNDY1Zi1hMDRjLTA3NmExZTc5ZjljOC5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Tofular",
+        "name": "Acılı tofu (麻婆豆腐)",
+        "price": "₺398.00",
+        "description": "Özel baharat ve acı sos temeli ile yüksek ateşte hızlıca sotelenmiş, yumuşak dokulu ve aromatik bir Asya klasiği . Alerjenler: Soya",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2UzZDFiOWYwLTZiYjQtNDkzNy04NmU0LWExNTExMzg4ZWI2Mi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Tofular",
+        "name": "Kızartma tofu",
+        "price": "₺388.00",
+        "description": "Dışı çıtır, içi yumuşak olacak şekilde kızartılmış tofu parçaları; taze sebzeler ve özel bir sos eşliğinde sunulur. Alerjenler: Soya",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2RlOWY0MDA5LWUyMTktNDYyMC04NjkxLTEyMDY4YzJkZTlhOS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "Tofular",
+        "name": "Özel soslu tofu",
+        "price": "₺388.00",
+        "description": "Yumuşak taze tofu parçaları; wok tavada köy biberi, taze sarımsak ve özel aromatik sosla harmanlanarak servis edilir. Alerjenler: Soya",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzFmOTI1Y2ZmLWUxNWQtNGNjMS04YmUyLWYxZjExYTAwNjRhZS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Cola",
+        "price": "₺68.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2RiMzU4YTJkLTYwMmMtNDRiOC04YWYwLTc1YWM2NmQzZWE3Ny5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Cola Zero",
+        "price": "₺68.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzljMzJiMWU4LTZhMmYtNDZlYy1iYTFmLTQ1MTFkYzQyYWZiYi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Fanta",
+        "price": "₺68.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzBkMTIyZGQ3LTNmMDQtNGRiMy05ZDM0LTM1NzQ5NjUxMjZlMi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Sprite",
+        "price": "₺65.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2EzNDZkMDViLTgwMjAtNDhmYy05YWJhLTFhNDFhNmFiOTEyMy5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Lipton Buzlu Çay Şeftali",
+        "price": "₺68.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uL2UyMzRhOGY4LWNlMGEtNDdmNy04ZGE0LWQzMDQ1OTkyNmRiYi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Lipton Buzlu Çay Limon",
+        "price": "₺68.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzM3NjBhYjZiLTI1NjMtNDQ1NC1hMDYyLWU1MWEyNTVhOWZiOS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Lipton Buzlu Çay Mango",
+        "price": "₺68.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzljNzU3NzdkLTNhOGEtNGRhMy04NTIyLTRkMjk1NThiN2RhMS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Niğde Gazozu",
+        "price": "₺60.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzI1N2VjNDI4LWY5NTEtNDQ0Mi04MmFiLTBhYTJhODNmN2U0Ni5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Sade Soda",
+        "price": "₺40.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzhhNzAxZTZkLTMzYTgtNGVlZS1iYmVhLWNhYzlhMDc5N2UxOC5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Limonlu Soda",
+        "price": "₺40.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzExZDA2YmYzLWFlNDItNDA5OC04M2Q2LWViYjViZWU4Yjk1OC5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Elmalı Soda",
+        "price": "₺40.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzM2ZDFjNjMxLTmE2YtNGZhZS1iYWM0LWMzNjIxZDE4ZGUyYi5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    },
+    {
+        "category": "İçecekler",
+        "name": "Su",
+        "price": "₺30.00",
+        "description": "",
+        "imageUrl": "https://images.simpra.app/eyJidWNrZXQiOiJzaW1wcmEtcHJvZHVjdC1pbWFnZXMiLCJrZXkiOiJwcm9kdWN0aW9uLzg2OTk2NTc1LTgwMGQtNDIzOS04ZWJiLTA3NGUxNGEzNWQwYS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo3MDAsImhlaWdodCI6NzAwLCJmaXQiOiJjb3ZlciJ9LCJqcGVnIjp7InF1YWxpdHkiOjgwLCJwcm9ncmVzc2l2ZSI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZX19fQ=="
+    }
+]

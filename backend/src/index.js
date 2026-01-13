@@ -590,26 +590,12 @@ app.get('/api/debug/search-file', async (req, res) => {
 app.post('/api/demo-request', async (req, res) => {
   try {
     const { name, email, phone, company, message, language, source } = req.body;
-
     console.log('📧 Demo talep alındı:', { name, email, phone, company, language, source });
-
-    // Burada email gönderme servisi kullanılabilir
-    // Şimdilik sadece logluyoruz
-    // TODO: Email servisi entegrasyonu (SendGrid, Mailgun, vb.)
 
     res.json({
       success: true,
       message: 'Demo request received successfully',
-      data: {
-        name,
-        email,
-        phone,
-        company,
-        message,
-        language,
-        source,
-        timestamp: new Date().toISOString()
-      }
+      data: { name, email, phone, company, message, language, source, timestamp: new Date().toISOString() }
     });
   } catch (error) {
     console.error('❌ Demo talep hatası:', error);
@@ -618,6 +604,20 @@ app.post('/api/demo-request', async (req, res) => {
       message: 'Demo request failed',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+  }
+});
+
+// Admin Import - Kroren Menu
+app.post('/api/admin/import-kroren', async (req, res) => {
+  try {
+    const { importKrorenMenu } = require('./utils/importHandler');
+    const menuData = require('./data/kroren_scraped.json');
+    console.log('📦 Kroren menüsü içe aktarma isteği alındı');
+    const results = await importKrorenMenu(menuData);
+    res.json({ success: true, message: 'İçe aktarma işlemi tamamlandı', results });
+  } catch (error) {
+    console.error('❌ İçe aktarma hatası:', error);
+    res.status(500).json({ success: false, message: 'İçe aktarma sırasında bir hata oluştu', error: error.message });
   }
 });
 
