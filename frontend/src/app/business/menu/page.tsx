@@ -246,17 +246,17 @@ export default function MenuManagement() {
     const handlePaste = async (e: ClipboardEvent) => {
       e.preventDefault();
       const items = e.clipboardData?.items;
-      
+
       if (!items) return;
 
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        
+
         if (item.type.indexOf('image') !== -1) {
           const file = item.getAsFile();
           if (file) {
             console.log('📋 Modal açıkken yapıştırılan resim:', file.name || 'Clipboard', 'Boyut:', file.size, 'Tip:', file.type);
-            
+
             // Dosya boyutunu kontrol et (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
               alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
@@ -758,54 +758,72 @@ export default function MenuManagement() {
   };
 
   const handleBulkTranslate = async () => {
-    if (!confirm(t('Tüm ürünler Almancaya çevrilecek. Bu işlem biraz zaman alabilir. Devam etmek istiyor musunuz?'))) return;
+    // Toplu seçim varsa sadece seçilenleri, yoksa tümünü
+    const targets = selectedItems.length > 0
+      ? items.filter(i => selectedItems.includes(i.id))
+      : items;
+
+    if (targets.length === 0) {
+      alert(t('Çevrilecek ürün bulunamadı.'));
+      return;
+    }
+
+    if (!translationLanguages.length) {
+      alert(t('Lütfen önce ayarlardan (İşletme Ayarları > Menü Ayarları) çeviri yapılacak dilleri seçin.'));
+      return;
+    }
+
+    if (!confirm(t(`${targets.length} ürün ${translationLanguages.map(l => l.toUpperCase()).join(', ')} dillerine çevrilecek. Bu işlem DeepL API limitlerinize göre zaman alabilir. Devam etmek istiyor musunuz?`))) return;
 
     setIsBulkTranslating(true);
     let successCount = 0;
 
     try {
       if (currentRestaurantId) {
-        for (const item of items) {
-          // Eğer zaten Almanca çevirisi varsa atla (isteğe bağlı, şimdilik hepsini çevirelim veya kontrol edelim)
-          // Ancak item yapısında translations alanı yoksa API'den çekip güncellememiz gerekebilir.
-          // Basitlik için her ürünü güncelleyeceğiz.
-
+        for (const item of targets) {
           try {
-            const translatedName = await translateWithDeepL({
-              text: item.name,
-              targetLanguage: 'de'
-            });
+            // Mevcut çevirileri koru
+            const newTranslations = { ...((item as any).translations || {}) };
+            let hasChanged = false;
 
-            let translatedDescription = '';
-            if (item.description) {
-              translatedDescription = await translateWithDeepL({
-                text: item.description,
-                targetLanguage: 'de'
+            for (const lang of translationLanguages) {
+              // Eğer zaten bu dilde çeviri varsa ve name/description doluysa atlamayı düşünebiliriz 
+              // ama kullanıcı "toplu çevir" dediyse muhtemelen güncellemek istiyordur.
+
+              const translatedName = await translateWithDeepL({
+                text: item.name,
+                targetLanguage: lang
               });
+
+              let translatedDescription = '';
+              if (item.description) {
+                translatedDescription = await translateWithDeepL({
+                  text: item.description,
+                  targetLanguage: lang
+                });
+              }
+
+              newTranslations[lang] = {
+                name: translatedName || item.name,
+                description: translatedDescription || item.description || ''
+              };
+              hasChanged = true;
             }
 
-            // Mevcut çevirileri koru
-            const currentTranslations = (item as any).translations || {};
-            const newTranslations = {
-              ...currentTranslations,
-              'de': {
-                name: translatedName,
-                description: translatedDescription
-              }
-            };
-
-            await updateMenuItem(currentRestaurantId, item.id, {
-              translations: newTranslations
-            });
-
-            successCount++;
+            if (hasChanged) {
+              await updateMenuItem(currentRestaurantId, item.id, {
+                translations: newTranslations
+              });
+              successCount++;
+            }
           } catch (err) {
             console.error(`Ürün çeviri hatası (${item.name}):`, err);
           }
         }
 
         await fetchRestaurantMenu(currentRestaurantId);
-        alert(`${successCount} ${t('ürün başarıyla Almancaya çevrildi.')}`);
+        alert(`${successCount} ${t('ürün başarıyla çevrildi.')}`);
+        setSelectedItems([]);
       }
     } catch (error) {
       console.error('Toplu çeviri hatası:', error);
@@ -1015,6 +1033,16 @@ export default function MenuManagement() {
                 <span><TranslatedText>Toplu İçe Aktar</TranslatedText></span>
               </button>
 
+              {/* Toplu Çeviri */}
+              <button
+                onClick={handleBulkTranslate}
+                disabled={isBulkTranslating || items.length === 0}
+                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-xl hover:from-orange-500 hover:to-red-600 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold disabled:opacity-50"
+              >
+                <FaLanguage className="text-xl" />
+                <span>{isBulkTranslating ? <TranslatedText>Çevriliyor...</TranslatedText> : <TranslatedText>Tümünü Çevir</TranslatedText>}</span>
+              </button>
+
             </div>
           </div>
 
@@ -1047,6 +1075,14 @@ export default function MenuManagement() {
                       </button>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleBulkTranslate}
+                        disabled={isBulkTranslating}
+                        className="px-3 py-1.5 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 flex items-center gap-1 disabled:opacity-50"
+                      >
+                        <FaLanguage className="text-xs" />
+                        {isBulkTranslating ? <TranslatedText>Çevriliyor...</TranslatedText> : <TranslatedText>Toplu Çevir</TranslatedText>}
+                      </button>
                       <button
                         onClick={() => setShowBulkPriceModal(true)}
                         className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
@@ -1159,15 +1195,15 @@ export default function MenuManagement() {
                                     ? (item.imageUrl || item.image)?.startsWith('http')
                                       ? (item.imageUrl || item.image)
                                       : (() => {
-                                          const imagePath = item.imageUrl || item.image;
-                                          // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
-                                          if (imagePath.startsWith('/uploads/')) {
-                                            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
-                                            return `${baseUrl}${imagePath}`;
-                                          }
-                                          // Diğer durumlarda normal API URL kullan
-                                          return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${imagePath}`;
-                                        })()
+                                        const imagePath = item.imageUrl || item.image;
+                                        // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
+                                        if (imagePath && typeof imagePath === 'string' && imagePath.startsWith('/uploads/')) {
+                                          const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                                          return `${baseUrl}${imagePath}`;
+                                        }
+                                        // Diğer durumlarda normal API URL kullan
+                                        return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${imagePath}`;
+                                      })()
                                     : '/placeholder-food.jpg'
                                 }
                                 alt={item.name}
@@ -1281,15 +1317,15 @@ export default function MenuManagement() {
                             ? (item.imageUrl || item.image)?.startsWith('http')
                               ? (item.imageUrl || item.image)
                               : (() => {
-                                  const imagePath = item.imageUrl || item.image;
-                                  // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
-                                  if (imagePath.startsWith('/uploads/')) {
-                                    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
-                                    return `${baseUrl}${imagePath}`;
-                                  }
-                                  // Diğer durumlarda normal API URL kullan
-                                  return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${imagePath}`;
-                                })()
+                                const imagePath = item.imageUrl || item.image;
+                                // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
+                                if (imagePath && typeof imagePath === 'string' && imagePath.startsWith('/uploads/')) {
+                                  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                                  return `${baseUrl}${imagePath}`;
+                                }
+                                // Diğer durumlarda normal API URL kullan
+                                return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${imagePath}`;
+                              })()
                             : '/placeholder-food.jpg'
                         }
                         alt={item.name}
@@ -1716,20 +1752,20 @@ export default function MenuManagement() {
                         </button>
 
                         {/* Dosyadan Yükle veya Yapıştır */}
-                        <div 
+                        <div
                           className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors text-center cursor-pointer relative"
                           onPaste={async (e) => {
                             e.preventDefault();
                             const items = e.clipboardData.items;
-                            
+
                             for (let i = 0; i < items.length; i++) {
                               const item = items[i];
-                              
+
                               if (item.type.indexOf('image') !== -1) {
                                 const file = item.getAsFile();
                                 if (file) {
                                   console.log('📋 Yapıştırılan resim:', file.name || 'Clipboard', 'Boyut:', file.size, 'Tip:', file.type);
-                                  
+
                                   // Dosya boyutunu kontrol et (max 5MB)
                                   if (file.size > 5 * 1024 * 1024) {
                                     alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
