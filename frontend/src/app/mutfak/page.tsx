@@ -334,32 +334,28 @@ export default function MutfakPanel() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm px-8 py-6 mb-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-2xl">
+      <div className="bg-white shadow-sm px-4 py-4 md:px-8 md:py-6 mb-4">
+        <div className="flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto gap-4">
+          <div className="flex items-center gap-3 md:gap-4 w-full md:w-auto">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-xl md:text-2xl flex-shrink-0">
               👨‍🍳
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Mutfak Paneli</h1>
-              <p className="text-gray-600 text-sm">{restaurantName || 'Restoran'} • Oda servisi siparişlerini ve menü ürünlerini yönetin</p>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-800 leading-tight">Mutfak Paneli</h1>
+              <p className="text-gray-600 text-xs md:text-sm hidden sm:block">
+                {restaurantName || 'Restoran'} • Sipariş ve menü yönetimi
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-              </span>
-              <span className="text-xs font-semibold text-green-700 uppercase tracking-wider">Sistem Canlı</span>
-            </div>
+
+          <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4 w-full md:w-auto">
             <button
               onClick={handleMenuManagement}
-              className="px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500 transition-colors"
+              className="flex-1 md:flex-none px-3 md:px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500 transition-colors text-sm md:text-base whitespace-nowrap"
             >
               + Menü Yönetimi
             </button>
-            <div className="px-4 py-2 border border-gray-300 rounded-lg text-sm cursor-pointer hover:bg-gray-50">
+            <div className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg text-xs md:text-sm cursor-pointer hover:bg-gray-50 whitespace-nowrap">
               TR Türkçe ↓
             </div>
           </div>
@@ -367,13 +363,13 @@ export default function MutfakPanel() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-8">
-        <div className="bg-yellow-50 rounded-2xl p-8 shadow-sm">
+      <div className="max-w-7xl mx-auto px-2 md:px-8">
+        <div className="bg-yellow-50 rounded-2xl p-4 md:p-8 shadow-sm">
           {/* Search Bar */}
           <input
             type="text"
             placeholder="🔍 Masa numarası veya ürün ara..."
-            className="w-full mb-6 px-6 py-4 border border-gray-300 rounded-xl text-base focus:outline-none focus:border-green-500"
+            className="w-full mb-4 md:mb-6 px-4 md:px-6 py-3 md:py-4 border border-gray-300 rounded-xl text-sm md:text-base focus:outline-none focus:border-green-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -463,27 +459,27 @@ export default function MutfakPanel() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="bg-white rounded-2xl p-6 shadow-md border-l-8"
+                      className="bg-white rounded-2xl p-4 md:p-6 shadow-md border-l-4 md:border-l-8"
                       style={{ borderLeftColor: statusInfo.bg }}
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-[2fr_2fr_1fr] gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-[2fr_2fr_1fr] gap-4 md:gap-6">
                         {/* Sol Sütun - Sipariş Detayları */}
                         <div>
-                          <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-start justify-between mb-3 md:mb-4">
                             <div>
-                              <div className="text-2xl font-bold text-gray-800">Masa {order.tableNumber}</div>
-                              <div className="text-sm text-gray-500 mt-1">{formatDate(order.created_at)}</div>
+                              <div className="text-xl md:text-2xl font-bold text-gray-800">Masa {order.tableNumber}</div>
+                              <div className="text-[10px] md:text-sm text-gray-500 mt-0.5 md:mt-1">{formatDate(order.created_at)}</div>
                             </div>
                             <div
-                              className="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
+                              className="px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold flex items-center gap-1"
                               style={{ background: statusInfo.bg, color: statusInfo.color }}
                             >
-                              ⏱️ {statusInfo.text}
+                              {statusInfo.text}
                             </div>
                           </div>
                           <div>
-                            <div className="font-semibold text-gray-800 mb-2">Sipariş Detayları:</div>
-                            <div className="space-y-2">
+                            <div className="font-semibold text-gray-800 mb-1 md:mb-2 text-sm md:text-base">Sipariş Detayları:</div>
+                            <div className="space-y-1 md:space-y-2">
                               {order.items.map((item, index) => (
                                 <div key={index} className="text-gray-600">
                                   <div>{item.quantity}x {item.name}</div>
@@ -500,8 +496,8 @@ export default function MutfakPanel() {
 
                         {/* Orta Sütun - Sipariş Bilgileri */}
                         <div>
-                          <div className="font-semibold text-gray-800 mb-3">Sipariş Bilgileri:</div>
-                          <div className="space-y-3">
+                          <div className="font-semibold text-gray-800 mb-2 md:mb-3 text-sm md:text-base">Sipariş Bilgileri:</div>
+                          <div className="space-y-2 md:space-y-3">
                             <div className="flex justify-between items-center">
                               <span className="text-gray-600">Tahmini Süre:</span>
                               <span className="font-semibold text-gray-800">{estimatedTime} dk</span>
@@ -516,11 +512,11 @@ export default function MutfakPanel() {
                         </div>
 
                         {/* Sağ Sütun - Aksiyon Butonları */}
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-2 md:gap-3">
                           {order.status === 'pending' && (
                             <button
                               onClick={() => updateOrderStatus(order.id, 'preparing')}
-                              className="px-6 py-4 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2 justify-center"
+                              className="px-4 md:px-6 py-3 md:py-4 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2 justify-center text-sm md:text-base"
                             >
                               ▶ Hazırlığa Başla
                             </button>
@@ -528,20 +524,20 @@ export default function MutfakPanel() {
                           {order.status === 'preparing' && (
                             <button
                               onClick={() => updateOrderStatus(order.id, 'ready')}
-                              className="px-6 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center gap-2 justify-center"
+                              className="px-4 md:px-6 py-3 md:py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center gap-2 justify-center text-sm md:text-base"
                             >
                               ✅ Hazır
                             </button>
                           )}
                           <button
                             onClick={() => showOrderDetails(order)}
-                            className="px-6 py-4 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center gap-2 justify-center"
+                            className="px-4 md:px-6 py-3 md:py-4 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center gap-2 justify-center text-sm md:text-base"
                           >
                             👁 Detaylar
                           </button>
                           <button
                             onClick={() => deleteOrder(order.id)}
-                            className="px-6 py-4 bg-red-100 text-red-600 rounded-lg font-semibold hover:bg-red-200 transition-colors flex items-center gap-2 justify-center border border-red-200"
+                            className="px-4 md:px-6 py-3 md:py-4 bg-red-100 text-red-600 rounded-lg font-semibold hover:bg-red-200 transition-colors flex items-center gap-2 justify-center border border-red-200 text-sm md:text-base"
                           >
                             🗑️ Siparişi Sil
                           </button>
