@@ -22,7 +22,6 @@ import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import TranslatedText from '@/components/TranslatedText';
 import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
 import SetBrandColor from '@/components/SetBrandColor';
-import QuickServiceModal from '@/components/QuickServiceModal';
 import apiService from '@/services/api';
 import useRestaurantStore from '@/store/useRestaurantStore';
 
@@ -39,7 +38,6 @@ function CartPageContent() {
   const [showTipModal, setShowTipModal] = useState(false);
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isQuickServiceModalOpen, setIsQuickServiceModalOpen] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [pendingOrderItems, setPendingOrderItems] = useState<any[]>([]);
   const [sessionKey, setSessionKey] = useState<string | null>(null);
@@ -286,36 +284,6 @@ function CartPageContent() {
   };
 
 
-  // Handle quick service
-  const handleQuickService = async (serviceType: string, customNote?: string) => {
-    if (!currentRestaurant) return;
-
-    try {
-      const response = await fetch('/api/service-call/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          restaurantId: currentRestaurant.id,
-          tableNumber: tableNumber || 1,
-          message: customNote || serviceType,
-          type: serviceType
-        })
-      });
-
-      if (response.ok) {
-        alert('Garson çağrısı gönderildi!'); // Alert translations are harder, leaving as is for now or use Toast
-        setIsQuickServiceModalOpen(false);
-      } else {
-        console.error('Service call failed');
-        alert('Garson çağrısı gönderilemedi');
-      }
-    } catch (error) {
-      console.error('Service call error:', error);
-      alert('Bir hata oluştu');
-    }
-  };
 
   if (!isClient) {
     return (
@@ -690,14 +658,10 @@ function CartPageContent() {
               </div>
               <span className="text-[10px]"><TranslatedText>Sepet</TranslatedText></span>
             </Link>
-            <button
-              onClick={() => setIsQuickServiceModalOpen(true)}
-              className="flex flex-col items-center"
-              style={{ color: primary }}
-            >
+            <Link href="/garson-cagir" className="flex flex-col items-center" style={{ color: primary }}>
               <FaBell className="mb-0.5" size={16} />
               <span className="text-[10px]"><TranslatedText>Garson Çağır</TranslatedText></span>
-            </button>
+            </Link>
           </div>
         </nav>
       </main>
@@ -868,12 +832,6 @@ function CartPageContent() {
         </div>
       )}
 
-      {/* Quick Service Modal */}
-      <QuickServiceModal
-        isOpen={isQuickServiceModalOpen}
-        onClose={() => setIsQuickServiceModalOpen(false)}
-        onServiceCall={handleQuickService}
-      />
     </>
   );
 }
