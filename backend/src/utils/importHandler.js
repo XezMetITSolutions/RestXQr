@@ -55,9 +55,39 @@ async function importKrorenMenu(menuData) {
         for (const item of menuData) {
             const itemNameLower = item.name.toLowerCase();
 
-            // Duplicate Check
-            if (existingNames.has(itemNameLower)) {
-                console.log(`⏭️ Skipping duplicate: ${item.name}`);
+            // Veritabanında ismiyle ara
+            const existingItem = await MenuItem.findOne({
+                where: {
+                    restaurantId: kroren.id,
+                    name: item.name
+                }
+            });
+
+            // Eğer ürün varsa ama resmi eksikse, tamir et
+            if (existingItem) {
+                const hasNoValidImage = !existingItem.imageUrl || existingItem.imageUrl.startsWith('/uploads/');
+
+                if (hasNoValidImage && item.imageUrl && item.imageUrl.startsWith('http')) {
+                    console.log(`🔧 Ürün mevcut ama resmi eksik, tamir ediliyor: ${item.name}`);
+                    try {
+                        const imageResponse = await axios.get(item.imageUrl, { responseType: 'arraybuffer' });
+                        const buffer = Buffer.from(imageResponse.data, 'binary');
+
+                        const uploadResult = await uploadToCloudinary(buffer, {
+                            folder: 'restxqr/products',
+                            public_id: `kroren_repair_${Date.now()}`
+                        });
+
+                        await existingItem.update({ imageUrl: uploadResult.secure_url });
+                        results.added++; // Onarılanı da sayalım
+                        results.details.push({ name: item.name, status: 'repaired' });
+                        continue;
+                    } catch (e) {
+                        console.error(`❌ Tamir hatası: ${item.name}`, e.message);
+                    }
+                }
+
+                console.log(`⏭️ Skipping existing item (already has image): ${item.name}`);
                 results.skipped++;
                 continue;
             }
