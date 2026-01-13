@@ -42,6 +42,26 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('dine_in', 'takeaway', 'delivery'),
       defaultValue: 'dine_in',
       field: 'order_type'
+    },
+    paidAmount: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0,
+      field: 'paid_amount'
+    },
+    discountAmount: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0,
+      field: 'discount_amount'
+    },
+    discountReason: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: 'discount_reason'
+    },
+    cashierNote: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'cashier_note'
     }
   }, {
     tableName: 'orders',

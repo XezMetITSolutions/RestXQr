@@ -249,7 +249,7 @@ router.delete('/bulk', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, items, totalAmount, tableNumber } = req.body;
+    const { status, items, totalAmount, tableNumber, paidAmount, discountAmount, discountReason, cashierNote } = req.body;
     const allowed = ['pending', 'preparing', 'ready', 'completed', 'cancelled'];
     if (status && !allowed.includes(status)) {
       return res.status(400).json({ success: false, message: 'invalid status' });
@@ -258,12 +258,14 @@ router.put('/:id', async (req, res) => {
     const order = await Order.findByPk(id);
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
-    // Status güncelle
+    // Alanları güncelle
     const previousStatus = order.status;
     if (status) order.status = status;
-
-    // Table number güncelle
     if (tableNumber) order.tableNumber = tableNumber;
+    if (paidAmount !== undefined) order.paidAmount = paidAmount;
+    if (discountAmount !== undefined) order.discountAmount = discountAmount;
+    if (discountReason) order.discountReason = discountReason;
+    if (cashierNote) order.cashierNote = cashierNote;
 
     await order.save();
 

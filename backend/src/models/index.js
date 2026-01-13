@@ -111,7 +111,7 @@ const connectDB = async () => {
   try {
     await sequelize.authenticate();
     console.log('✅ PostgreSQL connection established successfully.');
-    
+
     // Sync models (create tables)
     // Production'da force:true asla kullanmayın; veri kaybına neden olur
     if (process.env.NODE_ENV === 'production') {
@@ -123,7 +123,7 @@ const connectDB = async () => {
     }
   } catch (error) {
     console.error('❌ Unable to connect to PostgreSQL:', error);
-    
+
     // In production, don't exit - let Render handle retries
     if (process.env.NODE_ENV === 'production') {
       console.log('⚠️  Retrying database connection...');
