@@ -60,6 +60,67 @@ function CartPageContent() {
     }
   }, []);
 
+  // Aktif siparişleri çek (Geçmiş siparişler görünümü için)
+  useEffect(() => {
+    if (!isClient) return;
+
+    const fetchActiveOrders = async () => {
+      let rId = currentRestaurant?.id;
+
+      // restaurantId yoksa subdomain'den bul (handlePayment'taki mantık)
+      if (!rId && typeof window !== 'undefined') {
+        try {
+          const sub = window.location.hostname.split('.')[0];
+          const base = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
+          const API = base.endsWith('/api') ? base : `${base.replace(/\/$/, '')}/api`;
+          const res = await fetch(`${API}/staff/restaurants`);
+          const data = await res.json();
+          const found = Array.isArray(data?.data) ? data.data.find((r: any) => r.username === sub) : null;
+          rId = found?.id;
+        } catch (e) {
+          console.error('Restaurant resolve error:', e);
+        }
+      }
+
+      if (rId && tableNumber) {
+        try {
+          const base = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
+          const API = base.endsWith('/api') ? base : `${base.replace(/\/$/, '')}/api`;
+          const response = await fetch(`${API}/orders?restaurantId=${rId}&tableNumber=${tableNumber}`);
+          const data = await response.json();
+
+          if (data.success && data.data && data.data.length > 0) {
+            // En son siparişi pendingOrderId olarak al
+            const lastOrder = data.data[0];
+            setPendingOrderId(lastOrder.id);
+
+            // Tüm aktif siparişlerin ürünlerini birleştir
+            const allItems: any[] = [];
+            data.data.forEach((order: any) => {
+              if (order.items && Array.isArray(order.items)) {
+                order.items.forEach((item: any) => {
+                  allItems.push({
+                    itemId: item.id || item.menuItemId,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: item.image,
+                    notes: item.notes
+                  });
+                });
+              }
+            });
+            setPendingOrderItems(allItems);
+          }
+        } catch (error) {
+          console.error('Aktif siparişler çekilemedi:', error);
+        }
+      }
+    };
+
+    fetchActiveOrders();
+  }, [isClient, tableNumber, currentRestaurant]);
+
   // Session'dan sepet ve aktif kullanıcı sayısını güncelle (polling)
   useEffect(() => {
     if (!sessionKey || !clientId) return;

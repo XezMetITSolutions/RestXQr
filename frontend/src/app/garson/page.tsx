@@ -25,9 +25,19 @@ interface Order {
   items: OrderItem[];
 }
 
+interface WaiterCall {
+  id: string;
+  tableNumber: number;
+  type: string;
+  message: string;
+  status: 'active' | 'resolved';
+  createdAt: string;
+}
+
 export default function GarsonPanel() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [calls, setCalls] = useState<WaiterCall[]>([]);
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string>('');
   const [restaurantName, setRestaurantName] = useState<string>('');
@@ -113,16 +123,51 @@ export default function GarsonPanel() {
     } catch (error) {
       console.error('❌ Siparişler alınamadı (Network Error):', error);
     } finally {
-      setLoading(false); // Her durumda loading'i kapat
+      if (!silent) setLoading(false);
+    }
+  };
+
+  // Müşteri çağrılarını çek
+  const fetchCalls = async () => {
+    if (!restaurantId) return;
+    try {
+      const response = await fetch(`${API_URL}/waiter/calls?restaurantId=${restaurantId}`);
+      const data = await response.json();
+      if (data.success) {
+        setCalls(data.data || []);
+      }
+    } catch (error) {
+      console.error('Çağrılar alınamadı:', error);
+    }
+  };
+
+  // Çağrıyı çöz
+  const resolveCall = async (callId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/waiter/calls/${callId}/resolve`, {
+        method: 'PUT'
+      });
+      const data = await response.json();
+      if (data.success) {
+        setCalls(prev => prev.filter(c => c.id !== callId));
+      }
+    } catch (error) {
+      console.error('Çağrı çözülemedi:', error);
     }
   };
 
   useEffect(() => {
     if (restaurantId) {
-      fetchOrders(false); // İlk yükleme normal loading ile
-      fetchMenuItems(); // Menü kalemlerini de çek
-      // Her 10 saniyede bir sessiz güncelleme (AJAX tarzı)
-      const interval = setInterval(() => fetchOrders(true), 10000);
+      const loadData = () => {
+        fetchOrders(true);
+        fetchCalls();
+      };
+
+      fetchOrders(false);
+      fetchCalls();
+      fetchMenuItems();
+
+      const interval = setInterval(loadData, 10000);
       return () => clearInterval(interval);
     }
   }, [restaurantId]);
@@ -279,6 +324,44 @@ export default function GarsonPanel() {
           </button>
         </div>
 
+        {/* Müşteri İstekleri Section */}
+        {calls.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-2 h-6 bg-red-500 rounded-full animate-pulse"></div>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                🔔 Müşteri İstekleri
+                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{calls.length}</span>
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {calls.map((call) => (
+                <div key={call.id} className="bg-white border-l-4 border-red-500 rounded-xl p-4 shadow-lg flex items-center justify-between">
+                  <div>
+                    <div className="text-lg font-bold text-gray-900 mb-1">Masa {call.tableNumber}</div>
+                    <div className="text-sm font-medium text-red-600 flex items-center gap-1">
+                      {call.type === 'water' && '💧 Su İsteği'}
+                      {call.type === 'bill' && '💰 Hesap İsteği'}
+                      {call.type === 'clean' && '🧹 Masa Temizliği'}
+                      {call.type === 'help' && '🤝 Yardım Talebi'}
+                      {call.type === 'custom' && `📝 ${call.message}`}
+                    </div>
+                    <div className="text-[10px] text-gray-400 mt-1">
+                      {new Date(call.createdAt).toLocaleTimeString('tr-TR')}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => resolveCall(call.id)}
+                    className="bg-green-100 text-green-700 hover:bg-green-200 p-3 rounded-xl transition-colors"
+                  >
+                    <FaCheckCircle size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Orders Grid */}
         {loading ? (
           <div className="text-center py-12 text-white">
@@ -312,7 +395,7 @@ export default function GarsonPanel() {
 
                 {/* Order Items - Compact */}
                 <div className="space-y-1 mb-3">
-                  {order.items.slice(0, 3).map((item, index) => (
+                  {order.items.slice(0, 3).map((item: OrderItem, index: number) => (
                     <div key={index} className="flex items-start gap-2 text-sm">
                       <div className="w-6 h-6 bg-purple-100 text-purple-700 rounded flex items-center justify-center text-xs font-bold mt-0.5">
                         {item.quantity}x
@@ -495,7 +578,7 @@ export default function GarsonPanel() {
               <div className="bg-gray-50 rounded-xl p-4">
                 <h4 className="font-semibold text-gray-800 mb-3">📋 Mevcut Sipariş</h4>
                 <div className="space-y-2">
-                  {orderToEdit.items.map((item, idx) => (
+                  {orderToEdit.items.map((item: OrderItem, idx: number) => (
                     <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-lg">
                       <div className="flex items-center gap-3 flex-1">
                         <span className="text-sm flex-1">{item.name}</span>
@@ -504,7 +587,7 @@ export default function GarsonPanel() {
                             onClick={() => {
                               const updatedOrder = {
                                 ...orderToEdit,
-                                items: orderToEdit.items.map((i, index) =>
+                                items: orderToEdit.items.map((i: OrderItem, index: number) =>
                                   index === idx ? { ...i, quantity: Math.max(1, i.quantity - 1) } : i
                                 )
                               };
@@ -519,7 +602,7 @@ export default function GarsonPanel() {
                             onClick={() => {
                               const updatedOrder = {
                                 ...orderToEdit,
-                                items: orderToEdit.items.map((i, index) =>
+                                items: orderToEdit.items.map((i: OrderItem, index: number) =>
                                   index === idx ? { ...i, quantity: i.quantity + 1 } : i
                                 )
                               };
@@ -537,7 +620,7 @@ export default function GarsonPanel() {
                           onClick={() => {
                             const updatedOrder = {
                               ...orderToEdit,
-                              items: orderToEdit.items.filter((_, i) => i !== idx)
+                              items: orderToEdit.items.filter((_: OrderItem, i: number) => i !== idx)
                             };
                             setOrderToEdit(updatedOrder);
                           }}
@@ -555,8 +638,8 @@ export default function GarsonPanel() {
               <div>
                 <h4 className="font-semibold text-gray-800 mb-3">➕ Ürün Ekle</h4>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {menuItems.map((item) => {
-                    const existingItem = orderToEdit.items.find(i => i.name === item.name);
+                  {menuItems.map((item: any) => {
+                    const existingItem = orderToEdit.items.find((i: OrderItem) => i.name === item.name);
                     return (
                       <div key={item.id} className="flex items-center justify-between bg-white p-3 rounded-lg border hover:border-blue-400 transition-colors">
                         <div>

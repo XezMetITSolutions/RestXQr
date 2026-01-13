@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { FaBell, FaArrowLeft, FaGlassWhiskey, FaFileInvoiceDollar, FaSprayCan, FaHandHolding, FaCheckCircle, FaShoppingCart, FaUtensils } from 'react-icons/fa';
 import { useCartStore } from '@/store';
 import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
+import useRestaurantStore from '@/store/useRestaurantStore';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import TranslatedText from '@/components/TranslatedText';
 
@@ -22,44 +23,97 @@ function GarsonCagirContent() {
   const [activeRequests, setActiveRequests] = useState<any[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  const { currentRestaurant } = useRestaurantStore();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   const cartCount = isClient ? cartItems.length : 0;
 
-  const handleQuickRequest = (type: string) => {
+  const handleQuickRequest = async (type: string) => {
+    const restaurantId = currentRestaurant?.id;
+    if (!restaurantId || !tableNumber) {
+      console.warn('⚠️ İstek gönderilemedi: restaurantId veya masa numarası eksik');
+      return;
+    }
+
+    const messages: Record<string, string> = {
+      water: 'Su İsteği',
+      bill: 'Hesap İsteği',
+      clean: 'Masa Temizliği',
+      help: 'Yardım Talebi'
+    };
+
     const newRequest = {
       id: Date.now(),
       type,
+      message: messages[type] || type,
+      tableNumber: parseInt(String(tableNumber)),
+      restaurantId,
       timestamp: new Date().toISOString()
     };
 
-    setActiveRequests(prev => [...prev, newRequest]);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 2000);
+    try {
+      const response = await fetch(`${API_URL}/waiter/call`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newRequest)
+      });
 
-    // TODO: Backend'e gönder
-    console.log('Garson talebi gönderildi:', type);
+      const data = await response.json();
+      if (data.success) {
+        setActiveRequests(prev => [...prev, newRequest]);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 2000);
+      }
+    } catch (error) {
+      console.error('Garson talebi gönderimi başarısız:', error);
+      alert('Talebiniz şu an iletilemiyor, lütfen tekrar deneyin.');
+    }
   };
 
-  const handleSpecialRequest = () => {
+  const handleSpecialRequest = async () => {
     if (!specialRequest.trim()) return;
+
+    const restaurantId = currentRestaurant?.id;
+    if (!restaurantId || !tableNumber) {
+      console.warn('⚠️ İstek gönderilemedi: restaurantId veya masa numarası eksik');
+      return;
+    }
 
     const newRequest = {
       id: Date.now(),
       type: 'custom',
       message: specialRequest,
+      tableNumber: parseInt(String(tableNumber)),
+      restaurantId,
       timestamp: new Date().toISOString()
     };
 
-    setActiveRequests(prev => [...prev, newRequest]);
-    setSpecialRequest('');
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 2000);
+    try {
+      const response = await fetch(`${API_URL}/waiter/call`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newRequest)
+      });
 
-    // TODO: Backend'e gönder
-    console.log('Özel istek gönderildi:', specialRequest);
+      const data = await response.json();
+      if (data.success) {
+        setActiveRequests(prev => [...prev, newRequest]);
+        setSpecialRequest('');
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 2000);
+      }
+    } catch (error) {
+      console.error('Özel istek gönderimi başarısız:', error);
+      alert('İsteğiniz şu an iletilemiyor, lütfen tekrar deneyin.');
+    }
   };
 
   const removeRequest = (id: number) => {

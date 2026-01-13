@@ -3,11 +3,12 @@ const router = express.Router();
 const { Sequelize } = require('sequelize');
 const { Op } = Sequelize;
 const { Order, OrderItem, Restaurant, MenuItem, MenuCategory, QRToken } = require('../models');
+const waiterCalls = require('../lib/waiterStore');
 
 // GET /api/orders?restaurantId=...&status=...
 router.get('/', async (req, res) => {
   try {
-    const { restaurantId, status } = req.query;
+    const { restaurantId, status, tableNumber } = req.query;
     if (!restaurantId) {
       return res.status(400).json({ success: false, message: 'restaurantId is required' });
     }
@@ -16,6 +17,10 @@ router.get('/', async (req, res) => {
 
     if (status) {
       where.status = status;
+    } else if (tableNumber) {
+      // Masa numarası ile sorgulanıyorsa ve status belirtilmemişse, sadece aktif siparişleri getir
+      where.tableNumber = tableNumber;
+      where.status = { [Op.notIn]: ['completed', 'cancelled'] };
     }
 
     const orders = await Order.findAll({
@@ -27,7 +32,7 @@ router.get('/', async (req, res) => {
     const orderIds = orders.map(o => o.id);
     const items = await OrderItem.findAll({
       where: { orderId: orderIds },
-      include: [{ model: MenuItem, as: 'menuItem', attributes: ['id', 'name', 'price', 'categoryId'] }]
+      include: [{ model: MenuItem, as: 'menuItem', attributes: ['id', 'name', 'price', 'imageUrl', 'categoryId'] }]
     });
 
     const orderIdToItems = new Map();
@@ -39,6 +44,7 @@ router.get('/', async (req, res) => {
         quantity: Number(it.quantity || 1),
         price: Number(it.unitPrice || 0),
         notes: it.notes || '',
+        image: it.menuItem?.imageUrl || null,
         // Basit varsayım: tüm ürünler food; paneller kategoriye göre filtreliyor
         category: 'food',
         status: 'preparing',
@@ -274,6 +280,40 @@ router.put('/:id', async (req, res) => {
     if (cashierNote) order.cashierNote = cashierNote;
 
     await order.save();
+
+    // Durum değişikliğini panellere bildir
+    try {
+      const { publish } = require('../lib/realtime');
+      publish('order_update', {
+        orderId: order.id,
+        restaurantId: order.restaurantId,
+        status: order.status,
+        tableNumber: order.tableNumber
+      });
+
+      // Mutfaktan hazır bilgisi geldiğinde garsona otomatik çağrı gönder
+      if (status === 'ready' && previousStatus !== 'ready') {
+        const callId = `ready_${order.id}_${Date.now()}`;
+        const call = {
+          id: callId,
+          restaurantId: order.restaurantId,
+          tableNumber: order.tableNumber,
+          type: 'ready',
+          message: `Masa ${order.tableNumber}: Sipariş Hazır!`,
+          status: 'active',
+          createdAt: new Date().toISOString()
+        };
+
+        // Merkezi store'a ekle (polling için)
+        waiterCalls.set(callId, call);
+
+        // Anlık bildirim gönder
+        publish('waiter_call', call);
+        console.log(`🔔 Otomatik hazır bildirimi gönderildi: Masa ${order.tableNumber}`);
+      }
+    } catch (realtimeError) {
+      console.warn('Realtime update failed:', realtimeError.message);
+    }
 
     // Ödeme tamamlandığında QR token'ı yenile (eski token'ı deaktive et, yeni token oluştur)
     if (status === 'completed' && previousStatus !== 'completed' && order.tableNumber) {

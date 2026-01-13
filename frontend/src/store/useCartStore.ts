@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-// import { persist } from 'zustand/middleware';
-// import { createPersistOptions } from './storageConfig';
+import { persist } from 'zustand/middleware';
+import { createPersistOptions } from './storageConfig';
 // Simple ID generator
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
@@ -27,7 +27,7 @@ interface CartState {
   orderStatus: 'idle' | 'preparing' | 'ready' | 'completed';
   paid: boolean;
   restaurantId: string | null; // Her restoran için ayrı sepet
-  
+
   // Actions
   addItem: (item: Omit<CartItem, 'id'>) => void;
   removeItem: (id: string) => void;
@@ -42,7 +42,7 @@ interface CartState {
   markPaidAndClear: () => void;
   resetTable: () => void;
   moveToPreparing: () => void; // Aktif ürünleri hazırlanan bölümüne taşı
-  
+
   // Computed values
   getTotalItems: () => number;
   getActiveItems: () => number; // Sadece aktif (hazırlanmayan) ürünlerin sayısı
@@ -53,7 +53,9 @@ interface CartState {
   getMaxPreparationTime: () => number; // En uzun hazırlık süresi
 }
 
-const useCartStore = create<CartState>()((set, get) => ({
+const useCartStore = create<CartState>()(
+  persist(
+    (set, get) => ({
       items: [],
       preparingItems: [], // Hazırlanan ürünler
       couponCode: null,
@@ -62,12 +64,12 @@ const useCartStore = create<CartState>()((set, get) => ({
       orderStatus: 'idle', // Default order status
       paid: false,
       restaurantId: null, // Restaurant ID
-      
+
       addItem: (item) => {
         const state = get();
         const items = [...state.items];
         const existingItemIndex = items.findIndex(i => i.itemId === item.itemId);
-        
+
         // Yeni ürün eklenirken sipariş durumunu idle'a çevir (hazırlanan ürünleri etkilemez)
         if (existingItemIndex >= 0) {
           // Item already exists, update quantity
@@ -76,69 +78,69 @@ const useCartStore = create<CartState>()((set, get) => ({
           // Add new item
           items.push({ ...item, id: generateId() });
         }
-        
-        set({ 
+
+        set({
           items,
-          orderStatus: 'idle' 
+          orderStatus: 'idle'
         });
       },
-      
+
       removeItem: (id) => {
         set({ items: get().items.filter(item => item.id !== id) });
       },
-      
+
       updateQuantity: (id, quantity) => {
         const state = get();
-        const updatedItems = state.items.map(item => 
+        const updatedItems = state.items.map(item =>
           item.id === id ? { ...item, quantity } : item
         );
-        set({ 
-          items: updatedItems, 
-          orderStatus: 'idle' 
+        set({
+          items: updatedItems,
+          orderStatus: 'idle'
         });
       },
 
       updateNotes: (id, notes) => {
         const state = get();
-        const updatedItems = state.items.map(item => 
+        const updatedItems = state.items.map(item =>
           item.id === id ? { ...item, notes } : item
         );
         set({ items: updatedItems });
       },
-      
+
       clearCart: () => {
         set({ items: [], preparingItems: [], couponCode: null, tipPercentage: 10, orderStatus: 'idle', paid: false });
       },
-      
+
       setCouponCode: (code) => {
         set({ couponCode: code });
       },
-      
+
       setTipPercentage: (percentage) => {
         set({ tipPercentage: percentage });
       },
-      
+
       setTableNumber: (tableNumber) => {
         set({ tableNumber });
       },
-      
+
       setOrderStatus: (status) => {
         set({ orderStatus: status });
       },
-      
+
       // Restaurant değiştiğinde sepeti temizle
       setRestaurantId: (restaurantId) => {
         const currentRestaurantId = get().restaurantId;
         // Eğer farklı bir restorana geçiyorsa sepeti temizle
         if (currentRestaurantId && currentRestaurantId !== restaurantId) {
-          set({ 
-            items: [], 
-            preparingItems: [], 
-            couponCode: null, 
-            tipPercentage: 10, 
-            orderStatus: 'idle', 
+          set({
+            items: [],
+            preparingItems: [],
+            couponCode: null,
+            tipPercentage: 10,
+            orderStatus: 'idle',
             paid: false,
-            restaurantId 
+            restaurantId
           });
         } else {
           set({ restaurantId });
@@ -158,12 +160,12 @@ const useCartStore = create<CartState>()((set, get) => ({
           }).catch(error => {
             console.error('Token geçersizleştirme hatası:', error);
           });
-          
+
           // Local storage'dan token'ı kaldır
           sessionStorage.removeItem('qr_token');
           console.log('✅ Ödeme tamamlandı, QR token geçersizleştirildi');
         }
-        
+
         set({ items: [], preparingItems: [], couponCode: null, tipPercentage: 10, orderStatus: 'completed', paid: true });
       },
 
@@ -171,65 +173,68 @@ const useCartStore = create<CartState>()((set, get) => ({
       resetTable: () => {
         set({ items: [], preparingItems: [], couponCode: null, tipPercentage: 10, orderStatus: 'idle', paid: false, tableNumber: 0 });
       },
-      
+
       moveToPreparing: () => {
         const state = get();
-        set({ 
+        set({
           preparingItems: [...state.preparingItems, ...state.items],
           items: [],
           orderStatus: 'preparing'
         });
       },
-      
+
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
       },
-      
+
       getActiveItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
       },
-      
+
       getSubtotal: () => {
         return get().items.reduce((total, item) => total + (item.price * item.quantity), 0);
       },
-      
+
       getDiscount: () => {
         const subtotal = get().getSubtotal();
         const couponCode = get().couponCode;
-        
+
         // Simple discount logic - can be expanded
         if (couponCode === 'WELCOME10') {
           return subtotal * 0.1; // 10% discount
         } else if (couponCode === 'MASAPP20') {
           return subtotal * 0.2; // 20% discount
         }
-        
+
         return 0;
       },
-      
+
       getTipAmount: () => {
         const subtotal = get().getSubtotal();
         const discount = get().getDiscount();
         const tipPercentage = get().tipPercentage;
-        
+
         return (subtotal - discount) * (tipPercentage / 100);
       },
-      
+
       getTotal: () => {
         const subtotal = get().getSubtotal();
         const discount = get().getDiscount();
         const tipAmount = get().getTipAmount();
-        
+
         return subtotal - discount + tipAmount;
       },
-      
+
       getMaxPreparationTime: () => {
         const items = get().items;
         if (items.length === 0) return 0;
-        
+
         const maxTime = Math.max(...items.map(item => item.preparationTime || 0));
         return maxTime;
       },
-}));
+    }),
+    createPersistOptions('cart-storage')
+  )
+);
 
 export default useCartStore;
