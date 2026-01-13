@@ -1171,10 +1171,20 @@ export const staticDictionary: { [key: string]: { [key: string]: string } } = {
   'Ödeme Yapan Kişi (Opsiyonel)': { 'en': 'Payer Name (Optional)', 'de': 'Name des Zahlers (Optional)', 'tr': 'Ödeme Yapan Kişi (Opsiyonel)' },
   'Adınızı girin...': { 'en': 'Enter your name...', 'de': 'Geben Sie Ihren Namen ein...', 'tr': 'Adınızı girin...' },
   'Veya Manuel Tutar Girin': { 'en': 'Or Enter Manual Amount', 'de': 'Oder manuellen Betrag eingeben', 'tr': 'Veya Manuel Tutar Girin' },
-  'Maksimum': { 'en': 'Maximum', 'de': 'Maximum', 'tr': 'Maksimum' },
-  'Ödeme Yap': { 'en': 'Make Payment', 'de': 'Zahlen', 'tr': 'Ödeme Yap' },
-  'Garson/Kasa ile ödeme': { 'en': 'Pay via Waiter/Cashier', 'de': 'Zahlung über Kellner/Kasse', 'tr': 'Garson/Kasa ile ödeme' },
-  'Seçili Ürünlerin Toplamı': { 'en': 'Total of Selected Items', 'de': 'Gesamtsumme der ausgewählten Artikel', 'tr': 'Seçili Ürünlerin Toplamı' }
+  // New Cart Countdown & Additional Order Terms
+  'Siparişiniz oluşturuldu!': { 'en': 'Your order has been created!', 'de': 'Ihre Bestellung wurde erstellt!', 'tr': 'Siparişiniz oluşturuldu!' },
+  'saniye içinde panellere iletilecek.': { 'en': 'seconds will be sent to the panels.', 'de': 'Sekunden an die Panels gesendet.', 'tr': 'saniye içinde panellere iletilecek.' },
+  'Bu süre içinde iptal veya değişiklik yapabilirsiniz.': { 'en': 'You can cancel or make changes within this time.', 'de': 'Sie können innerhalb dieser Zeit stornieren oder Änderungen vornehmen.', 'tr': 'Bu süre içinde iptal veya değişiklik yapabilirsiniz.' },
+  'Değişiklik Yap': { 'en': 'Make Changes', 'de': 'Änderungen vornehmen', 'tr': 'Değişiklik Yap' },
+  'İptal Et': { 'en': 'Cancel', 'de': 'Abbrechen', 'tr': 'İptal Et' },
+  '⏳ Siparişiniz onaylanıyor...': { 'en': '⏳ Your order is being confirmed...', 'de': '⏳ Ihre Bestellung wird bestätigt...', 'tr': '⏳ Siparişiniz onaylanıyor...' },
+  'saniye içinde iptal edebilirsiniz': { 'en': 'seconds you can cancel', 'de': 'Sekunden können Sie stornieren', 'tr': 'saniye içinde iptal edebilirsiniz' },
+  '👨‍🍳 Siparişiniz mutfağa iletildi. Afiyet olsun!': { 'en': '👨‍🍳 Your order has been sent to the kitchen. Enjoy!', 'de': '👨‍🍳 Ihre Bestellung wurde an die Küche gesendet. Guten Appetit!', 'tr': '👨‍🍳 Siparişiniz mutfağa iletildi. Afiyet olsun!' },
+  'Siparişi Verilmiş Olanlar': { 'en': 'Already Ordered', 'de': 'Bereits bestellt', 'tr': 'Siparişi Verilmiş Olanlar' },
+  'Sipariş Verildi': { 'en': 'Ordered', 'de': 'Bestellt', 'tr': 'Sipariş Verildi' },
+  'Siparişe Eklenecekler': { 'en': 'To be added to order', 'de': 'Zur Bestellung hinzufügen', 'tr': 'Siparişe Eklenecekler' },
+  'Sepetinizde sipariş edilmemiş yeni ürünler var. Bunları mevcut siparişinize eklemek için siparişi onaylayın.': { 'en': 'You have new unordered items in your cart. Confirm order to add them to your current order.', 'de': 'Sie haben neue nicht bestellte Artikel im Warenkorb. Bestellung bestätigen, um sie Ihrer aktuellen Bestellung hinzuzufügen.', 'tr': 'Sepetinizde sipariş edilmemiş yeni ürünler var. Bunları mevcut siparişinize eklemek için siparişi onaylayın.' },
+  'Ek Siparişi Gönder': { 'en': 'Send Additional Order', 'de': 'Zusatzbestellung senden', 'tr': 'Ek Siparişi Gönder' }
 };
 
 interface TranslatedTextProps {

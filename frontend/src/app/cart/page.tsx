@@ -350,12 +350,12 @@ function CartPageContent() {
         }
 
         // Sepeti temizleme - sipariş verilen ürünler gösterilecek
-        // clearCart(); // Sepeti temizleme, sipariş verilen ürünler gösterilecek
+        clearCart();
         setShowPaymentModal(false);
         setTipAmount(0);
         setDonationAmount(0);
 
-        console.log('✅ Sipariş verildi, sipariş verilen ürünler gösterilecek');
+        console.log('✅ Sipariş verildi, sepet temizlendi ve sipariş verilen ürünler gösterilecek');
       } else {
         console.error('❌ SİPARİŞ BAŞARISIZ:', response);
         alert('❌ Sipariş gönderilemedi. Lütfen tekrar deneyin.');
@@ -455,10 +455,10 @@ function CartPageContent() {
                   <div className="text-2xl flex-shrink-0">⏱️</div>
                   <div className="min-w-0">
                     <div className="font-bold text-gray-900 text-sm sm:text-base">
-                      Siparişiniz oluşturuldu! {confirmationCountdown} saniye içinde panellere iletilecek.
+                      <TranslatedText>Siparişiniz oluşturuldu!</TranslatedText> {confirmationCountdown} <TranslatedText>saniye içinde panellere iletilecek.</TranslatedText>
                     </div>
                     <div className="text-xs sm:text-sm text-gray-700 mt-1">
-                      Bu süre içinde iptal veya değişiklik yapabilirsiniz.
+                      <TranslatedText>Bu süre içinde iptal veya değişiklik yapabilirsiniz.</TranslatedText>
                     </div>
                   </div>
                 </div>
@@ -467,13 +467,13 @@ function CartPageContent() {
                     onClick={handleModifyOrder}
                     className="px-3 sm:px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors whitespace-nowrap text-sm"
                   >
-                    Değişiklik Yap
+                    <TranslatedText>Değişiklik Yap</TranslatedText>
                   </button>
                   <button
                     onClick={handleCancelOrder}
                     className="px-3 sm:px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors whitespace-nowrap text-sm"
                   >
-                    İptal Et
+                    <TranslatedText>İptal Et</TranslatedText>
                   </button>
                 </div>
               </div>
@@ -505,7 +505,10 @@ function CartPageContent() {
                 <div className={`${confirmationCountdown !== null ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200'} border-2 rounded-xl p-4 mb-4 shadow-sm`}>
                   <p className={`text-sm font-medium ${confirmationCountdown !== null ? 'text-yellow-800' : 'text-blue-800'}`}>
                     {confirmationCountdown !== null
-                      ? <TranslatedText>⏳ Siparişiniz onaylanıyor... ({confirmationCountdown} saniye içinde iptal edebilirsiniz)</TranslatedText>
+                      ? <span className="flex items-center gap-1">
+                        <TranslatedText>⏳ Siparişiniz onaylanıyor...</TranslatedText>
+                        <span>({confirmationCountdown} <TranslatedText>saniye içinde iptal edebilirsiniz</TranslatedText>)</span>
+                      </span>
                       : <TranslatedText>👨‍🍳 Siparişiniz mutfağa iletildi. Afiyet olsun!</TranslatedText>
                     }
                   </p>
@@ -549,33 +552,74 @@ function CartPageContent() {
 
           {/* Yeni eklenen ürünler varsa (siparişten sonra) */}
           {pendingOrderId && items && items.length > 0 && (
-            <div className="mt-8 mb-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-2xl text-center shadow-lg">
-              <h3 className="text-xl font-bold text-blue-900 mb-4">
-                <TranslatedText>Yeni Ürünleriniz Var!</TranslatedText>
-              </h3>
-              <p className="text-blue-700 mb-6">
-                <TranslatedText>Sepetinize yeni ürünler eklediniz. Bu ürünleri de siparişinize eklemek için aşağıdaki butona tıklayın.</TranslatedText>
-              </p>
-
-              <div className="bg-white rounded-xl p-4 mb-6 shadow-sm border border-blue-100">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-gray-600 font-medium"><TranslatedText>Eklenen Ürün Sayısı</TranslatedText></span>
-                  <span className="font-bold text-blue-600">{items.length}</span>
-                </div>
-                <div className="flex justify-between items-center font-bold text-lg">
-                  <span><TranslatedText>Ek Tutar</TranslatedText></span>
-                  <span style={{ color: primary }}>{`₺${total.toFixed(2)}`}</span>
-                </div>
+            <div className="mt-8 mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                <h2 className="text-lg font-bold text-gray-800">
+                  <TranslatedText>Siparişe Eklenecekler</TranslatedText>
+                </h2>
               </div>
 
-              <button
-                onClick={handleCheckout}
-                className="w-full py-4 rounded-xl font-bold text-white shadow-xl transition-transform active:scale-95 flex items-center justify-center gap-3"
-                style={{ backgroundColor: primary }}
-              >
-                <FaShoppingCart />
-                <TranslatedText>Yeni Ürünleri Sipariş Ver</TranslatedText>
-              </button>
+              <div className="space-y-3 mb-6">
+                {items.map((item) => (
+                  <div key={item.itemId} className="bg-white rounded-xl shadow-sm border-2 border-blue-100 p-3 flex">
+                    <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                      <Image
+                        src={item.image || '/placeholder-food.jpg'}
+                        alt={item.name}
+                        width={56}
+                        height={56}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                    <div className="ml-3 flex-grow">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-sm text-gray-800">{item.name}</h3>
+                        <button
+                          onClick={() => handleRemoveItem(item.itemId)}
+                          className="text-red-400 p-1"
+                        >
+                          <FaTrash size={10} />
+                        </button>
+                      </div>
+                      <div className="flex justify-between items-center mt-1">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleUpdateQuantity(item.itemId, item.quantity - 1)}
+                            className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center"
+                          >
+                            <FaMinus size={8} />
+                          </button>
+                          <span className="text-xs font-bold">{item.quantity}</span>
+                          <button
+                            onClick={() => handleUpdateQuantity(item.itemId, item.quantity + 1)}
+                            className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center"
+                          >
+                            <FaPlus size={8} />
+                          </button>
+                        </div>
+                        <span className="font-bold text-sm" style={{ color: primary }}>
+                          ₺{(item.price * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-blue-50 rounded-2xl p-5 border-2 border-blue-100 shadow-sm text-center">
+                <p className="text-blue-700 text-sm mb-4 font-medium">
+                  <TranslatedText>Sepetinizde sipariş edilmemiş yeni ürünler var. Bunları mevcut siparişinize eklemek için siparişi onaylayın.</TranslatedText>
+                </p>
+                <button
+                  onClick={handleCheckout}
+                  className="w-full py-4 rounded-xl font-bold text-white shadow-xl flex items-center justify-center gap-3 transition-transform active:scale-95"
+                  style={{ backgroundColor: primary }}
+                >
+                  <FaShoppingCart />
+                  <TranslatedText>Ek Siparişi Gönder</TranslatedText>
+                </button>
+              </div>
             </div>
           )}
 
