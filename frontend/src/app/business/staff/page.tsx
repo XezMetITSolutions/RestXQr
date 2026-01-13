@@ -369,6 +369,31 @@ export default function StaffPage() {
     alert(t('Personel bilgileri başarıyla güncellendi!'));
   };
 
+  const handleGoToPanel = (staffMember: any) => {
+    if (!authenticatedRestaurant) return;
+
+    const loginData = {
+      id: staffMember.id,
+      name: staffMember.name,
+      role: staffMember.role,
+      restaurantId: staffMember.restaurantId,
+      restaurantName: authenticatedRestaurant.name,
+      restaurantUsername: authenticatedRestaurant.username
+    };
+
+    // Staff session bilgilerini hazırla
+    localStorage.setItem('staff_user', JSON.stringify(loginData));
+    localStorage.setItem('staff_token', 'authenticated'); // Admin tarafından giriş yapıldığı için token simüle ediliyor
+
+    // Role göre ilgili panele yönlendir
+    let panelUrl = '/garson';
+    if (staffMember.role === 'chef') panelUrl = '/mutfak';
+    else if (staffMember.role === 'cashier') panelUrl = '/kasa';
+    else if (staffMember.role === 'manager') panelUrl = '/mutfak'; // Menajerler genelde mutfak/sipariş görür
+
+    window.open(panelUrl, '_blank');
+  };
+
   const handleDeleteStaff = async (staffId: number) => {
     console.log('🗑️ Deleting staff:', staffId);
     if (confirm(t('Bu personeli silmek istediğinizden emin misiniz?'))) {
@@ -596,6 +621,15 @@ export default function StaffPage() {
                         </p>
                       </div>
 
+                      <button
+                        onClick={() => handleGoToPanel(member)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors text-xs font-semibold"
+                        title={t('Panelini Aç')}
+                      >
+                        <FaSignOutAlt className="rotate-180" />
+                        <TranslatedText>Paneline Gir</TranslatedText>
+                      </button>
+
                       <div className="flex items-center gap-2">
                         {individualStaffPanelsEnabled && (
                           <button
@@ -713,9 +747,14 @@ export default function StaffPage() {
                     )}
 
                     <div className="flex items-center justify-between mt-3">
-                      <span className="text-xs text-gray-500">
-                        {getDepartmentText(member.department)}
-                      </span>
+                      <button
+                        onClick={() => handleGoToPanel(member)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-[11px] font-bold"
+                      >
+                        <FaSignOutAlt className="rotate-180" />
+                        <TranslatedText>Paneline Gir</TranslatedText>
+                      </button>
+
                       <div className="flex gap-1">
                         {individualStaffPanelsEnabled && (
                           <button
@@ -749,539 +788,544 @@ export default function StaffPage() {
                 </div>
               </div>
             ))}
-
-            {filteredStaff.length === 0 && (
-              <div className="text-center py-8">
-                <FaUsers className="text-3xl text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm"><TranslatedText>Personel bulunamadı</TranslatedText></p>
-                <p className="text-gray-400 text-xs mt-1"><TranslatedText>Filtreleri değiştirerek tekrar deneyin</TranslatedText></p>
-              </div>
-            )}
           </div>
-        </div>
-      </div>
 
-      {/* Personel Ekleme Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-xl max-w-md w-full max-h-[95vh] overflow-y-auto">
-            <div className="p-4 sm:p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg sm:text-xl font-bold"><TranslatedText>Yeni Personel Ekle</TranslatedText></h3>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="text-gray-500 hover:text-gray-700 p-1"
-                >
-                  <FaTimes size={18} />
-                </button>
-              </div>
-
-              <div className="space-y-3 sm:space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    <TranslatedText>Ad Soyad *</TranslatedText>
-                  </label>
-                  <input
-                    type="text"
-                    value={newStaff.name}
-                    onChange={(e) => setNewStaff({ ...newStaff, name: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
-                    placeholder={t('Personel adı')}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    <TranslatedText>Kullanıcı Adı *</TranslatedText>
-                  </label>
-                  <input
-                    type="text"
-                    value={newStaff.username}
-                    onChange={(e) => setNewStaff({ ...newStaff, username: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
-                    placeholder={t('Kullanıcı adı')}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    <TranslatedText>Şifre *</TranslatedText>
-                  </label>
-                  <input
-                    type="password"
-                    value={newStaff.password}
-                    onChange={(e) => setNewStaff({ ...newStaff, password: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
-                    placeholder="••••••••"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    <TranslatedText>E-posta *</TranslatedText>
-                  </label>
-                  <input
-                    type="email"
-                    value={newStaff.email}
-                    onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
-                    placeholder="email@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    <TranslatedText>Telefon</TranslatedText>
-                  </label>
-                  <input
-                    type="text"
-                    value={newStaff.phone}
-                    onChange={(e) => setNewStaff({ ...newStaff, phone: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
-                    placeholder="0532 123 45 67"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                      <TranslatedText>Rol *</TranslatedText>
-                    </label>
-                    <select
-                      value={newStaff.role}
-                      onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value })}
-                      className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
-                    >
-                      <option value="waiter">{t('Garson')}</option>
-                      <option value="chef">{t('Aşçı')}</option>
-                      <option value="cashier">{t('Kasiyer')}</option>
-                      {/* Yönetici seçeneği kaldırıldı - sadece operasyonel personel */}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                      <TranslatedText>Departman</TranslatedText>
-                    </label>
-                    <select
-                      value={newStaff.department}
-                      onChange={(e) => setNewStaff({ ...newStaff, department: e.target.value })}
-                      className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
-                    >
-                      <option value="service">{t('Servis')}</option>
-                      <option value="kitchen">{t('Mutfak')}</option>
-                      <option value="finance">{t('Mali İşler')}</option>
-                      <option value="management">{t('Yönetim')}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    <TranslatedText>Notlar</TranslatedText>
-                  </label>
-                  <textarea
-                    value={newStaff.notes}
-                    onChange={(e) => setNewStaff({ ...newStaff, notes: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
-                    placeholder={t('Personel hakkında notlar...')}
-                  />
-                </div>
-
-                <button
-                  onClick={handleAddStaff}
-                  className="w-full py-2.5 sm:py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2 text-sm sm:text-base"
-                >
-                  <FaUserPlus className="text-sm" />
-                  <TranslatedText>Personel Ekle</TranslatedText>
-                </button>
-              </div>
+          {filteredStaff.length === 0 && (
+            <div className="text-center py-8">
+              <FaUsers className="text-3xl text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-500 text-sm"><TranslatedText>Personel bulunamadı</TranslatedText></p>
+              <p className="text-gray-400 text-xs mt-1"><TranslatedText>Filtreleri değiştirerek tekrar deneyin</TranslatedText></p>
             </div>
-          </div>
+          )}
         </div>
-      )}
 
-      {/* Personel Düzenleme Modal */}
-      {showEditModal && selectedStaff && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-xl max-w-md w-full max-h-[95vh] overflow-y-auto">
-            <div className="p-4 sm:p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg sm:text-xl font-bold"><TranslatedText>Personel Düzenle</TranslatedText></h3>
-                <button
-                  onClick={() => setShowEditModal(false)}
-                  className="text-gray-500 hover:text-gray-700 p-1"
-                >
-                  <FaTimes size={18} />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <TranslatedText>Ad Soyad *</TranslatedText>
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedStaff.name}
-                    onChange={(e) => setSelectedStaff({ ...selectedStaff, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <TranslatedText>E-posta *</TranslatedText>
-                  </label>
-                  <input
-                    type="email"
-                    value={selectedStaff.email}
-                    onChange={(e) => setSelectedStaff({ ...selectedStaff, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <TranslatedText>Telefon</TranslatedText>
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedStaff.phone}
-                    onChange={(e) => setSelectedStaff({ ...selectedStaff, phone: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Rol *</TranslatedText>
-                    </label>
-                    <select
-                      value={selectedStaff.role}
-                      onChange={(e) => setSelectedStaff({ ...selectedStaff, role: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+        {/* Personel Ekleme Modal */}
+        {
+          showAddModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-3 sm:p-4">
+              <div className="bg-white rounded-xl max-w-md w-full max-h-[95vh] overflow-y-auto">
+                <div className="p-4 sm:p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg sm:text-xl font-bold"><TranslatedText>Yeni Personel Ekle</TranslatedText></h3>
+                    <button
+                      onClick={() => setShowAddModal(false)}
+                      className="text-gray-500 hover:text-gray-700 p-1"
                     >
-                      <option value="waiter">{t('Garson')}</option>
-                      <option value="chef">{t('Aşçı')}</option>
-                      <option value="cashier">{t('Kasiyer')}</option>
-                      {/* Yönetici seçeneği kaldırıldı - sadece operasyonel personel */}
-                    </select>
+                      <FaTimes size={18} />
+                    </button>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Durum</TranslatedText>
-                    </label>
-                    <select
-                      value={selectedStaff.status}
-                      onChange={(e) => setSelectedStaff({ ...selectedStaff, status: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="active">{t('Aktif')}</option>
-                      <option value="inactive">{t('Pasif')}</option>
-                      <option value="on_leave">{t('İzinli')}</option>
-                      <option value="terminated">{t('İşten Ayrıldı')}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <TranslatedText>Notlar</TranslatedText>
-                  </label>
-                  <textarea
-                    value={selectedStaff.notes}
-                    onChange={(e) => setSelectedStaff({ ...selectedStaff, notes: e.target.value })}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div className="border-t pt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3"><TranslatedText>Giriş Bilgileri</TranslatedText></h4>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Kullanıcı Adı</TranslatedText>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                        <TranslatedText>Ad Soyad *</TranslatedText>
                       </label>
                       <input
                         type="text"
-                        value={selectedStaff.username || ''}
-                        onChange={(e) => setSelectedStaff({ ...selectedStaff, username: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        value={newStaff.name}
+                        onChange={(e) => setNewStaff({ ...newStaff, name: e.target.value })}
+                        className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                        placeholder={t('Personel adı')}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                        <TranslatedText>Kullanıcı Adı *</TranslatedText>
+                      </label>
+                      <input
+                        type="text"
+                        value={newStaff.username}
+                        onChange={(e) => setNewStaff({ ...newStaff, username: e.target.value })}
+                        className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
                         placeholder={t('Kullanıcı adı')}
                       />
                     </div>
+
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Şifre</TranslatedText>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                        <TranslatedText>Şifre *</TranslatedText>
                       </label>
                       <input
                         type="password"
-                        value={selectedStaff.password || ''}
-                        onChange={(e) => setSelectedStaff({ ...selectedStaff, password: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                        placeholder={t('Yeni şifre')}
+                        value={newStaff.password}
+                        onChange={(e) => setNewStaff({ ...newStaff, password: e.target.value })}
+                        className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                        placeholder="••••••••"
                       />
                     </div>
-                  </div>
-                </div>
 
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowEditModal(false)}
-                    className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                  >
-                    <TranslatedText>İptal</TranslatedText>
-                  </button>
-                  <button
-                    onClick={handleUpdateStaff}
-                    className="flex-1 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2"
-                  >
-                    <FaUserEdit />
-                    <TranslatedText>Güncelle</TranslatedText>
-                  </button>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                        <TranslatedText>E-posta *</TranslatedText>
+                      </label>
+                      <input
+                        type="email"
+                        value={newStaff.email}
+                        onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
+                        className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                        placeholder="email@example.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                        <TranslatedText>Telefon</TranslatedText>
+                      </label>
+                      <input
+                        type="text"
+                        value={newStaff.phone}
+                        onChange={(e) => setNewStaff({ ...newStaff, phone: e.target.value })}
+                        className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                        placeholder="0532 123 45 67"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                          <TranslatedText>Rol *</TranslatedText>
+                        </label>
+                        <select
+                          value={newStaff.role}
+                          onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value })}
+                          className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                        >
+                          <option value="waiter">{t('Garson')}</option>
+                          <option value="chef">{t('Aşçı')}</option>
+                          <option value="cashier">{t('Kasiyer')}</option>
+                          {/* Yönetici seçeneği kaldırıldı - sadece operasyonel personel */}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                          <TranslatedText>Departman</TranslatedText>
+                        </label>
+                        <select
+                          value={newStaff.department}
+                          onChange={(e) => setNewStaff({ ...newStaff, department: e.target.value })}
+                          className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                        >
+                          <option value="service">{t('Servis')}</option>
+                          <option value="kitchen">{t('Mutfak')}</option>
+                          <option value="finance">{t('Mali İşler')}</option>
+                          <option value="management">{t('Yönetim')}</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                        <TranslatedText>Notlar</TranslatedText>
+                      </label>
+                      <textarea
+                        value={newStaff.notes}
+                        onChange={(e) => setNewStaff({ ...newStaff, notes: e.target.value })}
+                        rows={3}
+                        className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                        placeholder={t('Personel hakkında notlar...')}
+                      />
+                    </div>
+
+                    <button
+                      onClick={handleAddStaff}
+                      className="w-full py-2.5 sm:py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2 text-sm sm:text-base"
+                    >
+                      <FaUserPlus className="text-sm" />
+                      <TranslatedText>Personel Ekle</TranslatedText>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )
+        }
 
-      {/* Panel Bilgileri Modal */}
-      {individualStaffPanelsEnabled && showPanelModal && selectedStaff && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[95vh] overflow-y-auto">
-            <div className="p-4 sm:p-6">
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-xl font-bold"><TranslatedText>Panel Bilgileri</TranslatedText> - {selectedStaff.name}</h3>
-                <button
-                  onClick={() => setShowPanelModal(false)}
-                  className="text-gray-500 hover:text-gray-700 p-1"
-                >
-                  <FaTimes size={18} />
-                </button>
-              </div>
+        {/* Personel Düzenleme Modal */}
+        {
+          showEditModal && selectedStaff && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-3 sm:p-4">
+              <div className="bg-white rounded-xl max-w-md w-full max-h-[95vh] overflow-y-auto">
+                <div className="p-4 sm:p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg sm:text-xl font-bold"><TranslatedText>Personel Düzenle</TranslatedText></h3>
+                    <button
+                      onClick={() => setShowEditModal(false)}
+                      className="text-gray-500 hover:text-gray-700 p-1"
+                    >
+                      <FaTimes size={18} />
+                    </button>
+                  </div>
 
-              <div className="space-y-6">
-                {/* Mevcut Panel Bilgileri */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3"><TranslatedText>Mevcut Panel Bilgileri</TranslatedText></h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        <TranslatedText>Panel URL</TranslatedText>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Ad Soyad *</TranslatedText>
                       </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={settings.staffCredentials[selectedStaff.id]?.panelUrl || ''}
-                          readOnly
-                          className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
-                        />
-                        <button
-                          onClick={() => {
-                            const url = settings.staffCredentials[selectedStaff.id]?.panelUrl;
-                            if (url) {
+                      <input
+                        type="text"
+                        value={selectedStaff.name}
+                        onChange={(e) => setSelectedStaff({ ...selectedStaff, name: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>E-posta *</TranslatedText>
+                      </label>
+                      <input
+                        type="email"
+                        value={selectedStaff.email}
+                        onChange={(e) => setSelectedStaff({ ...selectedStaff, email: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Telefon</TranslatedText>
+                      </label>
+                      <input
+                        type="text"
+                        value={selectedStaff.phone}
+                        onChange={(e) => setSelectedStaff({ ...selectedStaff, phone: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <TranslatedText>Rol *</TranslatedText>
+                        </label>
+                        <select
+                          value={selectedStaff.role}
+                          onChange={(e) => setSelectedStaff({ ...selectedStaff, role: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        >
+                          <option value="waiter">{t('Garson')}</option>
+                          <option value="chef">{t('Aşçı')}</option>
+                          <option value="cashier">{t('Kasiyer')}</option>
+                          {/* Yönetici seçeneği kaldırıldı - sadece operasyonel personel */}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <TranslatedText>Durum</TranslatedText>
+                        </label>
+                        <select
+                          value={selectedStaff.status}
+                          onChange={(e) => setSelectedStaff({ ...selectedStaff, status: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        >
+                          <option value="active">{t('Aktif')}</option>
+                          <option value="inactive">{t('Pasif')}</option>
+                          <option value="on_leave">{t('İzinli')}</option>
+                          <option value="terminated">{t('İşten Ayrıldı')}</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Notlar</TranslatedText>
+                      </label>
+                      <textarea
+                        value={selectedStaff.notes}
+                        onChange={(e) => setSelectedStaff({ ...selectedStaff, notes: e.target.value })}
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3"><TranslatedText>Giriş Bilgileri</TranslatedText></h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <TranslatedText>Kullanıcı Adı</TranslatedText>
+                          </label>
+                          <input
+                            type="text"
+                            value={selectedStaff.username || ''}
+                            onChange={(e) => setSelectedStaff({ ...selectedStaff, username: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                            placeholder={t('Kullanıcı adı')}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <TranslatedText>Şifre</TranslatedText>
+                          </label>
+                          <input
+                            type="password"
+                            value={selectedStaff.password || ''}
+                            onChange={(e) => setSelectedStaff({ ...selectedStaff, password: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                            placeholder={t('Yeni şifre')}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowEditModal(false)}
+                        className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                      >
+                        <TranslatedText>İptal</TranslatedText>
+                      </button>
+                      <button
+                        onClick={handleUpdateStaff}
+                        className="flex-1 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2"
+                      >
+                        <FaUserEdit />
+                        <TranslatedText>Güncelle</TranslatedText>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        {/* Panel Bilgileri Modal */}
+        {
+          individualStaffPanelsEnabled && showPanelModal && selectedStaff && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-3 sm:p-4">
+              <div className="bg-white rounded-xl max-w-2xl w-full max-h-[95vh] overflow-y-auto">
+                <div className="p-4 sm:p-6">
+                  <div className="flex justify-between items-center mb-4 sm:mb-6">
+                    <h3 className="text-lg sm:text-xl font-bold"><TranslatedText>Panel Bilgileri</TranslatedText> - {selectedStaff.name}</h3>
+                    <button
+                      onClick={() => setShowPanelModal(false)}
+                      className="text-gray-500 hover:text-gray-700 p-1"
+                    >
+                      <FaTimes size={18} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Mevcut Panel Bilgileri */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-800 mb-3"><TranslatedText>Mevcut Panel Bilgileri</TranslatedText></h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <TranslatedText>Panel URL</TranslatedText>
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={settings.staffCredentials[selectedStaff.id]?.panelUrl || ''}
+                              readOnly
+                              className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
+                            />
+                            <button
+                              onClick={() => {
+                                const url = settings.staffCredentials[selectedStaff.id]?.panelUrl;
+                                if (url) {
+                                  navigator.clipboard.writeText(url);
+                                  alert(t('URL kopyalandı!'));
+                                }
+                              }}
+                              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                            >
+                              <TranslatedText>Kopyala</TranslatedText>
+                            </button>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <TranslatedText>Kullanıcı Adı</TranslatedText>
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={settings.staffCredentials[selectedStaff.id]?.username || ''}
+                              readOnly
+                              className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
+                            />
+                            <button
+                              onClick={() => {
+                                const username = settings.staffCredentials[selectedStaff.id]?.username;
+                                if (username) {
+                                  navigator.clipboard.writeText(username);
+                                  alert(t('Kullanıcı adı kopyalandı!'));
+                                }
+                              }}
+                              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                            >
+                              <TranslatedText>Kopyala</TranslatedText>
+                            </button>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <TranslatedText>Şifre</TranslatedText>
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="password"
+                              value={settings.staffCredentials[selectedStaff.id]?.password || ''}
+                              readOnly
+                              className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
+                            />
+                            <button
+                              onClick={() => {
+                                const password = settings.staffCredentials[selectedStaff.id]?.password;
+                                if (password) {
+                                  navigator.clipboard.writeText(password);
+                                  alert(t('Şifre kopyalandı!'));
+                                }
+                              }}
+                              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                            >
+                              <TranslatedText>Kopyala</TranslatedText>
+                            </button>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <TranslatedText>Durum</TranslatedText>
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-3 py-2 rounded-lg text-sm font-medium ${settings.staffCredentials[selectedStaff.id]?.isActive
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                              }`}>
+                              {settings.staffCredentials[selectedStaff.id]?.isActive ? t('Aktif') : t('Pasif')}
+                            </span>
+                            <button
+                              onClick={() => {
+                                updateStaffCredentials(selectedStaff.id, {
+                                  ...settings.staffCredentials[selectedStaff.id],
+                                  isActive: !settings.staffCredentials[selectedStaff.id]?.isActive
+                                });
+                              }}
+                              className={`px-3 py-2 rounded-lg text-sm font-medium ${settings.staffCredentials[selectedStaff.id]?.isActive
+                                ? 'bg-red-600 text-white hover:bg-red-700'
+                                : 'bg-green-600 text-white hover:bg-green-700'
+                                }`}
+                            >
+                              {settings.staffCredentials[selectedStaff.id]?.isActive ? t('Pasif Yap') : t('Aktif Yap')}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Yeni Panel Oluştur */}
+                    <div className="bg-purple-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-800 mb-3"><TranslatedText>Yeni Panel Oluştur</TranslatedText></h4>
+                      <p className="text-sm text-gray-600 mb-4">
+                        <TranslatedText>Bu personel için yeni panel bilgileri oluşturmak istiyorsanız aşağıdaki butona tıklayın.</TranslatedText>
+                      </p>
+                      <button
+                        onClick={() => {
+                          generateStaffCredentials(selectedStaff.id, selectedStaff.role);
+                          alert(t('Yeni panel bilgileri oluşturuldu!'));
+                        }}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                      >
+                        <FaCog />
+                        <TranslatedText>Yeni Panel Oluştur</TranslatedText>
+                      </button>
+                    </div>
+
+                    {/* Panel Erişim Bilgileri */}
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-800 mb-3"><TranslatedText>Panel Erişim Bilgileri</TranslatedText></h4>
+                      <div className="space-y-3 text-sm text-gray-700">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p><strong><TranslatedText>Garson Paneli</TranslatedText>:</strong></p>
+                            <p className="font-mono text-xs text-blue-600">garson.{settings.basicInfo.subdomain}.com</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const url = `https://garson.${settings.basicInfo.subdomain}.com`;
                               navigator.clipboard.writeText(url);
                               alert(t('URL kopyalandı!'));
-                            }
-                          }}
-                          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-                        >
-                          <TranslatedText>Kopyala</TranslatedText>
-                        </button>
+                            }}
+                            className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
+                            title={t('Kopyala')}
+                          >
+                            <FaCopy size={12} />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p><strong><TranslatedText>Kasa Paneli</TranslatedText>:</strong></p>
+                            <p className="font-mono text-xs text-blue-600">kasa.{settings.basicInfo.subdomain}.com</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const url = `https://kasa.${settings.basicInfo.subdomain}.com`;
+                              navigator.clipboard.writeText(url);
+                              alert(t('URL kopyalandı!'));
+                            }}
+                            className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
+                            title={t('Kopyala')}
+                          >
+                            <FaCopy size={12} />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p><strong><TranslatedText>Mutfak Paneli</TranslatedText>:</strong></p>
+                            <p className="font-mono text-xs text-blue-600">mutfak.{settings.basicInfo.subdomain}.com</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const url = `https://mutfak.${settings.basicInfo.subdomain}.com`;
+                              navigator.clipboard.writeText(url);
+                              alert(t('URL kopyalandı!'));
+                            }}
+                            className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
+                            title={t('Kopyala')}
+                          >
+                            <FaCopy size={12} />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p><strong><TranslatedText>Yönetici Paneli</TranslatedText>:</strong></p>
+                            <p className="font-mono text-xs text-blue-600">yonetici.{settings.basicInfo.subdomain}.com</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const url = `https://yonetici.${settings.basicInfo.subdomain}.com`;
+                              navigator.clipboard.writeText(url);
+                              alert(t('URL kopyalandı!'));
+                            }}
+                            className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
+                            title={t('Kopyala')}
+                          >
+                            <FaCopy size={12} />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        <TranslatedText>Kullanıcı Adı</TranslatedText>
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={settings.staffCredentials[selectedStaff.id]?.username || ''}
-                          readOnly
-                          className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
-                        />
-                        <button
-                          onClick={() => {
-                            const username = settings.staffCredentials[selectedStaff.id]?.username;
-                            if (username) {
-                              navigator.clipboard.writeText(username);
-                              alert(t('Kullanıcı adı kopyalandı!'));
-                            }
-                          }}
-                          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-                        >
-                          <TranslatedText>Kopyala</TranslatedText>
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        <TranslatedText>Şifre</TranslatedText>
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="password"
-                          value={settings.staffCredentials[selectedStaff.id]?.password || ''}
-                          readOnly
-                          className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
-                        />
-                        <button
-                          onClick={() => {
-                            const password = settings.staffCredentials[selectedStaff.id]?.password;
-                            if (password) {
-                              navigator.clipboard.writeText(password);
-                              alert(t('Şifre kopyalandı!'));
-                            }
-                          }}
-                          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-                        >
-                          <TranslatedText>Kopyala</TranslatedText>
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        <TranslatedText>Durum</TranslatedText>
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-3 py-2 rounded-lg text-sm font-medium ${settings.staffCredentials[selectedStaff.id]?.isActive
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                          }`}>
-                          {settings.staffCredentials[selectedStaff.id]?.isActive ? t('Aktif') : t('Pasif')}
-                        </span>
-                        <button
-                          onClick={() => {
-                            updateStaffCredentials(selectedStaff.id, {
-                              ...settings.staffCredentials[selectedStaff.id],
-                              isActive: !settings.staffCredentials[selectedStaff.id]?.isActive
-                            });
-                          }}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium ${settings.staffCredentials[selectedStaff.id]?.isActive
-                            ? 'bg-red-600 text-white hover:bg-red-700'
-                            : 'bg-green-600 text-white hover:bg-green-700'
-                            }`}
-                        >
-                          {settings.staffCredentials[selectedStaff.id]?.isActive ? t('Pasif Yap') : t('Aktif Yap')}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Yeni Panel Oluştur */}
-                <div className="bg-purple-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3"><TranslatedText>Yeni Panel Oluştur</TranslatedText></h4>
-                  <p className="text-sm text-gray-600 mb-4">
-                    <TranslatedText>Bu personel için yeni panel bilgileri oluşturmak istiyorsanız aşağıdaki butona tıklayın.</TranslatedText>
-                  </p>
-                  <button
-                    onClick={() => {
-                      generateStaffCredentials(selectedStaff.id, selectedStaff.role);
-                      alert(t('Yeni panel bilgileri oluşturuldu!'));
-                    }}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-                  >
-                    <FaCog />
-                    <TranslatedText>Yeni Panel Oluştur</TranslatedText>
-                  </button>
-                </div>
-
-                {/* Panel Erişim Bilgileri */}
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3"><TranslatedText>Panel Erişim Bilgileri</TranslatedText></h4>
-                  <div className="space-y-3 text-sm text-gray-700">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p><strong><TranslatedText>Garson Paneli</TranslatedText>:</strong></p>
-                        <p className="font-mono text-xs text-blue-600">garson.{settings.basicInfo.subdomain}.com</p>
-                      </div>
+                    <div className="flex gap-3">
                       <button
-                        onClick={() => {
-                          const url = `https://garson.${settings.basicInfo.subdomain}.com`;
-                          navigator.clipboard.writeText(url);
-                          alert(t('URL kopyalandı!'));
-                        }}
-                        className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
-                        title={t('Kopyala')}
+                        onClick={() => setShowPanelModal(false)}
+                        className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                       >
-                        <FaCopy size={12} />
-                      </button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p><strong><TranslatedText>Kasa Paneli</TranslatedText>:</strong></p>
-                        <p className="font-mono text-xs text-blue-600">kasa.{settings.basicInfo.subdomain}.com</p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          const url = `https://kasa.${settings.basicInfo.subdomain}.com`;
-                          navigator.clipboard.writeText(url);
-                          alert(t('URL kopyalandı!'));
-                        }}
-                        className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
-                        title={t('Kopyala')}
-                      >
-                        <FaCopy size={12} />
-                      </button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p><strong><TranslatedText>Mutfak Paneli</TranslatedText>:</strong></p>
-                        <p className="font-mono text-xs text-blue-600">mutfak.{settings.basicInfo.subdomain}.com</p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          const url = `https://mutfak.${settings.basicInfo.subdomain}.com`;
-                          navigator.clipboard.writeText(url);
-                          alert(t('URL kopyalandı!'));
-                        }}
-                        className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
-                        title={t('Kopyala')}
-                      >
-                        <FaCopy size={12} />
-                      </button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p><strong><TranslatedText>Yönetici Paneli</TranslatedText>:</strong></p>
-                        <p className="font-mono text-xs text-blue-600">yonetici.{settings.basicInfo.subdomain}.com</p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          const url = `https://yonetici.${settings.basicInfo.subdomain}.com`;
-                          navigator.clipboard.writeText(url);
-                          alert(t('URL kopyalandı!'));
-                        }}
-                        className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
-                        title={t('Kopyala')}
-                      >
-                        <FaCopy size={12} />
+                        <TranslatedText>Kapat</TranslatedText>
                       </button>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowPanelModal(false)}
-                    className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                  >
-                    <TranslatedText>Kapat</TranslatedText>
-                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+      </div>
     </div>
   );
 }
