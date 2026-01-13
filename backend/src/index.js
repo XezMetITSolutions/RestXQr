@@ -607,8 +607,18 @@ app.post('/api/demo-request', async (req, res) => {
   }
 });
 
+// Admin Preview - Kroren Menu Data
+app.get('/api/admin/import-preview', (req, res) => {
+  try {
+    const menuData = require('./data/kroren_scraped.json');
+    res.json(menuData);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Admin Import - Kroren Menu
-app.post('/api/admin/import-kroren', async (req, res) => {
+app.all('/api/admin/import-kroren', async (req, res) => {
   try {
     const { importKrorenMenu } = require('./utils/importHandler');
     const menuData = require('./data/kroren_scraped.json');
