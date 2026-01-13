@@ -315,8 +315,8 @@ export default function KasaPanel() {
       </div>
 
       {showPaymentModal && selectedOrder && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4">
+          <div className="bg-white rounded-[32px] md:rounded-[40px] shadow-2xl w-full max-w-6xl max-h-[96vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
             <div className="p-8 border-b flex justify-between items-center bg-gray-50/50">
               <div className="flex items-center gap-6">
                 <div className="w-20 h-20 bg-gray-900 text-white rounded-[30px] flex items-center justify-center text-3xl font-black shadow-2xl">
@@ -435,20 +435,57 @@ export default function KasaPanel() {
                   <textarea placeholder="NOT EKLE..." value={selectedOrder.cashierNote || ''} onChange={e => setSelectedOrder({ ...selectedOrder, cashierNote: e.target.value })} className="w-full p-6 bg-white border border-gray-200 rounded-[32px] text-xs font-bold outline-none focus:border-green-500" rows={2} />
                 </div>
 
-                <div className="space-y-4 pt-6">
-                  <button onClick={() => {
-                    let val = 0;
-                    if (paymentTab === 'selective') val = selectedItemIndexes.reduce((s, i) => s + (selectedOrder.items[i].price * selectedOrder.items[i].quantity), 0);
-                    else if (paymentTab === 'manual') val = Number(manualAmount);
-                    else val = Number(selectedOrder.totalAmount) - Number(selectedOrder.paidAmount) - Number(selectedOrder.discountAmount);
+                <div className="space-y-4 pt-6 mt-auto">
+                  <div className="grid grid-cols-1 gap-3">
+                    <button
+                      onClick={() => {
+                        let val = 0;
+                        if (paymentTab === 'selective') val = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
+                        else if (paymentTab === 'manual') val = Number(manualAmount);
+                        else val = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
 
-                    if (val <= 0) return;
-                    handlePayment(selectedOrder.id, { ...selectedOrder, paidAmount: Number(selectedOrder.paidAmount || 0) + val }, true);
-                  }} className="w-full py-6 bg-green-500 text-white rounded-[32px] font-black text-xl shadow-2xl hover:scale-105 transition-all">TAHSİL ET</button>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button className="py-4 bg-white border-2 border-gray-200 rounded-2xl font-black text-xs hover:bg-gray-900 hover:text-white transition-all">NAKİT TÜMÜ</button>
-                    <button className="py-4 bg-white border-2 border-gray-200 rounded-2xl font-black text-xs hover:bg-gray-900 hover:text-white transition-all">KART TÜMÜ</button>
+                        if (val <= 0) return alert('Geçersiz Tutar');
+
+                        handlePayment(selectedOrder.id, {
+                          ...selectedOrder,
+                          paidAmount: Number(selectedOrder.paidAmount || 0) + val,
+                          cashierNote: (selectedOrder.cashierNote || '') + ' [NAKİT]'
+                        }, true);
+                      }}
+                      className="w-full py-5 bg-green-600 text-white rounded-[28px] font-black text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
+                    >
+                      <FaMoneyBillWave size={24} />
+                      NAKİT TAHSİL ET
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        let val = 0;
+                        if (paymentTab === 'selective') val = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
+                        else if (paymentTab === 'manual') val = Number(manualAmount);
+                        else val = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
+
+                        if (val <= 0) return alert('Geçersiz Tutar');
+
+                        handlePayment(selectedOrder.id, {
+                          ...selectedOrder,
+                          paidAmount: Number(selectedOrder.paidAmount || 0) + val,
+                          cashierNote: (selectedOrder.cashierNote || '') + ' [KART]'
+                        }, true);
+                      }}
+                      className="w-full py-5 bg-blue-600 text-white rounded-[28px] font-black text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
+                    >
+                      <FaCreditCard size={24} />
+                      KARTLA TAHSİL ET
+                    </button>
                   </div>
+
+                  <button
+                    onClick={() => { setShowPaymentModal(false); setSelectedOrder(null); fetchOrders(); }}
+                    className="w-full py-3 bg-gray-100 text-gray-400 rounded-2xl font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-all uppercase tracking-tighter"
+                  >
+                    Vazgeç ve Kapat
+                  </button>
                 </div>
               </div>
             </div>
