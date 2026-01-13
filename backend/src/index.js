@@ -365,10 +365,10 @@ app.get('/api/events/orders', (req, res) => {
 });
 
 // API Routes (placeholder)
+app.use('/api/orders', require('./routes/orders'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/restaurants', require('./routes/restaurants'));
 app.use('/api/restaurants', require('./routes/menu')); // Menu routes nested under restaurants
-app.use('/api/orders', require('./routes/orders'));
 app.use('/api/qr', require('./routes/qr')); // QR code management
 app.use('/api/staff', require('./routes/staff')); // Staff management
 app.use('/api/waiter', require('./routes/waiter')); // Waiter calls

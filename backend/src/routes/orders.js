@@ -222,26 +222,33 @@ router.delete('/bulk', async (req, res) => {
 
 // DELETE /api/orders/:id
 router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  console.log(`🗑️ DELETE /api/orders/${id} isteği alındı`);
+
   try {
-    const { id } = req.params;
     const order = await Order.findByPk(id);
 
     if (!order) {
+      console.log(`❌ Sipariş bulunamadı: ID ${id}`);
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    // Önce sipariş ürünlerini sil
-    await OrderItem.destroy({ where: { orderId: id } });
-
-    // Sonra siparişi sil
+    // OrderItem'lar model tanımındaki CASCADE sayesinde otomatik silinecektir.
+    // Ancak garantici olmak için manuel silmeyi de tutabiliriz veya temizlik yapabiliriz.
+    // Burada Sequelize'in CASCADE'i kullanması için sadece order.destroy() yeterlidir.
     await order.destroy();
 
-    console.log(`🗑️ Sipariş silindi: ID ${id}`);
+    console.log(`✅ Sipariş başarıyla silindi: ID ${id}`);
     res.json({ success: true, message: 'Order deleted successfully' });
   } catch (error) {
-    console.error('DELETE /orders/:id error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    console.error(`❌ DELETE /orders/${id} hatası:`, error);
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
+});
+
+// OPTIONS preflight isteği için (CORS)
+router.options('/:id', (req, res) => {
+  res.sendStatus(200);
 });
 
 // PUT /api/orders/:id (status update) - MUST BE AFTER /bulk route
