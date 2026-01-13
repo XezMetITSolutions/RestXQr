@@ -338,6 +338,30 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/orders/:id
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findByPk(id);
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    // Önce sipariş ürünlerini sil
+    await OrderItem.destroy({ where: { orderId: id } });
+
+    // Sonra siparişi sil
+    await order.destroy();
+
+    console.log(`🗑️ Sipariş silindi: ID ${id}`);
+    res.json({ success: true, message: 'Order deleted successfully' });
+  } catch (error) {
+    console.error('DELETE /orders/:id error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 module.exports = router;
 
 

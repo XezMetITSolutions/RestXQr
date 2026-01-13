@@ -149,6 +149,35 @@ export default function MutfakPanel() {
     }
   };
 
+  // Siparişi tamamen sil
+  const deleteOrder = async (orderId: string) => {
+    if (!confirm('Bu siparişi tamamen silmek istediğinizden emin misiniz?\nBu işlem geri alınamaz ve sipariş tüm panellerden (Garson, Kasa) silinecektir.')) {
+      return;
+    }
+
+    try {
+      // Optimistic update
+      setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
+
+      const response = await fetch(`${API_URL}/orders/${orderId}`, {
+        method: 'DELETE'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        fetchOrders(false);
+      } else {
+        alert('Sipariş silinemedi: ' + data.message);
+        fetchOrders(false);
+      }
+    } catch (error) {
+      console.error('Sipariş silme hatası:', error);
+      alert('Sipariş silinirken teknik bir hata oluştu.');
+      fetchOrders(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -486,6 +515,12 @@ export default function MutfakPanel() {
                             className="px-6 py-4 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center gap-2 justify-center"
                           >
                             👁 Detaylar
+                          </button>
+                          <button
+                            onClick={() => deleteOrder(order.id)}
+                            className="px-6 py-4 bg-red-100 text-red-600 rounded-lg font-semibold hover:bg-red-200 transition-colors flex items-center gap-2 justify-center border border-red-200"
+                          >
+                            🗑️ Siparişi Sil
                           </button>
                         </div>
                       </div>
