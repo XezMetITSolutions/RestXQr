@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface OrderItem {
   id: string;
@@ -55,21 +56,21 @@ export default function MutfakPanel() {
     const checkAuth = () => {
       const user = localStorage.getItem('staff_user');
       const token = localStorage.getItem('staff_token');
-      
+
       if (!user || !token) {
         router.push('/staff-login');
         return;
       }
-      
+
       const parsedUser = JSON.parse(user);
-      
+
       // Sadece aşçı ve yöneticiler erişebilir
       if (parsedUser.role !== 'chef' && parsedUser.role !== 'manager' && parsedUser.role !== 'admin') {
         alert('Bu panele erişim yetkiniz yok!');
         router.push('/staff-login');
         return;
       }
-      
+
       // Staff'ın restoran bilgilerini al
       if (parsedUser.restaurantId) {
         setRestaurantId(parsedUser.restaurantId);
@@ -78,7 +79,7 @@ export default function MutfakPanel() {
         setRestaurantName(parsedUser.restaurantName);
       }
     };
-    
+
     checkAuth();
   }, [router]);
 
@@ -88,7 +89,7 @@ export default function MutfakPanel() {
 
     try {
       if (showLoading) {
-      setLoading(true);
+        setLoading(true);
       }
       const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}`);
       const data = await response.json();
@@ -100,7 +101,7 @@ export default function MutfakPanel() {
       console.error('Siparişler alınamadı:', error);
     } finally {
       if (showLoading) {
-      setLoading(false);
+        setLoading(false);
       }
     }
   };
@@ -108,8 +109,8 @@ export default function MutfakPanel() {
   useEffect(() => {
     if (restaurantId) {
       fetchOrders();
-      // Her 2 saniyede bir yenile (daha hızlı güncelleme)
-      const interval = setInterval(fetchOrders, 2000);
+      // Her 2 saniyede bir sessizce (loading göstermeden) yenile
+      const interval = setInterval(() => fetchOrders(false), 2000);
       return () => clearInterval(interval);
     }
   }, [restaurantId]);
@@ -118,8 +119,8 @@ export default function MutfakPanel() {
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
       // Optimistic update - Hemen görsel değişiklik
-      setOrders(prevOrders => 
-        prevOrders.map(order => 
+      setOrders(prevOrders =>
+        prevOrders.map(order =>
           order.id === orderId ? { ...order, status: newStatus as any } : order
         )
       );
@@ -133,7 +134,7 @@ export default function MutfakPanel() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         // Backend'den güncel veriyi al (loading gösterme)
         fetchOrders(false);
@@ -186,7 +187,7 @@ export default function MutfakPanel() {
   // Ödeme yöntemi, bahşiş ve bağış bilgilerini notlardan temizle
   const cleanNotes = (notes: string | undefined): string | undefined => {
     if (!notes) return notes;
-    
+
     // Ödeme yöntemi, bahşiş ve bağış bilgilerini regex ile temizle
     let cleaned = notes
       .replace(/Ödeme\s+yöntemi:\s*[^,]+(,\s*)?/gi, '')
@@ -197,12 +198,12 @@ export default function MutfakPanel() {
       .replace(/,\s*$/, '') // Sondaki virgülü temizle
       .replace(/^\s*📝\s*Özel\s+Not:\s*/i, '') // "📝 Özel Not:" başlığını temizle
       .trim();
-    
+
     // Eğer sadece boşluk veya virgül kaldıysa undefined döndür
     if (!cleaned || cleaned === ',' || cleaned === '') {
       return undefined;
     }
-    
+
     return cleaned;
   };
 
@@ -239,8 +240,8 @@ export default function MutfakPanel() {
   const updateMenuAvailability = async (itemId: string, isAvailable: boolean) => {
     try {
       // Optimistic update - Hemen görsel değişiklik
-      setMenuItems(prevItems => 
-        prevItems.map(item => 
+      setMenuItems(prevItems =>
+        prevItems.map(item =>
           item.id === itemId ? { ...item, isAvailable } : item
         )
       );
@@ -254,7 +255,7 @@ export default function MutfakPanel() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         // Backend'den güncel veriyi al
         fetchMenuItems();
@@ -273,7 +274,7 @@ export default function MutfakPanel() {
   const filteredOrders = orders.filter(order => {
     // Durum filtresi
     if (activeTab !== 'all' && order.status !== activeTab) return false;
-    
+
     // Arama filtresi
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
@@ -282,7 +283,7 @@ export default function MutfakPanel() {
         order.items.some(item => item.name.toLowerCase().includes(searchLower))
       );
     }
-    
+
     return true;
   });
 
@@ -298,25 +299,32 @@ export default function MutfakPanel() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-        {/* Header */}
+      {/* Header */}
       <div className="bg-white shadow-sm px-8 py-6 mb-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-2xl">
               👨‍🍳
             </div>
-              <div>
+            <div>
               <h1 className="text-2xl font-bold text-gray-800">Mutfak Paneli</h1>
               <p className="text-gray-600 text-sm">{restaurantName || 'Restoran'} • Oda servisi siparişlerini ve menü ürünlerini yönetin</p>
             </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              </span>
+              <span className="text-xs font-semibold text-green-700 uppercase tracking-wider">Sistem Canlı</span>
             </div>
-            <div className="flex items-center gap-4">
-              <button
+            <button
               onClick={handleMenuManagement}
               className="px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500 transition-colors"
-              >
+            >
               + Menü Yönetimi
-              </button>
+            </button>
             <div className="px-4 py-2 border border-gray-300 rounded-lg text-sm cursor-pointer hover:bg-gray-50">
               TR Türkçe ↓
             </div>
@@ -340,155 +348,161 @@ export default function MutfakPanel() {
           <div className="flex gap-4 mb-6">
             <button
               onClick={() => setActiveTab('all')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                activeTab === 'all'
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${activeTab === 'all'
                   ? 'bg-green-500 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
+                }`}
             >
               Tümü ({orderCounts.all})
             </button>
             <button
               onClick={() => setActiveTab('pending')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                activeTab === 'pending'
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${activeTab === 'pending'
                   ? 'bg-green-500 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
+                }`}
             >
               Bekleyen ({orderCounts.pending})
             </button>
             <button
               onClick={() => setActiveTab('preparing')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                activeTab === 'preparing'
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${activeTab === 'preparing'
                   ? 'bg-green-500 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
+                }`}
             >
               Hazırlanan ({orderCounts.preparing})
             </button>
             <button
               onClick={() => setActiveTab('ready')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                activeTab === 'ready'
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${activeTab === 'ready'
                   ? 'bg-green-500 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
+                }`}
             >
               Teslim Edilen ({orderCounts.ready})
             </button>
             <button
               onClick={() => setActiveTab('cancelled')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                activeTab === 'cancelled'
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${activeTab === 'cancelled'
                   ? 'bg-green-500 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
+                }`}
             >
               İptal Edilen ({orderCounts.cancelled})
             </button>
-        </div>
+          </div>
 
           {/* Orders */}
-        {loading ? (
-          <div className="text-center py-12">
+          {loading ? (
+            <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-green-500 mx-auto mb-4"></div>
               <p className="text-gray-600">Siparişler yükleniyor...</p>
-          </div>
+            </div>
           ) : filteredOrders.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-xl">
               <div className="text-6xl mb-4">👨‍🍳</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">Henüz sipariş yok</h3>
               <p className="text-gray-600">Yeni siparişler geldiğinde burada görünecek.</p>
-          </div>
-        ) : (
-            <div className="space-y-4">
-              {filteredOrders.map((order) => {
-                const statusInfo = getStatusInfo(order.status);
-                const estimatedTime = calculateTime(order.created_at);
-                
-                return (
-                  <div key={order.id} className="bg-white rounded-2xl p-6 shadow-md">
-                    <div className="grid grid-cols-1 md:grid-cols-[2fr_2fr_1fr] gap-6">
-                      {/* Sol Sütun - Sipariş Detayları */}
-                      <div>
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <div className="text-2xl font-bold text-gray-800">Masa {order.tableNumber}</div>
-                            <div className="text-sm text-gray-500 mt-1">{formatDate(order.created_at)}</div>
-                          </div>
-                          <div
-                            className="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
-                            style={{ background: statusInfo.bg, color: statusInfo.color }}
-                          >
-                            ⏱️ {statusInfo.text}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="font-semibold text-gray-800 mb-2">Sipariş Detayları:</div>
-                          <div className="space-y-2">
-                            {order.items.map((item, index) => (
-                              <div key={index} className="text-gray-600">
-                                <div>{item.quantity}x {item.name}</div>
-                        {item.notes && (
-                                  <div className="text-xs text-yellow-700 italic ml-4">
-                                    📝 {item.notes}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                          </div>
-                  </div>
-                </div>
-
-                      {/* Orta Sütun - Sipariş Bilgileri */}
-                      <div>
-                        <div className="font-semibold text-gray-800 mb-3">Sipariş Bilgileri:</div>
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Tahmini Süre:</span>
-                            <span className="font-semibold text-gray-800">{estimatedTime} dk</span>
-                          </div>
-                          {cleanNotes(order.notes) && (
-                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
-                              <div className="font-semibold text-yellow-800 mb-1">📝 Özel Not:</div>
-                              <div className="text-sm text-gray-700">{cleanNotes(order.notes)}</div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Sağ Sütun - Aksiyon Butonları */}
-                      <div className="flex flex-col gap-3">
-                  {order.status === 'pending' && (
-                    <button
-                      onClick={() => updateOrderStatus(order.id, 'preparing')}
-                            className="px-6 py-4 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2 justify-center"
-                    >
-                            ▶ Hazırlığa Başla
-                    </button>
-                  )}
-                  {order.status === 'preparing' && (
-                    <button
-                      onClick={() => updateOrderStatus(order.id, 'ready')}
-                            className="px-6 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center gap-2 justify-center"
-                          >
-                            ✅ Hazır
-                          </button>
-                        )}
-                        <button 
-                          onClick={() => showOrderDetails(order)}
-                          className="px-6 py-4 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center gap-2 justify-center"
-                        >
-                          👁 Detaylar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
             </div>
+          ) : (
+            <motion.div className="space-y-4" layout>
+              <AnimatePresence mode="popLayout">
+                {filteredOrders.map((order) => {
+                  const statusInfo = getStatusInfo(order.status);
+                  const estimatedTime = calculateTime(order.created_at);
+
+                  return (
+                    <motion.div
+                      key={order.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="bg-white rounded-2xl p-6 shadow-md border-l-8"
+                      style={{ borderLeftColor: statusInfo.bg }}
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-[2fr_2fr_1fr] gap-6">
+                        {/* Sol Sütun - Sipariş Detayları */}
+                        <div>
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <div className="text-2xl font-bold text-gray-800">Masa {order.tableNumber}</div>
+                              <div className="text-sm text-gray-500 mt-1">{formatDate(order.created_at)}</div>
+                            </div>
+                            <div
+                              className="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
+                              style={{ background: statusInfo.bg, color: statusInfo.color }}
+                            >
+                              ⏱️ {statusInfo.text}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-800 mb-2">Sipariş Detayları:</div>
+                            <div className="space-y-2">
+                              {order.items.map((item, index) => (
+                                <div key={index} className="text-gray-600">
+                                  <div>{item.quantity}x {item.name}</div>
+                                  {item.notes && (
+                                    <div className="text-xs text-yellow-700 italic ml-4">
+                                      📝 {item.notes}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Orta Sütun - Sipariş Bilgileri */}
+                        <div>
+                          <div className="font-semibold text-gray-800 mb-3">Sipariş Bilgileri:</div>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-600">Tahmini Süre:</span>
+                              <span className="font-semibold text-gray-800">{estimatedTime} dk</span>
+                            </div>
+                            {cleanNotes(order.notes) && (
+                              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+                                <div className="font-semibold text-yellow-800 mb-1">📝 Özel Not:</div>
+                                <div className="text-sm text-gray-700">{cleanNotes(order.notes)}</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Sağ Sütun - Aksiyon Butonları */}
+                        <div className="flex flex-col gap-3">
+                          {order.status === 'pending' && (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'preparing')}
+                              className="px-6 py-4 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2 justify-center"
+                            >
+                              ▶ Hazırlığa Başla
+                            </button>
+                          )}
+                          {order.status === 'preparing' && (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'ready')}
+                              className="px-6 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center gap-2 justify-center"
+                            >
+                              ✅ Hazır
+                            </button>
+                          )}
+                          <button
+                            onClick={() => showOrderDetails(order)}
+                            className="px-6 py-4 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center gap-2 justify-center"
+                          >
+                            👁 Detaylar
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </motion.div>
           )}
         </div>
       </div>
@@ -500,7 +514,7 @@ export default function MutfakPanel() {
             {/* Modal Header */}
             <div className="bg-yellow-400 px-6 py-4 flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">📋 Menü Yönetimi</h2>
-              <button 
+              <button
                 onClick={() => setShowMenuModal(false)}
                 className="text-gray-900 hover:text-gray-700 text-2xl"
               >
@@ -534,7 +548,7 @@ export default function MutfakPanel() {
                       autoFocus
                     />
                   </div>
-                  
+
                   {/* Filtrelenmiş Menü Öğeleri */}
                   {(() => {
                     const filteredItems = menuItems.filter(item => {
@@ -559,50 +573,48 @@ export default function MutfakPanel() {
                     return (
                       <div className="space-y-3">
                         {filteredItems.map((item) => (
-                    <div 
-                      key={item.id} 
-                      className={`bg-white border-2 rounded-lg p-4 ${
-                        item.isAvailable ? 'border-green-200' : 'border-red-200 bg-red-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              item.isAvailable 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {item.isAvailable ? '✓ Mevcut' : '✗ Bitti'}
-                            </span>
+                          <div
+                            key={item.id}
+                            className={`bg-white border-2 rounded-lg p-4 ${item.isAvailable ? 'border-green-200' : 'border-red-200 bg-red-50'
+                              }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3">
+                                  <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
+                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${item.isAvailable
+                                      ? 'bg-green-100 text-green-800'
+                                      : 'bg-red-100 text-red-800'
+                                    }`}>
+                                    {item.isAvailable ? '✓ Mevcut' : '✗ Bitti'}
+                                  </span>
+                                </div>
+                                {item.description && (
+                                  <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                                )}
+                                <p className="text-lg font-bold text-green-600 mt-2">
+                                  {parseFloat(item.price.toString()).toFixed(2)}₺
+                                </p>
+                              </div>
+                              <div className="ml-4">
+                                {item.isAvailable ? (
+                                  <button
+                                    onClick={() => updateMenuAvailability(item.id, false)}
+                                    className="px-6 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
+                                  >
+                                    ✗ Bitti
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => updateMenuAvailability(item.id, true)}
+                                    className="px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
+                                  >
+                                    ✓ Mevcut
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          {item.description && (
-                            <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-                          )}
-                          <p className="text-lg font-bold text-green-600 mt-2">
-                            {parseFloat(item.price.toString()).toFixed(2)}₺
-                          </p>
-                        </div>
-                        <div className="ml-4">
-                          {item.isAvailable ? (
-                            <button
-                              onClick={() => updateMenuAvailability(item.id, false)}
-                              className="px-6 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
-                            >
-                              ✗ Bitti
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => updateMenuAvailability(item.id, true)}
-                              className="px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
-                            >
-                              ✓ Mevcut
-                    </button>
-                  )}
-                        </div>
-                </div>
-              </div>
                         ))}
                       </div>
                     );
@@ -616,11 +628,11 @@ export default function MutfakPanel() {
 
       {/* Sipariş Detay Modal */}
       {showOrderModal && selectedOrder && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={() => setShowOrderModal(false)}
         >
-          <div 
+          <div
             className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
@@ -631,7 +643,7 @@ export default function MutfakPanel() {
                   <h2 className="text-2xl font-bold">Sipariş Detayları</h2>
                   <p className="text-purple-100 text-sm mt-1">#{selectedOrder.id.slice(0, 8)}</p>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowOrderModal(false)}
                   className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
                 >
@@ -660,9 +672,9 @@ export default function MutfakPanel() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                   <div className="text-gray-600 text-sm font-medium mb-2">Sipariş Durumu</div>
-                  <div 
+                  <div
                     className="inline-block px-4 py-2 rounded-full text-sm font-bold"
-                    style={{ 
+                    style={{
                       backgroundColor: getStatusInfo(selectedOrder.status).bg,
                       color: getStatusInfo(selectedOrder.status).color
                     }}
@@ -684,7 +696,7 @@ export default function MutfakPanel() {
                 </h3>
                 <div className="space-y-3">
                   {selectedOrder.items.map((item, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 border border-gray-200 hover:shadow-md transition-shadow"
                     >

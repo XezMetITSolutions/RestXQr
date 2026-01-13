@@ -51,7 +51,7 @@ function CartPageContent() {
 
   useEffect(() => {
     setIsClient(true);
-    
+
     // Session bilgilerini yükle
     if (typeof window !== 'undefined') {
       const storedSessionKey = sessionStorage.getItem('session_key');
@@ -129,17 +129,13 @@ function CartPageContent() {
         setConfirmationCountdown(prev => {
           if (prev === null || prev <= 1) {
             // 1 dakika doldu, sipariş panellere gönderildi
-            setPendingOrderId(null);
+            // pendingOrderId'yi SIFIRLAMIYORUZ ki ekranda kalsın
             return null;
           }
           return prev - 1;
         });
       }, 1000);
       return () => clearInterval(timer);
-    } else if (confirmationCountdown === 0) {
-      // Süre doldu
-      setPendingOrderId(null);
-      setConfirmationCountdown(null);
     }
   }, [confirmationCountdown]);
 
@@ -437,7 +433,7 @@ function CartPageContent() {
               </h1>
               <div className="ml-2 flex items-center gap-2">
                 <div className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
-                  <TranslatedText>Masa #{tableNumber}</TranslatedText>
+                  <TranslatedText>{`Masa #${tableNumber}`}</TranslatedText>
                 </div>
                 {activeUsersCount > 1 && (
                   <div className="px-2 py-1 rounded-lg text-xs bg-blue-100 text-blue-700 flex items-center gap-1">
@@ -490,62 +486,67 @@ function CartPageContent() {
           {/* Sipariş verilen ürünler gösteriliyorsa */}
           {pendingOrderId && pendingOrderItems.length > 0 && (
             <>
+              {/* Yeni Ürün Ekle Butonu - Üstte */}
+              <div className="mb-6">
+                <Link
+                  href="/menu"
+                  className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95"
+                  style={{ backgroundColor: primary }}
+                >
+                  <FaPlus />
+                  <TranslatedText>Yeni Ürün Ekle</TranslatedText>
+                </Link>
+              </div>
+
               <div className="mb-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-2">
-                  <TranslatedText>Sipariş Verilen Ürünler</TranslatedText>
+                <h2 className="text-lg font-bold text-gray-800 mb-2">
+                  <TranslatedText>Siparişi Verilmiş Olanlar</TranslatedText>
                 </h2>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                  <p className="text-sm text-green-800">
-                    <TranslatedText>✅ Siparişiniz başarıyla verildi! Aşağıdaki ürünler siparişinize eklendi.</TranslatedText>
+                <div className={`${confirmationCountdown !== null ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200'} border-2 rounded-xl p-4 mb-4 shadow-sm`}>
+                  <p className={`text-sm font-medium ${confirmationCountdown !== null ? 'text-yellow-800' : 'text-blue-800'}`}>
+                    {confirmationCountdown !== null
+                      ? <TranslatedText>⏳ Siparişiniz onaylanıyor... ({confirmationCountdown} saniye içinde iptal edebilirsiniz)</TranslatedText>
+                      : <TranslatedText>👨‍🍳 Siparişiniz mutfağa iletildi. Afiyet olsun!</TranslatedText>
+                    }
                   </p>
                 </div>
               </div>
               <div className="space-y-3 mb-6">
                 {pendingOrderItems.map((item) => (
-                  <div key={item.itemId || item.id} className="bg-white rounded-lg shadow-sm border p-3 flex opacity-75">
-                    <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                  <div key={item.itemId || item.id} className="bg-white rounded-xl shadow-md border-2 border-gray-100 p-4 flex opacity-90 transition-all hover:opacity-100">
+                    <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                       <Image
                         src={item.image || '/placeholder-food.jpg'}
-                        alt={item.name}
+                        alt={typeof item.name === 'string' ? item.name : 'Product'}
                         width={64}
                         height={64}
-                        className="object-cover w-full h-full rounded-lg"
+                        className="object-cover w-full h-full"
                       />
                     </div>
-                    <div className="ml-3 flex-grow">
+                    <div className="ml-4 flex-grow">
                       <div className="flex justify-between items-start">
-                        <h3 className="font-semibold text-dynamic-sm">{item.name}</h3>
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                        <h3 className="font-bold text-gray-800">
+                          {typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün')}
+                        </h3>
+                        <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full uppercase tracking-wider">
                           <TranslatedText>Sipariş Verildi</TranslatedText>
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600 mb-2">
-                        <TranslatedText>₺{item.price}</TranslatedText>
-                      </p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">
-                          <TranslatedText>Adet: {item.quantity}</TranslatedText>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-sm font-medium text-gray-500">
+                          {`${item.quantity} Adet × ₺${item.price}`}
                         </span>
-                        <span className="font-semibold text-dynamic-sm" style={{ color: primary }}>
-                          <TranslatedText>₺{(item.price * item.quantity).toFixed(2)}</TranslatedText>
+                        <span className="font-bold text-lg" style={{ color: primary }}>
+                          {`₺${(item.price * item.quantity).toFixed(2)}`}
                         </span>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mb-6">
-                <Link
-                  href="/menu"
-                  className="w-full btn btn-primary py-3 rounded-lg font-semibold text-dynamic-sm flex items-center justify-center gap-2"
-                >
-                  <FaPlus />
-                  <TranslatedText>Yeni Ürün Ekle</TranslatedText>
-                </Link>
-              </div>
             </>
           )}
-          
+
           {/* Yeni eklenen ürünler (sipariş verildikten sonra eklenenler) */}
           {pendingOrderId && items && items.length > 0 && (
             <>
@@ -644,7 +645,7 @@ function CartPageContent() {
                       </span>
                     </div>
                     <span className="text-sm text-gray-600">
-                      <TranslatedText>₺{tipAmount.toFixed(2)}</TranslatedText>
+                      <TranslatedText>{`₺${tipAmount.toFixed(2)}`}</TranslatedText>
                     </span>
                   </button>
                   <button
@@ -658,7 +659,7 @@ function CartPageContent() {
                       </span>
                     </div>
                     <span className="text-sm text-gray-600">
-                      <TranslatedText>₺{donationAmount.toFixed(2)}</TranslatedText>
+                      <TranslatedText>{`₺${donationAmount.toFixed(2)}`}</TranslatedText>
                     </span>
                   </button>
                 </div>
@@ -703,7 +704,7 @@ function CartPageContent() {
               </button>
             </>
           )}
-          
+
           {/* Normal sepet görünümü (sipariş verilmediyse) */}
           {!pendingOrderId && (!items || items.length === 0) ? (
             <div className="text-center py-12">
@@ -819,7 +820,7 @@ function CartPageContent() {
                       </span>
                     </div>
                     <span className="text-sm text-gray-600">
-                      <TranslatedText>₺{tipAmount.toFixed(2)}</TranslatedText>
+                      <TranslatedText>{`₺${tipAmount.toFixed(2)}`}</TranslatedText>
                     </span>
                   </button>
 
@@ -834,7 +835,7 @@ function CartPageContent() {
                       </span>
                     </div>
                     <span className="text-sm text-gray-600">
-                      <TranslatedText>₺{donationAmount.toFixed(2)}</TranslatedText>
+                      <TranslatedText>{`₺${donationAmount.toFixed(2)}`}</TranslatedText>
                     </span>
                   </button>
                 </div>

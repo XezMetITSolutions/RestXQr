@@ -599,6 +599,83 @@ app.all('/api/admin/import-kroren', async (req, res) => {
   }
 });
 
+// Cloudinary Status Check
+app.get('/api/admin/cloudinary-status', async (req, res) => {
+  try {
+    const { cloudinary } = require('./lib/cloudinary');
+    const result = await cloudinary.api.usage();
+    res.json({
+      success: true,
+      data: result,
+      config: {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        has_api_key: !!process.env.CLOUDINARY_API_KEY,
+        has_api_secret: !!process.env.CLOUDINARY_API_SECRET
+      }
+    });
+  } catch (error) {
+    console.error('❌ Cloudinary status error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Repair Images Explicitly
+app.get('/api/admin/repair-kroren-images', async (req, res) => {
+  try {
+    const { MenuItem, Restaurant } = require('./models');
+    const { uploadToCloudinary } = require('./lib/cloudinary');
+    const axios = require('axios');
+    const fs = require('fs');
+    const path = require('path');
+
+    console.log('🔧 Kroren Resim Tamiri Başlatılıyor...');
+
+    const kroren = await Restaurant.findOne({ where: { username: 'kroren' } });
+    if (!kroren) throw new Error('Kroren restoranı bulunamadı');
+
+    const menuData = require('./data/kroren_scraped.json');
+    let repaired = 0;
+    let errors = [];
+
+    for (const item of menuData) {
+      const dbItem = await MenuItem.findOne({
+        where: { restaurantId: kroren.id, name: item.name }
+      });
+
+      if (dbItem) {
+        const needsRepair = !dbItem.imageUrl || dbItem.imageUrl.startsWith('/uploads/');
+        if (needsRepair && item.imageUrl && item.imageUrl.startsWith('http')) {
+          try {
+            console.log(`📸 Tamir ediliyor: ${item.name}`);
+            const response = await axios.get(item.imageUrl, { responseType: 'arraybuffer', timeout: 5000 });
+            const buffer = Buffer.from(response.data, 'binary');
+            const result = await uploadToCloudinary(buffer, {
+              folder: 'restxqr/products',
+              public_id: `repair_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+            });
+            await dbItem.update({ imageUrl: result.secure_url });
+            repaired++;
+          } catch (e) {
+            console.error(`❌ Hata (${item.name}):`, e.message);
+            errors.push({ name: item.name, error: e.message });
+          }
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      repairedCount: repaired,
+      errorCount: errors.length,
+      errors: errors.slice(0, 10)
+    });
+
+  } catch (error) {
+    console.error('❌ Tamir endpoint hatası:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Kayıp resimleri bulma endpoint'i
 app.get('/api/debug/missing-images', async (req, res) => {
   try {
