@@ -268,7 +268,10 @@ export default function KasaPanel() {
               const wait = getWaitInfo(order.updated_at || order.created_at);
               const rem = Number(order.totalAmount) - Number(order.paidAmount) - Number(order.discountAmount);
               return (
-                <div key={order.id} className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-transparent hover:border-green-500 transition-all group">
+                <div
+                  key={order.id}
+                  className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-transparent hover:border-green-500 transition-all group"
+                >
                   <div className="bg-gray-50 p-5 flex justify-between items-center border-b">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-green-500 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg shadow-green-100">
@@ -285,22 +288,22 @@ export default function KasaPanel() {
                   </div>
                   <div className="p-6">
                     <div className="space-y-3 mb-6 max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
-                      {order.items.map((it, i) => (
+                      {(order.items || []).map((it, i) => (
                         <div key={i} className="flex justify-between text-sm font-bold text-gray-600">
                           <span>{it.quantity}x {it.name}</span>
-                          <span>{(it.price * it.quantity).toFixed(2)}₺</span>
+                          <span>{(Number(it.price || 0) * Number(it.quantity || 1)).toFixed(2)}₺</span>
                         </div>
                       ))}
                     </div>
                     <div className="space-y-2 border-t pt-4">
-                      {Number(order.paidAmount) > 0 && <div className="flex justify-between text-xs font-bold text-blue-500"><span>ÖDENEN</span><span>{Number(order.paidAmount).toFixed(2)}₺</span></div>}
-                      {Number(order.discountAmount) > 0 && <div className="flex justify-between text-xs font-bold text-red-400"><span>İNDİRİM</span><span>-{Number(order.discountAmount).toFixed(2)}₺</span></div>}
+                      {Number(order.paidAmount || 0) > 0 && <div className="flex justify-between text-xs font-bold text-blue-500"><span>ÖDENEN</span><span>{Number(order.paidAmount || 0).toFixed(2)}₺</span></div>}
+                      {Number(order.discountAmount || 0) > 0 && <div className="flex justify-between text-xs font-bold text-red-400"><span>İNDİRİM</span><span>-{Number(order.discountAmount || 0).toFixed(2)}₺</span></div>}
                       <div className="flex justify-between items-center bg-green-50 p-4 rounded-2xl">
                         <span className="font-black text-green-700 text-xs uppercase">KALAN</span>
-                        <span className="text-2xl font-black text-green-600 font-mono tracking-tighter">{rem.toFixed(2)}₺</span>
+                        <span className="text-2xl font-black text-green-600 font-mono tracking-tighter">{(Number(order.totalAmount || 0) - Number(order.paidAmount || 0) - Number(order.discountAmount || 0)).toFixed(2)}₺</span>
                       </div>
                     </div>
-                    <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); }} className="w-full mt-6 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
+                    <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="w-full mt-6 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
                       ÖDEME AL
                     </button>
                   </div>
@@ -374,8 +377,27 @@ export default function KasaPanel() {
               <div className="w-full lg:w-[400px] bg-gray-50 p-8 flex flex-col justify-between">
                 <div className="space-y-6">
                   <div className="bg-white p-6 rounded-[32px] shadow-sm flex justify-between items-center">
-                    <span className="font-black text-gray-400 text-xs">TOPLAM</span>
-                    <span className="text-2xl font-black text-gray-800 tracking-tighter">{Number(selectedOrder.totalAmount).toFixed(2)}₺</span>
+                    <span className="font-black text-gray-400 text-xs text-left">TOPLAM<br />HESAP</span>
+                    <span className="text-2xl font-black text-gray-800 tracking-tighter">{Number(selectedOrder.totalAmount || 0).toFixed(2)}₺</span>
+                  </div>
+
+                  <div className="bg-white p-6 rounded-[32px] shadow-sm">
+                    <span className="font-black text-xs text-gray-400 block mb-3 uppercase tracking-widest">Hesabı Böl</span>
+                    <div className="flex gap-2">
+                      {[2, 3, 4, 5].map(nu => (
+                        <button
+                          key={nu}
+                          onClick={() => {
+                            const remaining = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
+                            setManualAmount((remaining / nu).toFixed(2));
+                            setPaymentTab('manual');
+                          }}
+                          className="flex-1 py-3 bg-blue-50 text-blue-600 rounded-xl font-black border border-blue-100 hover:bg-blue-600 hover:text-white transition-all text-sm"
+                        >
+                          {nu}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   {(staffRole === 'manager' || staffRole === 'admin') && (
