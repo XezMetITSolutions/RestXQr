@@ -49,22 +49,22 @@ export default function GarsonPanel() {
     const checkAuth = () => {
       const user = localStorage.getItem('staff_user');
       const token = localStorage.getItem('staff_token');
-      
+
       if (!user || !token) {
         router.push('/staff-login');
         return;
       }
-      
+
       const parsedUser = JSON.parse(user);
       setStaffUser(parsedUser);
-      
+
       // Sadece garson ve yöneticiler erişebilir
       if (parsedUser.role !== 'waiter' && parsedUser.role !== 'manager' && parsedUser.role !== 'admin') {
         alert('Bu panele erişim yetkiniz yok!');
         router.push('/staff-login');
         return;
       }
-      
+
       // Staff'ın restoran bilgilerini al
       if (parsedUser.restaurantId) {
         setRestaurantId(parsedUser.restaurantId);
@@ -73,7 +73,7 @@ export default function GarsonPanel() {
         setRestaurantName(parsedUser.restaurantName);
       }
     };
-    
+
     checkAuth();
   }, [router]);
 
@@ -93,28 +93,36 @@ export default function GarsonPanel() {
 
   // Siparişleri çek - AJAX gibi sessiz güncelleme
   const fetchOrders = async (silent: boolean = false) => {
-    if (!restaurantId) return;
+    if (!restaurantId) {
+      console.log('⚠️ fetchOrders: restaurantId eksik');
+      return;
+    }
 
     try {
       if (!silent) setLoading(true);
+      console.log(`📡 Siparişler çekiliyor: ${API_URL}/orders?restaurantId=${restaurantId}`);
       const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}`);
       const data = await response.json();
 
       if (data.success) {
+        console.log(`✅ ${data.data?.length || 0} sipariş alındı`);
         setOrders(data.data || []);
+      } else {
+        console.error('❌ Siparişler alınamadı (API Error):', data.message);
       }
     } catch (error) {
-      console.error('Siparişler alınamadı:', error);
+      console.error('❌ Siparişler alınamadı (Network Error):', error);
     } finally {
-      if (!silent) setLoading(false);
+      setLoading(false); // Her durumda loading'i kapat
     }
   };
 
   useEffect(() => {
     if (restaurantId) {
       fetchOrders(false); // İlk yükleme normal loading ile
-      // Her 5 saniyede bir sessiz güncelleme (AJAX tarzı)
-      const interval = setInterval(() => fetchOrders(true), 5000);
+      fetchMenuItems(); // Menü kalemlerini de çek
+      // Her 10 saniyede bir sessiz güncelleme (AJAX tarzı)
+      const interval = setInterval(() => fetchOrders(true), 10000);
       return () => clearInterval(interval);
     }
   }, [restaurantId]);
@@ -158,15 +166,15 @@ export default function GarsonPanel() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         if (newStatus === 'cancelled') {
           // İptal edilen siparişleri listeden kaldır
           setOrders(prevOrders => prevOrders.filter(o => o.id !== orderId));
         } else {
           // Diğer durumlarda güncelle
-          setOrders(prevOrders => 
-            prevOrders.map(o => 
+          setOrders(prevOrders =>
+            prevOrders.map(o =>
               o.id === orderId ? { ...o, status: newStatus as any } : o
             )
           );
@@ -441,8 +449,8 @@ export default function GarsonPanel() {
                 onClick={() => {
                   const tableNum = parseInt(newTableNumber);
                   if (tableNum > 0 && tableNum <= 100) {
-                    setOrders(prevOrders => 
-                      prevOrders.map(o => 
+                    setOrders(prevOrders =>
+                      prevOrders.map(o =>
                         o.id === orderToChangeTable.id ? { ...o, tableNumber: tableNum } : o
                       )
                     );
@@ -496,7 +504,7 @@ export default function GarsonPanel() {
                             onClick={() => {
                               const updatedOrder = {
                                 ...orderToEdit,
-                                items: orderToEdit.items.map((i, index) => 
+                                items: orderToEdit.items.map((i, index) =>
                                   index === idx ? { ...i, quantity: Math.max(1, i.quantity - 1) } : i
                                 )
                               };
@@ -511,7 +519,7 @@ export default function GarsonPanel() {
                             onClick={() => {
                               const updatedOrder = {
                                 ...orderToEdit,
-                                items: orderToEdit.items.map((i, index) => 
+                                items: orderToEdit.items.map((i, index) =>
                                   index === idx ? { ...i, quantity: i.quantity + 1 } : i
                                 )
                               };
