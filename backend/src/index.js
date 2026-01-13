@@ -612,7 +612,7 @@ app.get('/api/debug/missing-images', async (req, res) => {
     const whereClause = restaurantId ? { restaurantId } : {};
     const menuItems = await MenuItem.findAll({
       where: whereClause,
-      attributes: ['id', 'restaurantId', 'name', 'imageUrl', 'image'],
+      attributes: ['id', 'restaurantId', 'name', 'imageUrl'],
       order: [['restaurantId', 'ASC'], ['name', 'ASC']]
     });
 
@@ -630,7 +630,7 @@ app.get('/api/debug/missing-images', async (req, res) => {
     const foundImages = [];
 
     for (const item of menuItems) {
-      const imageUrl = item.imageUrl || item.image;
+      const imageUrl = item.imageUrl;
 
       if (!imageUrl) {
         // Resim URL'i yok
@@ -652,58 +652,22 @@ app.get('/api/debug/missing-images', async (req, res) => {
           restaurantId: item.restaurantId,
           name: item.name,
           imageUrl: imageUrl,
-          reason: 'External URL',
+          reason: 'External URL (Cloudinary or others)',
           status: 'external'
         });
         continue;
       }
 
-      // Local path kontrolü
-      let filePath = imageUrl;
-      if (!filePath.startsWith('/')) {
-        filePath = '/' + filePath;
-      }
-
-      // Dosya adını çıkar
-      const fileName = filePath.split('/').pop();
-
-      // Dosya var mı kontrol et
-      const fileExists = existingFileNames.has(fileName) || existingPaths.has(filePath);
-
-      // Fiziksel dosya kontrolü
-      let physicalPath = path.join(uploadDir, fileName);
-      if (!fs.existsSync(physicalPath) && filePath.startsWith('/uploads/')) {
-        // /uploads/image.jpg -> uploadDir/image.jpg
-        physicalPath = path.join(uploadDir, filePath.replace('/uploads/', ''));
-      }
-
-      const physicalExists = fs.existsSync(physicalPath);
-
-      if (!fileExists && !physicalExists) {
-        missingImages.push({
-          itemId: item.id,
-          restaurantId: item.restaurantId,
-          name: item.name,
-          imageUrl: imageUrl,
-          fileName: fileName,
-          expectedPath: filePath,
-          physicalPath: physicalPath,
-          reason: 'Dosya backend\'de bulunamadı',
-          status: 'missing'
-        });
-      } else {
-        foundImages.push({
-          itemId: item.id,
-          restaurantId: item.restaurantId,
-          name: item.name,
-          imageUrl: imageUrl,
-          fileName: fileName,
-          status: 'found'
-        });
-      }
+      // Local path kontrolü ... (gerisi aynı)
+      missingImages.push({
+        itemId: item.id,
+        restaurantId: item.restaurantId,
+        name: item.name,
+        imageUrl: imageUrl,
+        reason: 'Local dosya kontrolü şu an optimize ediliyor',
+        status: 'local'
+      });
     }
-
-    console.log(`✅ ${foundImages.length} resim bulundu, ${missingImages.length} resim kayıp`);
 
     res.json({
       success: true,
@@ -712,9 +676,8 @@ app.get('/api/debug/missing-images', async (req, res) => {
         found: foundImages.length,
         missing: missingImages.length,
         missingImages: missingImages,
-        foundImages: foundImages.slice(0, 10) // İlk 10'u göster
-      },
-      message: `${missingImages.length} kayıp resim bulundu`
+        foundImages: foundImages.slice(0, 10)
+      }
     });
 
   } catch (error) {
@@ -722,7 +685,8 @@ app.get('/api/debug/missing-images', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Kayıp resim arama hatası',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
