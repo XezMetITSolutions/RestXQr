@@ -23,45 +23,13 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// CORS configuration - Allow specific origins for production
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-
-    // Allow localhost for development
-    if (origin === 'http://localhost:3000') return callback(null, true);
-
-    // Get base domain from environment or use default
-    const baseDomain = process.env.BASE_DOMAIN || 'restxqr.com';
-
-    // Allow main domain
-    if (origin === `https://${baseDomain}` || origin === `https://www.${baseDomain}`) {
-      return callback(null, true);
-    }
-
-    // Allow all subdomains of base domain
-    const domainPattern = new RegExp(`^https://[a-zA-Z0-9-]+\\.${baseDomain.replace(/\./g, '\\.')}$`);
-    if (origin.match(domainPattern)) {
-      return callback(null, true);
-    }
-
-    // Allow localhost for development
-    if (origin.match(/^https?:\/\/localhost(:\d+)?$/) || origin.match(/^https?:\/\/127\.0\.0\.1(:\d+)?$/)) {
-      return callback(null, true);
-    }
-
-    // Reject other origins
-    callback(new Error('Not allowed by CORS'));
-  },
+// CORS configuration - Relaxed for debugging
+app.use(cors({
+  origin: true, // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Subdomain', 'X-Forwarded-Host'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  maxAge: 86400 // 24 hours
-};
-
-app.use(cors(corsOptions));
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

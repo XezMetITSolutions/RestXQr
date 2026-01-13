@@ -16,11 +16,25 @@ export default function ImportPreviewPage() {
     const [importStatus, setImportStatus] = useState<{ success: boolean; message: string } | null>(null);
 
     useEffect(() => {
-        // Verileri yükle (JSON dosyasından simüle ediyoruz veya API'den çekiyoruz)
+        setLoading(true);
         fetch('https://masapp-backend.onrender.com/api/admin/import-preview')
-            .then(res => res.json())
-            .then(data => setItems(data))
-            .catch(err => console.error('Veri yükleme hatası:', err));
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP Hata: ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setItems(data);
+                } else {
+                    console.error('Beklenen veri formatı (dizi) gelmedi:', data);
+                    setImportStatus({ success: false, message: 'Veri formatı hatalı. Dizi bekleniyordu.' });
+                }
+            })
+            .catch(err => {
+                console.error('Veri yükleme hatası:', err);
+                setImportStatus({ success: false, message: 'Veriler yüklenemedi: ' + err.message });
+            })
+            .finally(() => setLoading(false));
     }, []);
 
     const handleStartImport = async () => {
