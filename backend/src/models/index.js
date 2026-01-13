@@ -113,14 +113,9 @@ const connectDB = async () => {
     console.log('✅ PostgreSQL connection established successfully.');
 
     // Sync models (create tables)
-    // Production'da force:true asla kullanmayın; veri kaybına neden olur
-    if (process.env.NODE_ENV === 'production') {
-      await sequelize.sync();
-      console.log('✅ Database models synchronized (safe).');
-    } else {
-      await sequelize.sync({ alter: true });
-      console.log('✅ Database models synchronized (alter).');
-    }
+    // Yeni kolonların (paid_amount, discount_amount, vb.) veritabanına eklenmesi için alter: true kullanıyoruz.
+    await sequelize.sync({ alter: true });
+    console.log('✅ Database models synchronized (alter).');
   } catch (error) {
     console.error('❌ Unable to connect to PostgreSQL:', error);
 
