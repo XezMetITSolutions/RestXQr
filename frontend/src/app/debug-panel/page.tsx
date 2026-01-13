@@ -26,6 +26,18 @@ export default function DebugPanel() {
     const refreshDebugInfo = async () => {
         setLoading(true);
         try {
+            // 0. Refresh Store Data
+            await restaurantStore.fetchRestaurants();
+
+            // Subdomain'den o anki restoranı bul ve set et (eğer yoksa)
+            if (typeof window !== 'undefined') {
+                const sub = window.location.hostname.split('.')[0];
+                const found = restaurantStore.restaurants?.find(r => r.username === sub);
+                if (found && !restaurantStore.currentRestaurant) {
+                    restaurantStore.setCurrentRestaurant(found);
+                }
+            }
+
             // 1. API Health Check
             const healthRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/debug/test`).then(r => r.json()).catch(e => ({ error: e.message }));
             setApiStatus(healthRes);
@@ -186,8 +198,8 @@ export default function DebugPanel() {
                                             </td>
                                             <td className="p-3 border border-gray-700">
                                                 <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${order.status === 'completed' ? 'bg-green-900 text-green-300' :
-                                                        order.status === 'pending' ? 'bg-yellow-900 text-yellow-300' :
-                                                            'bg-blue-900 text-blue-300'
+                                                    order.status === 'pending' ? 'bg-yellow-900 text-yellow-300' :
+                                                        'bg-blue-900 text-blue-300'
                                                     }`}>
                                                     {order.status}
                                                 </span>

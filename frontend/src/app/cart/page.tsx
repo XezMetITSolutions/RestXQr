@@ -73,7 +73,7 @@ function CartPageContent() {
           const sub = window.location.hostname.split('.')[0];
           const base = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
           const API = base.endsWith('/api') ? base : `${base.replace(/\/$/, '')}/api`;
-          const res = await fetch(`${API}/staff/restaurants`);
+          const res = await fetch(`${API}/restaurants`);
           const data = await res.json();
           const found = Array.isArray(data?.data) ? data.data.find((r: any) => r.username === sub) : null;
           rId = found?.id;
@@ -233,7 +233,7 @@ function CartPageContent() {
 
           console.log('🔍 SUBDOMAIN LOOKUP:', { subdomain: sub, apiUrl: API });
 
-          const res = await fetch(`${API}/staff/restaurants`);
+          const res = await fetch(`${API}/restaurants`);
           const data = await res.json();
           const found = Array.isArray(data?.data) ? data.data.find((r: any) => r.username === sub) : null;
           restaurantId = found?.id;
