@@ -47,11 +47,17 @@ export default function UploadTestPage() {
                 setStatus({ type: 'success', message: 'Resim başarıyla Cloudinary\'ye yüklendi!' });
                 setResult(data.data);
             } else {
-                setStatus({ type: 'error', message: data.message || 'Yükleme başarısız oldu.' });
+                setStatus({
+                    type: 'error',
+                    message: data.message || `Yükleme başarısız oldu (Hata Kodu: ${response.status})`
+                });
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Upload error:', error);
-            setStatus({ type: 'error', message: 'Sunucuyla bağlantı kurulamadı.' });
+            setStatus({
+                type: 'error',
+                message: `Bağlantı Hatası: ${error.message}. Lütfen backend servisinin aktif olduğundan emin olun.`
+            });
         } finally {
             setLoading(false);
         }

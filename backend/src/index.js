@@ -448,8 +448,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // API path'i için de aynı klasörü servis et (frontend uyumluluğu için)
 app.use('/api/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-// Cloudinary upload endpoint
-app.post('/api/upload/image', upload.single('image'), async (req, res) => {
+// Cloudinary upload endpoint - Relaxed CORS for testing
+app.options('/api/upload/image', cors()); // Enable pre-flight
+app.post('/api/upload/image', cors(), upload.single('image'), async (req, res) => {
   console.log('📤 Cloudinary Upload endpoint çağrıldı');
 
   try {
