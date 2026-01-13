@@ -420,9 +420,9 @@ export default function KasaPanel() {
                     <p className="text-[10px] font-black text-green-500 uppercase tracking-[0.2em] mb-2">{paymentTab === 'selective' ? 'SEÇİLİ TUTAR' : paymentTab === 'manual' ? 'GİRİLEN TUTAR' : 'ÖDENECEK KALAN'}</p>
                     <div className="text-5xl font-black tracking-tighter flex items-end gap-1">
                       {paymentTab === 'selective'
-                        ? selectedItemIndexes.reduce((s, i) => s + (selectedOrder.items[i].price * selectedOrder.items[i].quantity), 0).toFixed(2)
+                        ? selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i]?.price || 0) * Number(selectedOrder.items[i]?.quantity || 0)), 0).toFixed(2)
                         : paymentTab === 'manual' ? (Number(manualAmount) || 0).toFixed(2)
-                          : (Number(selectedOrder.totalAmount) - Number(selectedOrder.paidAmount) - Number(selectedOrder.discountAmount)).toFixed(2)
+                          : (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0)).toFixed(2)
                       }
                       <span className="text-xl opacity-40 ml-1">₺</span>
                     </div>
