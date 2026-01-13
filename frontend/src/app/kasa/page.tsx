@@ -233,13 +233,13 @@ export default function KasaPanel() {
           <div className="flex items-center gap-8">
             <div className="text-center group">
               <div className="text-2xl font-black text-green-600 group-hover:scale-110 transition-transform">
-                {orders.filter(o => o.status === 'completed').reduce((s, o) => s + Number(o.totalAmount), 0).toFixed(2)}₺
+                {orders.filter(o => o.status === 'completed').reduce((s, o) => s + (Number(o.totalAmount) || 0), 0).toFixed(2)}₺
               </div>
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">GÜNLÜK CİRO</div>
             </div>
             <div className="text-center group">
               <div className="text-2xl font-black text-orange-500 group-hover:scale-110 transition-transform">
-                {orders.filter(o => o.status === 'ready').reduce((s, o) => s + (Number(o.totalAmount) - Number(o.paidAmount)), 0).toFixed(2)}₺
+                {orders.filter(o => o.status === 'ready').reduce((s, o) => s + ((Number(o.totalAmount) || 0) - (Number(o.paidAmount) || 0) - (Number(o.discountAmount) || 0)), 0).toFixed(2)}₺
               </div>
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">BEKLEYEN TAHSİLAT</div>
             </div>
