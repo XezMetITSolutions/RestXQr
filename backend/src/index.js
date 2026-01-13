@@ -28,29 +28,29 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     // Allow localhost for development
     if (origin === 'http://localhost:3000') return callback(null, true);
-    
+
     // Get base domain from environment or use default
     const baseDomain = process.env.BASE_DOMAIN || 'restxqr.com';
-    
+
     // Allow main domain
     if (origin === `https://${baseDomain}` || origin === `https://www.${baseDomain}`) {
       return callback(null, true);
     }
-    
+
     // Allow all subdomains of base domain
     const domainPattern = new RegExp(`^https://[a-zA-Z0-9-]+\\.${baseDomain.replace(/\./g, '\\.')}$`);
     if (origin.match(domainPattern)) {
       return callback(null, true);
     }
-    
+
     // Allow localhost for development
     if (origin.match(/^https?:\/\/localhost(:\d+)?$/) || origin.match(/^https?:\/\/127\.0\.0\.1(:\d+)?$/)) {
       return callback(null, true);
     }
-    
+
     // Reject other origins
     callback(new Error('Not allowed by CORS'));
   },
@@ -71,16 +71,16 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // Recursive dosya arama fonksiyonu (debug için)
 const getAllImageFiles = (dir, fileList = [], baseDir = null) => {
   if (!baseDir) baseDir = dir;
-  
+
   try {
     const files = fs.readdirSync(dir);
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
-    
+
     files.forEach(file => {
       try {
         const filePath = path.join(dir, file);
         const stat = fs.statSync(filePath);
-        
+
         if (stat.isDirectory()) {
           // Alt klasörleri de tara
           getAllImageFiles(filePath, fileList, baseDir);
@@ -105,7 +105,7 @@ const getAllImageFiles = (dir, fileList = [], baseDir = null) => {
   } catch (dirError) {
     console.error(`❌ Klasör okuma hatası (${dir}):`, dirError.message);
   }
-  
+
   return fileList;
 };
 
@@ -129,11 +129,11 @@ app.get('/api/debug/list-files', async (req, res) => {
 
     // Upload klasörünü kontrol et
     const uploadDir = path.join(__dirname, 'public/uploads');
-    
+
     console.log('📁 Upload klasörü yolu:', uploadDir);
     console.log('📁 __dirname:', __dirname);
     console.log('📁 Klasör var mı?', fs.existsSync(uploadDir));
-    
+
     if (!fs.existsSync(uploadDir)) {
       // Klasör yoksa oluşturmayı dene
       try {
@@ -168,16 +168,16 @@ app.get('/api/debug/list-files', async (req, res) => {
 
     // Recursive olarak tüm resim dosyalarını bul
     let allFiles = getAllImageFiles(uploadDir);
-    
+
     console.log(`📊 Toplam ${allFiles.length} resim dosyası bulundu`);
-    
+
     if (allFiles.length > 0) {
       console.log('📋 İlk 5 dosya:', allFiles.slice(0, 5).map(f => f.filename));
     }
 
     // Arama filtresi
     if (search) {
-      allFiles = allFiles.filter(file => 
+      allFiles = allFiles.filter(file =>
         file.filename.toLowerCase().includes(search.toLowerCase())
       );
     }
@@ -199,7 +199,7 @@ app.get('/api/debug/list-files', async (req, res) => {
     const fileDetails = paginatedFiles.map(file => {
       const stats = fs.statSync(file.fullPath);
       const baseUrl = process.env.BACKEND_URL || 'https://masapp-backend.onrender.com';
-      
+
       return {
         filename: file.filename,
         path: file.fullPath,
@@ -314,17 +314,17 @@ app.use('/api/videomenu', require('./routes/videomenu')); // Video menu
 app.use('/api/events', require('./routes/events')); // Event management
 app.use('/api/translate', require('./routes/translate')); // Translation service
 app.use('/api/sessions', require('./routes/sessions')); // Session management for real-time cart
-// File upload routes - Gerçek dosya yükleme sistemi
+// File upload routes - Cloudinary ile kalıcı depolama
 const multer = require('multer');
-const sharp = require('sharp');
+const { uploadToCloudinary } = require('./lib/cloudinary');
 
-// Upload klasörünü oluştur
+// Upload klasörünü oluştur (fallback için)
 const uploadDir = path.join(__dirname, 'public/uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Multer konfigürasyonu
+// Multer konfigürasyonu (memory storage - Cloudinary için)
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
@@ -338,15 +338,15 @@ const upload = multer({
   }
 });
 
-// Static dosya servisi (uploads klasörü için) - tekrar tanımlama (yukarıda zaten var ama burada da tutuyoruz)
+// Static dosya servisi (uploads klasörü için) - eski resimler için fallback
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // API path'i için de aynı klasörü servis et (frontend uyumluluğu için)
 app.use('/api/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-// Gerçek upload endpoint
+// Cloudinary upload endpoint
 app.post('/api/upload/image', upload.single('image'), async (req, res) => {
-  console.log('📤 Upload endpoint çağrıldı');
-  
+  console.log('📤 Cloudinary Upload endpoint çağrıldı');
+
   try {
     if (!req.file) {
       console.log('❌ Dosya bulunamadı');
@@ -358,51 +358,43 @@ app.post('/api/upload/image', upload.single('image'), async (req, res) => {
 
     console.log('✅ Dosya alındı:', req.file.originalname, req.file.size, 'bytes');
 
-    // Dosya adı oluştur
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const filename = `image-${uniqueSuffix}.jpg`;
-    const filePath = path.join(uploadDir, filename);
-
-    console.log('📁 Dosya yolu:', filePath);
-
-    // Sharp ile resmi optimize et ve kaydet
-    try {
-      await sharp(req.file.buffer)
-        .resize(800, 800, { 
-          fit: 'inside',
-          withoutEnlargement: true 
-        })
-        .jpeg({ quality: 80 })
-        .toFile(filePath);
-
-      console.log('✅ Resim Sharp ile işlendi ve kaydedildi');
-    } catch (sharpError) {
-      console.error('❌ Sharp hatası:', sharpError);
-      
-      // Sharp çalışmazsa basit dosya kaydetme
-      console.log('🔄 Sharp çalışmadı, basit dosya kaydediliyor...');
-      fs.writeFileSync(filePath, req.file.buffer);
-      console.log('✅ Resim basit yöntemle kaydedildi');
+    // Cloudinary yapılandırma kontrolü
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error('❌ Cloudinary yapılandırması eksik! Lütfen environment variables kontrol edin.');
+      return res.status(500).json({
+        success: false,
+        message: 'Cloudinary yapılandırması eksik. Lütfen CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY ve CLOUDINARY_API_SECRET environment variables ekleyin.'
+      });
     }
 
-    // URL oluştur
-    const imageUrl = `/uploads/${filename}`;
+    // Opsiyonel: Alt klasör belirle (örn: restaurant ID'si)
+    const folder = req.body.folder || 'products';
 
-    console.log('🔗 URL oluşturuldu:', imageUrl);
+    // Cloudinary'ye yükle
+    const result = await uploadToCloudinary(req.file.buffer, {
+      folder: `restxqr/${folder}`,
+      public_id: `img_${Date.now()}_${Math.round(Math.random() * 1E9)}`
+    });
+
+    console.log('🔗 Cloudinary URL:', result.secure_url);
 
     res.json({
       success: true,
       data: {
-        filename: filename,
+        filename: result.public_id,
         originalName: req.file.originalname,
         size: req.file.size,
-        imageUrl: imageUrl
+        imageUrl: result.secure_url, // Cloudinary URL - kalıcı!
+        publicId: result.public_id,
+        width: result.width,
+        height: result.height,
+        format: result.format
       }
     });
 
   } catch (error) {
     console.error('❌ Resim yükleme hatası:', error);
-    
+
     res.status(500).json({
       success: false,
       message: 'Resim yükleme hatası',
@@ -412,11 +404,12 @@ app.post('/api/upload/image', upload.single('image'), async (req, res) => {
 });
 
 
+
 // Dosya arama endpoint'i
 app.get('/api/debug/search-file', async (req, res) => {
   try {
     const { filename } = req.query;
-    
+
     if (!filename) {
       return res.status(400).json({
         success: false,
@@ -428,7 +421,7 @@ app.get('/api/debug/search-file', async (req, res) => {
 
     // Upload klasörünü kontrol et
     const uploadDir = path.join(__dirname, 'public/uploads');
-    
+
     if (!fs.existsSync(uploadDir)) {
       return res.json({
         success: true,
@@ -444,7 +437,7 @@ app.get('/api/debug/search-file', async (req, res) => {
     console.log('📁 Toplam dosya sayısı:', files.length);
 
     // Dosya adını içeren dosyaları bul
-    const matchingFiles = files.filter(file => 
+    const matchingFiles = files.filter(file =>
       file.toLowerCase().includes(filename.toLowerCase())
     );
 
@@ -477,21 +470,21 @@ app.get('/api/debug/search-file', async (req, res) => {
       allFiles: files.slice(0, 20) // İlk 20 dosyayı göster
     });
 
-    } catch (error) {
-      console.error('❌ Dosya arama hatası:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Dosya arama hatası',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
-  });
+  } catch (error) {
+    console.error('❌ Dosya arama hatası:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Dosya arama hatası',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
 
 // Demo talep endpoint'i
 app.post('/api/demo-request', async (req, res) => {
   try {
     const { name, email, phone, company, message, language, source } = req.body;
-    
+
     console.log('📧 Demo talep alındı:', { name, email, phone, company, language, source });
 
     // Burada email gönderme servisi kullanılabilir
@@ -554,7 +547,7 @@ app.get('/api/debug/missing-images', async (req, res) => {
 
     for (const item of menuItems) {
       const imageUrl = item.imageUrl || item.image;
-      
+
       if (!imageUrl) {
         // Resim URL'i yok
         missingImages.push({
@@ -589,10 +582,10 @@ app.get('/api/debug/missing-images', async (req, res) => {
 
       // Dosya adını çıkar
       const fileName = filePath.split('/').pop();
-      
+
       // Dosya var mı kontrol et
       const fileExists = existingFileNames.has(fileName) || existingPaths.has(filePath);
-      
+
       // Fiziksel dosya kontrolü
       let physicalPath = path.join(uploadDir, fileName);
       if (!fs.existsSync(physicalPath) && filePath.startsWith('/uploads/')) {
@@ -654,7 +647,7 @@ app.get('/api/debug/missing-images', async (req, res) => {
 app.get('/api/qr/test', async (req, res) => {
   try {
     const { QRToken, Restaurant } = require('./models');
-    
+
     // Test if QRToken model is available
     if (!QRToken) {
       return res.status(503).json({
@@ -662,10 +655,10 @@ app.get('/api/qr/test', async (req, res) => {
         message: 'QRToken model not available'
       });
     }
-    
+
     // Test database connection
     const count = await QRToken.count();
-    
+
     res.json({
       success: true,
       message: 'QR system is working',
@@ -689,7 +682,7 @@ app.get('/api/qr/test', async (req, res) => {
 app.get('/api/events', (req, res) => {
   console.log('🔌 SSE connection request from:', req.get('origin'));
   console.log('🔌 SSE endpoint hit at:', new Date().toISOString());
-  
+
   // Set headers for SSE with proper CORS
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
@@ -703,7 +696,7 @@ app.get('/api/events', (req, res) => {
 
   // Generate unique client ID
   const clientId = `client_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-  
+
   // Add subscriber
   const { addSubscriber, removeSubscriber } = require('./lib/realtime');
   addSubscriber(clientId, res);
@@ -729,13 +722,13 @@ app.get('/api/events', (req, res) => {
 app.post('/api/debug/publish-notification', async (req, res) => {
   try {
     const { eventType, data } = req.body;
-    
+
     console.log('🐛 Debug notification:', { eventType, data });
-    
+
     // Real-time bildirim gönder
     const { publish } = require('./lib/realtime');
     publish(eventType, data);
-    
+
     res.json({
       success: true,
       message: 'Debug notification sent',
@@ -756,12 +749,12 @@ app.post('/api/debug/publish-notification', async (req, res) => {
 app.post('/api/test-image', async (req, res) => {
   try {
     const { image, testData } = req.body;
-    
+
     console.log('Test image endpoint called:', {
       imageLength: image?.length || 0,
       testData: testData
     });
-    
+
     res.json({
       success: true,
       message: 'Test endpoint working',
@@ -785,7 +778,7 @@ app.post('/api/test-image', async (req, res) => {
 app.post('/api/test-menu-item', async (req, res) => {
   try {
     const { restaurantId, categoryId, name, price, imageUrl } = req.body;
-    
+
     console.log('Test menu item endpoint called:', {
       restaurantId,
       categoryId,
@@ -793,7 +786,7 @@ app.post('/api/test-menu-item', async (req, res) => {
       price,
       imageUrlLength: imageUrl?.length || 0
     });
-    
+
     // Just validate the data without creating
     if (!restaurantId || !categoryId || !name || price === undefined) {
       return res.status(400).json({
@@ -802,7 +795,7 @@ app.post('/api/test-menu-item', async (req, res) => {
         required: ['restaurantId', 'categoryId', 'name', 'price']
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Menu item data is valid',
@@ -850,12 +843,12 @@ const startServer = async () => {
     console.log(`🌐 API Base: http://localhost:${PORT}/api`);
     console.log(`🔐 2FA API: http://localhost:${PORT}/api/admin/2fa/status`);
   });
-  
+
   // Connect to database (non-blocking) - ignore errors for 2FA testing
   try {
     await connectDB();
     console.log('✅ Database connected successfully');
-    
+
     // Auto-sync models with database (adds missing columns)
     const { sequelize } = require('./models');
     try {
@@ -868,7 +861,7 @@ const startServer = async () => {
     console.error('⚠️ Database connection failed, but server continues running:', error.message);
     console.log('🔐 2FA endpoints will work without database');
   }
-  
+
   return server;
 };
 
