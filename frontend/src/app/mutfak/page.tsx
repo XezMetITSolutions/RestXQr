@@ -40,7 +40,7 @@ export default function MutfakPanel() {
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string>('');
   const [restaurantName, setRestaurantName] = useState<string>('');
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('pending');
   const [searchTerm, setSearchTerm] = useState('');
   const [showMenuModal, setShowMenuModal] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -349,8 +349,8 @@ export default function MutfakPanel() {
             <button
               onClick={() => setActiveTab('all')}
               className={`px-6 py-3 rounded-lg font-semibold transition-colors ${activeTab === 'all'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-green-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
                 }`}
             >
               Tümü ({orderCounts.all})
@@ -358,8 +358,8 @@ export default function MutfakPanel() {
             <button
               onClick={() => setActiveTab('pending')}
               className={`px-6 py-3 rounded-lg font-semibold transition-colors ${activeTab === 'pending'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-green-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
                 }`}
             >
               Bekleyen ({orderCounts.pending})
@@ -367,26 +367,17 @@ export default function MutfakPanel() {
             <button
               onClick={() => setActiveTab('preparing')}
               className={`px-6 py-3 rounded-lg font-semibold transition-colors ${activeTab === 'preparing'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-green-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
                 }`}
             >
               Hazırlanan ({orderCounts.preparing})
             </button>
             <button
-              onClick={() => setActiveTab('ready')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${activeTab === 'ready'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
-            >
-              Teslim Edilen ({orderCounts.ready})
-            </button>
-            <button
               onClick={() => setActiveTab('cancelled')}
               className={`px-6 py-3 rounded-lg font-semibold transition-colors ${activeTab === 'cancelled'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-green-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
                 }`}
             >
               İptal Edilen ({orderCounts.cancelled})
@@ -583,8 +574,8 @@ export default function MutfakPanel() {
                                 <div className="flex items-center gap-3">
                                   <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
                                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${item.isAvailable
-                                      ? 'bg-green-100 text-green-800'
-                                      : 'bg-red-100 text-red-800'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
                                     }`}>
                                     {item.isAvailable ? '✓ Mevcut' : '✗ Bitti'}
                                   </span>
