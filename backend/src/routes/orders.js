@@ -5,17 +5,44 @@ const { Op } = Sequelize;
 const { Order, OrderItem, Restaurant, MenuItem, MenuCategory, QRToken } = require('../models');
 const waiterCalls = require('../lib/waiterStore');
 
+// DEBUG ROUTE: Get last 10 orders from ANY restaurant
+router.get('/debug/all', async (req, res) => {
+  try {
+    const orders = await Order.findAll({
+      limit: 10,
+      order: [['createdAt', 'DESC']],
+      include: [{ model: Restaurant, as: 'restaurant', attributes: ['name', 'username'] }]
+    });
+    res.json({ success: true, count: orders.length, data: orders });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // GET /api/orders?restaurantId=...&status=...
 router.get('/', async (req, res) => {
   try {
     const { restaurantId, status, tableNumber } = req.query;
+    console.log('🔍 GET /api/orders request:', { restaurantId, status, tableNumber });
+
     if (!restaurantId) {
       return res.status(400).json({ success: false, message: 'restaurantId is required' });
     }
 
-    const where = { restaurantId };
+    // Eğer restaurantId string ise (username/id ayrımı), gerçek UUID'yi bulmaya çalış
+    let actualRestaurantId = restaurantId;
+    if (typeof restaurantId === 'string' && !restaurantId.includes('-')) {
+      console.log('🔍 Resolving restaurantId from username:', restaurantId);
+      const restaurant = await Restaurant.findOne({ where: { username: restaurantId } });
+      if (restaurant) {
+        actualRestaurantId = restaurant.id;
+        console.log('✅ Resolved to UUID:', actualRestaurantId);
+      }
+    }
 
-    if (status) {
+    const where = { restaurantId: actualRestaurantId };
+
+    if (status && status !== 'all') {
       where.status = status;
     } else if (tableNumber) {
       // Masa numarası ile sorgulanıyorsa ve status belirtilmemişse, sadece aktif siparişleri getir
@@ -23,9 +50,11 @@ router.get('/', async (req, res) => {
       where.status = { [Op.notIn]: ['completed', 'cancelled'] };
     }
 
+    console.log('🎯 Final SQL Where:', where);
+
     const orders = await Order.findAll({
       where,
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     // Attach items (join OrderItem -> MenuItem) and normalize shape for frontends

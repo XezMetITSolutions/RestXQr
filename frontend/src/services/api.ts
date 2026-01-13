@@ -18,26 +18,26 @@ class ApiService {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${API_BASE_URL}${endpoint}`;
-      
+
       // Subdomain bilgisini header'a ekle (güvenlik için)
-      const subdomain = typeof window !== 'undefined' 
+      const subdomain = typeof window !== 'undefined'
         ? window.location.hostname.split('.')[0]
         : null;
-      
+
       // Subdomain'i her zaman gönder (test için)
       const headers = {
         'Content-Type': 'application/json',
         'X-Subdomain': subdomain || 'hazal', // Fallback olarak hazal kullan
         ...options.headers,
       };
-      
-      console.log('🌐 API Request:', { 
-        url, 
-        subdomain, 
+
+      console.log('🌐 API Request:', {
+        url,
+        subdomain,
         hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
-        headers 
+        headers
       });
-      
+
       const response = await fetch(url, {
         headers,
         ...options,
@@ -139,17 +139,6 @@ class ApiService {
     });
   }
 
-  // Order endpoints
-  async getRestaurantOrders(restaurantId: string) {
-    return this.request<any[]>(`/restaurants/${restaurantId}/orders`);
-  }
-
-  async createOrder(restaurantId: string, data: any) {
-    return this.request<any>(`/restaurants/${restaurantId}/orders`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
 
   async updateOrderStatus(orderId: string, status: string) {
     return this.request<any>(`/orders/${orderId}`, {
@@ -164,12 +153,12 @@ class ApiService {
 
   // Authentication endpoints
   async login(credentials: { username: string; password: string }) {
-    console.log('🔐 Login attempt:', { 
-      username: credentials.username, 
+    console.log('🔐 Login attempt:', {
+      username: credentials.username,
       hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
       subdomain: typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : 'server'
     });
-    
+
     return this.request<any>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
@@ -259,12 +248,6 @@ class ApiService {
     });
   }
 
-  async staffLogin(username: string, password: string, subdomain: string) {
-    return this.request<any>('/staff/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password, subdomain }),
-    });
-  }
 
   // Admin endpoints
   async getAllRestaurantUsers() {
@@ -285,10 +268,6 @@ class ApiService {
     });
   }
 
-  // Staff endpoints
-  async getStaff(restaurantId: string) {
-    return this.request<any>(`/staff/restaurant/${restaurantId}`);
-  }
 
   // Order endpoints
   async getOrders(restaurantId: string, status?: string) {
