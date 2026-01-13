@@ -547,162 +547,36 @@ function CartPageContent() {
             </>
           )}
 
-          {/* Yeni eklenen ürünler (sipariş verildikten sonra eklenenler) */}
+          {/* Yeni eklenen ürünler varsa (siparişten sonra) */}
           {pendingOrderId && items && items.length > 0 && (
-            <>
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-2">
-                  <TranslatedText>Yeni Eklenen Ürünler</TranslatedText>
-                </h2>
-                <p className="text-sm text-gray-600 mb-4">
-                  <TranslatedText>Sepete eklediğiniz yeni ürünler. Siparişi tamamlamak için aşağıdaki butona tıklayın.</TranslatedText>
-                </p>
-              </div>
-              <div className="space-y-3 mb-6">
-                {(items || []).map((item) => (
-                  <div key={item.itemId} className="bg-white rounded-lg shadow-sm border p-3 flex">
-                    <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                      <Image
-                        src={item.image || '/placeholder-food.jpg'}
-                        alt={item.name}
-                        width={64}
-                        height={64}
-                        className="object-cover w-full h-full rounded-lg"
-                      />
-                    </div>
-                    <div className="ml-3 flex-grow">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-semibold text-dynamic-sm">{item.name}</h3>
-                        <button
-                          onClick={() => handleRemoveItem(item.itemId)}
-                          className="text-red-500 hover:text-red-700 p-1"
-                        >
-                          <FaTrash size={12} />
-                        </button>
-                      </div>
-                      <p className="text-xs text-gray-600 mb-2">
-                        <TranslatedText>₺{item.price}</TranslatedText>
-                      </p>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleUpdateQuantity(item.itemId, item.quantity - 1)}
-                            className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
-                          >
-                            <FaMinus size={10} />
-                          </button>
-                          <span className="w-8 text-center font-medium">{item.quantity}</span>
-                          <button
-                            onClick={() => handleUpdateQuantity(item.itemId, item.quantity + 1)}
-                            className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
-                          >
-                            <FaPlus size={10} />
-                          </button>
-                        </div>
-                        <span className="font-semibold text-dynamic-sm" style={{ color: primary }}>
-                          <TranslatedText>₺{(item.price * item.quantity).toFixed(2)}</TranslatedText>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="mt-8 mb-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-2xl text-center shadow-lg">
+              <h3 className="text-xl font-bold text-blue-900 mb-4">
+                <TranslatedText>Yeni Ürünleriniz Var!</TranslatedText>
+              </h3>
+              <p className="text-blue-700 mb-6">
+                <TranslatedText>Sepetinize yeni ürünler eklediniz. Bu ürünleri de siparişinize eklemek için aşağıdaki butona tıklayın.</TranslatedText>
+              </p>
 
-              {/* Payment Options for new items */}
-              <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-                <h3 className="font-semibold text-dynamic-sm mb-4">
-                  <TranslatedText>Ödeme Seçenekleri</TranslatedText>
-                </h3>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <button
-                    onClick={() => setPaymentMethod('card')}
-                    className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-                  >
-                    <FaCreditCard className={paymentMethod === 'card' ? 'text-blue-500' : 'text-gray-500'} />
-                    <span className="text-sm font-medium">
-                      <TranslatedText>Kart</TranslatedText>
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod('cash')}
-                    className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${paymentMethod === 'cash' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-                  >
-                    <FaUser className={paymentMethod === 'cash' ? 'text-blue-500' : 'text-gray-500'} />
-                    <span className="text-sm font-medium">
-                      <TranslatedText>Nakit</TranslatedText>
-                    </span>
-                  </button>
+              <div className="bg-white rounded-xl p-4 mb-6 shadow-sm border border-blue-100">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-600 font-medium"><TranslatedText>Eklenen Ürün Sayısı</TranslatedText></span>
+                  <span className="font-bold text-blue-600">{items.length}</span>
                 </div>
-                <div className="space-y-3">
-                  <button
-                    onClick={handleTip}
-                    className="w-full p-3 rounded-lg border border-gray-200 flex items-center justify-between hover:bg-gray-50"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FaHeart className="text-pink-500" />
-                      <span className="text-sm font-medium">
-                        <TranslatedText>Garsona Bahşiş</TranslatedText>
-                      </span>
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      <TranslatedText>{`₺${tipAmount.toFixed(2)}`}</TranslatedText>
-                    </span>
-                  </button>
-                  <button
-                    onClick={handleDonation}
-                    className="w-full p-3 rounded-lg border border-gray-200 flex items-center justify-between hover:bg-gray-50"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FaGift className="text-green-500" />
-                      <span className="text-sm font-medium">
-                        <TranslatedText>Bağış Yap</TranslatedText>
-                      </span>
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      <TranslatedText>{`₺${donationAmount.toFixed(2)}`}</TranslatedText>
-                    </span>
-                  </button>
+                <div className="flex justify-between items-center font-bold text-lg">
+                  <span><TranslatedText>Ek Tutar</TranslatedText></span>
+                  <span style={{ color: primary }}>{`₺${total.toFixed(2)}`}</span>
                 </div>
               </div>
 
-              {/* Order Summary for new items */}
-              <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-                <h3 className="font-semibold text-dynamic-sm mb-3">
-                  <TranslatedText>Sipariş Özeti</TranslatedText>
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span><TranslatedText>Ara Toplam</TranslatedText></span>
-                    <span>₺{subtotal.toFixed(2)}</span>
-                  </div>
-                  {tipAmount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span><TranslatedText>Bahşiş</TranslatedText></span>
-                      <span>₺{tipAmount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {donationAmount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span><TranslatedText>Bağış</TranslatedText></span>
-                      <span>₺{donationAmount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <hr className="my-2" />
-                  <div className="flex justify-between font-semibold text-dynamic-sm">
-                    <span><TranslatedText>Toplam</TranslatedText></span>
-                    <span style={{ color: primary }}>₺{total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Checkout Button for new items */}
               <button
                 onClick={handleCheckout}
-                className="w-full btn btn-primary py-4 rounded-lg font-semibold text-dynamic-sm mb-6"
+                className="w-full py-4 rounded-xl font-bold text-white shadow-xl transition-transform active:scale-95 flex items-center justify-center gap-3"
+                style={{ backgroundColor: primary }}
               >
-                <TranslatedText>Siparişi Tamamla</TranslatedText>
+                <FaShoppingCart />
+                <TranslatedText>Yeni Ürünleri Sipariş Ver</TranslatedText>
               </button>
-            </>
+            </div>
           )}
 
           {/* Normal sepet görünümü (sipariş verilmediyse) */}
