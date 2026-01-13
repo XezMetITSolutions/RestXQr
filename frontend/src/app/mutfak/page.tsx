@@ -160,20 +160,25 @@ export default function MutfakPanel() {
       setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
 
       const response = await fetch(`${API_URL}/orders/${orderId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json'
+        }
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Sipariş silindi:', orderId);
         fetchOrders(false);
       } else {
-        alert('Sipariş silinemedi: ' + data.message);
+        const errorText = await response.text();
+        console.error(`❌ Sipariş silinemedi! Status: ${response.status}, Response:`, errorText);
+        alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
         fetchOrders(false);
       }
     } catch (error) {
       console.error('Sipariş silme hatası:', error);
-      alert('Sipariş silinirken teknik bir hata oluştu.');
+      alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
       fetchOrders(false);
     }
   };
@@ -373,8 +378,8 @@ export default function MutfakPanel() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
 
-          {/* Filter Tabs */}
-          <div className="flex gap-4 mb-6">
+          {/* Filter Tabs - Desktop (md and up) */}
+          <div className="hidden md:flex gap-4 mb-6">
             <button
               onClick={() => setActiveTab('all')}
               className={`px-6 py-3 rounded-lg font-semibold transition-colors ${activeTab === 'all'
@@ -411,6 +416,24 @@ export default function MutfakPanel() {
             >
               İptal Edilen ({orderCounts.cancelled})
             </button>
+          </div>
+
+          {/* Filter Tabs - Mobile (below md) */}
+          <div className="block md:hidden mb-6">
+            <label htmlFor="order-filter" className="block text-sm font-medium text-gray-700 mb-2">
+              Sipariş Durumu
+            </label>
+            <select
+              id="order-filter"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-700 focus:outline-none focus:border-green-500 font-semibold"
+            >
+              <option value="all">Tümü ({orderCounts.all})</option>
+              <option value="pending">Bekleyen ({orderCounts.pending})</option>
+              <option value="preparing">Hazırlanan ({orderCounts.preparing})</option>
+              <option value="cancelled">İptal Edilen ({orderCounts.cancelled})</option>
+            </select>
           </div>
 
           {/* Orders */}
