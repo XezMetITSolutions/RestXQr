@@ -612,6 +612,13 @@ class ApiService {
     });
   }
 
+  async callWaiter(data: { restaurantId: string; tableNumber: number; type: string; message: string }) {
+    return this.request<any>('/waiter/call', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
 }
 
 export const apiService = new ApiService();
