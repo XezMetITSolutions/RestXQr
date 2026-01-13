@@ -160,6 +160,8 @@ export default function MenuManagement() {
   const [selectedItemForTranslation, setSelectedItemForTranslation] = useState<any>(null);
   const [translations, setTranslations] = useState<{ [key: string]: { name: string, description: string } }>({});
   const [loadingTranslations, setLoadingTranslations] = useState(false);
+  const [showBulkTranslateModal, setShowBulkTranslateModal] = useState(false);
+  const [selectedBulkLanguages, setSelectedBulkLanguages] = useState<string[]>([]);
 
 
 
@@ -757,7 +759,7 @@ export default function MenuManagement() {
     }));
   };
 
-  const handleBulkTranslate = async () => {
+  const handleBulkTranslate = () => {
     // Toplu seçim varsa sadece seçilenleri, yoksa tümünü
     const targets = selectedItems.length > 0
       ? items.filter(i => selectedItems.includes(i.id))
@@ -768,13 +770,22 @@ export default function MenuManagement() {
       return;
     }
 
-    if (!translationLanguages.length) {
-      alert(t('Lütfen önce ayarlardan (İşletme Ayarları > Menü Ayarları) çeviri yapılacak dilleri seçin.'));
+    // Modal açıldığında varsayılan olarak ayarlardaki dilleri seç
+    setSelectedBulkLanguages(translationLanguages);
+    setShowBulkTranslateModal(true);
+  };
+
+  const startBulkTranslation = async () => {
+    const targets = selectedItems.length > 0
+      ? items.filter(i => selectedItems.includes(i.id))
+      : items;
+
+    if (selectedBulkLanguages.length === 0) {
+      alert(t('Lütfen en az bir dil seçin.'));
       return;
     }
 
-    if (!confirm(t(`${targets.length} ürün ${translationLanguages.map(l => l.toUpperCase()).join(', ')} dillerine çevrilecek. Bu işlem DeepL API limitlerinize göre zaman alabilir. Devam etmek istiyor musunuz?`))) return;
-
+    setShowBulkTranslateModal(false);
     setIsBulkTranslating(true);
     let successCount = 0;
 
@@ -786,8 +797,8 @@ export default function MenuManagement() {
             const newTranslations = { ...((item as any).translations || {}) };
             let hasChanged = false;
 
-            for (const lang of translationLanguages) {
-              // Eğer zaten bu dilde çeviri varsa ve name/description doluysa atlamayı düşünebiliriz 
+            for (const lang of selectedBulkLanguages) {
+              // Eğer zaten bu dilde çeviri varsa ve name/description doluysa atlamayı düşünebiliriz
               // ama kullanıcı "toplu çevir" dediyse muhtemelen güncellemek istiyordur.
 
               const translatedName = await translateWithDeepL({
@@ -2497,6 +2508,88 @@ export default function MenuManagement() {
                     className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
                     <TranslatedText>Kapat</TranslatedText>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bulk Translate Modal */}
+          {showBulkTranslateModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+              <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <h2 className="text-xl font-bold"><TranslatedText>Toplu Çeviri Ayarları</TranslatedText></h2>
+                  <button
+                    onClick={() => setShowBulkTranslateModal(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <p className="text-sm text-gray-600">
+                    {selectedItems.length > 0 ? `${selectedItems.length} ürün` : `${items.length} ürün`} <TranslatedText>seçilen dillere çevrilecek.</TranslatedText>
+                  </p>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      <TranslatedText>Hedef Diller</TranslatedText>
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { id: 'en', name: 'English', flag: '🇺🇸' },
+                        { id: 'de', name: 'German', flag: '🇩🇪' },
+                        { id: 'ar', name: 'Arabic', flag: '🇸🇦' },
+                        { id: 'ru', name: 'Russian', flag: '🇷🇺' },
+                        { id: 'fr', name: 'French', flag: '🇫🇷' },
+                        { id: 'es', name: 'Spanish', flag: '🇪🇸' },
+                        { id: 'it', name: 'Italian', flag: '🇮🇹' }
+                      ].map((lang) => (
+                        <button
+                          key={lang.id}
+                          onClick={() => {
+                            if (selectedBulkLanguages.includes(lang.id)) {
+                              setSelectedBulkLanguages(selectedBulkLanguages.filter(l => l !== lang.id));
+                            } else {
+                              setSelectedBulkLanguages([...selectedBulkLanguages, lang.id]);
+                            }
+                          }}
+                          className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedBulkLanguages.includes(lang.id)
+                            ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-sm'
+                            : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
+                            }`}
+                        >
+                          <span className="text-xl">{lang.flag}</span>
+                          <span className="text-sm font-semibold">{lang.name}</span>
+                          {selectedBulkLanguages.includes(lang.id) && (
+                            <FaCheck className="ml-auto text-purple-500 text-xs" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-3">
+                    <FaExclamationTriangle className="text-blue-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-blue-700 leading-relaxed">
+                      <TranslatedText>Sadece seçtiğiniz diller için çeviriler güncellenecektir. Mevcut çevirilerinizin üzerine yazılabilir.</TranslatedText>
+                    </p>
+                  </div>
+                </div>
+                <div className="p-6 border-t flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowBulkTranslateModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-semibold"
+                  >
+                    <TranslatedText>İptal</TranslatedText>
+                  </button>
+                  <button
+                    onClick={startBulkTranslation}
+                    disabled={selectedBulkLanguages.length === 0}
+                    className="flex-1 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                  >
+                    <TranslatedText>Çeviriyi Başlat</TranslatedText>
                   </button>
                 </div>
               </div>
