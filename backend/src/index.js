@@ -118,6 +118,111 @@ app.get('/api/debug/test', (req, res) => {
   });
 });
 
+// Cloudinary Test Sayfası
+app.get('/debug', (req, res) => {
+  const html = `
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>RestXQr - Cloudinary Debug</title>
+        <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background: #f4f7f6; }
+            .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            h1 { color: #2c3e50; margin-top: 0; }
+            .upload-area { border: 2px dashed #3498db; padding: 40px; text-align: center; border-radius: 8px; margin: 20px 0; cursor: pointer; transition: background 0.3s; }
+            .upload-area:hover { background: #ebf5fb; }
+            #preview { max-width: 100%; border-radius: 8px; margin-top: 20px; display: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            #status { margin-top: 20px; padding: 15px; border-radius: 6px; display: none; }
+            .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+            .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+            .loading { color: #3498db; font-weight: bold; }
+            pre { background: #f8f9fa; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 13px; }
+            .btn { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+            .btn:disabled { background: #bdc3c7; }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>🖼️ Cloudinary Upload Test</h1>
+            <p>Bu sayfa, resimlerin Cloudinary'ye başarıyla yüklenip yüklenmediğini test etmek içindir.</p>
+            
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <p>Resim seçmek için buraya tıklayın (JPG/PNG)</p>
+                <input type="file" id="fileInput" accept="image/*" style="display: none" onchange="handleFile(this)">
+            </div>
+
+            <div id="status"></div>
+            <img id="preview" src="" alt="Önizleme">
+            
+            <div id="resultInfo" style="display: none; margin-top: 20px;">
+                <h3>✅ Yükleme Başarılı!</h3>
+                <p><strong>Cloudinary URL:</strong> <a id="imageUrl" href="#" target="_blank">Resmi Aç</a></p>
+                <p><strong>Public ID:</strong> <span id="publicId"></span></p>
+                <h4>API Yanıtı:</h4>
+                <pre id="jsonResult"></pre>
+            </div>
+        </div>
+
+        <script>
+            async function handleFile(input) {
+                const file = input.files[0];
+                if (!file) return;
+
+                const status = document.getElementById('status');
+                const preview = document.getElementById('preview');
+                const resultInfo = document.getElementById('resultInfo');
+                
+                // Önizleme göster
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+
+                // Yükle
+                status.innerHTML = '<span class="loading">⏳ Yükleniyor... Lütfen bekleyin.</span>';
+                status.className = '';
+                status.style.display = 'block';
+                resultInfo.style.display = 'none';
+
+                const formData = new FormData();
+                formData.append('image', file);
+
+                try {
+                    const response = await fetch('/api/upload/image', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        status.innerHTML = '✅ Resim Cloudinary\\'ye başarıyla yüklendi!';
+                        status.className = 'success';
+                        
+                        document.getElementById('imageUrl').href = result.data.imageUrl;
+                        document.getElementById('imageUrl').innerText = result.data.imageUrl;
+                        document.getElementById('publicId').innerText = result.data.publicId;
+                        document.getElementById('jsonResult').innerText = JSON.stringify(result, null, 2);
+                        resultInfo.style.display = 'block';
+                    } else {
+                        throw new Error(result.message || 'Yükleme başarısız');
+                    }
+                } catch (error) {
+                    status.innerHTML = '❌ Hata: ' + error.message;
+                    status.className = 'error';
+                }
+            }
+        </script>
+    </body>
+    </html>
+  `;
+  res.send(html);
+});
+
 // Tüm dosyaları listele endpoint'i (routes'lardan önce)
 app.get('/api/debug/list-files', async (req, res) => {
   try {
