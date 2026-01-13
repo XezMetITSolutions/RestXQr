@@ -14,26 +14,8 @@ router.get('/', async (req, res) => {
 
     const where = { restaurantId };
 
-    // 60 saniye geciktirme kuralı: 
-    // Paneller (Mutfak vb.) siparişi ancak 60 saniye sonra görmeli.
-    // 60 saniyeden kısa süreli 'pending' siparişleri gizle.
-    const oneMinuteAgo = new Date(Date.now() - 60000);
-
     if (status) {
       where.status = status;
-      // Eğer özellikle 'pending' isteniyorsa, zaman filtresini ekle
-      if (status === 'pending') {
-        where.created_at = { [Op.lte]: oneMinuteAgo };
-      }
-    } else {
-      // Tümü isteniyorsa: 'pending' olmayanlar gelsin VEYA 'pending' olup 60 saniye geçmiş olanlar gelsin
-      where[Op.or] = [
-        { status: { [Op.ne]: 'pending' } },
-        {
-          status: 'pending',
-          created_at: { [Op.lte]: oneMinuteAgo }
-        }
-      ];
     }
 
     const orders = await Order.findAll({
@@ -170,31 +152,24 @@ router.post('/', async (req, res) => {
     const { publish } = require('../lib/realtime');
 
     // Sipariş oluşturulduğunda hemen panellere gönderme, 1 dakika bekle
-    setTimeout(async () => {
-      try {
-        // 1 dakika sonra sipariş hala iptal edilmemişse panellere gönder
-        const currentOrder = await Order.findByPk(order.id);
-        if (currentOrder && currentOrder.status !== 'cancelled') {
-          publish('new_order', {
-            orderId: order.id,
-            restaurantId: order.restaurantId,
-            tableNumber: order.tableNumber,
-            items: items.map(item => ({
-              name: item.name,
-              quantity: item.quantity,
-              notes: item.notes || ''
-            })),
-            totalAmount: order.totalAmount,
-            timestamp: new Date().toISOString()
-          });
-          console.log(`✅ Sipariş ${order.id} 1 dakika sonra panellere gönderildi`);
-        } else {
-          console.log(`⚠️ Sipariş ${order.id} iptal edilmiş, panellere gönderilmedi`);
-        }
-      } catch (error) {
-        console.error('❌ Sipariş panellere gönderilirken hata:', error);
-      }
-    }, 60000); // 1 dakika = 60000 ms
+    // Sipariş oluşturulduğunda hemen panellere gönder
+    try {
+      publish('new_order', {
+        orderId: order.id,
+        restaurantId: order.restaurantId,
+        tableNumber: order.tableNumber,
+        items: items.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          notes: item.notes || ''
+        })),
+        totalAmount: order.totalAmount,
+        timestamp: new Date().toISOString()
+      });
+      console.log(`✅ Sipariş ${order.id} anında panellere gönderildi`);
+    } catch (error) {
+      console.error('❌ Sipariş panellere gönderilirken hata:', error);
+    }
 
     res.status(201).json({
       success: true,
