@@ -17,7 +17,7 @@ export default function ImportPreviewPage() {
 
     useEffect(() => {
         // Verileri yükle (JSON dosyasından simüle ediyoruz veya API'den çekiyoruz)
-        fetch('/api/admin/import-preview') // Bu endpointi birazdan backend'e ekleyeceğiz
+        fetch('https://masapp-backend.onrender.com/api/admin/import-preview')
             .then(res => res.json())
             .then(data => setItems(data))
             .catch(err => console.error('Veri yükleme hatası:', err));
