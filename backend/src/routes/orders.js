@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const { Sequelize } = require('sequelize');
+const { Op } = Sequelize;
 const { Order, OrderItem, Restaurant, MenuItem, MenuCategory, QRToken } = require('../models');
 
 // GET /api/orders?restaurantId=...&status=...
@@ -11,7 +13,28 @@ router.get('/', async (req, res) => {
     }
 
     const where = { restaurantId };
-    if (status) where.status = status;
+
+    // 60 saniye geciktirme kuralı: 
+    // Paneller (Mutfak vb.) siparişi ancak 60 saniye sonra görmeli.
+    // 60 saniyeden kısa süreli 'pending' siparişleri gizle.
+    const oneMinuteAgo = new Date(Date.now() - 60000);
+
+    if (status) {
+      where.status = status;
+      // Eğer özellikle 'pending' isteniyorsa, zaman filtresini ekle
+      if (status === 'pending') {
+        where.created_at = { [Op.lte]: oneMinuteAgo };
+      }
+    } else {
+      // Tümü isteniyorsa: 'pending' olmayanlar gelsin VEYA 'pending' olup 60 saniye geçmiş olanlar gelsin
+      where[Op.or] = [
+        { status: { [Op.ne]: 'pending' } },
+        {
+          status: 'pending',
+          created_at: { [Op.lte]: oneMinuteAgo }
+        }
+      ];
+    }
 
     const orders = await Order.findAll({
       where,
@@ -145,7 +168,7 @@ router.post('/', async (req, res) => {
 
     // 1 dakika sonra panellere gönder (iptal/değişiklik için süre tanı)
     const { publish } = require('../lib/realtime');
-    
+
     // Sipariş oluşturulduğunda hemen panellere gönderme, 1 dakika bekle
     setTimeout(async () => {
       try {
@@ -173,9 +196,9 @@ router.post('/', async (req, res) => {
       }
     }, 60000); // 1 dakika = 60000 ms
 
-    res.status(201).json({ 
-      success: true, 
-      data: order, 
+    res.status(201).json({
+      success: true,
+      data: order,
       message: 'Order created. Will be sent to panels in 1 minute.',
       confirmationTime: 60 // Frontend'e 60 saniye bilgisi gönder
     });
@@ -211,8 +234,8 @@ router.delete('/bulk', async (req, res) => {
     const deletedOrders = await Order.destroy({ where: { restaurantId } });
     console.log(`🗑️ Deleted ${deletedOrders} orders`);
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: `Deleted ${deletedOrders} orders and ${deletedItems} items`,
       deletedCount: deletedOrders
     });
@@ -238,17 +261,17 @@ router.put('/:id', async (req, res) => {
     // Status güncelle
     const previousStatus = order.status;
     if (status) order.status = status;
-    
+
     // Table number güncelle
     if (tableNumber) order.tableNumber = tableNumber;
-    
+
     await order.save();
-    
+
     // Ödeme tamamlandığında QR token'ı yenile (eski token'ı deaktive et, yeni token oluştur)
     if (status === 'completed' && previousStatus !== 'completed' && order.tableNumber) {
       try {
         console.log(`💳 Ödeme tamamlandı, QR token yenileniyor: Masa ${order.tableNumber}, Restoran ${order.restaurantId}`);
-        
+
         // Mevcut aktif token'ı deaktive et
         await QRToken.update(
           { isActive: false },
@@ -260,13 +283,13 @@ router.put('/:id', async (req, res) => {
             }
           }
         );
-        
+
         // Yeni token oluştur (10 yıl geçerli)
         const crypto = require('crypto');
         const generateToken = () => crypto.randomBytes(32).toString('hex');
         const newToken = generateToken();
         const expiresAt = new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000); // 10 yıl
-        
+
         const newQRToken = await QRToken.create({
           restaurantId: order.restaurantId,
           tableNumber: order.tableNumber,
@@ -275,19 +298,19 @@ router.put('/:id', async (req, res) => {
           isActive: true,
           createdBy: 'system'
         });
-        
+
         console.log(`✅ Yeni QR token oluşturuldu: Masa ${order.tableNumber}, Token: ${newToken.substring(0, 20)}...`);
       } catch (error) {
         console.error('❌ QR token yenileme hatası:', error);
         // Hata olsa bile sipariş güncellemesi devam etsin
       }
     }
-    
+
     // Items değiştiyse güncelle
     if (items && Array.isArray(items)) {
       // Mevcut order items'ları sil
       await OrderItem.destroy({ where: { orderId: id } });
-      
+
       // Yeni items'ları ekle
       for (const item of items) {
         await OrderItem.create({
@@ -298,14 +321,14 @@ router.put('/:id', async (req, res) => {
           notes: item.notes || ''
         });
       }
-      
+
       // Total amount'u güncelle
       if (totalAmount) {
         order.totalAmount = totalAmount;
         await order.save();
       }
     }
-    
+
     res.json({ success: true, data: order });
   } catch (error) {
     console.error('PUT /orders/:id error:', error);
