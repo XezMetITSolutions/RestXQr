@@ -10,7 +10,7 @@ router.get('/debug/all', async (req, res) => {
   try {
     const orders = await Order.findAll({
       limit: 10,
-      order: [['created_at', 'DESC']],
+      order: [Sequelize.literal('created_at DESC')],
       include: [{ model: Restaurant, as: 'restaurant', attributes: ['name', 'username'] }]
     });
     res.json({ success: true, count: orders.length, data: orders });
@@ -54,7 +54,7 @@ router.get('/', async (req, res) => {
 
     const orders = await Order.findAll({
       where,
-      order: [['created_at', 'DESC']]
+      order: [Sequelize.literal('created_at DESC')]
     });
 
     // Attach items (join OrderItem -> MenuItem) and normalize shape for frontends
@@ -90,7 +90,7 @@ router.get('/', async (req, res) => {
     res.json({ success: true, data });
   } catch (error) {
     console.error('GET /orders error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 });
 

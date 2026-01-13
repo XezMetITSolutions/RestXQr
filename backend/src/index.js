@@ -92,7 +92,7 @@ app.get('/api/orders/debug/all', async (req, res) => {
     const { Order, Restaurant } = require('./models');
     const orders = await Order.findAll({
       limit: 10,
-      order: [['created_at', 'DESC']],
+      order: [Sequelize.literal('created_at DESC')],
       include: [{ model: Restaurant, as: 'restaurant', attributes: ['name', 'username'] }]
     });
     res.json({
