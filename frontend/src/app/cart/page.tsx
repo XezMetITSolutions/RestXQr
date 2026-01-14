@@ -716,7 +716,7 @@ function CartPageContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-6 m-4 max-w-sm w-full">
             <h3 className="text-lg font-semibold mb-4">
-              <TranslatedText>Ödeme Onayı</TranslatedText>
+              <TranslatedText>Sipariş Onayı</TranslatedText>
             </h3>
             <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">
@@ -735,9 +735,17 @@ function CartPageContent() {
               </button>
               <button
                 onClick={handlePayment}
-                className="flex-1 py-2 px-4 btn btn-primary rounded-lg"
+                disabled={isSubmitting}
+                className="flex-1 py-2 px-4 btn btn-primary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <TranslatedText>Siparişi Tamamla</TranslatedText>
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <TranslatedText>Gönderiliyor...</TranslatedText>
+                  </div>
+                ) : (
+                  <TranslatedText>Siparişi Tamamla</TranslatedText>
+                )}
               </button>
             </div>
           </div>
