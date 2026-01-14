@@ -38,6 +38,7 @@ function CartPageContent() {
   const [showTipModal, setShowTipModal] = useState(false);
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPreviousOrders, setShowPreviousOrders] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [pendingOrderItems, setPendingOrderItems] = useState<any[]>([]);
   const [sessionKey, setSessionKey] = useState<string | null>(null);
@@ -416,65 +417,18 @@ function CartPageContent() {
 
         {/* Cart Items */}
         <div className={`pt-16 px-3 py-4`}>
-          {/* Sipariş verilen ürünler gösteriliyorsa */}
-          {pendingOrderId && pendingOrderItems.length > 0 && (
-            <>
-              {/* Yeni Ürün Ekle Butonu - Üstte */}
-              <div className="mb-6">
-                <Link
-                  href="/menu"
-                  className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95"
-                  style={{ backgroundColor: primary }}
-                >
-                  <FaPlus />
-                  <TranslatedText>Yeni Ürün Ekle</TranslatedText>
-                </Link>
-              </div>
-
-              <div className="mb-4">
-                <h2 className="text-lg font-bold text-gray-800 mb-2">
-                  <TranslatedText>Siparişi Verilmiş Olanlar</TranslatedText>
-                </h2>
-                <div className="bg-blue-50 border-blue-200 border-2 rounded-xl p-4 mb-4 shadow-sm">
-                  <p className="text-sm font-medium text-blue-800">
-                    <TranslatedText>👨‍🍳 Siparişiniz mutfağa iletildi. Afiyet olsun!</TranslatedText>
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-3 mb-6">
-                {pendingOrderItems.map((item) => (
-                  <div key={item.itemId || item.id} className="bg-white rounded-xl shadow-md border-2 border-gray-100 p-4 flex opacity-90 transition-all hover:opacity-100">
-                    <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                      <Image
-                        src={item.image || '/placeholder-food.jpg'}
-                        alt={typeof item.name === 'string' ? item.name : 'Product'}
-                        width={64}
-                        height={64}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                    <div className="ml-4 flex-grow">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-bold text-gray-800">
-                          {typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün')}
-                        </h3>
-                        <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full uppercase tracking-wider">
-                          <TranslatedText>Sipariş Verildi</TranslatedText>
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-sm font-medium text-gray-500">
-                          {`${item.quantity} Adet × ₺${item.price}`}
-                        </span>
-                        <span className="font-bold text-lg" style={{ color: primary }}>
-                          {`₺${(item.price * item.quantity).toFixed(2)}`}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
+          {/* Yeni Ürün Ekle Butonu - En Üstte */}
+          {pendingOrderId && (
+            <div className="mb-6">
+              <Link
+                href="/menu"
+                className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95"
+                style={{ backgroundColor: primary }}
+              >
+                <FaPlus />
+                <TranslatedText>Yeni Ürün Ekle</TranslatedText>
+              </Link>
+            </div>
           )}
 
           {/* Yeni eklenen ürünler varsa (siparişten sonra) */}
@@ -920,6 +874,75 @@ function CartPageContent() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Siparişi Verilmiş Olanlar - En Alta Taşındı - Accordion */}
+      {pendingOrderId && pendingOrderItems.length > 0 && (
+        <div className="mt-8 mb-6">
+          <button
+            onClick={() => setShowPreviousOrders(!showPreviousOrders)}
+            className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl border-2 border-gray-200 hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📋</span>
+              <div className="text-left">
+                <h2 className="text-lg font-bold text-gray-800">
+                  <TranslatedText>Siparişi Verilmiş Olanlar</TranslatedText>
+                </h2>
+                <p className="text-sm text-gray-600">
+                  {pendingOrderItems.length} ürün • <TranslatedText>Mutfakta hazırlanıyor</TranslatedText>
+                </p>
+              </div>
+            </div>
+            <div className={`transform transition-transform ${showPreviousOrders ? 'rotate-180' : ''}`}>
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+          
+          {showPreviousOrders && (
+            <div className="mt-4 space-y-3 animate-fadeIn">
+              <div className="bg-blue-50 border-blue-200 border-2 rounded-xl p-4 shadow-sm">
+                <p className="text-sm font-medium text-blue-800">
+                  <TranslatedText>👨‍🍳 Siparişiniz mutfağa iletildi. Afiyet olsun!</TranslatedText>
+                </p>
+              </div>
+              
+              {pendingOrderItems.map((item) => (
+                <div key={item.itemId || item.id} className="bg-white rounded-xl shadow-md border-2 border-gray-100 p-4 flex opacity-90 transition-all hover:opacity-100">
+                  <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    <Image
+                      src={item.image || '/placeholder-food.jpg'}
+                      alt={typeof item.name === 'string' ? item.name : 'Product'}
+                      width={64}
+                      height={64}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  <div className="ml-4 flex-grow">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-bold text-gray-800">
+                        {typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün')}
+                      </h3>
+                      <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full uppercase tracking-wider">
+                        <TranslatedText>Sipariş Verildi</TranslatedText>
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-sm font-medium text-gray-500">
+                        {`${item.quantity} Adet × ₺${item.price}`}
+                      </span>
+                      <span className="font-bold text-lg" style={{ color: primary }}>
+                        {`₺${(item.price * item.quantity).toFixed(2)}`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
