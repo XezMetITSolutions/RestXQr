@@ -132,13 +132,21 @@ export default function MenuManagement() {
     return staticDictionary[text]?.[code] || text;
   }; const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || t('Kullanıcı');
 
-  const [activeTab, setActiveTab] = useState<'items' | 'categories' | 'stats'>('items');
+  const [activeTab, setActiveTab] = useState<'items' | 'categories' | 'stations' | 'stats'>('items');
   const [searchTerm, setSearchTerm] = useState('');
   const [showItemForm, setShowItemForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [showStationForm, setShowStationForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [editingStation, setEditingStation] = useState<any>(null);
+  const [stations, setStations] = useState<Array<{ id: string, name: string, emoji: string, color: string, order: number }>>([
+    { id: '1', name: 'Izgara', emoji: '🔥', color: '#F59E0B', order: 1 },
+    { id: '2', name: 'Makarna', emoji: '🍝', color: '#3B82F6', order: 2 },
+    { id: '3', name: 'Soğuk', emoji: '🥗', color: '#10B981', order: 3 },
+    { id: '4', name: 'Tatlı', emoji: '🍰', color: '#EC4899', order: 4 }
+  ]);
   const [statusFilter, setStatusFilter] = useState<'all' | 'available' | 'out-of-stock'>('all');
   const [showOutOfStock, setShowOutOfStock] = useState(false);
   const [subcategories, setSubcategories] = useState<Array<{ id: string, name: { tr: string, en: string } }>>([]);
@@ -199,6 +207,13 @@ export default function MenuManagement() {
     order: 0,
     isActive: true,
     translations: {}
+  });
+
+  const [stationFormData, setStationFormData] = useState({
+    name: '',
+    emoji: '',
+    color: '#3B82F6',
+    order: 0
   });
   const [isTranslatingItem, setIsTranslatingItem] = useState(false);
   const [itemTranslationError, setItemTranslationError] = useState<string | null>(null);
@@ -678,6 +693,67 @@ export default function MenuManagement() {
     setShowCategoryForm(true);
   };
 
+  // İstasyon yönetimi fonksiyonları
+  const handleAddStation = () => {
+    setEditingStation(null);
+    setStationFormData({
+      name: '',
+      emoji: '',
+      color: '#3B82F6',
+      order: stations.length + 1
+    });
+    setShowStationForm(true);
+  };
+
+  const handleEditStation = (station: any) => {
+    setEditingStation(station);
+    setStationFormData({
+      name: station.name || '',
+      emoji: station.emoji || '',
+      color: station.color || '#3B82F6',
+      order: station.order || 0
+    });
+    setShowStationForm(true);
+  };
+
+  const handleSaveStation = () => {
+    if (!stationFormData.name.trim()) {
+      alert('İstasyon adı gereklidir!');
+      return;
+    }
+
+    if (editingStation) {
+      // Güncelleme
+      setStations(stations.map(s => 
+        s.id === editingStation.id 
+          ? { ...s, ...stationFormData }
+          : s
+      ));
+    } else {
+      // Yeni ekleme
+      const newStation = {
+        id: Date.now().toString(),
+        ...stationFormData
+      };
+      setStations([...stations, newStation]);
+    }
+
+    setShowStationForm(false);
+    setEditingStation(null);
+    setStationFormData({
+      name: '',
+      emoji: '',
+      color: '#3B82F6',
+      order: 0
+    });
+  };
+
+  const handleDeleteStation = (stationId: string) => {
+    if (confirm('Bu istasyonu silmek istediğinizden emin misiniz?')) {
+      setStations(stations.filter(s => s.id !== stationId));
+    }
+  };
+
   const updateCategoryTranslationField = (
     lang: string,
     field: 'name' | 'description',
@@ -997,6 +1073,16 @@ export default function MenuManagement() {
               >
                 <FaTag />
                 <TranslatedText>Kategoriler</TranslatedText> ({categories.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('stations')}
+                className={`px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 flex items-center gap-2 ${activeTab === 'stations'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+              >
+                <FaFire />
+                <TranslatedText>İstasyonlar</TranslatedText> ({stations.length})
               </button>
               <button
                 onClick={() => setActiveTab('stats')}
@@ -1489,6 +1575,82 @@ export default function MenuManagement() {
             </div>
           )}
 
+          {!loading && activeTab === 'stations' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold"><TranslatedText>Mutfak İstasyonları</TranslatedText></h2>
+                <button
+                  onClick={handleAddStation}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                >
+                  <FaPlus />
+                  <TranslatedText>Yeni İstasyon Ekle</TranslatedText>
+                </button>
+              </div>
+
+              {stations.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <FaFire className="mx-auto text-5xl" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz istasyon yok</TranslatedText></h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    <TranslatedText>Mutfak istasyonları oluşturarak ürünlerinizi organize edin</TranslatedText>
+                  </p>
+                  <button
+                    onClick={handleAddStation}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                  >
+                    <FaPlus />
+                    <TranslatedText>İlk İstasyonu Ekle</TranslatedText>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {stations.sort((a, b) => a.order - b.order).map(station => (
+                    <div key={station.id} className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-lg transition-shadow">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="text-3xl">{station.emoji}</div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{station.name}</h3>
+                            <p className="text-xs text-gray-500">Sıra: {station.order}</p>
+                          </div>
+                        </div>
+                        <div 
+                          className="w-8 h-8 rounded-full border-2 border-gray-200"
+                          style={{ backgroundColor: station.color }}
+                        />
+                      </div>
+
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-500 mb-4">
+                          {items.filter(i => i.kitchenStation === station.name.toLowerCase()).length} <TranslatedText>ürün</TranslatedText>
+                        </p>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditStation(station)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
+                          >
+                            <FaEdit />
+                            <TranslatedText>Düzenle</TranslatedText>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStation(station.id)}
+                            className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {!loading && activeTab === 'stats' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -1672,10 +1834,11 @@ export default function MenuManagement() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
                           <option value="">{t('İstasyon Seçin')}</option>
-                          <option value="izgara">🔥 Izgara</option>
-                          <option value="makarna">🍝 Makarna</option>
-                          <option value="soguk">🥗 Soğuk</option>
-                          <option value="tatli">🍰 Tatlı</option>
+                          {stations.sort((a, b) => a.order - b.order).map(station => (
+                            <option key={station.id} value={station.name.toLowerCase()}>
+                              {station.emoji} {station.name}
+                            </option>
+                          ))}
                         </select>
                         <p className="text-xs text-gray-500 mt-1">
                           {t('Ürün hangi mutfak istasyonunda hazırlanacak?')}
@@ -2258,6 +2421,111 @@ export default function MenuManagement() {
                       className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
                       {editingCategory ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* İstasyon Form Modal */}
+          {showStationForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">
+                    {editingStation ? <TranslatedText>İstasyonu Düzenle</TranslatedText> : <TranslatedText>Yeni İstasyon Ekle</TranslatedText>}
+                  </h2>
+                  <button
+                    onClick={() => setShowStationForm(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={24} />
+                  </button>
+                </div>
+                <div className="p-6">
+                  <form className="space-y-4">
+                    {/* İstasyon Adı */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>İstasyon Adı *</TranslatedText>
+                      </label>
+                      <input
+                        type="text"
+                        value={stationFormData.name}
+                        onChange={(e) => setStationFormData({ ...stationFormData, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Örn: Izgara, Pizza, Sushi"
+                        required
+                      />
+                    </div>
+
+                    {/* Emoji */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Emoji</TranslatedText>
+                      </label>
+                      <input
+                        type="text"
+                        value={stationFormData.emoji}
+                        onChange={(e) => setStationFormData({ ...stationFormData, emoji: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-2xl"
+                        placeholder="🔥"
+                        maxLength={2}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">İstasyon için emoji seçin (opsiyonel)</p>
+                    </div>
+
+                    {/* Renk */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Renk</TranslatedText>
+                      </label>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="color"
+                          value={stationFormData.color}
+                          onChange={(e) => setStationFormData({ ...stationFormData, color: e.target.value })}
+                          className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={stationFormData.color}
+                          onChange={(e) => setStationFormData({ ...stationFormData, color: e.target.value })}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="#3B82F6"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Sıra */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Sıra</TranslatedText>
+                      </label>
+                      <input
+                        type="number"
+                        value={stationFormData.order}
+                        onChange={(e) => setStationFormData({ ...stationFormData, order: parseInt(e.target.value) || 0 })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        min="0"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">İstasyonların görüntülenme sırası</p>
+                    </div>
+                  </form>
+
+                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
+                    <button
+                      onClick={() => setShowStationForm(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      <TranslatedText>İptal</TranslatedText>
+                    </button>
+                    <button
+                      onClick={handleSaveStation}
+                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      {editingStation ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
                     </button>
                   </div>
                 </div>
