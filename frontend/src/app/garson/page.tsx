@@ -80,6 +80,9 @@ export default function GarsonPanel() {
       // Staff'ın restoran bilgilerini al
       if (parsedUser.restaurantId) {
         setRestaurantId(parsedUser.restaurantId);
+      } else if (parsedUser.restaurantUsername) {
+        // restaurantId yoksa restaurantUsername kullan
+        setRestaurantId(parsedUser.restaurantUsername);
       }
       if (parsedUser.restaurantName) {
         setRestaurantName(parsedUser.restaurantName);
@@ -107,7 +110,7 @@ export default function GarsonPanel() {
   const fetchOrders = async (silent: boolean = false) => {
     if (!restaurantId) {
       console.log('⚠️ fetchOrders: restaurantId eksik');
-      setDebugInfo(prev => ({ ...prev, error: 'No restaurant ID' }));
+      setDebugInfo(prev => ({ ...prev, error: 'No restaurant ID or username' }));
       return;
     }
 
@@ -324,10 +327,11 @@ export default function GarsonPanel() {
             <h3 className="font-bold text-lg mb-2">🔍 Debug Bilgileri</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <p><strong>Restaurant ID:</strong> {restaurantId || 'Yok'}</p>
+                <p><strong>Restaurant ID/Username:</strong> {restaurantId || 'Yok'}</p>
                 <p><strong>Restaurant Name:</strong> {restaurantName || 'Yok'}</p>
                 <p><strong>Staff User:</strong> {staffUser?.name || 'Yok'}</p>
                 <p><strong>Staff Role:</strong> {staffUser?.role || 'Yok'}</p>
+                <p><strong>Restaurant Username:</strong> {staffUser?.restaurantUsername || 'Yok'}</p>
                 <p><strong>Loading:</strong> {loading ? 'Evet' : 'Hayır'}</p>
                 <p><strong>Orders Count:</strong> {orders.length}</p>
               </div>
