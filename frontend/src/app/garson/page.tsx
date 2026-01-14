@@ -76,19 +76,59 @@ export default function GarsonPanel() {
       }
 
       // Staff'ın restoran bilgilerini al
-      if (parsedUser.restaurantId) {
-        setRestaurantId(parsedUser.restaurantId);
-      } else if (parsedUser.restaurantUsername) {
-        // restaurantId yoksa restaurantUsername kullan
-        setRestaurantId(parsedUser.restaurantUsername);
-      }
-      if (parsedUser.restaurantName) {
-        setRestaurantName(parsedUser.restaurantName);
-      }
+      const fetchRestaurantId = async () => {
+        if (parsedUser.restaurantId) {
+          // UUID formatında mı kontrol et
+          const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(parsedUser.restaurantId);
+          
+          if (isUUID) {
+            setRestaurantId(parsedUser.restaurantId);
+            console.log('✅ Restaurant ID (UUID):', parsedUser.restaurantId);
+          } else {
+            // Username formatında, UUID'yi fetch et
+            console.log('⚠️ Restaurant ID username formatında, UUID çekiliyor:', parsedUser.restaurantId);
+            try {
+              const response = await fetch(`${API_URL}/restaurants/username/${parsedUser.restaurantId}`);
+              const data = await response.json();
+              if (data.success && data.data?.id) {
+                setRestaurantId(data.data.id);
+                console.log('✅ Restaurant UUID bulundu:', data.data.id);
+              } else {
+                console.error('❌ Restaurant UUID bulunamadı');
+                setRestaurantId(parsedUser.restaurantId); // Fallback
+              }
+            } catch (error) {
+              console.error('❌ Restaurant UUID fetch hatası:', error);
+              setRestaurantId(parsedUser.restaurantId); // Fallback
+            }
+          }
+        } else if (parsedUser.restaurantUsername) {
+          // restaurantUsername'den UUID çek
+          console.log('⚠️ Restaurant username\'den UUID çekiliyor:', parsedUser.restaurantUsername);
+          try {
+            const response = await fetch(`${API_URL}/restaurants/username/${parsedUser.restaurantUsername}`);
+            const data = await response.json();
+            if (data.success && data.data?.id) {
+              setRestaurantId(data.data.id);
+              console.log('✅ Restaurant UUID bulundu:', data.data.id);
+            } else {
+              console.error('❌ Restaurant UUID bulunamadı');
+            }
+          } catch (error) {
+            console.error('❌ Restaurant UUID fetch hatası:', error);
+          }
+        }
+        
+        if (parsedUser.restaurantName) {
+          setRestaurantName(parsedUser.restaurantName);
+        }
+      };
+
+      fetchRestaurantId();
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, API_URL]);
 
   // Menu items'ları çek
   const fetchMenuItems = async () => {
