@@ -887,6 +887,55 @@ function SettingsPageContent() {
                         </p>
                       </div>
 
+                      {/* Google Değerlendirme */}
+                      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 border-2 border-yellow-200">
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className="text-2xl">⭐</span>
+                          <div>
+                            <h4 className="text-lg font-bold text-gray-800">
+                              <TranslatedText>Google Değerlendirme</TranslatedText>
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              <TranslatedText>Müşterilerin Google'da işletmenizi değerlendirmesini sağlayın</TranslatedText>
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <TranslatedText>Google Değerlendirme URL'si</TranslatedText>
+                            </label>
+                            <input
+                              type="url"
+                              value={settings.basicInfo.googleReviewLink || ''}
+                              onChange={(e) => updateBasicInfo({ googleReviewLink: e.target.value })}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                              placeholder="https://www.google.com/maps/place/restoranadi/reviews"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              <TranslatedText>Google Maps'teki işletmenizin değerlendirme sayfası URL'si</TranslatedText>
+                            </p>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="showReviewInMenu"
+                              checked={settings.basicInfo.showReviewInMenu || false}
+                              onChange={(e) => updateBasicInfo({ showReviewInMenu: e.target.checked })}
+                              className="rounded border-yellow-300 text-yellow-600 focus:ring-yellow-500"
+                            />
+                            <label htmlFor="showReviewInMenu" className="text-sm text-gray-700">
+                              <TranslatedText>Menüde Google değerlendirme butonunu göster</TranslatedText>
+                            </label>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2 pl-6">
+                            <TranslatedText>Müşteriler menünün alt kısmında "Google'da Değerlendir" butonunu görebilecek</TranslatedText>
+                          </p>
+                        </div>
+                      </div>
+
                       {/* Menü Özel İçerik */}
                       <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
                         <div className="flex items-center justify-between mb-4">

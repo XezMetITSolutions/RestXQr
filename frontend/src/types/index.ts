@@ -201,6 +201,7 @@ export interface BusinessSettings {
     showHoursInMenu?: boolean;
     directionsLink?: string;
     googleReviewLink?: string;
+    showReviewInMenu?: boolean;
     facebook?: string;
     instagram?: string;
     showInstagramInMenu?: boolean;

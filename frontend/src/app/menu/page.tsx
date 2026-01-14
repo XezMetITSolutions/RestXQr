@@ -937,23 +937,25 @@ function MenuPageContent() {
                 </div>
               )}
               {/* Google Review Button */}
-              <a
-                href="https://www.google.com/maps/place/restoranadi/reviews" // Change to actual Google review URL
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-tone2"
-                style={{ textDecoration: 'none' }}
-              >
-                <div className="flex items-center">
-                  <span className="text-lg mr-3">⭐</span>
-                  <span className="text-sm font-medium text-gray-800">
-                    <TranslatedText>Google'da Değerlendir</TranslatedText>
-                  </span>
-                </div>
-                <button className="text-xs font-semibold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-secondary">
-                  <TranslatedText>Yorum Yap</TranslatedText>
-                </button>
-              </a>
+              {settings.basicInfo.showReviewInMenu && settings.basicInfo.googleReviewLink && (
+                <a
+                  href={settings.basicInfo.googleReviewLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-tone2"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <div className="flex items-center">
+                    <span className="text-lg mr-3">⭐</span>
+                    <span className="text-sm font-medium text-gray-800">
+                      <TranslatedText>Google'da Değerlendir</TranslatedText>
+                    </span>
+                  </div>
+                  <button className="text-xs font-semibold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-secondary">
+                    <TranslatedText>Yorum Yap</TranslatedText>
+                  </button>
+                </a>
+              )}
               {/* Working Hours */}
               {settings.basicInfo.showHoursInMenu && (
                 <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
