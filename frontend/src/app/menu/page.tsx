@@ -48,7 +48,6 @@ function MenuPageContent() {
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [tokenMessage, setTokenMessage] = useState('');
   const [showDebugModal, setShowDebugModal] = useState(false);
-  const [showDebugButton, setShowDebugButton] = useState(true);
   const [sessionKey, setSessionKey] = useState<string | null>(null);
   const [clientId, setClientId] = useState<string | null>(null);
   const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
@@ -749,15 +748,6 @@ function MenuPageContent() {
             </div>
             <div className="flex items-center gap-2">
               <LanguageSelector enabledLanguages={settings.menuSettings.language} />
-              {showDebugButton && (
-                <button
-                  onClick={showDebugInfo}
-                  className="p-2 rounded-lg bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors"
-                  title="Debug Bilgileri"
-                >
-                  DEBUG
-                </button>
-              )}
               <Link href="/cart" className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
                 <FaShoppingCart className="text-xl" style={{ color: primary }} />
                 {cartItems.length > 0 && (
