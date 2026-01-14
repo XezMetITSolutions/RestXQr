@@ -10,7 +10,7 @@ router.get('/debug/all', async (req, res) => {
   try {
     const orders = await Order.findAll({
       limit: 10,
-      order: [Sequelize.literal('created_at DESC')],
+      order: [['created_at', 'DESC']],
       include: [{ model: Restaurant, as: 'restaurant', attributes: ['name', 'username'] }]
     });
     res.json({ success: true, count: orders.length, data: orders });
@@ -54,7 +54,7 @@ router.get('/', async (req, res) => {
 
     const orders = await Order.findAll({
       where,
-      order: [Sequelize.literal('created_at DESC')]
+      order: [['created_at', 'DESC']]
     });
 
     // Attach items (join OrderItem -> MenuItem) and normalize shape for frontends

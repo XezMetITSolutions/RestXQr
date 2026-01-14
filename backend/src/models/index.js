@@ -19,7 +19,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL || 'postgresql://localh
   },
   define: {
     freezeTableName: false,
-    underscored: false, // Her model kendi underscored ayarını yapsın
+    underscored: true, // Veritabanı sütunları için snake_case kullan
     timestamps: true
   }
 });

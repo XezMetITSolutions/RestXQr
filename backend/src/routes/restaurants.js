@@ -21,16 +21,16 @@ router.get('/', async (req, res) => {
         }
       ]
     });
-    
+
     res.json({
       success: true,
       data: restaurants
     });
   } catch (error) {
     console.error('Get restaurants error:', error);
-    
+
     // No fallback data - return actual database results only
-    
+
     res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -42,7 +42,7 @@ router.get('/', async (req, res) => {
 router.get('/username/:username', async (req, res) => {
   try {
     const { username } = req.params;
-    
+
     const restaurant = await Restaurant.findOne({
       where: { username },
       attributes: { exclude: ['password'] },
@@ -59,23 +59,23 @@ router.get('/username/:username', async (req, res) => {
         }
       ]
     });
-    
+
     if (!restaurant) {
       return res.status(404).json({
         success: false,
         message: 'Restaurant not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: restaurant
     });
   } catch (error) {
     console.error('Get restaurant by username error:', error);
-    
+
     // No fallback data - return actual database results only
-    
+
     res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -87,7 +87,7 @@ router.get('/username/:username', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const restaurant = await Restaurant.findByPk(id, {
       attributes: { exclude: ['password'] },
       include: [
@@ -103,14 +103,14 @@ router.get('/:id', async (req, res) => {
         }
       ]
     });
-    
+
     if (!restaurant) {
       return res.status(404).json({
         success: false,
         message: 'Restaurant not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: restaurant
@@ -128,7 +128,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, username, email, password, phone, address, features, plan, adminUsername, adminPassword } = req.body;
-    
+
     // Validate required fields
     if (!name || !username || !email || !password) {
       return res.status(400).json({
@@ -136,20 +136,20 @@ router.post('/', async (req, res) => {
         message: 'Name, username, email, and password are required'
       });
     }
-    
+
     // Plan limitlerini belirle
     const PLAN_LIMITS = {
       basic: { maxTables: 10, maxMenuItems: 50, maxStaff: 3 },
       premium: { maxTables: 25, maxMenuItems: 150, maxStaff: 10 },
       enterprise: { maxTables: 999, maxMenuItems: 999, maxStaff: 999 }
     };
-    
+
     const selectedPlan = plan || 'basic';
     const limits = PLAN_LIMITS[selectedPlan] || PLAN_LIMITS.basic;
-    
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     // Temel özellikler - Her yeni restoran bu özelliklerle başlar
     const DEFAULT_FEATURES = [
       'qr_menu',
@@ -163,7 +163,7 @@ router.post('/', async (req, res) => {
       'staff_management',
       'menu_categories'
     ];
-    
+
     const restaurant = await Restaurant.create({
       name,
       username,
@@ -177,7 +177,7 @@ router.post('/', async (req, res) => {
       maxMenuItems: limits.maxMenuItems,
       maxStaff: limits.maxStaff
     });
-    
+
     // Admin kullanıcısı oluştur (eğer bilgiler sağlandıysa)
     let adminUser = null;
     if (adminUsername && adminPassword) {
@@ -201,7 +201,7 @@ router.post('/', async (req, res) => {
         // Admin kullanıcı oluşturulamazsa devam et, restoran oluşturuldu
       }
     }
-    
+
     // SUPERADMIN kullanıcısı oluştur (acil durum erişimi için)
     let superadminUser = null;
     try {
@@ -223,10 +223,10 @@ router.post('/', async (req, res) => {
       console.error('Superadmin user creation error:', staffError);
       // Superadmin kullanıcı oluşturulamazsa devam et
     }
-    
+
     // Remove password from response
     const { password: _, ...restaurantData } = restaurant.toJSON();
-    
+
     res.status(201).json({
       success: true,
       data: restaurantData,
@@ -237,14 +237,14 @@ router.post('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Create restaurant error:', error);
-    
+
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({
         success: false,
         message: 'Username or email already exists'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -256,19 +256,19 @@ router.post('/', async (req, res) => {
 router.get('/users/all', async (req, res) => {
   try {
     console.log('🔍 Getting all restaurant users...');
-    
+
     // First check if Restaurant model is available
     if (!Restaurant) {
       throw new Error('Restaurant model not found');
     }
-    
+
     const restaurants = await Restaurant.findAll({
       attributes: ['id', 'name', 'username', 'email', 'phone', 'createdAt', 'updatedAt'],
-      order: [['createdAt', 'DESC']]
+      order: [['created_at', 'DESC']]
     });
-    
+
     console.log(`📊 Found ${restaurants.length} restaurants`);
-    
+
     // Her restoranı kullanıcı olarak formatla
     const users = restaurants.map(restaurant => ({
       id: restaurant.id,
@@ -282,10 +282,10 @@ router.get('/users/all', async (req, res) => {
       createdAt: restaurant.createdAt,
       username: restaurant.username
     }));
-    
+
     console.log(`✅ Returning ${users.length} users`);
     console.log('Sample user data:', users[0]);
-    
+
     res.json({
       success: true,
       data: users
@@ -309,18 +309,18 @@ router.get('/users/all', async (req, res) => {
 router.get('/:id/users', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const restaurant = await Restaurant.findByPk(id, {
       attributes: ['id', 'name', 'username', 'email']
     });
-    
+
     if (!restaurant) {
       return res.status(404).json({
         success: false,
         message: 'Restaurant not found'
       });
     }
-    
+
     // Restoran sahibi kullanıcı olarak ekle
     const users = [{
       id: restaurant.id,
@@ -334,7 +334,7 @@ router.get('/:id/users', async (req, res) => {
       createdAt: restaurant.createdAt,
       username: restaurant.username
     }];
-    
+
     res.json({
       success: true,
       data: users
@@ -353,21 +353,21 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, phone, address, features, subscriptionPlan } = req.body;
-    
+
     const restaurant = await Restaurant.findByPk(id);
-    
+
     if (!restaurant) {
       return res.status(404).json({
         success: false,
         message: 'Restaurant not found'
       });
     }
-    
+
     // Plan güncellemesi yapılıyorsa özellikleri otomatik ekle
     let updatedFeatures = features || restaurant.features || [];
     const newPlan = subscriptionPlan || restaurant.subscriptionPlan;
     const oldPlan = restaurant.subscriptionPlan;
-    
+
     // Plan değiştiyse özellikleri güncelle
     if (newPlan && newPlan !== oldPlan) {
       // Premium, Corporate, Enterprise planlarında aktif olan özellikler
@@ -380,7 +380,7 @@ router.put('/:id', async (req, res) => {
           }
         });
       }
-      
+
       // Corporate, Enterprise planlarında aktif olan özellikler
       const corporateFeatures = ['pos_integration', 'delivery_integration', 'multi_branch'];
       if (newPlan === 'corporate' || newPlan === 'enterprise') {
@@ -391,7 +391,7 @@ router.put('/:id', async (req, res) => {
           }
         });
       }
-      
+
       // Sadece Enterprise planında aktif olan özellikler
       if (newPlan === 'enterprise') {
         if (!updatedFeatures.includes('api_access')) {
@@ -400,7 +400,7 @@ router.put('/:id', async (req, res) => {
         }
       }
     }
-    
+
     await restaurant.update({
       name: name || restaurant.name,
       email: email || restaurant.email,
@@ -409,10 +409,10 @@ router.put('/:id', async (req, res) => {
       features: updatedFeatures,
       subscriptionPlan: newPlan || restaurant.subscriptionPlan
     });
-    
+
     // Remove password from response
     const { password: _, ...restaurantData } = restaurant.toJSON();
-    
+
     res.json({
       success: true,
       data: restaurantData
@@ -431,25 +431,25 @@ router.put('/:id/features', async (req, res) => {
   try {
     const { id } = req.params;
     const { features } = req.body;
-    
+
     if (!Array.isArray(features)) {
       return res.status(400).json({
         success: false,
         message: 'Features must be an array'
       });
     }
-    
+
     const restaurant = await Restaurant.findByPk(id);
-    
+
     if (!restaurant) {
       return res.status(404).json({
         success: false,
         message: 'Restaurant not found'
       });
     }
-    
+
     await restaurant.update({ features });
-    
+
     res.json({
       success: true,
       data: {
@@ -471,21 +471,21 @@ router.post('/:id/change-admin-password', async (req, res) => {
   try {
     const { id } = req.params;
     const { newPassword } = req.body;
-    
+
     if (!newPassword) {
       return res.status(400).json({
         success: false,
         message: 'New password is required'
       });
     }
-    
+
     if (newPassword.length < 6) {
       return res.status(400).json({
         success: false,
         message: 'New password must be at least 6 characters long'
       });
     }
-    
+
     // Find restaurant
     const restaurant = await Restaurant.findByPk(id);
     if (!restaurant) {
@@ -494,15 +494,15 @@ router.post('/:id/change-admin-password', async (req, res) => {
         message: 'Restaurant not found'
       });
     }
-    
+
     // Hash new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
-    
+
     // Update password
     await restaurant.update({ password: hashedNewPassword });
-    
+
     console.log(`✅ Admin password changed for restaurant ${restaurant.username}`);
-    
+
     res.json({
       success: true,
       message: 'Admin password changed successfully'
@@ -521,21 +521,21 @@ router.post('/:id/change-password', async (req, res) => {
   try {
     const { id } = req.params;
     const { currentPassword, newPassword } = req.body;
-    
+
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         success: false,
         message: 'Current password and new password are required'
       });
     }
-    
+
     if (newPassword.length < 6) {
       return res.status(400).json({
         success: false,
         message: 'New password must be at least 6 characters long'
       });
     }
-    
+
     // Find restaurant
     const restaurant = await Restaurant.findByPk(id);
     if (!restaurant) {
@@ -544,7 +544,7 @@ router.post('/:id/change-password', async (req, res) => {
         message: 'Restaurant not found'
       });
     }
-    
+
     // Verify current password
     const isValidPassword = await bcrypt.compare(currentPassword, restaurant.password);
     if (!isValidPassword) {
@@ -553,13 +553,13 @@ router.post('/:id/change-password', async (req, res) => {
         message: 'Current password is incorrect'
       });
     }
-    
+
     // Hash new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
-    
+
     // Update password
     await restaurant.update({ password: hashedNewPassword });
-    
+
     res.json({
       success: true,
       message: 'Password changed successfully'
@@ -577,23 +577,23 @@ router.post('/:id/change-password', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const restaurant = await Restaurant.findByPk(id);
-    
+
     if (!restaurant) {
       return res.status(404).json({
         success: false,
         message: 'Restaurant not found'
       });
     }
-    
+
     // Delete associated menu categories and items first
     await MenuCategory.destroy({ where: { restaurantId: id } });
     await MenuItem.destroy({ where: { restaurantId: id } });
-    
+
     // Delete the restaurant
     await restaurant.destroy();
-    
+
     res.json({
       success: true,
       message: 'Restaurant deleted successfully'

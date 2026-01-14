@@ -21,32 +21,32 @@ try {
 // Helper function to check subdomain authorization
 const checkSubdomainAuth = async (req, restaurantId) => {
   const subdomain = req.headers['x-subdomain'] || req.headers['x-forwarded-host']?.split('.')[0];
-  
+
   if (!subdomain) {
     return { authorized: true }; // Development için subdomain kontrolü opsiyonel
   }
-  
+
   try {
-    const restaurant = await Restaurant.findByPk(restaurantId, { 
-      attributes: ['id', 'name', 'username'] 
+    const restaurant = await Restaurant.findByPk(restaurantId, {
+      attributes: ['id', 'name', 'username']
     });
-    
+
     if (!restaurant) {
       return { authorized: false, message: 'Restaurant not found' };
     }
-    
+
     if (restaurant.username !== subdomain) {
-      console.log('🚨 Subdomain mismatch:', { 
-        subdomain, 
+      console.log('🚨 Subdomain mismatch:', {
+        subdomain,
         restaurantUsername: restaurant.username,
-        restaurantId 
+        restaurantId
       });
-      return { 
-        authorized: false, 
-        message: 'Bu subdomain için yetkiniz yok. Kendi subdomain\'inizden işlem yapın.' 
+      return {
+        authorized: false,
+        message: 'Bu subdomain için yetkiniz yok. Kendi subdomain\'inizden işlem yapın.'
       };
     }
-    
+
     return { authorized: true, restaurant };
   } catch (error) {
     console.error('Subdomain auth check error:', error);
@@ -86,7 +86,7 @@ router.get('/restaurant/:restaurantId', async (req, res) => {
 
     const staff = await Staff.findAll({
       where: { restaurantId },
-      order: [['createdAt', 'DESC']]
+      order: [['created_at', 'DESC']]
     });
 
     res.json({
@@ -114,7 +114,7 @@ router.post('/create-demo', async (req, res) => {
     }
 
     console.log('🔍 Creating demo staff members...');
-    
+
     // Find Hazal restaurant
     const hazalRestaurant = await Restaurant.findOne({
       where: { username: 'hazal' }
@@ -158,14 +158,14 @@ router.post('/create-demo', async (req, res) => {
     ];
 
     const createdStaff = [];
-    
+
     for (const staffData of staffMembers) {
       try {
         // Check if staff already exists
         const existingStaff = await Staff.findOne({
-          where: { 
+          where: {
             restaurantId: staffData.restaurantId,
-            username: staffData.username 
+            username: staffData.username
           }
         });
 
@@ -204,7 +204,7 @@ router.post('/create-demo', async (req, res) => {
 router.post('/restaurant/:restaurantId', async (req, res) => {
   try {
     console.log('🔍 Staff creation request:', req.params, req.body);
-    
+
     if (!Staff || !Restaurant) {
       console.log('❌ Models not loaded:', { Staff: !!Staff, Restaurant: !!Restaurant });
       return res.status(503).json({
@@ -247,11 +247,11 @@ router.post('/restaurant/:restaurantId', async (req, res) => {
     }
 
     console.log('✅ Restaurant found:', restaurant.name);
-    
+
     // Plan limiti kontrolü - Maksimum personel sayısı
     const maxStaff = restaurant.maxStaff || 3;
     const currentStaffCount = await Staff.count({ where: { restaurantId } });
-    
+
     if (currentStaffCount >= maxStaff) {
       console.error(`❌ Staff limit exceeded: ${currentStaffCount} >= ${maxStaff}`);
       return res.status(403).json({
@@ -265,9 +265,9 @@ router.post('/restaurant/:restaurantId', async (req, res) => {
 
     // Check if email already exists for this restaurant
     const existingStaff = await Staff.findOne({
-      where: { 
+      where: {
         restaurantId,
-        email: email 
+        email: email
       }
     });
 
@@ -374,7 +374,7 @@ router.put('/:staffId', async (req, res) => {
 router.delete('/:staffId', async (req, res) => {
   try {
     console.log('🗑️ [DELETE] Staff deletion request:', req.params);
-    
+
     if (!Staff) {
       console.log('❌ [DELETE] Staff model not loaded');
       return res.status(503).json({
@@ -433,7 +433,7 @@ router.get('/list', async (req, res) => {
     }
 
     console.log('🔍 Listing all staff members...');
-    
+
     const staffMembers = await Staff.findAll({
       include: [{
         model: Restaurant,
@@ -464,7 +464,7 @@ router.get('/list', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     console.log('👤 STAFF LOGIN ENDPOINT CALLED');
-    
+
     if (!Staff || !Restaurant) {
       return res.status(503).json({
         success: false,
@@ -473,7 +473,7 @@ router.post('/login', async (req, res) => {
     }
 
     const { username, password, subdomain } = req.body;
-    
+
     console.log('👤 Staff login attempt:', { username, subdomain, password: password ? '***' : 'missing' });
     console.log('👤 Request body:', req.body);
 
@@ -487,8 +487,8 @@ router.post('/login', async (req, res) => {
 
     // Subdomain kontrolü - güvenlik (staff bulmadan önce)
     const headerSubdomain = req.headers['x-subdomain'] || req.headers['x-forwarded-host']?.split('.')[0];
-    console.log('🔍 Subdomain check:', { 
-      subdomain, 
+    console.log('🔍 Subdomain check:', {
+      subdomain,
       headerSubdomain,
       'x-subdomain': req.headers['x-subdomain'],
       'x-forwarded-host': req.headers['x-forwarded-host'],
@@ -500,7 +500,7 @@ router.post('/login', async (req, res) => {
     // Find staff member by username (not password yet - we need to check hash)
     // Case-insensitive username search
     console.log('🔍 Looking for staff:', { username });
-    
+
     // Try case-insensitive search first (PostgreSQL)
     let staff = await Staff.findOne({
       where: {
@@ -510,7 +510,7 @@ router.post('/login', async (req, res) => {
         status: 'active'
       }
     });
-    
+
     // Fallback for databases that don't support iLike (MySQL, SQLite)
     if (!staff) {
       const allStaff = await Staff.findAll({
@@ -518,7 +518,7 @@ router.post('/login', async (req, res) => {
       });
       staff = allStaff.find(s => s.username && s.username.toLowerCase() === username.toLowerCase());
     }
-    
+
     if (!staff) {
       console.log('❌ Staff not found');
       return res.status(401).json({
@@ -610,7 +610,7 @@ router.get('/restaurants', async (req, res) => {
   try {
     console.log('📋 [RESTAURANTS] Fetching all restaurants...');
     console.log('📋 [RESTAURANTS] Restaurant model exists:', !!Restaurant);
-    
+
     if (!Restaurant) {
       console.error('❌ [RESTAURANTS] Restaurant model not loaded');
       return res.status(503).json({
@@ -647,7 +647,7 @@ router.get('/restaurants', async (req, res) => {
 router.get('/all', async (req, res) => {
   try {
     console.log('🔍 Getting all staff...');
-    
+
     if (!Staff) {
       console.log('❌ Staff model not loaded');
       return res.status(503).json({
@@ -696,7 +696,7 @@ router.get('/all', async (req, res) => {
 router.get('/test', async (req, res) => {
   try {
     console.log('🔍 Staff test endpoint called');
-    
+
     if (!Staff) {
       console.log('❌ Staff model not loaded');
       return res.status(503).json({
@@ -736,7 +736,7 @@ router.get('/test', async (req, res) => {
 router.post('/restore-restaurants', async (req, res) => {
   try {
     console.log('🔍 Restoring restaurant data...');
-    
+
     if (!Restaurant) {
       console.log('❌ Restaurant model not loaded');
       return res.status(503).json({
@@ -788,7 +788,7 @@ router.post('/restore-restaurants', async (req, res) => {
     ];
 
     const createdRestaurants = [];
-    
+
     for (const restaurantData of restaurants) {
       try {
         // Mevcut restaurant'ı kontrol et
@@ -842,7 +842,7 @@ router.post('/create-hazal', async (req, res) => {
     }
 
     console.log('🔍 Creating Hazal staff manually...');
-    
+
     // Find Hazal restaurant
     const hazalRestaurant = await Restaurant.findOne({
       where: { username: 'hazal' }
@@ -896,7 +896,7 @@ router.post('/create-aksaray', async (req, res) => {
     }
 
     console.log('🔍 Creating Aksaray staff members...');
-    
+
     // Find Aksaray restaurant
     const aksarayRestaurant = await Restaurant.findOne({
       where: { username: 'aksaray' }
@@ -943,14 +943,14 @@ router.post('/create-aksaray', async (req, res) => {
     ];
 
     const createdStaff = [];
-    
+
     for (const staffData of staffMembers) {
       try {
         // Check if staff already exists
         const existingStaff = await Staff.findOne({
-          where: { 
+          where: {
             restaurantId: staffData.restaurantId,
-            username: staffData.username 
+            username: staffData.username
           }
         });
 
@@ -996,7 +996,7 @@ router.post('/restore-menu', async (req, res) => {
     }
 
     console.log('🔍 Restoring menu data for Hazal...');
-    
+
     // Find Hazal restaurant
     const hazalRestaurant = await Restaurant.findOne({
       where: { username: 'hazal' }
@@ -1044,13 +1044,13 @@ router.post('/restore-menu', async (req, res) => {
     ];
 
     const createdCategories = [];
-    
+
     for (const categoryData of categories) {
       try {
         const existingCategory = await MenuCategory.findOne({
-          where: { 
+          where: {
             restaurantId: categoryData.restaurantId,
-            name: categoryData.name 
+            name: categoryData.name
           }
         });
 
