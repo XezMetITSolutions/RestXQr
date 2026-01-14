@@ -35,7 +35,7 @@ import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
 import BusinessSidebar from '@/components/BusinessSidebar';
 
-export default function BusinessDashboard() {
+function BusinessDashboardContent() {
   const router = useRouter();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
   const {
@@ -882,5 +882,13 @@ export default function BusinessDashboard() {
         onPaymentComplete={handlePaymentComplete}
       />
     </div>
+  );
+}
+
+export default function BusinessDashboard() {
+  return (
+    <LanguageProvider>
+      <BusinessDashboardContent />
+    </LanguageProvider>
   );
 }
