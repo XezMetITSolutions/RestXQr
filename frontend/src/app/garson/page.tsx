@@ -257,19 +257,79 @@ export default function GarsonPanel() {
     setShowModal(true);
   };
 
-  // Filtrelenmiş siparişler
-  const filteredOrders = orders.filter(order => {
-    if (activeFilter === 'all') return true;
-    return order.status === activeFilter;
-  });
+  // Siparişleri masa numarasına göre grupla
+  const groupOrdersByTable = (orders: Order[]) => {
+    const grouped = new Map<number, Order[]>();
+    
+    orders.forEach(order => {
+      const tableNumber = order.tableNumber;
+      if (!grouped.has(tableNumber)) {
+        grouped.set(tableNumber, []);
+      }
+      grouped.get(tableNumber)!.push(order);
+    });
+    
+    return grouped;
+  };
 
-  // İstatistikler
+  // Gruplu siparişleri tek sipariş formatına çevir
+  const createGroupedOrder = (tableOrders: Order[]): Order => {
+    if (tableOrders.length === 1) return tableOrders[0];
+    
+    // En son siparişin bilgilerini temel al
+    const latestOrder = tableOrders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+    
+    // Tüm items'ları birleştir
+    const allItems: OrderItem[] = [];
+    let totalAmount = 0;
+    
+    tableOrders.forEach(order => {
+      order.items.forEach(item => {
+        allItems.push(item);
+      });
+      totalAmount += Number(order.totalAmount);
+    });
+    
+    // En kritik durumu belirle (pending > preparing > ready > completed)
+    const statusPriority = { 'pending': 4, 'preparing': 3, 'ready': 2, 'completed': 1, 'cancelled': 0 };
+    const mostCriticalStatus = tableOrders.reduce((prev, current) => {
+      return statusPriority[prev.status] > statusPriority[current.status] ? prev : current;
+    }).status;
+    
+    return {
+      ...latestOrder,
+      items: allItems,
+      totalAmount,
+      status: mostCriticalStatus,
+      id: `table-${latestOrder.tableNumber}-grouped`, // Özel ID
+      notes: tableOrders.map(o => o.notes).filter(Boolean).join(' | ') || latestOrder.notes
+    };
+  };
+
+  // Filtrelenmiş ve gruplu siparişler
+  const filteredOrders = (() => {
+    const filtered = orders.filter(order => {
+      if (activeFilter === 'all') return true;
+      return order.status === activeFilter;
+    });
+    
+    const grouped = groupOrdersByTable(filtered);
+    const groupedOrders: Order[] = [];
+    
+    grouped.forEach((tableOrders) => {
+      groupedOrders.push(createGroupedOrder(tableOrders));
+    });
+    
+    return groupedOrders;
+  })();
+
+  // İstatistikler - gruplu siparişler için
   const stats = {
-    total: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    preparing: orders.filter(o => o.status === 'preparing').length,
-    ready: orders.filter(o => o.status === 'ready').length,
-    completed: orders.filter(o => o.status === 'completed').length
+    total: filteredOrders.length,
+    pending: filteredOrders.filter(o => o.status === 'pending').length,
+    preparing: filteredOrders.filter(o => o.status === 'preparing').length,
+    ready: filteredOrders.filter(o => o.status === 'ready').length,
+    completed: filteredOrders.filter(o => o.status === 'completed').length
   };
 
   return (
@@ -408,6 +468,9 @@ export default function GarsonPanel() {
                   <div className="text-right">
                     <div className="text-lg font-bold text-orange-600">₺{Number(order.totalAmount).toFixed(2)}</div>
                     <div className="text-xs text-gray-500">{order.items.length} ürün</div>
+                    {order.id.includes('grouped') && (
+                      <div className="text-xs text-blue-600 font-semibold mt-1">📋 Birleşik Sipariş</div>
+                    )}
                   </div>
                 </div>
 
@@ -442,7 +505,17 @@ export default function GarsonPanel() {
                 {/* Action Buttons */}
                 <div className="grid grid-cols-4 gap-2">
                   <button
-                    onClick={() => updateOrderStatus(order.id, 'completed')}
+                    onClick={() => {
+                      if (order.id.includes('grouped')) {
+                        // Gruplu sipariş için tüm siparişleri tamamla
+                        const tableOrders = orders.filter(o => o.tableNumber === order.tableNumber);
+                        tableOrders.forEach(tableOrder => {
+                          updateOrderStatus(tableOrder.id, 'completed');
+                        });
+                      } else {
+                        updateOrderStatus(order.id, 'completed');
+                      }
+                    }}
                     className="py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-xs transition-colors"
                   >
                     ✓ Servis Et
@@ -470,7 +543,15 @@ export default function GarsonPanel() {
                   <button
                     onClick={() => {
                       if (confirm('Bu siparişi iptal etmek istediğinizden emin misiniz?')) {
-                        updateOrderStatus(order.id, 'cancelled');
+                        if (order.id.includes('grouped')) {
+                          // Gruplu sipariş için tüm siparişleri iptal et
+                          const tableOrders = orders.filter(o => o.tableNumber === order.tableNumber);
+                          tableOrders.forEach(tableOrder => {
+                            updateOrderStatus(tableOrder.id, 'cancelled');
+                          });
+                        } else {
+                          updateOrderStatus(order.id, 'cancelled');
+                        }
                       }
                     }}
                     className="py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-xs transition-colors"
