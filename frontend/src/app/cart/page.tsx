@@ -321,8 +321,8 @@ function CartPageContent() {
         if (orderId) {
           setPendingOrderId(orderId);
 
-          // Siparişteki ürünleri kaydet (ekran gösterimi için)
-          const orderItems = (items || []).map(item => ({
+          // Yeni siparişteki ürünleri hazırla
+          const newOrderItems = (items || []).map(item => ({
             itemId: item.itemId || item.id,
             name: typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün'),
             price: item.price,
@@ -331,11 +331,13 @@ function CartPageContent() {
             image: item.image
           }));
 
-          setPendingOrderItems(orderItems);
+          // Eski siparişlerdeki ürünlerle birleştir (ek sipariş durumunda)
+          const allOrderItems = [...pendingOrderItems, ...newOrderItems];
+          setPendingOrderItems(allOrderItems);
 
           // localStorage'a kaydet (sayfa yenilendiğinde kaybolmasın)
           localStorage.setItem('pending_order_id', orderId);
-          localStorage.setItem('pending_order_items', JSON.stringify(orderItems));
+          localStorage.setItem('pending_order_items', JSON.stringify(allOrderItems));
         }
 
         // Session'a sipariş tamamlandı bildirimi gönder
