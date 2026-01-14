@@ -10,6 +10,7 @@ interface OrderItem {
   quantity: number;
   price: number;
   notes?: string;
+  kitchenStation?: string;
 }
 
 interface Order {
@@ -405,6 +406,14 @@ export default function MutfakPanel() {
       // Durum filtresi
       if (activeTab !== 'all' && order.status !== activeTab) return false;
 
+      // İstasyon filtresi
+      if (stationFilter !== 'all') {
+        const hasStationItem = order.items.some((item: any) => 
+          item.kitchenStation === stationFilter
+        );
+        if (!hasStationItem) return false;
+      }
+
       // Arama filtresi
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
@@ -606,7 +615,28 @@ export default function MutfakPanel() {
                             <div className="space-y-1 md:space-y-2">
                               {order.items.map((item, index) => (
                                 <div key={index} className="text-gray-600">
-                                  <div>{item.quantity}x {item.name}</div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span>{item.quantity}x {item.name}</span>
+                                    {item.kitchenStation && (
+                                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{
+                                        backgroundColor: 
+                                          item.kitchenStation === 'izgara' ? '#FEF3C7' :
+                                          item.kitchenStation === 'makarna' ? '#DBEAFE' :
+                                          item.kitchenStation === 'soguk' ? '#D1FAE5' :
+                                          item.kitchenStation === 'tatli' ? '#FCE7F3' : '#F3F4F6',
+                                        color:
+                                          item.kitchenStation === 'izgara' ? '#92400E' :
+                                          item.kitchenStation === 'makarna' ? '#1E40AF' :
+                                          item.kitchenStation === 'soguk' ? '#065F46' :
+                                          item.kitchenStation === 'tatli' ? '#9F1239' : '#374151'
+                                      }}>
+                                        {item.kitchenStation === 'izgara' && '🔥 Izgara'}
+                                        {item.kitchenStation === 'makarna' && '🍝 Makarna'}
+                                        {item.kitchenStation === 'soguk' && '🥗 Soğuk'}
+                                        {item.kitchenStation === 'tatli' && '🍰 Tatlı'}
+                                      </span>
+                                    )}
+                                  </div>
                                   {item.notes && (
                                     <div className="text-xs text-yellow-700 italic ml-4">
                                       📝 {item.notes}
