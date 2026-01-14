@@ -168,16 +168,30 @@ export default function DebugPanel() {
         setSimLoading(true);
         addLog(`⚙️ Veritabanı senkronizasyonu başlatılıyor...`);
         try {
-            const API = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
-            const res = await fetch(`${API}/debug/sync-db`, { method: 'POST' }).then(r => r.json());
+            let base = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+            // Eğer URL /api ile bitmiyorsa ekle
+            const API = base.endsWith('/api') ? base : `${base.replace(/\/$/, '')}/api`;
+
+            addLog(`📡 İstek atılıyor: ${API}/debug/sync-db`);
+
+            const response = await fetch(`${API}/debug/sync-db`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const res = await response.json();
+
             if (res.success) {
                 addLog(`✅ VERİTABANI BAŞARIYLA SENKRONİZE EDİLDİ!`);
-                refreshDebugInfo();
+                addLog(`ℹ️ Mesaj: ${res.message}`);
+                setTimeout(refreshDebugInfo, 2000);
             } else {
-                addLog(`❌ SYNC HATASI: ${res.message}`);
+                addLog(`❌ SYNC HATASI: ${res.message || 'Bilinmeyen hata'}`);
+                if (res.error) addLog(`❗ Detay: ${res.error}`);
             }
         } catch (e: any) {
             addLog(`❌ SYNC TEKNİK HATA: ${e.message}`);
+            console.error('Sync failed:', e);
         } finally {
             setSimLoading(false);
         }
