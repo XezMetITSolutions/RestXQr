@@ -349,7 +349,11 @@ export default function GarsonPanel() {
                 Manuel Sipariş Çek
               </button>
               <button
-                onClick={() => console.log('Debug Info:', debugInfo, 'Orders:', orders, 'Staff:', staffUser)}
+                onClick={() => {
+                  console.log('Debug Info:', debugInfo, 'Orders:', orders, 'Staff:', staffUser);
+                  console.log('LocalStorage staff_user:', localStorage.getItem('staff_user'));
+                  console.log('LocalStorage staff_token:', localStorage.getItem('staff_token'));
+                }}
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
                 Console'a Yazdır
