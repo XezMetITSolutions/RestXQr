@@ -83,10 +83,79 @@ export default function KasaPanel() {
       const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}`);
       const data = await response.json();
       if (data.success) {
-        const paymentOrders = (data.data || []).filter(
-          (order: Order) => order.status === 'ready' || order.status === 'completed' || order.status === 'preparing' || order.status === 'pending'
-        );
-        setOrders(paymentOrders);
+        const groupOrdersByTable = (orders: Order[]) => {
+          const grouped = new Map<number, Order[]>();
+          
+          orders.forEach(order => {
+            const tableNumber = order.tableNumber;
+            if (!grouped.has(tableNumber)) {
+              grouped.set(tableNumber, []);
+            }
+            grouped.get(tableNumber)!.push(order);
+          });
+          
+          return Array.from(grouped.values());
+        };
+
+        // Gruplu siparişi tek sipariş olarak birleştir
+        const createGroupedOrder = (tableOrders: Order[]): Order => {
+          if (tableOrders.length === 1) {
+            return tableOrders[0];
+          }
+          
+          const latestOrder = tableOrders.reduce((latest, current) => {
+            return new Date(current.created_at) > new Date(latest.created_at) ? current : latest;
+          });
+          
+          const allItems: OrderItem[] = [];
+          let totalAmount = 0;
+          let totalPaidAmount = 0;
+          let totalDiscountAmount = 0;
+          
+          tableOrders.forEach(order => {
+            order.items.forEach(item => {
+              allItems.push(item);
+            });
+            totalAmount += order.totalAmount;
+            totalPaidAmount += (order.paidAmount || 0);
+            totalDiscountAmount += (order.discountAmount || 0);
+          });
+          
+          const statusPriority = { 'pending': 1, 'preparing': 2, 'ready': 3, 'completed': 4, 'cancelled': 5 };
+          const mostCriticalStatus = tableOrders.reduce((prev, current) => {
+            return statusPriority[prev.status] > statusPriority[current.status] ? prev : current;
+          }).status;
+          
+          return {
+            ...latestOrder,
+            items: allItems,
+            totalAmount,
+            paidAmount: totalPaidAmount,
+            discountAmount: totalDiscountAmount,
+            status: mostCriticalStatus,
+            id: `table-${latestOrder.tableNumber}-grouped`,
+            notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).join(' | ') || latestOrder.notes
+          };
+        };
+
+        // Filtrelenmiş ve gruplu siparişler
+        const filteredOrders = (() => {
+          const filtered = (data.data || []).filter(order => {
+            // Durum filtresi
+            if (order.status === 'pending' || order.status === 'preparing' || order.status === 'ready' || order.status === 'completed') return true;
+            return false;
+          });
+          
+          const grouped = groupOrdersByTable(filtered);
+          const groupedOrders: Order[] = [];
+          
+          grouped.forEach((tableOrders) => {
+            groupedOrders.push(createGroupedOrder(tableOrders));
+          });
+          
+          return groupedOrders;
+        })();
+        setOrders(filteredOrders);
       }
     } catch (error) {
       console.error('Siparişler alınamadı:', error);
@@ -105,6 +174,54 @@ export default function KasaPanel() {
 
   const handlePayment = async (orderId: string, updatedOrder?: any, isPartial = false) => {
     try {
+      console.log('💰 Kasa: Ödeme işlemi başlatılıyor:', { orderId, isPartial });
+
+      // Gruplu sipariş ID'si ise gerçek siparişleri bul ve güncelle
+      if (orderId.includes('grouped')) {
+        const tableNumber = parseInt(orderId.split('-')[1]);
+        const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
+        
+        console.log('📋 Gruplu ödeme tespit edildi:', { tableNumber, orderCount: tableOrders.length });
+        
+        // Her bir gerçek siparişi güncelle
+        const updatePromises = tableOrders.map(async (tableOrder) => {
+          const payload: any = {
+            status: isPartial ? 'ready' : 'completed',
+            items: updatedOrder?.items,
+            totalAmount: updatedOrder?.totalAmount,
+            paidAmount: updatedOrder?.paidAmount,
+            discountAmount: updatedOrder?.discountAmount,
+            discountReason: updatedOrder?.discountReason,
+            cashierNote: updatedOrder?.cashierNote
+          };
+
+          const remaining = Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0);
+          if (remaining <= 0) {
+            payload.status = 'completed';
+          }
+
+          console.log('💰 Gerçek sipariş ödeme güncelleniyor:', tableOrder.id);
+          const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          return response.json();
+        });
+        
+        await Promise.all(updatePromises);
+        console.log('✅ Tüm masa ödemeleri güncellendi');
+        
+        if (!isPartial) {
+          setShowPaymentModal(false);
+          setSelectedOrder(null);
+        }
+        fetchOrders();
+        alert(isPartial ? '✅ Kısmi ödeme kaydedildi.' : '✅ Ödeme tamamlandı!');
+        return;
+      }
+
+      // Normal sipariş için standart ödeme
       const payload: any = {
         status: isPartial ? 'ready' : 'completed',
         items: updatedOrder?.items,
@@ -125,17 +242,24 @@ export default function KasaPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+      
+      console.log('📡 Payment API Response status:', response.status);
       const data = await response.json();
+      console.log('📦 Payment API Response data:', data);
+      
       if (data.success) {
+        console.log('✅ Ödeme başarıyla tamamlandı');
         if (!isPartial || remaining <= 0) {
           setShowPaymentModal(false);
           setSelectedOrder(null);
         }
         fetchOrders();
         alert(isPartial && remaining > 0 ? '✅ Kısmi ödeme kaydedildi.' : '✅ Ödeme tamamlandı!');
+      } else {
+        console.error('❌ Payment API başarısız response:', data);
       }
     } catch (error) {
-      console.error('Ödeme hatası:', error);
+      console.error('💥 Ödeme hatası:', error);
     }
   };
 
