@@ -95,12 +95,16 @@ export default function GarsonPanel() {
     if (!restaurantId) return;
     try {
       const response = await fetch(`${API_URL}/restaurants/${restaurantId}/menu/items`);
+      if (!response.ok) {
+        console.warn(`Menu items endpoint returned ${response.status}. Skipping menu items fetch.`);
+        return;
+      }
       const data = await response.json();
       if (data.success) {
         setMenuItems(data.data || []);
       }
     } catch (error) {
-      console.error('Menu items alınamadı:', error);
+      console.warn('Menu items alınamadı (sipariş düzenleme özelliği çalışmayabilir):', error);
     }
   };
 
