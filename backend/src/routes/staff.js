@@ -784,6 +784,18 @@ router.post('/restore-restaurants', async (req, res) => {
         logo: null,
         coverImage: null,
         status: 'active'
+      },
+      {
+        name: 'Kroren',
+        username: 'kroren',
+        email: 'kroren@kroren.com',
+        password: '123456',
+        phone: '+90 555 456 7890',
+        address: 'Kroren, İstanbul',
+        description: 'Kroren Restoranı',
+        logo: null,
+        coverImage: null,
+        status: 'active'
       }
     ];
 
