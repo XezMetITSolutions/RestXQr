@@ -220,6 +220,39 @@ export default function GarsonPanel() {
   // Sipariş durumunu güncelle
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
+      // Gruplu sipariş ID'si ise gerçek siparişleri bul ve güncelle
+      if (orderId.includes('grouped')) {
+        const tableNumber = parseInt(orderId.split('-')[1]);
+        const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
+        
+        // Her bir gerçek siparişi güncelle
+        const updatePromises = tableOrders.map(async (tableOrder) => {
+          const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+          });
+          return response.json();
+        });
+        
+        await Promise.all(updatePromises);
+        
+        // UI'ı güncelle
+        if (newStatus === 'cancelled') {
+          setOrders(prevOrders => prevOrders.filter(o => o.tableNumber !== tableNumber));
+        } else {
+          setOrders(prevOrders =>
+            prevOrders.map(order =>
+              order.tableNumber === tableNumber ? { ...order, status: newStatus as any } : order
+            )
+          );
+        }
+        return;
+      }
+
+      // Normal sipariş için standart güncelleme
       const response = await fetch(`${API_URL}/orders/${orderId}`, {
         method: 'PUT',
         headers: {
