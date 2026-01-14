@@ -189,6 +189,7 @@ export default function MenuManagement() {
     portion: '',
     isAvailable: true,
     isPopular: false,
+    kitchenStation: '',
     translations: {}
   });
 
@@ -331,6 +332,7 @@ export default function MenuManagement() {
       portion: '',
       isAvailable: true,
       isPopular: false,
+      kitchenStation: '',
       translations: {}
     });
     setShowItemForm(true);
@@ -359,6 +361,7 @@ export default function MenuManagement() {
       portion: item.portion || '',
       isAvailable: item.isAvailable !== false,
       isPopular: item.isPopular || false,
+      kitchenStation: item.kitchenStation || '',
       translations: item.translations || {}
     });
 
@@ -1657,6 +1660,27 @@ export default function MenuManagement() {
                           </p>
                         )}
                       </div>
+
+                      {/* Mutfak İstasyonu */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <TranslatedText>Mutfak İstasyonu</TranslatedText>
+                        </label>
+                        <select
+                          value={formData.kitchenStation}
+                          onChange={(e) => setFormData({ ...formData, kitchenStation: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="">{t('İstasyon Seçin')}</option>
+                          <option value="izgara">🔥 Izgara</option>
+                          <option value="makarna">🍝 Makarna</option>
+                          <option value="soguk">🥗 Soğuk</option>
+                          <option value="tatli">🍰 Tatlı</option>
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {t('Ürün hangi mutfak istasyonunda hazırlanacak?')}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Kalori ve Hazırlık Süresi */}
@@ -2042,7 +2066,8 @@ export default function MenuManagement() {
                                 isAvailable: formData.isAvailable,
                                 isPopular: formData.isPopular,
                                 imageUrl: capturedImage || editingItem.imageUrl,
-                                allergens: formData.allergens
+                                allergens: formData.allergens,
+                                kitchenStation: formData.kitchenStation
                               };
 
                               console.log('Update Data gönderiliyor:', updateData);
@@ -2077,7 +2102,8 @@ export default function MenuManagement() {
                                 order: items.length + 1,
                                 isAvailable: formData.isAvailable,
                                 isPopular: formData.isPopular,
-                                allergens: formData.allergens
+                                allergens: formData.allergens,
+                                kitchenStation: formData.kitchenStation
                               };
 
                               console.log('Create Data gönderiliyor:', createData);
