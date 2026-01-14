@@ -83,6 +83,18 @@ export default function KasaPanel() {
       const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}`);
       const data = await response.json();
       if (data.success) {
+        const normalizedOrders: Order[] = (data.data || []).map((order: any) => ({
+          ...order,
+          totalAmount: Number(order?.totalAmount) || 0,
+          paidAmount: Number(order?.paidAmount) || 0,
+          discountAmount: Number(order?.discountAmount) || 0,
+          items: (order?.items || []).map((item: any) => ({
+            ...item,
+            price: Number(item?.price) || 0,
+            quantity: Number(item?.quantity) || 0
+          }))
+        }));
+
         const groupOrdersByTable = (orders: Order[]) => {
           const grouped = new Map<number, Order[]>();
           
@@ -116,9 +128,9 @@ export default function KasaPanel() {
             order.items.forEach(item => {
               allItems.push(item);
             });
-            totalAmount += order.totalAmount;
-            totalPaidAmount += (order.paidAmount || 0);
-            totalDiscountAmount += (order.discountAmount || 0);
+            totalAmount += Number(order.totalAmount) || 0;
+            totalPaidAmount += Number(order.paidAmount) || 0;
+            totalDiscountAmount += Number(order.discountAmount) || 0;
           });
           
           const statusPriority = { 'pending': 1, 'preparing': 2, 'ready': 3, 'completed': 4, 'cancelled': 5 };
@@ -140,7 +152,7 @@ export default function KasaPanel() {
 
         // Filtrelenmiş ve gruplu siparişler
         const filteredOrders = (() => {
-          const filtered = (data.data || []).filter(order => {
+          const filtered = normalizedOrders.filter(order => {
             // Durum filtresi
             if (order.status === 'pending' || order.status === 'preparing' || order.status === 'ready' || order.status === 'completed') return true;
             return false;
@@ -390,7 +402,7 @@ export default function KasaPanel() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {orders.map(order => {
               const wait = getWaitInfo(order.updated_at || order.created_at);
-              const rem = Number(order.totalAmount) - Number(order.paidAmount) - Number(order.discountAmount);
+              const rem = (Number(order.totalAmount) || 0) - (Number(order.paidAmount) || 0) - (Number(order.discountAmount) || 0);
               return (
                 <div
                   key={order.id}
