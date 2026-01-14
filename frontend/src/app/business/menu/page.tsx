@@ -1239,9 +1239,6 @@ export default function MenuManagement() {
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-sm text-gray-500 line-clamp-1">
-                                  {item.description}
-                                </div>
                               </div>
                             </div>
                           </td>
