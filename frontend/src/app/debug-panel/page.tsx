@@ -38,19 +38,31 @@ export default function DebugPanel() {
     const refreshDebugInfo = async () => {
         setLoading(true);
         try {
-            // 0. Refresh Store Data
+            // 0. Refresh List of Restaurants
             await restaurantStore.fetchRestaurants();
 
             let currentRId = '';
-            // Subdomain'den o anki restoranı bul ve set et
+            // Subdomain'den o anki restoranı bul ve detaylarını (menü dahil) yükle
             if (typeof window !== 'undefined') {
                 const sub = window.location.hostname.split('.')[0];
-                const found = restaurantStore.restaurants?.find(r => r.username === sub);
-                if (found) {
-                    if (!restaurantStore.currentRestaurant) {
-                        restaurantStore.setCurrentRestaurant(found);
+                const foundInList = restaurantStore.restaurants?.find(r => r.username === sub);
+
+                if (foundInList) {
+                    addLog(`🔍 Restoran bulundu: ${foundInList.name}`);
+                    // Full detail fetch (categories and items)
+                    const fullRestaurant = await restaurantStore.fetchRestaurantByUsername(sub);
+                    if (fullRestaurant) {
+                        currentRId = fullRestaurant.id;
+                        addLog(`✅ Menü yüklendi: ${restaurantStore.menuItems?.length || 0} ürün`);
+
+                        // Simülasyon menüsünü set et
+                        setSimMenu(restaurantStore.menuItems || []);
+                        if (restaurantStore.menuItems.length > 0) {
+                            setSelectedItem(restaurantStore.menuItems[0].id);
+                        }
                     }
-                    currentRId = found.id;
+                } else {
+                    addLog(`❌ Subdomain (${sub}) ile eşleşen restoran bulunamadı!`);
                 }
             }
 
@@ -62,21 +74,9 @@ export default function DebugPanel() {
             const ordersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/orders/debug/all`).then(r => r.json()).catch(e => ({ error: e.message }));
             setLatestOrders(ordersRes);
 
-            // 3. Simülasyon için menü çek
-            if (currentRId) {
-                const menuRes = await apiService.getRestaurantMenu(currentRId);
-                if (menuRes.success && menuRes.data?.categories) {
-                    const items: any[] = [];
-                    menuRes.data.categories.forEach((cat: any) => {
-                        if (cat.items) items.push(...cat.items);
-                    });
-                    setSimMenu(items);
-                    if (items.length > 0 && !selectedItem) setSelectedItem(items[0].id);
-                }
-            }
-
-        } catch (error) {
+        } catch (error: any) {
             console.error('Debug refresh failed:', error);
+            addLog(`❌ HATA: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -333,8 +333,8 @@ export default function DebugPanel() {
                                             </td>
                                             <td className="p-3 border border-gray-700">
                                                 <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${order.status === 'completed' ? 'bg-green-900 text-green-300' :
-                                                        order.status === 'pending' ? 'bg-yellow-900 text-yellow-300' :
-                                                            'bg-blue-900 text-blue-300'
+                                                    order.status === 'pending' ? 'bg-yellow-900 text-yellow-300' :
+                                                        'bg-blue-900 text-blue-300'
                                                     }`}>
                                                     {order.status}
                                                 </span>
