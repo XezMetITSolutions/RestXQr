@@ -22,6 +22,7 @@ function GarsonCagirContent() {
   const [specialRequest, setSpecialRequest] = useState('');
   const [activeRequests, setActiveRequests] = useState<any[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showDebugButton, setShowDebugButton] = useState(true);
 
   const { currentRestaurant } = useRestaurantStore();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
@@ -56,6 +57,12 @@ function GarsonCagirContent() {
     };
 
     try {
+      console.log('🚀 Garson çağrısı gönderiliyor:', {
+        url: `${API_URL}/waiter/call`,
+        method: 'POST',
+        payload: newRequest
+      });
+
       const response = await fetch(`${API_URL}/waiter/call`, {
         method: 'POST',
         headers: {
@@ -64,15 +71,24 @@ function GarsonCagirContent() {
         body: JSON.stringify(newRequest)
       });
 
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+
       const data = await response.json();
+      console.log('📦 Response data:', data);
+
       if (data.success) {
         setActiveRequests(prev => [...prev, newRequest]);
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
+        console.log('✅ Garson çağrısı başarılı');
+      } else {
+        console.error('❌ API başarısız response:', data);
+        alert(`API Hatası: ${data.message || 'Bilinmeyen hata'}`);
       }
     } catch (error) {
-      console.error('Garson talebi gönderimi başarısız:', error);
-      alert('Talebiniz şu an iletilemiyor, lütfen tekrar deneyin.');
+      console.error('💥 Garson talebi gönderimi başarısız:', error);
+      alert(`Network Hatası: ${error.message || 'Bağlantı sorunu'}`);
     }
   };
 
@@ -95,6 +111,12 @@ function GarsonCagirContent() {
     };
 
     try {
+      console.log('🚀 Özel istek gönderiliyor:', {
+        url: `${API_URL}/waiter/call`,
+        method: 'POST',
+        payload: newRequest
+      });
+
       const response = await fetch(`${API_URL}/waiter/call`, {
         method: 'POST',
         headers: {
@@ -103,16 +125,25 @@ function GarsonCagirContent() {
         body: JSON.stringify(newRequest)
       });
 
+      console.log('📡 Special request response status:', response.status);
+      console.log('📡 Special request response headers:', Object.fromEntries(response.headers.entries()));
+
       const data = await response.json();
+      console.log('📦 Special request response data:', data);
+
       if (data.success) {
         setActiveRequests(prev => [...prev, newRequest]);
         setSpecialRequest('');
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
+        console.log('✅ Özel istek başarılı');
+      } else {
+        console.error('❌ Special request API başarısız response:', data);
+        alert(`API Hatası: ${data.message || 'Bilinmeyen hata'}`);
       }
     } catch (error) {
-      console.error('Özel istek gönderimi başarısız:', error);
-      alert('İsteğiniz şu an iletilemiyor, lütfen tekrar deneyin.');
+      console.error('💥 Özel istek gönderimi başarısız:', error);
+      alert(`Network Hatası: ${error.message || 'Bağlantı sorunu'}`);
     }
   };
 
@@ -137,7 +168,34 @@ function GarsonCagirContent() {
               <TranslatedText>Garson Çağır</TranslatedText>
             </h1>
           </div>
-          <div className="w-10" /> {/* Spacer for centering */}
+          <div className="flex items-center gap-2">
+            {showDebugButton && (
+              <button
+                onClick={() => {
+                  const debugData = {
+                    timestamp: new Date().toLocaleString(),
+                    tableNumber: tableNumber,
+                    restaurantId: currentRestaurant?.id,
+                    restaurantName: currentRestaurant?.name,
+                    API_URL: API_URL,
+                    cartItems: cartItems.length,
+                    activeRequests: activeRequests.length,
+                    isClient: isClient,
+                    localStorage: {
+                      staff_user: localStorage.getItem('staff_user'),
+                      staff_token: localStorage.getItem('staff_token')
+                    }
+                  };
+                  console.log('🐛 GARSON-CAGIR DEBUG:', debugData);
+                  alert(JSON.stringify(debugData, null, 2));
+                }}
+                className="p-2 rounded-lg bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors"
+                title="Debug Bilgileri"
+              >
+                DEBUG
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
