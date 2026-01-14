@@ -146,8 +146,9 @@ function CartPageContent() {
           // Aktif kullanıcı sayısını güncelle
           setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
 
-          // Sepet güncellemelerini kontrol et ve senkronize et
-          if (sessionRes.data.cart && Array.isArray(sessionRes.data.cart)) {
+          // Sepet güncellemelerini kontrol et ve senkronize et - sadece aktif sipariş yoksa
+          // Eğer zaten sipariş verilmişse (pendingOrderItems varsa), session'dan sepet yükleme
+          if (sessionRes.data.cart && Array.isArray(sessionRes.data.cart) && pendingOrderItems.length === 0) {
             const sessionCart = sessionRes.data.cart;
             const currentCart = items;
 
@@ -167,7 +168,7 @@ function CartPageContent() {
             })).sort((a, b) => (a.itemId || '').localeCompare(b.itemId || ''));
 
             if (JSON.stringify(sessionCartNormalized) !== JSON.stringify(currentCartNormalized)) {
-              // Session'dan gelen sepeti yükle
+              // Session'dan gelen sepeti yükle - sadece yeni sipariş için
               clearCart();
               sessionCart.forEach((item: any) => {
                 addItem({
@@ -180,7 +181,7 @@ function CartPageContent() {
                   preparationTime: item.preparationTime
                 });
               });
-              console.log('🔄 Sepet session\'dan senkronize edildi:', sessionCart.length, 'ürün');
+              console.log('🔄 Sepet session\'dan senkronize edildi (yeni sipariş için):', sessionCart.length, 'ürün');
             }
           }
         }
@@ -337,13 +338,13 @@ function CartPageContent() {
           }
         }
 
-        // Sepeti temizleme - ödeme tamamlanana kadar geçmiş siparişleri korumak için sepeti temizlemiyoruz
-        // clearCart(); // Bu satırı kaldırdık - ödeme tamamlanana kadar siparişler birikecek
+        // Sepeti temizle - yeni sipariş için boş sepet
+        clearCart();
         setShowPaymentModal(false);
         setTipAmount(0);
         setDonationAmount(0);
 
-        console.log('✅ Sipariş verildi, geçmiş siparişler korunuyor');
+        console.log('✅ Sipariş verildi, sepet temizlendi, geçmiş siparişler "bereits bestellt" bölümünde');
       } else {
         console.error('❌ SİPARİŞ BAŞARISIZ:', response);
         alert('❌ Sipariş gönderilemedi. Lütfen tekrar deneyin.');
