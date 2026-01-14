@@ -102,7 +102,8 @@ function MenuPageContent() {
             // Token'dan gelen masa numarasını ayarla
             if (response.data?.tableNumber) {
               setTableNumber(response.data.tableNumber);
-              console.log('✅ Masa numarası token\'dan alındı:', response.data.tableNumber);
+              localStorage.setItem('tableNumber', response.data.tableNumber.toString());
+              console.log('✅ Masa numarası token\'dan alındı ve localStorage\'a kaydedildi:', response.data.tableNumber);
             }
 
             // Token'ı sessionStorage'a kaydet
@@ -258,7 +259,8 @@ function MenuPageContent() {
                       setTokenValid(true);
                       setTokenMessage('Yeni QR kod oluşturuldu. Menüye erişebilirsiniz.');
                       setTableNumber(parseInt(tableParam));
-                      console.log('✅ Yeni token oluşturuldu:', newTokenRes.data.token);
+                      localStorage.setItem('tableNumber', tableParam);
+                      console.log('✅ Yeni token oluşturuldu ve masa numarası kaydedildi:', newTokenRes.data.token);
                       return;
                     }
                   }
@@ -288,7 +290,8 @@ function MenuPageContent() {
                   // Masa numarasını set et
                   if (tableParam) {
                     setTableNumber(parseInt(tableParam));
-                    console.log('✅ Masa numarası yeni token ile ayarlandı:', tableParam);
+                    localStorage.setItem('tableNumber', tableParam);
+                    console.log('✅ Masa numarası yeni token ile ayarlandı ve localStorage\'a kaydedildi:', tableParam);
                   }
                 } else {
                   setTokenValid(false);
@@ -321,7 +324,8 @@ function MenuPageContent() {
         if (!isNaN(tableNum) && tableNum > 0) {
           // Masa numarasını her durumda set et
           setTableNumber(tableNum);
-          console.log('✅ Masa numarası URL parametresinden ayarlandı:', tableNum);
+          localStorage.setItem('tableNumber', tableNum.toString());
+          console.log('✅ Masa numarası URL parametresinden ayarlandı ve localStorage\'a kaydedildi:', tableNum);
 
           // Token yoksa yeni QR token oluştur (eski sistem için)
           if (!tokenParam) {
