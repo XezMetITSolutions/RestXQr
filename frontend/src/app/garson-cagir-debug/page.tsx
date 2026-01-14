@@ -251,19 +251,48 @@ function GarsonCagirDebugContent() {
         {/* Header */}
         <div className="bg-red-600 rounded-lg p-6 mb-6 shadow-xl">
           <h1 className="text-3xl font-black mb-2">🔧 GARSON ÇAĞIR DEBUG SAYFASI</h1>
-          <p className="text-red-100 text-sm">Tüm garson çağrı fonksiyonlarını test edin ve logları görün</p>
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <p className="text-red-100 text-sm mb-4">Tüm garson çağrı fonksiyonlarını test edin ve logları görün</p>
+          
+          {/* Manual Input Section */}
+          <div className="bg-red-700 rounded-lg p-4 mb-4">
+            <h2 className="text-white font-bold mb-3 text-sm">⚙️ MANUEL AYARLAR (Gerekli)</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="text-red-200 text-xs block mb-1">Masa Numarası *</label>
+                <input
+                  type="number"
+                  value={tableNumber || ''}
+                  onChange={(e) => setTableNumber(e.target.value ? parseInt(e.target.value) : null)}
+                  placeholder="Örn: 1"
+                  className="w-full px-3 py-2 bg-red-800 text-white rounded border border-red-600 focus:border-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-red-200 text-xs block mb-1">Restaurant ID *</label>
+                <input
+                  type="text"
+                  value={restaurantId}
+                  onChange={(e) => setRestaurantId(e.target.value)}
+                  placeholder="Örn: 37b0322a-e11f-4ef1-b108-83be310aaf4d"
+                  className="w-full px-3 py-2 bg-red-800 text-white rounded border border-red-600 focus:border-white focus:outline-none text-xs"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Info Display */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div className="bg-red-700 rounded p-3">
               <div className="text-red-200 text-xs">MASA</div>
-              <div className="font-bold text-lg">{tableNumber || 'YOK'}</div>
+              <div className="font-bold text-lg">{tableNumber || '❌ YOK'}</div>
             </div>
             <div className="bg-red-700 rounded p-3">
               <div className="text-red-200 text-xs">RESTAURANT ID</div>
-              <div className="font-bold text-xs">{restaurantId || 'YOK'}</div>
+              <div className="font-bold text-xs">{restaurantId ? '✅ VAR' : '❌ YOK'}</div>
             </div>
             <div className="bg-red-700 rounded p-3">
               <div className="text-red-200 text-xs">RESTAURANT</div>
-              <div className="font-bold text-xs">{restaurantName || 'YOK'}</div>
+              <div className="font-bold text-xs">{restaurantName || 'Bilinmiyor'}</div>
             </div>
             <div className="bg-red-700 rounded p-3">
               <div className="text-red-200 text-xs">API URL</div>
