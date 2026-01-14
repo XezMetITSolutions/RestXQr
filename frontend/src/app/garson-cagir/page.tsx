@@ -68,7 +68,7 @@ function GarsonCagirContent() {
       if (data.success) {
         setActiveRequests(prev => [...prev, newRequest]);
         setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 2000);
+        setTimeout(() => setShowSuccess(false), 3000);
       }
     } catch (error) {
       console.error('Garson talebi gönderimi başarısız:', error);
@@ -108,7 +108,7 @@ function GarsonCagirContent() {
         setActiveRequests(prev => [...prev, newRequest]);
         setSpecialRequest('');
         setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 2000);
+        setTimeout(() => setShowSuccess(false), 3000);
       }
     } catch (error) {
       console.error('Özel istek gönderimi başarısız:', error);
