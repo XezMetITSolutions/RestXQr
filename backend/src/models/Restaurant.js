@@ -70,6 +70,35 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
       field: 'is_active'
+    },
+    parentRestaurantId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      field: 'parent_restaurant_id',
+      references: {
+        model: 'restaurants',
+        key: 'id'
+      },
+      comment: 'Ana restoran ID (şube ise)'
+    },
+    branchName: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: 'branch_name',
+      comment: 'Şube adı (örn: "Kadıköy Şubesi")'
+    },
+    branchCode: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      unique: true,
+      field: 'branch_code',
+      comment: 'Şube kodu (örn: "KDK-01")'
+    },
+    isBranch: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'is_branch',
+      comment: 'Bu bir şube mi?'
     }
   }, {
     tableName: 'restaurants',
