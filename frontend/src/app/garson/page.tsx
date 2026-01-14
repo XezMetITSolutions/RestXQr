@@ -48,6 +48,7 @@ export default function GarsonPanel() {
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [newTableNumber, setNewTableNumber] = useState<string>('');
   const [orderToChangeTable, setOrderToChangeTable] = useState<Order | null>(null);
+  const [showDebugButton, setShowDebugButton] = useState(true);
   const [orderToEdit, setOrderToEdit] = useState<Order | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [staffUser, setStaffUser] = useState<any>(null);
@@ -348,6 +349,35 @@ export default function GarsonPanel() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {showDebugButton && (
+                <button
+                  onClick={() => {
+                    const debugData = {
+                      timestamp: new Date().toLocaleString(),
+                      restaurant: {
+                        id: restaurantId,
+                        name: restaurantName
+                      },
+                      orders: {
+                        total: orders.length,
+                        pending: orders.filter(o => o.status === 'pending').length,
+                        preparing: orders.filter(o => o.status === 'preparing').length,
+                        ready: orders.filter(o => o.status === 'ready').length,
+                        completed: orders.filter(o => o.status === 'completed').length
+                      },
+                      calls: calls.length,
+                      loading: loading,
+                      staffUser: staffUser?.name || 'Bilinmiyor'
+                    };
+                    console.log('🐛 GARSON DEBUG:', debugData);
+                    alert(JSON.stringify(debugData, null, 2));
+                  }}
+                  className="bg-red-500 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-600 transition-colors"
+                  title="Debug Bilgileri"
+                >
+                  DEBUG
+                </button>
+              )}
               <button
                 onClick={() => {
                   localStorage.removeItem('staff_user');
