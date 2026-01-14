@@ -202,14 +202,22 @@ function CartPageContent() {
   const total = subtotal + tipAmount + donationAmount;
 
   const handleRemoveItem = (itemId: string) => {
-    removeItem(itemId);
+    // Cart store'da removeItem fonksiyonu item.id bekliyor, itemId değil
+    const item = items.find(i => i.itemId === itemId);
+    if (item) {
+      removeItem(item.id);
+    }
   };
 
   const handleUpdateQuantity = (itemId: string, quantity: number) => {
     if (quantity <= 0) {
       handleRemoveItem(itemId);
     } else {
-      updateQuantity(itemId, quantity);
+      // Cart store'da updateQuantity fonksiyonu item.id bekliyor, itemId değil
+      const item = items.find(i => i.itemId === itemId);
+      if (item) {
+        updateQuantity(item.id, quantity);
+      }
     }
   };
 
