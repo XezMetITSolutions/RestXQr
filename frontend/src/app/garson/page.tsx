@@ -302,7 +302,8 @@ export default function GarsonPanel() {
       totalAmount,
       status: mostCriticalStatus,
       id: `table-${latestOrder.tableNumber}-grouped`, // Özel ID
-      notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).join(' | ') || latestOrder.notes
+      notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).filter(note => note && !note.includes('Ödeme yöntemi')).join(' | ') || (latestOrder.notes ? latestOrder.notes.replace(/Ödeme yöntemi:.*?(?:\||$)/g, '').trim() : ''),
+      paymentInfo: tableOrders.map(o => o.notes).filter(Boolean).find(note => note && note.includes('Ödeme yöntemi')) || ''
     };
   };
 
@@ -494,11 +495,21 @@ export default function GarsonPanel() {
                   )}
                 </div>
 
-                {/* Customer Requests */}
-                {order.notes && (
-                  <div className="mb-3 flex items-start gap-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                    <FaBell className="text-red-600 mt-0.5" size={12} />
-                    <div className="text-xs text-red-800 font-medium">{order.notes}</div>
+                {/* Payment Info */}
+                {(order as any).paymentInfo && (
+                  <div className="mb-2 flex items-start gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                    <FaMoneyBillWave className="text-green-600 mt-0.5" size={12} />
+                    <div className="text-xs text-green-800 font-medium">
+                      {(order as any).paymentInfo.replace('Ödeme yöntemi: ', '').split(',')[0]}
+                    </div>
+                  </div>
+                )}
+
+                {/* Customer Requests - Food Related Notes Only */}
+                {order.notes && order.notes.trim() && (
+                  <div className="mb-3 flex items-start gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <FaBell className="text-yellow-600 mt-0.5" size={12} />
+                    <div className="text-xs text-yellow-800 font-medium">{order.notes}</div>
                   </div>
                 )}
 
