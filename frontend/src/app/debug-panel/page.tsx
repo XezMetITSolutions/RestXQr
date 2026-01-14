@@ -11,6 +11,7 @@ export default function DebugPanel() {
     const restaurantStore = useRestaurantStore();
     const [apiStatus, setApiStatus] = useState<any>(null);
     const [latestOrders, setLatestOrders] = useState<any>(null);
+    const [waiterCalls, setWaiterCalls] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [hostname, setHostname] = useState('');
     const [subdomain, setSubdomain] = useState('');
@@ -83,6 +84,12 @@ export default function DebugPanel() {
             // 3. Latest Orders (Global Debug)
             const ordersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/orders/debug/all`).then(r => r.json()).catch(e => ({ error: e.message }));
             setLatestOrders(ordersRes);
+
+            // 4. Waiter Calls Monitor
+            if (currentRId) {
+                const callsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/waiter/calls?restaurantId=${currentRId}`).then(r => r.json()).catch(e => ({ error: e.message }));
+                setWaiterCalls(callsRes);
+            }
 
         } catch (error: any) {
             console.error('Debug refresh failed:', error);
@@ -311,55 +318,74 @@ export default function DebugPanel() {
                     </div>
 
                     {/* Section: Global Orders monitor */}
-                    <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 lg:col-span-2">
+                    <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
                         <h2 className="text-xl font-bold mb-4 text-green-400 flex items-center gap-2">
-                            <FaDatabase /> Global Orders Monitor (Last 10)
+                            <FaDatabase /> Global Orders (Top 10)
                         </h2>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse border border-gray-700">
                                 <thead>
-                                    <tr className="bg-gray-900">
-                                        <th className="p-3 border border-gray-700">Time</th>
-                                        <th className="p-3 border border-gray-700">Restaurant</th>
-                                        <th className="p-3 border border-gray-700 text-center">Masa</th>
-                                        <th className="p-3 border border-gray-700">Tutar</th>
-                                        <th className="p-3 border border-gray-700">Durum</th>
+                                    <tr className="bg-gray-900 border-b border-gray-700">
+                                        <th className="p-3 border-r border-gray-700">Time</th>
+                                        <th className="p-3 border-r border-gray-700">Rest.</th>
+                                        <th className="p-3 text-center">Masa/Tutar</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {latestOrders?.data?.map((order: any) => (
-                                        <tr key={order.id} className="hover:bg-gray-700/50 transition-colors">
-                                            <td className="p-3 border border-gray-700 text-xs">
-                                                {new Date(order.created_at || order.createdAt).toLocaleString()}
+                                        <tr key={order.id} className="hover:bg-gray-700/50 transition-colors border-b border-gray-700/50">
+                                            <td className="p-3 text-[10px] text-gray-400">
+                                                {new Date(order.created_at || order.createdAt).toLocaleTimeString()}
                                             </td>
-                                            <td className="p-3 border border-gray-700">
-                                                {order.restaurant?.name}
+                                            <td className="p-3 text-xs font-bold text-blue-300">
+                                                {order.restaurant?.name?.substring(0, 10)}
                                             </td>
-                                            <td className="p-3 border border-gray-700 text-center font-bold text-yellow-500">
-                                                {order.tableNumber}
-                                            </td>
-                                            <td className="p-3 border border-gray-700 font-bold">
-                                                ₺{order.totalAmount}
-                                            </td>
-                                            <td className="p-3 border border-gray-700">
-                                                <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${order.status === 'completed' ? 'bg-green-900 text-green-300' :
-                                                    order.status === 'pending' ? 'bg-yellow-900 text-yellow-300' :
-                                                        'bg-blue-900 text-blue-300'
-                                                    }`}>
-                                                    {order.status}
-                                                </span>
+                                            <td className="p-3 text-center">
+                                                <div className="font-bold text-yellow-500">M{order.tableNumber}</div>
+                                                <div className="text-[10px] font-mono">₺{order.totalAmount}</div>
                                             </td>
                                         </tr>
                                     ))}
                                     {(!latestOrders?.data || latestOrders?.data?.length === 0) && (
                                         <tr>
-                                            <td colSpan={5} className="p-12 text-center text-gray-500 italic">
-                                                Henüz sistemde sipariş bulunamadı.
+                                            <td colSpan={3} className="p-8 text-center text-gray-500 italic">
+                                                {latestOrders?.error ? `❌ HATA: ${latestOrders.error}` : 'Henüz sipariş yok.'}
                                             </td>
                                         </tr>
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    {/* Section: Waiter Calls Monitor */}
+                    <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+                        <h2 className="text-xl font-bold mb-4 text-yellow-400 flex items-center gap-2">
+                            <FaBell /> Active Waiter Calls
+                        </h2>
+                        <div className="space-y-3">
+                            {waiterCalls?.data?.map((call: any) => (
+                                <div key={call.id} className="bg-gray-900 p-3 rounded-lg border-l-4 border-yellow-500 flex justify-between items-center shadow-md">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-black text-white bg-yellow-600 px-2 py-0.5 rounded text-xs">MASA {call.tableNumber}</span>
+                                            <span className="text-[10px] text-gray-500">{new Date(call.createdAt).toLocaleTimeString()}</span>
+                                        </div>
+                                        <div className="text-xs mt-1 text-gray-300 font-bold">{call.message}</div>
+                                    </div>
+                                    <div className="text-[10px] bg-green-900/30 text-green-400 px-2 py-1 rounded border border-green-800/50">ACTIVE</div>
+                                </div>
+                            ))}
+                            {(!waiterCalls?.data || waiterCalls?.data?.length === 0) && (
+                                <div className="p-8 text-center text-gray-600 italic border border-gray-700/50 rounded-xl">
+                                    Aktif çağrı bulunmuyor.
+                                </div>
+                            )}
+                            {waiterCalls?.error && (
+                                <div className="bg-red-900/30 border border-red-800 p-4 rounded-xl text-red-400 text-xs text-center">
+                                    ❌ API Hatası: {waiterCalls.error}
+                                </div>
+                            )}
                         </div>
                     </div>
 

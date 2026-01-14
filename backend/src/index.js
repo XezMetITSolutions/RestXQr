@@ -86,25 +86,7 @@ app.get('/api/debug/test', (req, res) => {
   });
 });
 
-// GLOBAL DEBUG ROUTE: Get last 10 orders from ANY restaurant
-app.get('/api/orders/debug/all', async (req, res) => {
-  try {
-    const { Order, Restaurant } = require('./models');
-    const orders = await Order.findAll({
-      limit: 10,
-      order: [Sequelize.literal('created_at DESC')],
-      include: [{ model: Restaurant, as: 'restaurant', attributes: ['name', 'username'] }]
-    });
-    res.json({
-      success: true,
-      serverTime: new Date().toISOString(),
-      count: orders.length,
-      data: orders
-    });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
+
 
 // Cloudinary Test Sayfası
 app.get('/debug', (req, res) => {
