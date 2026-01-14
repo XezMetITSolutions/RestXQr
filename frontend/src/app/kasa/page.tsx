@@ -84,7 +84,7 @@ export default function KasaPanel() {
       const data = await response.json();
       if (data.success) {
         const paymentOrders = (data.data || []).filter(
-          (order: Order) => order.status === 'ready' || order.status === 'completed'
+          (order: Order) => order.status === 'ready' || order.status === 'completed' || order.status === 'preparing' || order.status === 'pending'
         );
         setOrders(paymentOrders);
       }
@@ -257,14 +257,14 @@ export default function KasaPanel() {
             <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="font-black text-gray-400 animate-pulse">SİPARİŞLER ÇEKİLİYOR...</p>
           </div>
-        ) : orders.filter(o => o.status === 'ready').length === 0 ? (
+        ) : orders.length === 0 ? (
           <div className="bg-white/50 border-2 border-dashed border-gray-300 rounded-3xl p-20 text-center">
             <FaReceipt className="text-6xl text-gray-300 mx-auto mb-4" />
-            <h3 className="text-2xl font-black text-gray-400">BEKLEYEN ÖDEME BULUNMUYOR</h3>
+            <h3 className="text-2xl font-black text-gray-400">AKTİF MASA BULUNMUYOR</h3>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {orders.filter(o => o.status === 'ready').map(order => {
+            {orders.map(order => {
               const wait = getWaitInfo(order.updated_at || order.created_at);
               const rem = Number(order.totalAmount) - Number(order.paidAmount) - Number(order.discountAmount);
               return (
@@ -282,8 +282,16 @@ export default function KasaPanel() {
                         <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
                       </div>
                     </div>
-                    <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${wait.color}`}>
-                      {wait.mins} DK BEKLEME
+                    <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
+                      order.status === 'pending' ? 'text-yellow-600 bg-yellow-50' :
+                      order.status === 'preparing' ? 'text-blue-600 bg-blue-50' :
+                      order.status === 'ready' ? 'text-green-600 bg-green-50' :
+                      'text-gray-600 bg-gray-50'
+                    }`}>
+                      {order.status === 'pending' ? 'BEKLEMEDE' :
+                       order.status === 'preparing' ? 'HAZIRLANIYOR' :
+                       order.status === 'ready' ? 'HAZIR' :
+                       order.status === 'completed' ? 'TAMAMLANDI' : order.status.toUpperCase()}
                     </div>
                   </div>
                   <div className="p-6">
