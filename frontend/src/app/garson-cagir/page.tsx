@@ -4,39 +4,77 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaBell, FaArrowLeft, FaGlassWhiskey, FaFileInvoiceDollar, FaSprayCan, FaHandHolding, FaCheckCircle, FaShoppingCart, FaUtensils } from 'react-icons/fa';
-import { useCartStore } from '@/store';
-import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
-import useRestaurantStore from '@/store/useRestaurantStore';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import TranslatedText from '@/components/TranslatedText';
 
 function GarsonCagirContent() {
   const router = useRouter();
   const { currentLanguage } = useLanguage();
-  const tableNumber = useCartStore(state => state.tableNumber);
-  const cartItems = useCartStore(state => state.items);
-  const { settings } = useBusinessSettingsStore();
-  const primary = settings.branding.primaryColor;
   const [isClient, setIsClient] = useState(false);
+  const [tableNumber, setTableNumber] = useState<number | null>(null);
+  const [restaurantId, setRestaurantId] = useState<string>('');
+  const [cartCount, setCartCount] = useState(0);
+  const [primary, setPrimary] = useState('#10b981');
 
   const [specialRequest, setSpecialRequest] = useState('');
   const [activeRequests, setActiveRequests] = useState<any[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showDebugButton, setShowDebugButton] = useState(true);
+  const [showDebugButton, setShowDebugButton] = useState(false);
 
-  const { currentRestaurant } = useRestaurantStore();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Get data from localStorage
+    if (typeof window !== 'undefined') {
+      const storedTable = localStorage.getItem('tableNumber');
+      if (storedTable) {
+        setTableNumber(parseInt(storedTable));
+        console.log('✅ Masa numarası yüklendi:', storedTable);
+      } else {
+        console.warn('⚠️ Masa numarası bulunamadı');
+      }
+      
+      const storedRestaurant = localStorage.getItem('currentRestaurant');
+      if (storedRestaurant) {
+        try {
+          const parsed = JSON.parse(storedRestaurant);
+          setRestaurantId(parsed.id || '');
+          console.log('✅ Restaurant ID yüklendi:', parsed.id);
+        } catch (e) {
+          console.error('❌ Restaurant data parse hatası');
+        }
+      } else {
+        console.warn('⚠️ Restaurant bilgisi bulunamadı');
+      }
+      
+      const storedCart = localStorage.getItem('cart-storage');
+      if (storedCart) {
+        try {
+          const parsed = JSON.parse(storedCart);
+          setCartCount(parsed.state?.items?.length || 0);
+        } catch (e) {
+          console.error('❌ Cart data parse hatası');
+        }
+      }
+      
+      const storedSettings = localStorage.getItem('business-settings-storage');
+      if (storedSettings) {
+        try {
+          const parsed = JSON.parse(storedSettings);
+          setPrimary(parsed.state?.settings?.branding?.primaryColor || '#10b981');
+        } catch (e) {
+          console.error('❌ Settings data parse hatası');
+        }
+      }
+    }
   }, []);
 
-  const cartCount = isClient ? cartItems.length : 0;
-
   const handleQuickRequest = async (type: string) => {
-    const restaurantId = currentRestaurant?.id;
     if (!restaurantId || !tableNumber) {
-      console.warn('⚠️ İstek gönderilemedi: restaurantId veya masa numarası eksik');
+      console.warn('⚠️ İstek gönderilemedi: restaurantId veya masa numarası eksik', { restaurantId, tableNumber });
+      alert('⚠️ Masa numarası veya restaurant bilgisi eksik. Lütfen menüden tekrar giriş yapın.');
       return;
     }
 
@@ -101,9 +139,9 @@ function GarsonCagirContent() {
   const handleSpecialRequest = async () => {
     if (!specialRequest.trim()) return;
 
-    const restaurantId = currentRestaurant?.id;
     if (!restaurantId || !tableNumber) {
-      console.warn('⚠️ İstek gönderilemedi: restaurantId veya masa numarası eksik');
+      console.warn('⚠️ İstek gönderilemedi: restaurantId veya masa numarası eksik', { restaurantId, tableNumber });
+      alert('⚠️ Masa numarası veya restaurant bilgisi eksik. Lütfen menüden tekrar giriş yapın.');
       return;
     }
 
@@ -187,10 +225,9 @@ function GarsonCagirContent() {
                   const debugData = {
                     timestamp: new Date().toLocaleString(),
                     tableNumber: tableNumber,
-                    restaurantId: currentRestaurant?.id,
-                    restaurantName: currentRestaurant?.name,
+                    restaurantId: restaurantId,
                     API_URL: API_URL,
-                    cartItems: cartItems.length,
+                    cartCount: cartCount,
                     activeRequests: activeRequests.length,
                     isClient: isClient,
                     localStorage: {
