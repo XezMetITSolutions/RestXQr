@@ -119,9 +119,17 @@ export default function GarsonPanel() {
         setOrders(data.data || []);
       } else {
         console.error('❌ Siparişler alınamadı (API Error):', data.message);
+        // Hata mesajını kullanıcıya göster
+        if (data.message && data.message.includes('column')) {
+          alert('⚠️ Veritabanı güncelleniyor. Lütfen 2 dakika sonra sayfayı yenileyin.');
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Siparişler alınamadı (Network Error):', error);
+      // Network hatası durumunda kullanıcıya bilgi ver
+      if (!silent) {
+        alert('❌ Sunucuya bağlanılamıyor. Lütfen internet bağlantınızı kontrol edin.');
+      }
     } finally {
       if (!silent) setLoading(false);
     }

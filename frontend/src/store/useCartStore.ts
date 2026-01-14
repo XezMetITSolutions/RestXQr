@@ -79,6 +79,12 @@ const useCartStore = create<CartState>()(
           items.push({ ...item, id: generateId() });
         }
 
+        // Yeni sipariş başladığında önceki sipariş bilgilerini temizle
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('pending_order_id');
+          localStorage.removeItem('pending_order_items');
+        }
+
         set({
           items,
           orderStatus: 'idle'

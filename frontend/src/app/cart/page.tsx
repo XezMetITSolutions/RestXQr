@@ -57,6 +57,20 @@ function CartPageContent() {
         setSessionKey(storedSessionKey);
         setClientId(storedClientId);
       }
+
+      // Sipariş sonrası durumu yükle (localStorage'dan)
+      const storedOrderId = localStorage.getItem('pending_order_id');
+      const storedOrderItems = localStorage.getItem('pending_order_items');
+      if (storedOrderId) {
+        setPendingOrderId(storedOrderId);
+      }
+      if (storedOrderItems) {
+        try {
+          setPendingOrderItems(JSON.parse(storedOrderItems));
+        } catch (e) {
+          console.error('Sipariş ürünleri parse hatası:', e);
+        }
+      }
     }
   }, []);
 
@@ -295,15 +309,22 @@ function CartPageContent() {
         const orderId = response.data?.id;
         if (orderId) {
           setPendingOrderId(orderId);
+
           // Siparişteki ürünleri kaydet (ekran gösterimi için)
-          setPendingOrderItems((items || []).map(item => ({
+          const orderItems = (items || []).map(item => ({
             itemId: item.itemId || item.id,
             name: typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün'),
             price: item.price,
             quantity: item.quantity,
             notes: item.notes || '',
             image: item.image
-          })));
+          }));
+
+          setPendingOrderItems(orderItems);
+
+          // localStorage'a kaydet (sayfa yenilendiğinde kaybolmasın)
+          localStorage.setItem('pending_order_id', orderId);
+          localStorage.setItem('pending_order_items', JSON.stringify(orderItems));
         }
 
         // Session'a sipariş tamamlandı bildirimi gönder

@@ -88,20 +88,25 @@ app.get('/api/debug/test', (req, res) => {
 
 // VERİTABANI ŞEMASINI GÜNCELLE (Sync Alter)
 app.post('/api/debug/sync-db', async (req, res) => {
+  console.log('🔧 Database sync endpoint called');
   try {
     const { sequelize } = require('./models');
+    console.log('⚙️  Starting database sync (alter: true)...');
     await sequelize.sync({ alter: true });
+    console.log('✅ Database sync completed successfully');
     res.json({
       success: true,
-      message: 'Veritabanı şeması başarıyla güncellendi (Sync Alter: Complete)',
-      timestamp: new Date().toISOString()
+      message: 'Veritabanı şeması başarıyla güncellendi. Tüm eksik sütunlar eklendi.',
+      timestamp: new Date().toISOString(),
+      details: 'Sync mode: ALTER - Existing data preserved'
     });
   } catch (error) {
     console.error('❌ DB Sync Error:', error);
     res.status(500).json({
       success: false,
       message: 'Veritabanı senkronizasyonu başarısız oldu',
-      error: error.message
+      error: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -993,11 +998,13 @@ const startServer = async () => {
     await connectDB();
     console.log('✅ Database connected successfully');
 
+
     // Auto-sync models with database (adds missing columns)
     const { sequelize } = require('./models');
     try {
+      console.log('🔄 Starting database schema synchronization (ALTER mode)...');
       await sequelize.sync({ alter: true });
-      console.log('✅ Database models synced successfully');
+      console.log('✅ Database models synced successfully - All missing columns added');
     } catch (syncError) {
       console.error('⚠️ Database sync warning:', syncError.message);
     }

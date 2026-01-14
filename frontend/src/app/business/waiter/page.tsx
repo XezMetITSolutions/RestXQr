@@ -34,6 +34,8 @@ import useCentralOrderStore from '@/store/useCentralOrderStore';
 import BillModal from '@/components/BillModal';
 import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
 export default function WaiterDashboard() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -69,6 +71,8 @@ export default function WaiterDashboard() {
   const [dismissedNotifs, setDismissedNotifs] = useState<Set<string>>(new Set());
   const [callHistory, setCallHistory] = useState<any[]>([]);
   const [activeCalls, setActiveCalls] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -104,6 +108,31 @@ export default function WaiterDashboard() {
       }
     } catch (error) {
       console.error('Fetch calls error:', error);
+    }
+  };
+
+  const fetchOrders = async (showLoading = true) => {
+    if (!authenticatedRestaurant?.id) return;
+    try {
+      if (showLoading) {
+        setLoading(true);
+      }
+      const response = await fetch(`${API_URL}/orders?restaurantId=${authenticatedRestaurant.id}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const activeOrders = (data.data || []).filter((order: any) => 
+          ['pending', 'preparing', 'ready', 'served'].includes(order.status)
+        );
+        setOrders(activeOrders);
+        console.log('🍽️ Garson paneli sipariş sayısı:', activeOrders.length);
+      }
+    } catch (error) {
+      console.error('Orders fetch error:', error);
+    } finally {
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -190,18 +219,37 @@ export default function WaiterDashboard() {
     // dummy implementation
   };
 
-  const handleUpdateStatus = (orderId: string, status: any) => {
-    updateOrderStatus(orderId, status);
+  const handleUpdateStatus = async (orderId: string, status: any) => {
+    try {
+      const response = await fetch(`${API_URL}/orders/${orderId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        fetchOrders(false); // Refresh orders
+      }
+    } catch (error) {
+      console.error('Status update error:', error);
+    }
   };
 
   useEffect(() => {
     if (!authenticatedRestaurant?.id) return;
     fetchCalls();
-    const interval = setInterval(fetchCalls, 5000);
-    return () => clearInterval(interval);
+    fetchOrders();
+    const callsInterval = setInterval(fetchCalls, 5000);
+    const ordersInterval = setInterval(() => fetchOrders(false), 3000);
+    return () => {
+      clearInterval(callsInterval);
+      clearInterval(ordersInterval);
+    };
   }, [authenticatedRestaurant?.id]);
 
-  const orders = getActiveOrders();
   const selectedOrderDetail = orders.find(o => o.id === selectedOrder);
 
   useEffect(() => {
@@ -286,7 +334,7 @@ export default function WaiterDashboard() {
     totalCalls: activeCalls.length
   };
 
-  if (!isClient) {
+  if (!isClient || loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
