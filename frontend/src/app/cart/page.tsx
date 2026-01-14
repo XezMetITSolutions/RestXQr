@@ -223,7 +223,8 @@ function CartPageContent() {
   };
 
   const handleCheckout = () => {
-    setShowPaymentModal(true);
+    // Direkt ödeme işlemini başlat - modal gösterme
+    handlePayment();
   };
 
   const handlePayment = async () => {
@@ -885,33 +886,22 @@ function CartPageContent() {
         </div>
       )}
 
-      {/* Siparişi Verilmiş Olanlar - En Alta Taşındı - Accordion */}
+      {/* Siparişi Verilmiş Olanlar - Direkt Listelenmiş */}
       {pendingOrderId && pendingOrderItems.length > 0 && (
         <div className="mt-8 mb-6">
-          <button
-            onClick={() => setShowPreviousOrders(!showPreviousOrders)}
-            className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl border-2 border-gray-200 hover:bg-gray-100 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📋</span>
-              <div className="text-left">
-                <h2 className="text-lg font-bold text-gray-800">
-                  <TranslatedText>Siparişi Verilmiş Olanlar</TranslatedText>
-                </h2>
-                <p className="text-sm text-gray-600">
-                  {pendingOrderItems.length} ürün • <TranslatedText>Mutfakta hazırlanıyor</TranslatedText>
-                </p>
-              </div>
+          <div className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-xl border-2 border-gray-200 mb-4">
+            <span className="text-2xl">📋</span>
+            <div className="text-left">
+              <h2 className="text-lg font-bold text-gray-800">
+                <TranslatedText>Siparişi Verilmiş Olanlar</TranslatedText>
+              </h2>
+              <p className="text-sm text-gray-600">
+                {pendingOrderItems.length} ürün • <TranslatedText>Mutfakta hazırlanıyor</TranslatedText>
+              </p>
             </div>
-            <div className={`transform transition-transform ${showPreviousOrders ? 'rotate-180' : ''}`}>
-              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </button>
+          </div>
           
-          {showPreviousOrders && (
-            <div className="mt-4 space-y-3 animate-fadeIn">
+          <div className="space-y-3">
               <div className="bg-blue-50 border-blue-200 border-2 rounded-xl p-4 shadow-sm">
                 <p className="text-sm font-medium text-blue-800">
                   <TranslatedText>👨‍🍳 Siparişiniz mutfağa iletildi. Afiyet olsun!</TranslatedText>
@@ -949,8 +939,7 @@ function CartPageContent() {
                   </div>
                 </div>
               ))}
-            </div>
-          )}
+          </div>
         </div>
       )}
 
