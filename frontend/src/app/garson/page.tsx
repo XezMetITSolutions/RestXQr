@@ -396,6 +396,36 @@ export default function GarsonPanel() {
             </div>
             <div className="flex items-center gap-2">
               <button
+                onClick={async () => {
+                  const debugData = {
+                    timestamp: new Date().toLocaleString('tr-TR'),
+                    restaurantId: restaurantId,
+                    restaurantName: restaurantName,
+                    API_URL: API_URL,
+                    callsCount: calls.length,
+                    calls: calls,
+                    staffUser: staffUser?.username
+                  };
+                  console.log('🐛 GARSON PANEL DEBUG:', debugData);
+                  
+                  // Fetch calls manually
+                  try {
+                    const url = `${API_URL}/waiter/calls?restaurantId=${restaurantId}`;
+                    console.log('🔄 Manuel çağrı fetch:', url);
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    console.log('📦 Fetch sonucu:', data);
+                    alert(`DEBUG:\n\nRestaurant ID: ${restaurantId}\nÇağrı Sayısı: ${calls.length}\nAPI Response: ${JSON.stringify(data, null, 2)}`);
+                  } catch (error) {
+                    console.error('❌ Debug fetch hatası:', error);
+                    alert(`DEBUG ERROR:\n${error}`);
+                  }
+                }}
+                className="bg-purple-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 mr-2"
+              >
+                🐛 DEBUG
+              </button>
+              <button
                 onClick={() => {
                   localStorage.removeItem('staff_user');
                   localStorage.removeItem('staff_token');
