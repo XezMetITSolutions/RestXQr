@@ -924,7 +924,7 @@ function MenuPageContent() {
 
         {/* Sabit Duyurular */}
         <div className="container mx-auto px-3 py-4 mb-20">
-          <div className="rounded-xl p-5 shadow-lg border bg-tone1">
+          <div className="rounded-xl p-5 shadow-lg border bg-white">
             <div className="grid grid-cols-1 gap-3">
               {/* WiFi Info */}
               {settings.basicInfo.showWifiInMenu && (
@@ -946,8 +946,8 @@ function MenuPageContent() {
                   href={settings.basicInfo.googleReviewLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-tone2"
-                  style={{ textDecoration: 'none' }}
+                  className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-white hover:bg-gray-50"
+                  style={{ textDecoration: 'none', borderLeftColor: 'var(--brand-primary)' }}
                 >
                   <div className="flex items-center">
                     <span className="text-lg mr-3">⭐</span>
@@ -980,8 +980,8 @@ function MenuPageContent() {
                   href={settings.basicInfo.instagram || "https://instagram.com/restoranadi"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-tone3"
-                  style={{ textDecoration: 'none' }}
+                  className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-white hover:bg-gray-50"
+                  style={{ textDecoration: 'none', borderLeftColor: '#E1306C' }}
                 >
                   <div className="flex items-center">
                     <span className="text-lg mr-3">📱</span>
