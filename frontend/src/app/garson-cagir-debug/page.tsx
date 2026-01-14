@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useCartStore } from '@/store/useCartStore';
-import { useRestaurantStore } from '@/store/useRestaurantStore';
+import { useSearchParams } from 'next/navigation';
 
 interface LogEntry {
   timestamp: string;
@@ -12,8 +11,10 @@ interface LogEntry {
 }
 
 export default function GarsonCagirDebugPage() {
-  const { tableNumber } = useCartStore();
-  const { currentRestaurant } = useRestaurantStore();
+  const searchParams = useSearchParams();
+  const [tableNumber, setTableNumber] = useState<number | null>(null);
+  const [restaurantId, setRestaurantId] = useState<string>('');
+  const [restaurantName, setRestaurantName] = useState<string>('');
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [specialMessage, setSpecialMessage] = useState('');
   const [testResults, setTestResults] = useState<{ [key: string]: 'pending' | 'success' | 'error' }>({});
@@ -24,13 +25,40 @@ export default function GarsonCagirDebugPage() {
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Get data from URL params or localStorage
+    const tableFromUrl = searchParams.get('table');
+    const restaurantFromUrl = searchParams.get('restaurant');
+    
+    if (tableFromUrl) {
+      setTableNumber(parseInt(tableFromUrl));
+    } else if (typeof window !== 'undefined') {
+      const storedTable = localStorage.getItem('tableNumber');
+      if (storedTable) setTableNumber(parseInt(storedTable));
+    }
+    
+    if (restaurantFromUrl) {
+      setRestaurantId(restaurantFromUrl);
+    } else if (typeof window !== 'undefined') {
+      const storedRestaurant = localStorage.getItem('currentRestaurant');
+      if (storedRestaurant) {
+        try {
+          const parsed = JSON.parse(storedRestaurant);
+          setRestaurantId(parsed.id || '');
+          setRestaurantName(parsed.name || '');
+        } catch (e) {
+          console.error('Failed to parse restaurant data');
+        }
+      }
+    }
+    
     addLog('info', 'Debug sayfası yüklendi', {
-      tableNumber,
-      restaurantId: currentRestaurant?.id,
-      restaurantName: currentRestaurant?.name,
+      tableNumber: tableFromUrl || tableNumber,
+      restaurantId: restaurantFromUrl || restaurantId,
+      restaurantName,
       API_URL
     });
-  }, []);
+  }, [searchParams]);
 
   const addLog = (type: LogEntry['type'], message: string, data?: any) => {
     const timestamp = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
@@ -43,7 +71,6 @@ export default function GarsonCagirDebugPage() {
     
     addLog('info', `🚀 Test başlatılıyor: ${label}`);
 
-    const restaurantId = currentRestaurant?.id;
     if (!restaurantId || !tableNumber) {
       addLog('error', '❌ RestaurantId veya masa numarası eksik', { restaurantId, tableNumber });
       setTestResults(prev => ({ ...prev, [testKey]: 'error' }));
@@ -106,7 +133,6 @@ export default function GarsonCagirDebugPage() {
     
     addLog('info', `🚀 Özel mesaj testi başlatılıyor: "${specialMessage}"`);
 
-    const restaurantId = currentRestaurant?.id;
     if (!restaurantId || !tableNumber) {
       addLog('error', '❌ RestaurantId veya masa numarası eksik', { restaurantId, tableNumber });
       setTestResults(prev => ({ ...prev, [testKey]: 'error' }));
@@ -162,7 +188,6 @@ export default function GarsonCagirDebugPage() {
   const fetchGarsonCalls = async () => {
     addLog('info', '🔍 Garson paneli çağrıları kontrol ediliyor...');
     
-    const restaurantId = currentRestaurant?.id;
     if (!restaurantId) {
       addLog('error', '❌ RestaurantId eksik');
       return;
@@ -234,11 +259,11 @@ export default function GarsonCagirDebugPage() {
             </div>
             <div className="bg-red-700 rounded p-3">
               <div className="text-red-200 text-xs">RESTAURANT ID</div>
-              <div className="font-bold text-xs">{currentRestaurant?.id || 'YOK'}</div>
+              <div className="font-bold text-xs">{restaurantId || 'YOK'}</div>
             </div>
             <div className="bg-red-700 rounded p-3">
               <div className="text-red-200 text-xs">RESTAURANT</div>
-              <div className="font-bold text-xs">{currentRestaurant?.name || 'YOK'}</div>
+              <div className="font-bold text-xs">{restaurantName || 'YOK'}</div>
             </div>
             <div className="bg-red-700 rounded p-3">
               <div className="text-red-200 text-xs">API URL</div>
