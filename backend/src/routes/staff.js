@@ -1085,4 +1085,104 @@ router.post('/restore-menu', async (req, res) => {
   }
 });
 
+// POST /api/staff/create-kroren - Create Kroren staff members
+router.post('/create-kroren', async (req, res) => {
+  try {
+    if (!Staff || !Restaurant) {
+      return res.status(503).json({
+        success: false,
+        message: 'Staff system temporarily unavailable - models not loaded'
+      });
+    }
+
+    console.log('🔍 Creating Kroren staff members...');
+
+    // Find Kroren restaurant
+    const krorenRestaurant = await Restaurant.findOne({
+      where: { username: 'kroren' }
+    });
+
+    if (!krorenRestaurant) {
+      return res.status(404).json({
+        success: false,
+        message: 'Kroren restaurant not found'
+      });
+    }
+
+    console.log('✅ Kroren restaurant found:', krorenRestaurant.id);
+
+    // Kroren staff members
+    const staffMembers = [
+      {
+        restaurantId: krorenRestaurant.id,
+        username: 'garson',
+        password: '123456',
+        name: 'Garson',
+        email: 'garson@kroren.com',
+        role: 'waiter',
+        status: 'active'
+      },
+      {
+        restaurantId: krorenRestaurant.id,
+        username: 'mutfak',
+        password: '123456',
+        name: 'Mutfak',
+        email: 'mutfak@kroren.com',
+        role: 'chef',
+        status: 'active'
+      },
+      {
+        restaurantId: krorenRestaurant.id,
+        username: 'kasa',
+        password: '123456',
+        name: 'Kasa',
+        email: 'kasa@kroren.com',
+        role: 'cashier',
+        status: 'active'
+      }
+    ];
+
+    const createdStaff = [];
+
+    for (const staffData of staffMembers) {
+      try {
+        // Check if staff already exists
+        const existingStaff = await Staff.findOne({
+          where: {
+            restaurantId: staffData.restaurantId,
+            username: staffData.username
+          }
+        });
+
+        if (existingStaff) {
+          console.log(`✅ Staff already exists: ${staffData.name}`);
+          createdStaff.push(existingStaff);
+        } else {
+          const staff = await Staff.create(staffData);
+          console.log(`✅ Staff created: ${staff.name} (${staff.id})`);
+          createdStaff.push(staff);
+        }
+      } catch (error) {
+        console.error(`❌ Error creating staff ${staffData.name}:`, error);
+      }
+    }
+
+    console.log('✅ Kroren staff creation completed');
+
+    res.json({
+      success: true,
+      message: 'Kroren staff members created successfully',
+      data: createdStaff
+    });
+
+  } catch (error) {
+    console.error('❌ Error creating Kroren staff:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating Kroren staff',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 module.exports = router;
