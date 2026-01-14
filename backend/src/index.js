@@ -86,8 +86,25 @@ app.get('/api/debug/test', (req, res) => {
   });
 });
 
-
-
+// VERİTABANI ŞEMASINI GÜNCELLE (Sync Alter)
+app.post('/api/debug/sync-db', async (req, res) => {
+  try {
+    const { sequelize } = require('./models');
+    await sequelize.sync({ alter: true });
+    res.json({
+      success: true,
+      message: 'Veritabanı şeması başarıyla güncellendi (Sync Alter: Complete)',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ DB Sync Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Veritabanı senkronizasyonu başarısız oldu',
+      error: error.message
+    });
+  }
+});
 // Cloudinary Test Sayfası
 app.get('/debug', (req, res) => {
   const html = `

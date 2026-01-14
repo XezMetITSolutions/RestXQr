@@ -164,6 +164,25 @@ export default function DebugPanel() {
         }
     };
 
+    const syncDatabase = async () => {
+        setSimLoading(true);
+        addLog(`⚙️ Veritabanı senkronizasyonu başlatılıyor...`);
+        try {
+            const API = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+            const res = await fetch(`${API}/debug/sync-db`, { method: 'POST' }).then(r => r.json());
+            if (res.success) {
+                addLog(`✅ VERİTABANI BAŞARIYLA SENKRONİZE EDİLDİ!`);
+                refreshDebugInfo();
+            } else {
+                addLog(`❌ SYNC HATASI: ${res.message}`);
+            }
+        } catch (e: any) {
+            addLog(`❌ SYNC TEKNİK HATA: ${e.message}`);
+        } finally {
+            setSimLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-900 text-gray-100 p-8 font-mono text-sm leading-relaxed">
             <div className="max-w-7xl mx-auto space-y-8">
@@ -249,6 +268,14 @@ export default function DebugPanel() {
                                         className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-white font-black p-4 rounded-xl flex items-center justify-center gap-3 shadow-lg shadow-yellow-900/20 active:scale-95 transition-all text-base"
                                     >
                                         <FaBell /> GARSON ÇAĞIR (Simüle Et)
+                                    </button>
+
+                                    <button
+                                        onClick={syncDatabase}
+                                        disabled={simLoading}
+                                        className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold p-3 rounded-xl flex items-center justify-center gap-3 shadow-lg shadow-indigo-900/20 active:scale-95 transition-all text-xs"
+                                    >
+                                        <FaDatabase /> VERİTABANI ŞEMASINI GÜNCELLE
                                     </button>
                                 </div>
                             </div>
