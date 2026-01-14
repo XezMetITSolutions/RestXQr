@@ -147,15 +147,28 @@ export default function GarsonPanel() {
 
   // Müşteri çağrılarını çek
   const fetchCalls = async () => {
-    if (!restaurantId) return;
+    if (!restaurantId) {
+      console.log('⚠️ fetchCalls: restaurantId eksik');
+      return;
+    }
     try {
-      const response = await fetch(`${API_URL}/waiter/calls?restaurantId=${restaurantId}`);
+      const url = `${API_URL}/waiter/calls?restaurantId=${restaurantId}`;
+      console.log(`📞 Çağrılar çekiliyor: ${url}`);
+      
+      const response = await fetch(url);
       const data = await response.json();
+      
+      console.log('📞 Çağrılar response:', data);
+      
       if (data.success) {
-        setCalls(data.data || []);
+        const activeCalls = (data.data || []).filter((call: WaiterCall) => call.status === 'active');
+        console.log(`✅ ${activeCalls.length} aktif çağrı bulundu (toplam: ${data.data?.length || 0})`);
+        setCalls(activeCalls);
+      } else {
+        console.error('❌ Çağrılar alınamadı:', data.message);
       }
     } catch (error) {
-      console.error('Çağrılar alınamadı:', error);
+      console.error('❌ Çağrılar fetch hatası:', error);
     }
   };
 
