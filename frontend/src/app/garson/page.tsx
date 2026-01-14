@@ -302,7 +302,7 @@ export default function GarsonPanel() {
       totalAmount,
       status: mostCriticalStatus,
       id: `table-${latestOrder.tableNumber}-grouped`, // Özel ID
-      notes: tableOrders.map(o => o.notes).filter(Boolean).join(' | ') || latestOrder.notes
+      notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).join(' | ') || latestOrder.notes
     };
   };
 
@@ -503,7 +503,18 @@ export default function GarsonPanel() {
                 )}
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-4 gap-2">
+                <div className={`grid gap-2 ${order.id.includes('grouped') ? 'grid-cols-5' : 'grid-cols-4'}`}>
+                  {order.id.includes('grouped') && (
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setShowModal(true);
+                      }}
+                      className="py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-bold text-xs transition-colors"
+                    >
+                      📋 Detay
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       if (order.id.includes('grouped')) {
