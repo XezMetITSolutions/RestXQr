@@ -120,6 +120,43 @@ export default function MutfakPanel() {
   // Sipariş durumunu güncelle
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
+      console.log('🔄 Mutfak: Sipariş durumu güncelleniyor:', { orderId, newStatus });
+
+      // Gruplu sipariş ID'si ise gerçek siparişleri bul ve güncelle
+      if (orderId.includes('grouped')) {
+        const tableNumber = parseInt(orderId.split('-')[1]);
+        const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
+        
+        console.log('📋 Gruplu sipariş tespit edildi:', { tableNumber, orderCount: tableOrders.length });
+        
+        // Her bir gerçek siparişi güncelle
+        const updatePromises = tableOrders.map(async (tableOrder) => {
+          console.log('🔄 Gerçek sipariş güncelleniyor:', tableOrder.id);
+          const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+          });
+          return response.json();
+        });
+        
+        await Promise.all(updatePromises);
+        console.log('✅ Tüm masa siparişleri güncellendi');
+        
+        // UI'ı güncelle
+        setOrders(prevOrders =>
+          prevOrders.map(order =>
+            order.tableNumber === tableNumber ? { ...order, status: newStatus as any } : order
+          )
+        );
+        
+        fetchOrders(false);
+        return;
+      }
+
+      // Normal sipariş için standart güncelleme
       // Optimistic update - Hemen görsel değişiklik
       setOrders(prevOrders =>
         prevOrders.map(order =>
@@ -135,17 +172,21 @@ export default function MutfakPanel() {
         body: JSON.stringify({ status: newStatus })
       });
 
+      console.log('📡 API Response status:', response.status);
       const data = await response.json();
+      console.log('📦 API Response data:', data);
 
       if (data.success) {
+        console.log('✅ Sipariş durumu başarıyla güncellendi');
         // Backend'den güncel veriyi al (loading gösterme)
         fetchOrders(false);
       } else {
+        console.error('❌ API başarısız response:', data);
         // Hata durumunda eski haline dön (loading gösterme)
         fetchOrders(false);
       }
     } catch (error) {
-      console.error('Durum güncellenemedi:', error);
+      console.error('💥 Durum güncellenemedi:', error);
       // Hata durumunda eski haline dön (loading gösterme)
       fetchOrders(false);
     }
