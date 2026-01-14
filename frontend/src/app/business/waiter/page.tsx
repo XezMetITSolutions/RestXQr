@@ -73,6 +73,8 @@ export default function WaiterDashboard() {
   const [activeCalls, setActiveCalls] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -112,13 +114,29 @@ export default function WaiterDashboard() {
   };
 
   const fetchOrders = async (showLoading = true) => {
-    if (!authenticatedRestaurant?.id) return;
+    if (!authenticatedRestaurant?.id) {
+      setDebugInfo(prev => ({ ...prev, error: 'No authenticated restaurant ID' }));
+      return;
+    }
     try {
       if (showLoading) {
         setLoading(true);
       }
-      const response = await fetch(`${API_URL}/orders?restaurantId=${authenticatedRestaurant.id}`);
+      const url = `${API_URL}/orders?restaurantId=${authenticatedRestaurant.id}`;
+      setDebugInfo(prev => ({ ...prev, apiUrl: url, timestamp: new Date().toISOString() }));
+      
+      const response = await fetch(url);
       const data = await response.json();
+      
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        response: {
+          status: response.status,
+          ok: response.ok,
+          data: data,
+          dataLength: data.data?.length || 0
+        }
+      }));
       
       if (data.success) {
         const activeOrders = (data.data || []).filter((order: any) => 
@@ -126,9 +144,13 @@ export default function WaiterDashboard() {
         );
         setOrders(activeOrders);
         console.log('🍽️ Garson paneli sipariş sayısı:', activeOrders.length);
+        setDebugInfo(prev => ({ ...prev, activeOrdersCount: activeOrders.length }));
+      } else {
+        setDebugInfo(prev => ({ ...prev, error: data.message || 'API returned success: false' }));
       }
     } catch (error) {
       console.error('Orders fetch error:', error);
+      setDebugInfo(prev => ({ ...prev, error: error.message }));
     } finally {
       if (showLoading) {
         setLoading(false);
@@ -368,6 +390,12 @@ export default function WaiterDashboard() {
                 {t('{0} aktif çağrı').replace('{0}', activeCalls.length.toString())}
               </div>
             )}
+            <button
+              onClick={() => setShowDebug(!showDebug)}
+              className="px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700"
+            >
+              Debug
+            </button>
           </div>
         </div>
 
@@ -379,7 +407,71 @@ export default function WaiterDashboard() {
         </div>
       </header>
 
+      {showDebug && (
+        <div className="p-4 bg-yellow-50 border-b border-yellow-200">
+          <div className="max-w-4xl mx-auto">
+            <h3 className="font-bold text-lg mb-2">Debug Bilgileri</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p><strong>Restaurant ID:</strong> {authenticatedRestaurant?.id || 'Yok'}</p>
+                <p><strong>Restaurant Name:</strong> {authenticatedRestaurant?.name || 'Yok'}</p>
+                <p><strong>Is Authenticated:</strong> {isAuthenticated() ? 'Evet' : 'Hayır'}</p>
+                <p><strong>Loading:</strong> {loading ? 'Evet' : 'Hayır'}</p>
+                <p><strong>Orders Count:</strong> {orders.length}</p>
+              </div>
+              <div>
+                <p><strong>API URL:</strong> {debugInfo?.apiUrl || 'Henüz çağrılmadı'}</p>
+                <p><strong>Last Call:</strong> {debugInfo?.timestamp || 'Henüz çağrılmadı'}</p>
+                <p><strong>Response Status:</strong> {debugInfo?.response?.status || 'Yok'}</p>
+                <p><strong>Response OK:</strong> {debugInfo?.response?.ok ? 'Evet' : 'Hayır'}</p>
+                <p><strong>API Data Length:</strong> {debugInfo?.response?.dataLength || 0}</p>
+                <p><strong>Active Orders:</strong> {debugInfo?.activeOrdersCount || 0}</p>
+                {debugInfo?.error && <p className="text-red-600"><strong>Error:</strong> {debugInfo.error}</p>}
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => fetchOrders(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Manuel Sipariş Çek
+              </button>
+              <button
+                onClick={() => console.log('Debug Info:', debugInfo, 'Orders:', orders, 'Auth:', authenticatedRestaurant)}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Console'a Yazdır
+              </button>
+            </div>
+            {debugInfo?.response?.data && (
+              <div className="mt-4">
+                <h4 className="font-bold">API Response:</h4>
+                <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">
+                  {JSON.stringify(debugInfo.response.data, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filteredOrders.length === 0 && !loading ? (
+          <div className="col-span-full text-center py-8">
+            <div className="text-gray-500">
+              <FaUtensils className="mx-auto text-4xl mb-4" />
+              <p className="text-lg font-medium">Aktif sipariş bulunamadı</p>
+              <p className="text-sm mt-2">Yeni siparişler geldiğinde burada görünecek</p>
+              {showDebug && (
+                <div className="mt-4 text-xs bg-gray-100 p-3 rounded">
+                  <p>Total orders in state: {orders.length}</p>
+                  <p>Filtered orders: {filteredOrders.length}</p>
+                  <p>Active filter: {activeFilter}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
         {filteredOrders.map(order => (
           <div
             key={order.id}
@@ -414,6 +506,13 @@ export default function WaiterDashboard() {
             </div>
           </div>
         ))}
+        
+        {loading && (
+          <div className="col-span-full text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{t('Siparişler yükleniyor...')}</p>
+          </div>
+        )}
       </div>
 
       {selectedOrderDetail && (
