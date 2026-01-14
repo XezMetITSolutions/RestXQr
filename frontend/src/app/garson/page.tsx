@@ -51,8 +51,6 @@ export default function GarsonPanel() {
   const [orderToEdit, setOrderToEdit] = useState<Order | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [staffUser, setStaffUser] = useState<any>(null);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
-  const [showDebug, setShowDebug] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
@@ -110,7 +108,6 @@ export default function GarsonPanel() {
   const fetchOrders = async (silent: boolean = false) => {
     if (!restaurantId) {
       console.log('⚠️ fetchOrders: restaurantId eksik');
-      setDebugInfo(prev => ({ ...prev, error: 'No restaurant ID or username' }));
       return;
     }
 
@@ -118,28 +115,16 @@ export default function GarsonPanel() {
       if (!silent) setLoading(true);
       const url = `${API_URL}/orders?restaurantId=${restaurantId}`;
       console.log(`📡 Siparişler çekiliyor: ${url}`);
-      setDebugInfo(prev => ({ ...prev, apiUrl: url, timestamp: new Date().toISOString() }));
       
       const response = await fetch(url);
       const data = await response.json();
       
-      setDebugInfo(prev => ({ 
-        ...prev, 
-        response: {
-          status: response.status,
-          ok: response.ok,
-          data: data,
-          dataLength: data.data?.length || 0
-        }
-      }));
 
       if (data.success) {
         console.log(`✅ ${data.data?.length || 0} sipariş alındı`);
         setOrders(data.data || []);
-        setDebugInfo(prev => ({ ...prev, ordersCount: data.data?.length || 0 }));
       } else {
         console.error('❌ Siparişler alınamadı (API Error):', data.message);
-        setDebugInfo(prev => ({ ...prev, error: data.message || 'API returned success: false' }));
         // Hata mesajını kullanıcıya göster
         if (data.message && data.message.includes('column')) {
           alert('⚠️ Veritabanı güncelleniyor. Lütfen 2 dakika sonra sayfayı yenileyin.');
@@ -147,7 +132,6 @@ export default function GarsonPanel() {
       }
     } catch (error: any) {
       console.error('❌ Siparişler alınamadı (Network Error):', error);
-      setDebugInfo(prev => ({ ...prev, error: error.message }));
       // Network hatası durumunda kullanıcıya bilgi ver
       if (!silent) {
         alert('❌ Sunucuya bağlanılamıyor. Lütfen internet bağlantınızı kontrol edin.');
@@ -301,12 +285,6 @@ export default function GarsonPanel() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setShowDebug(!showDebug)}
-                className="bg-blue-500 text-white px-3 py-2 rounded-lg font-bold hover:bg-blue-600 transition-colors text-sm"
-              >
-                Debug
-              </button>
-              <button
                 onClick={() => {
                   localStorage.removeItem('staff_user');
                   localStorage.removeItem('staff_token');
@@ -320,59 +298,6 @@ export default function GarsonPanel() {
             </div>
           </div>
         </div>
-
-        {/* Debug Panel */}
-        {showDebug && (
-          <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-4 mb-4 text-white">
-            <h3 className="font-bold text-lg mb-2">🔍 Debug Bilgileri</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <p><strong>Restaurant ID/Username:</strong> {restaurantId || 'Yok'}</p>
-                <p><strong>Restaurant Name:</strong> {restaurantName || 'Yok'}</p>
-                <p><strong>Staff User:</strong> {staffUser?.name || 'Yok'}</p>
-                <p><strong>Staff Role:</strong> {staffUser?.role || 'Yok'}</p>
-                <p><strong>Restaurant Username:</strong> {staffUser?.restaurantUsername || 'Yok'}</p>
-                <p><strong>Loading:</strong> {loading ? 'Evet' : 'Hayır'}</p>
-                <p><strong>Orders Count:</strong> {orders.length}</p>
-              </div>
-              <div>
-                <p><strong>API URL:</strong> {debugInfo?.apiUrl || 'Henüz çağrılmadı'}</p>
-                <p><strong>Last Call:</strong> {debugInfo?.timestamp || 'Henüz çağrılmadı'}</p>
-                <p><strong>Response Status:</strong> {debugInfo?.response?.status || 'Yok'}</p>
-                <p><strong>Response OK:</strong> {debugInfo?.response?.ok ? 'Evet' : 'Hayır'}</p>
-                <p><strong>API Data Length:</strong> {debugInfo?.response?.dataLength || 0}</p>
-                <p><strong>Orders in State:</strong> {debugInfo?.ordersCount || 0}</p>
-                {debugInfo?.error && <p className="text-red-300"><strong>Error:</strong> {debugInfo.error}</p>}
-              </div>
-            </div>
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => fetchOrders(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Manuel Sipariş Çek
-              </button>
-              <button
-                onClick={() => {
-                  console.log('Debug Info:', debugInfo, 'Orders:', orders, 'Staff:', staffUser);
-                  console.log('LocalStorage staff_user:', localStorage.getItem('staff_user'));
-                  console.log('LocalStorage staff_token:', localStorage.getItem('staff_token'));
-                }}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                Console'a Yazdır
-              </button>
-            </div>
-            {debugInfo?.response?.data && (
-              <div className="mt-4">
-                <h4 className="font-bold">API Response:</h4>
-                <pre className="bg-black bg-opacity-20 p-2 rounded text-xs overflow-auto max-h-40 mt-2">
-                  {JSON.stringify(debugInfo.response.data, null, 2)}
-                </pre>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Stats */}
         <div className="grid grid-cols-5 gap-3 mb-4">
