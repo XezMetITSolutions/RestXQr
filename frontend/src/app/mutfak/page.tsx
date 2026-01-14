@@ -229,6 +229,7 @@ export default function MutfakPanel() {
       .replace(/Ödeme\s+yöntemi:\s*[^,]+(,\s*)?/gi, '')
       .replace(/Bahşiş:\s*[^,]+(,\s*)?/gi, '')
       .replace(/Bağış:\s*[^,]+(,\s*)?/gi, '')
+      .replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:\s*[^,]+(,\s*)?/gi, '') // Debug notlarını temizle
       .replace(/,\s*,/g, ',') // Çift virgülleri temizle
       .replace(/^,\s*/, '') // Başlangıçtaki virgülü temizle
       .replace(/,\s*$/, '') // Sondaki virgülü temizle
@@ -352,7 +353,7 @@ export default function MutfakPanel() {
       totalAmount,
       status: mostCriticalStatus,
       id: `table-${latestOrder.tableNumber}-grouped`,
-      notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).filter(note => note && !note.includes('Ödeme yöntemi')).join(' | ') || (latestOrder.notes ? latestOrder.notes.replace(/Ödeme yöntemi:.*?(?:\||$)/g, '').trim() : '')
+      notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).filter(note => note && !note.includes('Ödeme yöntemi') && !note.includes('Debug Simülasyonu')).join(' | ') || (latestOrder.notes ? latestOrder.notes.replace(/Ödeme yöntemi:.*?(?:\||$)/g, '').replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:\s*[^,|]+(,\s*|\|\s*)?/gi, '').trim() : '')
     };
   };
 
