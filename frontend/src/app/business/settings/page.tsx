@@ -94,6 +94,17 @@ function SettingsPageContent() {
     initializeAuth();
   }, [initializeAuth]);
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({});
+  const [showAnnModal, setShowAnnModal] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<number | null>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const [subdomainValidation, setSubdomainValidation] = useState<{
+    isValid: boolean;
+    isChecking: boolean;
+    message: string;
+  }>({ isValid: true, isChecking: false, message: '' });
+
   // Emoji picker dışına tıklanınca kapat
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -110,9 +121,6 @@ function SettingsPageContent() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showEmojiPicker]);
-
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
 
   // Restaurant-specific settings kullan
   const {
@@ -141,16 +149,6 @@ function SettingsPageContent() {
     exportSettings,
     validateSubdomain
   } = useRestaurantSettings(authenticatedRestaurant?.id);
-
-  const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({});
-  const [showAnnModal, setShowAnnModal] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState<number | null>(null);
-  const emojiPickerRef = useRef<HTMLDivElement>(null);
-  const [subdomainValidation, setSubdomainValidation] = useState<{
-    isValid: boolean;
-    isChecking: boolean;
-    message: string;
-  }>({ isValid: true, isChecking: false, message: '' });
 
   // Popüler emojiler listesi
   const popularEmojis = ['⭐', '🎉', '🍲', '🍕', '🍔', '🍟', '🌮', '🌯', '🥗', '🍝', '🍜', '🍱', '🍣', '🍤', '🍗', '🍖', '🥩', '🍳', '🥘', '🍲', '🥣', '🍨', '🍧', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🥤', '🍹', '🍸', '🍷', '🍺', '☕', '🥛', '💯', '🔥', '✨', '🎊', '🎈', '🎁', '🏆', '🥇', '💎', '🌟', '💫', '🎯', '🎪'];
