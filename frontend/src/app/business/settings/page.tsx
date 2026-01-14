@@ -54,9 +54,9 @@ import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
 
 
 import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
-import { useLanguage } from '@/context/LanguageContext';
+import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 
-export default function SettingsPage() {
+function SettingsPageContent() {
   const router = useRouter();
   const { currentLanguage } = useLanguage();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
@@ -1725,6 +1725,14 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <LanguageProvider>
+      <SettingsPageContent />
+    </LanguageProvider>
   );
 }
 
