@@ -95,7 +95,9 @@ export default function MutfakPanel() {
       const data = await response.json();
 
       if (data.success) {
-        setOrders(data.data || []);
+        // Ödeme tamamlanan siparişleri filtrele
+        const activeOrders = (data.data || []).filter((order: Order) => order.status !== 'completed');
+        setOrders(activeOrders);
       }
     } catch (error) {
       console.error('Siparişler alınamadı:', error);
@@ -304,22 +306,83 @@ export default function MutfakPanel() {
     }
   };
 
-  // Filtrelenmiş siparişler
-  const filteredOrders = orders.filter(order => {
-    // Durum filtresi
-    if (activeTab !== 'all' && order.status !== activeTab) return false;
+  // Siparişleri masaya göre gruplandır
+  const groupOrdersByTable = (orders: Order[]) => {
+    const grouped = new Map<number, Order[]>();
+    
+    orders.forEach(order => {
+      const tableNumber = order.tableNumber;
+      if (!grouped.has(tableNumber)) {
+        grouped.set(tableNumber, []);
+      }
+      grouped.get(tableNumber)!.push(order);
+    });
+    
+    return Array.from(grouped.values());
+  };
 
-    // Arama filtresi
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        order.tableNumber.toString().includes(searchLower) ||
-        order.items.some(item => item.name.toLowerCase().includes(searchLower))
-      );
+  // Gruplu siparişi tek sipariş olarak birleştir
+  const createGroupedOrder = (tableOrders: Order[]): Order => {
+    if (tableOrders.length === 1) {
+      return tableOrders[0];
     }
+    
+    const latestOrder = tableOrders.reduce((latest, current) => {
+      return new Date(current.created_at) > new Date(latest.created_at) ? current : latest;
+    });
+    
+    const allItems: OrderItem[] = [];
+    let totalAmount = 0;
+    
+    tableOrders.forEach(order => {
+      order.items.forEach(item => {
+        allItems.push(item);
+      });
+      totalAmount += order.totalAmount;
+    });
+    
+    const statusPriority = { 'pending': 1, 'preparing': 2, 'ready': 3, 'completed': 4, 'cancelled': 5 };
+    const mostCriticalStatus = tableOrders.reduce((prev, current) => {
+      return statusPriority[prev.status] > statusPriority[current.status] ? prev : current;
+    }).status;
+    
+    return {
+      ...latestOrder,
+      items: allItems,
+      totalAmount,
+      status: mostCriticalStatus,
+      id: `table-${latestOrder.tableNumber}-grouped`,
+      notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).filter(note => note && !note.includes('Ödeme yöntemi')).join(' | ') || (latestOrder.notes ? latestOrder.notes.replace(/Ödeme yöntemi:.*?(?:\||$)/g, '').trim() : '')
+    };
+  };
 
-    return true;
-  });
+  // Filtrelenmiş ve gruplu siparişler
+  const filteredOrders = (() => {
+    const filtered = orders.filter(order => {
+      // Durum filtresi
+      if (activeTab !== 'all' && order.status !== activeTab) return false;
+
+      // Arama filtresi
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          order.tableNumber.toString().includes(searchLower) ||
+          order.items.some(item => item.name.toLowerCase().includes(searchLower))
+        );
+      }
+
+      return true;
+    });
+    
+    const grouped = groupOrdersByTable(filtered);
+    const groupedOrders: Order[] = [];
+    
+    grouped.forEach((tableOrders) => {
+      groupedOrders.push(createGroupedOrder(tableOrders));
+    });
+    
+    return groupedOrders;
+  })();
 
   // Her durumun sayısını hesapla
   const orderCounts = {
