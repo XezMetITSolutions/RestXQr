@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 interface LogEntry {
@@ -10,7 +10,7 @@ interface LogEntry {
   data?: any;
 }
 
-export default function GarsonCagirDebugPage() {
+function GarsonCagirDebugContent() {
   const searchParams = useSearchParams();
   const [tableNumber, setTableNumber] = useState<number | null>(null);
   const [restaurantId, setRestaurantId] = useState<string>('');
@@ -411,5 +411,20 @@ export default function GarsonCagirDebugPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function GarsonCagirDebugPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-white text-xl font-bold">Debug Sayfası Yükleniyor...</div>
+        </div>
+      </div>
+    }>
+      <GarsonCagirDebugContent />
+    </Suspense>
   );
 }
