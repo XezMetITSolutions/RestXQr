@@ -382,11 +382,11 @@ function MenuPageContent() {
     } catch { }
   }, [restaurants.length, currentRestaurant?.id, fetchRestaurants, fetchRestaurantMenu]);
 
-  // Periyodik olarak menüyü yenile (resim güncellemelerini görmek için)
+  // Periyodik olarak menüyü yenile (resim güncellemelerini görmek için) - 5 dakikada bir
   useEffect(() => {
     if (!currentRestaurant?.id) return;
 
-    // Her 30 saniyede bir menüyü yenile ve cache versiyonunu güncelle
+    // Her 5 dakikada bir menüyü yenile ve cache versiyonunu güncelle
     const intervalId = setInterval(() => {
       console.log('🔄 Menü periyodik yenileme...');
       fetchRestaurantMenu(currentRestaurant.id).then(() => {
@@ -394,7 +394,7 @@ function MenuPageContent() {
         setImageCacheVersion(Date.now());
         console.log('✅ Resim cache versiyonu güncellendi');
       });
-    }, 30000); // 30 saniye
+    }, 300000); // 5 dakika (300 saniye)
 
     return () => clearInterval(intervalId);
   }, [currentRestaurant?.id, fetchRestaurantMenu]);
