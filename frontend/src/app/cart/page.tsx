@@ -337,13 +337,13 @@ function CartPageContent() {
           }
         }
 
-        // Sepeti temizleme - sipariş verilen ürünler gösterilecek
-        clearCart();
+        // Sepeti temizleme - ödeme tamamlanana kadar geçmiş siparişleri korumak için sepeti temizlemiyoruz
+        // clearCart(); // Bu satırı kaldırdık - ödeme tamamlanana kadar siparişler birikecek
         setShowPaymentModal(false);
         setTipAmount(0);
         setDonationAmount(0);
 
-        console.log('✅ Sipariş verildi, sepet temizlendi ve sipariş verilen ürünler gösterilecek');
+        console.log('✅ Sipariş verildi, geçmiş siparişler korunuyor');
       } else {
         console.error('❌ SİPARİŞ BAŞARISIZ:', response);
         alert('❌ Sipariş gönderilemedi. Lütfen tekrar deneyin.');
