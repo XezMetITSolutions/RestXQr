@@ -117,6 +117,12 @@ module.exports = (sequelize, DataTypes) => {
     portion: {
       type: DataTypes.STRING(50),
       allowNull: true
+    },
+    kitchenStation: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'kitchen_station',
+      comment: 'Kitchen station: izgara, makarna, soguk, tatli'
     }
   }, {
     tableName: 'menu_items',

@@ -48,6 +48,7 @@ export default function MutfakPanel() {
   const [menuSearchTerm, setMenuSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [stationFilter, setStationFilter] = useState<string>('all');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
@@ -478,6 +479,24 @@ export default function MutfakPanel() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+
+          {/* İstasyon Filtresi */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Mutfak İstasyonu
+            </label>
+            <select
+              value={stationFilter}
+              onChange={(e) => setStationFilter(e.target.value)}
+              className="w-full md:w-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            >
+              <option value="all">🏪 Tüm İstasyonlar</option>
+              <option value="izgara">🔥 Izgara</option>
+              <option value="makarna">🍝 Makarna</option>
+              <option value="soguk">🥗 Soğuk</option>
+              <option value="tatli">🍰 Tatlı</option>
+            </select>
+          </div>
 
           {/* Filter Tabs - Desktop (md and up) */}
           <div className="hidden md:flex gap-4 mb-6">
