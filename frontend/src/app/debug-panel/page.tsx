@@ -38,45 +38,55 @@ export default function DebugPanel() {
     const refreshDebugInfo = async () => {
         setLoading(true);
         try {
-            // 0. Refresh List of Restaurants
+            const sub = typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
+            addLog(`🔄 Sistem verileri tazeleniyor... (Subdomain: ${sub})`);
+
+            // 0. Refresh Global Restaurants (API'den taze liste çek)
             await restaurantStore.fetchRestaurants();
 
+            // 0.1. Güncel listeyi getState ile al (stale state'den kaçınmak için)
+            const latestRestaurants = useRestaurantStore.getState().restaurants;
+            const foundInList = latestRestaurants?.find(r => r.username === sub);
+
             let currentRId = '';
-            // Subdomain'den o anki restoranı bul ve detaylarını (menü dahil) yükle
-            if (typeof window !== 'undefined') {
-                const sub = window.location.hostname.split('.')[0];
-                const foundInList = restaurantStore.restaurants?.find(r => r.username === sub);
 
-                if (foundInList) {
-                    addLog(`🔍 Restoran bulundu: ${foundInList.name}`);
-                    // Full detail fetch (categories and items)
-                    const fullRestaurant = await restaurantStore.fetchRestaurantByUsername(sub);
-                    if (fullRestaurant) {
-                        currentRId = fullRestaurant.id;
-                        addLog(`✅ Menü yüklendi: ${restaurantStore.menuItems?.length || 0} ürün`);
+            if (foundInList || sub) {
+                if (foundInList) addLog(`🔍 Restoran listede bulundu: ${foundInList.name}`);
 
-                        // Simülasyon menüsünü set et
-                        setSimMenu(restaurantStore.menuItems || []);
-                        if (restaurantStore.menuItems.length > 0) {
-                            setSelectedItem(restaurantStore.menuItems[0].id);
-                        }
+                // 1. Detaylı restoran verisini ve menüyü çek
+                addLog(`📡 Menü detayları çekiliyor...`);
+                const fullRestaurant = await restaurantStore.fetchRestaurantByUsername(sub);
+
+                if (fullRestaurant) {
+                    currentRId = fullRestaurant.id;
+                    // State'den güncel menü elemanlarını al
+                    const latestMenu = useRestaurantStore.getState().menuItems;
+                    setSimMenu(latestMenu || []);
+
+                    addLog(`✅ Restoran Aktif: ${fullRestaurant.name}`);
+                    addLog(`📦 Menü Hazır: ${latestMenu?.length || 0} ürün yüklendi.`);
+
+                    if (latestMenu && latestMenu.length > 0) {
+                        setSelectedItem(latestMenu[0].id);
                     }
                 } else {
-                    addLog(`❌ Subdomain (${sub}) ile eşleşen restoran bulunamadı!`);
+                    addLog(`❌ HATA: Restoran detayları API'den alınamadı.`);
                 }
+            } else {
+                addLog(`⚠️ Uyarı: Subdomain tespit edilemedi.`);
             }
 
-            // 1. API Health Check
+            // 2. API Health Check
             const healthRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/debug/test`).then(r => r.json()).catch(e => ({ error: e.message }));
             setApiStatus(healthRes);
 
-            // 2. Latest Orders (Global Debug)
+            // 3. Latest Orders (Global Debug)
             const ordersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/orders/debug/all`).then(r => r.json()).catch(e => ({ error: e.message }));
             setLatestOrders(ordersRes);
 
         } catch (error: any) {
             console.error('Debug refresh failed:', error);
-            addLog(`❌ HATA: ${error.message}`);
+            addLog(`❌ KRİTİK HATA: ${error.message}`);
         } finally {
             setLoading(false);
         }
