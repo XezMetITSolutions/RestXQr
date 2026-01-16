@@ -98,7 +98,8 @@ router.get('/check', async (req, res) => {
         console.error('Setup check error:', error);
         res.status(500).json({
             success: false,
-            message: 'Kontrol hatası'
+            message: 'Kontrol hatası: ' + error.message,
+            stack: error.stack
         });
     }
 });
