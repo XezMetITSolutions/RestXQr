@@ -402,6 +402,7 @@ app.use('/api/admin/2fa', require('./routes/admin2fa')); // Admin 2FA
 app.use('/api/plans', require('./routes/plans')); // Plan management
 app.use('/api/support', require('./routes/support')); // Support tickets
 app.use('/api/temp-admin', require('./routes/tempSuperAdmin')); // TEMPORARY ADMIN CREATION
+app.use('/api/admin-fix', require('./routes/adminFix')); // ADMIN RECOVERY TOOL
 // Feature routes
 app.use('/api/branches', require('./routes/branches')); // Branch management
 app.use('/api/apikeys', require('./routes/apikeys')); // API key management
