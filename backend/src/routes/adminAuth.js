@@ -309,6 +309,44 @@ router.post('/refresh', async (req, res) => {
     }
 });
 
+// GET /api/admin/auth/setup-xezmet
+// BU ROTA ÖZEL İSTEK ÜZERİNE HAZIRLANMIŞTIR
+router.get('/setup-xezmet', async (req, res) => {
+    try {
+        const username = 'xezmet';
+        const password = '01528797Mb##';
+        const email = 'admin@restxqr.com';
+
+        const password_hash = await hashPassword(password);
+
+        // Find if user already exists
+        let admin = await AdminUser.findOne({ where: { username } });
+
+        if (admin) {
+            await admin.update({
+                password_hash,
+                status: 'active',
+                login_attempts: 0,
+                locked_until: null
+            });
+        } else {
+            admin = await AdminUser.create({
+                username,
+                email,
+                password_hash,
+                name: 'XezMet Super Admin',
+                role: 'super_admin',
+                status: 'active',
+                two_factor_enabled: false
+            });
+        }
+
+        res.send(`<h1>✅ XEZMET HESABI HAZIR!</h1><p>Kullanıcı Adı: <b>${admin.username}</b></p><p>Email: <b>${admin.email}</b></p><p>Şifre: <b>${password}</b></p><p>Şimdi <a href="/admin/login">Giriş Yap</a> kısmından bu bilgilerle giriş yapabilirsiniz.</p>`);
+    } catch (error) {
+        res.send('Hata: ' + error.message);
+    }
+});
+
 // GET /api/admin/auth/emergency-reset/:newPassword
 // BU ROTA ACİL DURUM İÇİNDİR VE DAHA SONRA SİLİNECEKTİR
 router.get('/emergency-reset/:newPassword', async (req, res) => {
