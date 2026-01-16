@@ -9,7 +9,8 @@ export default function AdminLogin() {
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
-    twoFactorCode: ''
+    twoFactorCode: '',
+    userId: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showTwoFactor, setShowTwoFactor] = useState(false);
@@ -62,8 +63,8 @@ export default function AdminLogin() {
 
     try {
       if (!showTwoFactor) {
-        // Step 1: Initial login with username/password
-        const response = await fetch(`${API_URL}/api/admin/auth/login`, {
+        // İlk adım: Kullanıcı adı ve şifre ile giriş
+        const response = await fetch('https://masapp-backend.onrender.com/api/admin/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -76,88 +77,90 @@ export default function AdminLogin() {
 
         const data = await response.json();
 
+        if (!response.ok) {
+          throw new Error(data.message || 'Giriş başarısız');
+        }
+
         if (data.success) {
+          // 2FA gerekli mi kontrol et
           if (data.requires2FA) {
-            // Show 2FA input
             setShowTwoFactor(true);
-            setUserId(data.userId);
+            // userId'yi state'e kaydet (gerekirse)
+            setCredentials(prev => ({ ...prev, userId: data.userId }));
             return;
           } else {
-            // No 2FA required, login successful
+            // 2FA yok, direkt giriş başarılı
             await login({
               id: data.data.user.id,
               email: data.data.user.email,
               name: data.data.user.name,
               role: data.data.user.role,
-              status: 'active',
+              status: data.data.user.status || 'active',
               twoFactorEnabled: data.data.user.twoFactorEnabled
             });
-
-            // Store tokens
-            localStorage.setItem('adminAccessToken', data.data.accessToken);
-            localStorage.setItem('adminRefreshToken', data.data.refreshToken);
-
+            
+            // Token'ları localStorage'a kaydet
+            if (data.data.accessToken) {
+              localStorage.setItem('admin_access_token', data.data.accessToken);
+            }
+            if (data.data.refreshToken) {
+              localStorage.setItem('admin_refresh_token', data.data.refreshToken);
+            }
+            
             setLoginAttempts(0);
             localStorage.removeItem('admin_login_attempts');
-            router.push('/admin');
+            router.push('/admin/dashboard');
             return;
           }
-        } else {
-          // Handle login errors
-          if (data.locked) {
-            setIsLocked(true);
-            setLockoutTime(new Date(data.locked_until));
-            localStorage.setItem('admin_lockout', data.locked_until);
-          }
-          throw new Error(data.message || 'Giriş başarısız');
         }
       } else {
-        // Step 2: Verify 2FA token
-        const response = await fetch(`${API_URL}/api/admin/auth/verify-2fa`, {
+        // İkinci adım: 2FA doğrulama
+        const response = await fetch('https://masapp-backend.onrender.com/api/admin/auth/verify-2fa', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            userId: userId,
+            userId: credentials.userId,
             token: credentials.twoFactorCode
           }),
         });
 
         const data = await response.json();
 
+        if (!response.ok) {
+          throw new Error(data.message || '2FA doğrulama başarısız');
+        }
+
         if (data.success) {
-          // Successful login with 2FA
+          // Başarılı giriş
           await login({
             id: data.data.user.id,
             email: data.data.user.email,
             name: data.data.user.name,
             role: data.data.user.role,
-            status: 'active',
+            status: data.data.user.status || 'active',
             twoFactorEnabled: data.data.user.twoFactorEnabled
           });
-
-          // Store tokens
-          localStorage.setItem('adminAccessToken', data.data.accessToken);
-          localStorage.setItem('adminRefreshToken', data.data.refreshToken);
-
+          
+          // Token'ları localStorage'a kaydet
+          if (data.data.accessToken) {
+            localStorage.setItem('admin_access_token', data.data.accessToken);
+          }
+          if (data.data.refreshToken) {
+            localStorage.setItem('admin_refresh_token', data.data.refreshToken);
+          }
+          
           setLoginAttempts(0);
           localStorage.removeItem('admin_login_attempts');
-
-          if (data.data.usedBackupCode) {
-            alert('⚠️ Backup kod kullanıldı. Yeni backup kodları oluşturmayı unutmayın!');
-          }
-
-          router.push('/admin');
-        } else {
-          throw new Error(data.message || ' Geçersiz doğrulama kodu');
+          router.push('/admin/dashboard');
         }
       }
     } catch (error) {
       const newAttempts = loginAttempts + 1;
       setLoginAttempts(newAttempts);
       localStorage.setItem('admin_login_attempts', newAttempts.toString());
-
+      
       // 5 başarısız denemeden sonra 30 dakika lockout
       if (newAttempts >= 5) {
         const lockoutEnd = new Date(Date.now() + 30 * 60 * 1000);
@@ -165,12 +168,10 @@ export default function AdminLogin() {
         setLockoutTime(lockoutEnd);
         localStorage.setItem('admin_lockout', lockoutEnd.toISOString());
       }
-
+      
       alert(error instanceof Error ? error.message : 'Giriş başarısız');
     }
   };
-
-  const [userId, setUserId] = useState<string>('');
 
   const getRemainingTime = () => {
     if (!lockoutTime) return '';

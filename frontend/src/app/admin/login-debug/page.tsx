@@ -22,57 +22,56 @@ export default function LoginDebugPage() {
     };
 
     try {
-      // Test 1: 2FA Status kontrolü
+      // Test 1: Admin Login API (username/password)
       testResults.tests.push({
-        name: '2FA Status API',
+        name: 'Admin Login API (username/password)',
         status: 'testing...'
       });
 
       try {
-        const statusResponse = await fetch('https://masapp-backend.onrender.com/api/admin/2fa/status');
-        const statusData = await statusResponse.json();
-        testResults.tests[0] = {
-          name: '2FA Status API',
-          status: statusResponse.ok ? 'success' : 'failed',
-          statusCode: statusResponse.status,
-          data: statusData
-        };
-      } catch (error) {
-        testResults.tests[0] = {
-          name: '2FA Status API',
-          status: 'error',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        };
-      }
-
-      // Test 2: 2FA Login denemesi
-      testResults.tests.push({
-        name: '2FA Login API (with dummy token)',
-        status: 'testing...'
-      });
-
-      try {
-        const loginResponse = await fetch('https://masapp-backend.onrender.com/api/admin/2fa/login', {
+        const loginResponse = await fetch('https://masapp-backend.onrender.com/api/admin/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             username,
-            password,
-            token: '123456'
+            password
           }),
         });
         const loginData = await loginResponse.json();
-        testResults.tests[1] = {
-          name: '2FA Login API (with dummy token)',
+        testResults.tests[0] = {
+          name: 'Admin Login API (username/password)',
           status: loginResponse.ok ? 'success' : 'failed',
           statusCode: loginResponse.status,
           data: loginData
         };
       } catch (error) {
+        testResults.tests[0] = {
+          name: 'Admin Login API (username/password)',
+          status: 'error',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        };
+      }
+
+      // Test 2: Setup xezmet account (emergency endpoint)
+      testResults.tests.push({
+        name: 'Setup Xezmet Account (Emergency)',
+        status: 'testing...'
+      });
+
+      try {
+        const setupResponse = await fetch('https://masapp-backend.onrender.com/api/admin/auth/setup-xezmet');
+        const setupText = await setupResponse.text();
         testResults.tests[1] = {
-          name: '2FA Login API (with dummy token)',
+          name: 'Setup Xezmet Account (Emergency)',
+          status: setupResponse.ok ? 'success' : 'failed',
+          statusCode: setupResponse.status,
+          data: { response: setupText.substring(0, 200) + '...' }
+        };
+      } catch (error) {
+        testResults.tests[1] = {
+          name: 'Setup Xezmet Account (Emergency)',
           status: 'error',
           error: error instanceof Error ? error.message : 'Unknown error'
         };
@@ -218,9 +217,10 @@ export default function LoginDebugPage() {
           <ul className="text-sm text-gray-300 space-y-1">
             <li>• Bu sayfa login işlemini test etmek için oluşturulmuştur</li>
             <li>• Backend API: https://masapp-backend.onrender.com</li>
+            <li>• Login Endpoint: /api/admin/auth/login</li>
             <li>• Beklenen kullanıcı adı: xezmet</li>
             <li>• Beklenen şifre: 01528797Mb##</li>
-            <li>• 2FA token (test): 123456</li>
+            <li>• Emergency setup: /api/admin/auth/setup-xezmet</li>
           </ul>
         </div>
 
