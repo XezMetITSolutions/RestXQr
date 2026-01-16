@@ -48,7 +48,19 @@ export default function RestaurantsManagement() {
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/staff/restaurants`);
+      const accessToken = localStorage.getItem('admin_access_token');
+      
+      if (!accessToken) {
+        router.push('/admin/login');
+        return;
+      }
+      
+      const response = await fetch(`${API_URL}/admin/dashboard/restaurants`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await response.json();
       
       if (data.success && data.data) {
