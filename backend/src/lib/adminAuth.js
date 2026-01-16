@@ -8,7 +8,8 @@ const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '15m'; // 15 minutes
 const JWT_REFRESH_EXPIRATION = '7d'; // 7 days
 
 // Encryption for sensitive data (2FA secrets, backup codes)
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
+// IMPORTANT: Use a consistent key, not random bytes that change on restart
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2';
 const ENCRYPTION_ALGORITHM = 'aes-256-cbc';
 
 /**

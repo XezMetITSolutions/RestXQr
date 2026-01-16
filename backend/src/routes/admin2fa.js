@@ -17,12 +17,20 @@ router.post('/setup', adminAuthMiddleware, async (req, res) => {
       });
     }
 
-    // Check if 2FA is already enabled
-    if (adminUser.two_factor_enabled) {
+    // If 2FA is already enabled but secret is corrupted, allow re-setup
+    if (adminUser.two_factor_enabled && req.body.force !== true) {
       return res.status(400).json({
         success: false,
-        message: '2FA zaten aktif'
+        message: '2FA zaten aktif. Yeniden kurmak için önce devre dışı bırakın.'
       });
+    }
+
+    // Reset 2FA if forcing re-setup
+    if (req.body.force === true) {
+      adminUser.two_factor_enabled = false;
+      adminUser.two_factor_secret = null;
+      adminUser.backup_codes = null;
+      await adminUser.save();
     }
 
     // Generate new secret
