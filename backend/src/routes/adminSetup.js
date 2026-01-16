@@ -131,13 +131,17 @@ router.get('/check', async (req, res) => {
 router.post('/sync-db', async (req, res) => {
     try {
         const { sequelize } = require('../models');
-        console.log('🔄 Manual database sync requested...');
-        await sequelize.sync({ alter: true });
+        console.log('🔄 Manual database sync requested (light mode)...');
+
+        // Timeout önlemek için alter: true yerine sadece sync kullanıyoruz
+        // Bu işlem sadece tablolar yoksa oluşturur, varolanları değiştirmez (çok daha hızlı)
+        await sequelize.sync();
+
         console.log('✅ Manual database sync completed');
 
         res.json({
             success: true,
-            message: 'Veritabanı şeması başarıyla güncellendi (Tables synced).'
+            message: 'Veritabanı tabloları kontrol edildi (Light Sync). Eksik tablolar oluşturuldu.'
         });
     } catch (error) {
         console.error('Manual sync error:', error);
