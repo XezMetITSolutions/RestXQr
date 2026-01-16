@@ -11,6 +11,8 @@ export default function Admin2FADebug() {
   const [loading, setLoading] = useState(false);
   const [authCode, setAuthCode] = useState('');
   const [codeTestResult, setCodeTestResult] = useState<any>(null);
+  const [loginForm, setLoginForm] = useState({ username: 'xezmet', password: '01528797Mb##' });
+  const [loginResult, setLoginResult] = useState<any>(null);
 
   const API_URL = 'https://masapp-backend.onrender.com';
 
@@ -89,6 +91,64 @@ export default function Admin2FADebug() {
     setApiTests({});
   };
 
+  const handleLogin = async () => {
+    setLoading(true);
+    setLoginResult(null);
+
+    try {
+      const response = await fetch(`${API_URL}/api/admin/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: loginForm.username,
+          password: loginForm.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        if (data.requires2FA) {
+          setLoginResult({
+            success: false,
+            message: '⚠️ 2FA gerekli - Normal login sayfasından giriş yapın',
+            data: data
+          });
+        } else {
+          // Save tokens
+          localStorage.setItem('admin_access_token', data.data.accessToken);
+          localStorage.setItem('admin_refresh_token', data.data.refreshToken);
+          localStorage.setItem('admin_user', JSON.stringify(data.data.user));
+          
+          setLoginResult({
+            success: true,
+            message: '✅ Giriş başarılı! Token kaydedildi.',
+            data: data
+          });
+          
+          // Reload token info
+          loadTokenInfo();
+        }
+      } else {
+        setLoginResult({
+          success: false,
+          message: `❌ Giriş başarısız: ${data.message}`,
+          data: data
+        });
+      }
+    } catch (error: any) {
+      setLoginResult({
+        success: false,
+        message: '❌ Bağlantı hatası',
+        error: error.message
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const testAuthCode = async () => {
     if (!authCode || authCode.length !== 6) {
       setCodeTestResult({ success: false, message: '6 haneli kod girin' });
@@ -157,6 +217,76 @@ export default function Admin2FADebug() {
                 2FA Debug Panel
               </h1>
               <p className="text-gray-600">Authentication ve 2FA test araçları</p>
+            </div>
+          </div>
+
+          {/* Quick Login */}
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold mb-4">Hızlı Giriş</h2>
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+              <p className="text-sm text-gray-700 mb-4">
+                Token süresi dolmuşsa buradan hızlıca giriş yapabilirsiniz.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Kullanıcı Adı</label>
+                  <input
+                    type="text"
+                    value={loginForm.username}
+                    onChange={(e) => setLoginForm(prev => ({ ...prev, username: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Şifre</label>
+                  <input
+                    type="password"
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={handleLogin}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 disabled:opacity-50"
+              >
+                {loading ? 'Giriş Yapılıyor...' : '🔐 Giriş Yap'}
+              </button>
+              
+              {loginResult && (
+                <div className={`mt-4 p-4 rounded-lg border ${
+                  loginResult.success 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-yellow-50 border-yellow-200'
+                }`}>
+                  <div className="flex items-start">
+                    {loginResult.success ? (
+                      <FaCheckCircle className="text-green-600 text-xl mr-3 mt-1" />
+                    ) : (
+                      <FaTimesCircle className="text-yellow-600 text-xl mr-3 mt-1" />
+                    )}
+                    <div className="flex-1">
+                      <p className={`font-semibold ${
+                        loginResult.success ? 'text-green-900' : 'text-yellow-900'
+                      }`}>
+                        {loginResult.message}
+                      </p>
+                      {loginResult.data && (
+                        <details className="mt-2">
+                          <summary className="text-sm cursor-pointer text-gray-600 hover:text-gray-800">
+                            Detaylı Response
+                          </summary>
+                          <pre className="text-xs bg-white p-2 rounded border mt-2 overflow-auto max-h-32">
+                            {JSON.stringify(loginResult.data, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
