@@ -127,4 +127,26 @@ router.get('/check', async (req, res) => {
     }
 });
 
+// POST /api/admin/setup/sync-db - Force sync database
+router.post('/sync-db', async (req, res) => {
+    try {
+        const { sequelize } = require('../models');
+        console.log('🔄 Manual database sync requested...');
+        await sequelize.sync({ alter: true });
+        console.log('✅ Manual database sync completed');
+
+        res.json({
+            success: true,
+            message: 'Veritabanı şeması başarıyla güncellendi (Tables synced).'
+        });
+    } catch (error) {
+        console.error('Manual sync error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Sync hatası: ' + error.message,
+            stack: error.stack
+        });
+    }
+});
+
 module.exports = router;
