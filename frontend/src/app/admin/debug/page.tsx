@@ -13,8 +13,12 @@ export default function DebugPage() {
 
     const handleSync = async () => {
         setLoading(true);
-        setStatus('İşlem başlatılıyor...');
+        setStatus('İşlem başlatılıyor... (Timeout: 60s)');
         setResult(null);
+
+        // 60 saniye timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
 
         try {
             const response = await fetch(`${API_URL}/api/admin/setup/sync-db`, {
@@ -22,7 +26,10 @@ export default function DebugPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
 
             const data = await response.json();
             setResult(data);
@@ -33,7 +40,11 @@ export default function DebugPage() {
                 setStatus(`❌ Hata: ${data.message}`);
             }
         } catch (error: any) {
-            setStatus(`❌ Bağlantı Hatası: ${error.message}`);
+            if (error.name === 'AbortError') {
+                setStatus('❌ İşlem Zaman Aşımı: Sunucu 60 saniye içinde yanıt vermedi. İşlem arkada devam ediyor olabilir.');
+            } else {
+                setStatus(`❌ Bağlantı Hatası: ${error.message}`);
+            }
         } finally {
             setLoading(false);
         }
