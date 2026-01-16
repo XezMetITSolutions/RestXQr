@@ -131,7 +131,9 @@ router.post('/login', async (req, res) => {
 // POST /api/admin/auth/verify-2fa - Verify 2FA code after initial login
 router.post('/verify-2fa', async (req, res) => {
     try {
+        console.log('2FA verification requested');
         const { userId, token } = req.body;
+        console.log('UserId:', userId, 'Token length:', token?.length);
 
         if (!userId || !token) {
             return res.status(400).json({
@@ -142,6 +144,7 @@ router.post('/verify-2fa', async (req, res) => {
 
         // Find admin user
         const adminUser = await AdminUser.findByPk(userId);
+        console.log('Admin user found:', !!adminUser);
 
         if (!adminUser) {
             return res.status(404).json({
@@ -151,6 +154,7 @@ router.post('/verify-2fa', async (req, res) => {
         }
 
         // Check if 2FA is enabled
+        console.log('2FA enabled:', adminUser.two_factor_enabled);
         if (!adminUser.two_factor_enabled) {
             return res.status(400).json({
                 success: false,
@@ -165,11 +169,15 @@ router.post('/verify-2fa', async (req, res) => {
         let isValid = false;
         let usedBackupCode = false;
 
+        console.log('Encrypted secret exists:', !!adminUser.two_factor_secret);
+        
         // Decrypt the secret first
         const decryptedSecret = decrypt(adminUser.two_factor_secret);
+        console.log('Decrypted secret exists:', !!decryptedSecret);
         
         // Try TOTP first
         isValid = twoFactorAuth.verifyToken(decryptedSecret, token);
+        console.log('TOTP verification result:', isValid);
 
         // If TOTP fails, try backup codes
         if (!isValid && token.length > 6) {
@@ -226,9 +234,11 @@ router.post('/verify-2fa', async (req, res) => {
 
     } catch (error) {
         console.error('2FA verification error:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({
             success: false,
-            message: 'Doğrulama hatası'
+            message: '2FA doğrulama hatası',
+            error: error.message
         });
     }
 });
