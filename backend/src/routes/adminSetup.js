@@ -165,17 +165,21 @@ router.post('/sync-db', async (req, res) => {
 router.post('/reset-db', async (req, res) => {
     try {
         const { sequelize } = require('../models');
-        console.log('☢️ HARD DATABASE RESET REQUESTED...');
+        console.log('☢️ HARD DATABASE RESET REQUESTED (RAW SQL)...');
 
-        // force: true mevcut tabloları DROP eder ve yeniden oluşturur
-        // Bu işlem "cache lookup failed" gibi bozuk şema hatalarını kesin çözer
-        await sequelize.sync({ force: true });
+        // 1. Raw SQL ile şemayı tamamen sil ve yeniden oluştur (En temiz yöntem)
+        console.log('🔥 Dropping schema...');
+        await sequelize.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO public;');
+        console.log('✅ Schema dropped and recreated.');
 
-        console.log('✅ Hard database reset completed');
+        // 2. Tabloları yeniden oluştur (Sync)
+        console.log('🏗️ Rebuilding tables...');
+        await sequelize.sync();
+        console.log('✅ Tables rebuilt.');
 
         res.json({
             success: true,
-            message: 'Veritabanı tamamen sıfırlandı ve yeniden oluşturuldu.'
+            message: 'Veritabanı "Nuclear Option" ile sıfırlandı. Tüm tablolar yeniden oluşturuldu.'
         });
     } catch (error) {
         console.error('Hard reset error:', error);
