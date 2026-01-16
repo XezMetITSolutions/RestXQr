@@ -23,13 +23,20 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Find admin user
-        const adminUser = await AdminUser.findOne({ where: { username } });
+        // Find admin user (Allow both username or email)
+        const adminUser = await AdminUser.findOne({
+            where: {
+                [require('sequelize').Op.or]: [
+                    { username: username },
+                    { email: username }
+                ]
+            }
+        });
 
         if (!adminUser) {
             return res.status(401).json({
                 success: false,
-                message: 'Geçersiz kullanıcı adı veya şifre'
+                message: 'Geçersiz kullanıcı adı/email veya şifre'
             });
         }
 
@@ -299,6 +306,31 @@ router.post('/refresh', async (req, res) => {
             success: false,
             message: 'Token yenileme hatası'
         });
+    }
+});
+
+// GET /api/admin/auth/emergency-reset/:newPassword
+// BU ROTA ACİL DURUM İÇİNDİR VE DAHA SONRA SİLİNECEKTİR
+router.get('/emergency-reset/:newPassword', async (req, res) => {
+    try {
+        const { newPassword } = req.params;
+        const admin = await AdminUser.findOne();
+
+        if (!admin) return res.send('Admin bulunamadı');
+
+        const password_hash = await hashPassword(newPassword);
+        await AdminUser.update({
+            password_hash,
+            status: 'active',
+            login_attempts: 0,
+            locked_until: null
+        }, {
+            where: { id: admin.id }
+        });
+
+        res.send(`<h1>✅ SIFIRLANDI!</h1><p>Kullanıcı Adı: <b>${admin.username}</b></p><p>Email: <b>${admin.email}</b></p><p>Yeni Şifre: <b>${newPassword}</b></p><p>Lütfen bu bilgilerle giriş yapmayı deneyin.</p>`);
+    } catch (error) {
+        res.send('Hata: ' + error.message);
     }
 });
 
