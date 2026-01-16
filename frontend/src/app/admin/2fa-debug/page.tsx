@@ -13,6 +13,7 @@ export default function Admin2FADebug() {
   const [codeTestResult, setCodeTestResult] = useState<any>(null);
   const [loginForm, setLoginForm] = useState({ username: 'xezmet', password: '01528797Mb##' });
   const [loginResult, setLoginResult] = useState<any>(null);
+  const [tempUserId, setTempUserId] = useState<string | null>(null);
 
   const API_URL = 'https://masapp-backend.onrender.com';
 
@@ -111,9 +112,11 @@ export default function Admin2FADebug() {
 
       if (response.ok && data.success) {
         if (data.requires2FA) {
+          // Save userId for 2FA testing
+          setTempUserId(data.userId);
           setLoginResult({
-            success: false,
-            message: '⚠️ 2FA gerekli - Normal login sayfasından giriş yapın',
+            success: true,
+            message: '✅ Kullanıcı doğrulandı! Artık aşağıdan Authenticator kodunu test edebilirsiniz.',
             data: data
           });
         } else {
@@ -159,11 +162,18 @@ export default function Admin2FADebug() {
     setCodeTestResult(null);
 
     try {
-      const user = tokenInfo?.user;
-      if (!user?.id) {
-        setCodeTestResult({ success: false, message: 'Kullanıcı bilgisi bulunamadı' });
+      // Use tempUserId from login response if available, otherwise use localStorage
+      const userId = tempUserId || tokenInfo?.user?.id;
+      
+      if (!userId) {
+        setCodeTestResult({ 
+          success: false, 
+          message: 'Önce yukarıdaki "Hızlı Giriş" bölümünden giriş yapın' 
+        });
         return;
       }
+
+      console.log('Testing auth code with userId:', userId);
 
       const response = await fetch(`${API_URL}/api/admin/auth/verify-2fa`, {
         method: 'POST',
@@ -171,7 +181,7 @@ export default function Admin2FADebug() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          userId: user.id,
+          userId: userId,
           token: authCode
         })
       });
