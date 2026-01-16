@@ -114,9 +114,9 @@ const connectDB = async () => {
     console.log('✅ PostgreSQL connection established successfully.');
 
     // Sync models (create tables)
-    // Yeni kolonların (paid_amount, discount_amount, vb.) veritabanına eklenmesi için alter: true kullanıyoruz.
-    await sequelize.sync({ alter: true });
-    console.log('✅ Database models synchronized (alter).');
+    // Startup'ta sadece tablolar yoksa oluştur, alter yapma (timeout/crash önlemek için)
+    await sequelize.sync();
+    console.log('✅ Database models synchronized (create if missing).');
   } catch (error) {
     console.error('❌ Unable to connect to PostgreSQL:', error);
 
