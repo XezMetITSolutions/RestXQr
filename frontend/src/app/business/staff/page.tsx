@@ -454,13 +454,138 @@ export default function StaffPage() {
         </header>
 
         <div className="p-3 sm:p-6 lg:p-8">
-          {/* Panel Yönetimi Bölümü - sade butonlar */}
+          {/* Panel Yönetimi Bölümü - Rol bazlı yetkilendirme */}
           <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4"><TranslatedText>Panel Yönetimi</TranslatedText></h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <a href="/mutfak" target="_blank" className="w-full text-center px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold">🍳 <TranslatedText>Mutfak Paneli</TranslatedText></a>
-              <a href="/garson" target="_blank" className="w-full text-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold">👔 <TranslatedText>Garson Paneli</TranslatedText></a>
-              <a href="/kasa" target="_blank" className="w-full text-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold">💰 <TranslatedText>Kasa Paneli</TranslatedText></a>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4"><TranslatedText>Panel Yönetimi ve Yetkilendirme</TranslatedText></h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Mutfak Paneli */}
+              <div className="bg-orange-50 border border-orange-200 rounded-xl overflow-hidden">
+                <div className="bg-orange-600 text-white p-4">
+                  <h4 className="font-semibold text-lg flex items-center">
+                    🍳 <TranslatedText>Mutfak Paneli</TranslatedText>
+                  </h4>
+                </div>
+                <div className="p-4">
+                  <h5 className="font-medium text-gray-800 mb-2"><TranslatedText>Yetkiler:</TranslatedText></h5>
+                  <ul className="space-y-2 mb-4">
+                    <li className="flex items-center gap-2">
+                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                      <span className="text-sm"><TranslatedText>Bekleyen ve hazırlanan siparişleri görüntüleme</TranslatedText></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                      <span className="text-sm"><TranslatedText>Siparişleri "Hazırlanıyor" olarak işaretleme</TranslatedText></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                      <span className="text-sm"><TranslatedText>Siparişleri "Hazır" olarak işaretleme</TranslatedText></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <FaTimesCircle className="text-red-500 flex-shrink-0" />
+                      <span className="text-sm"><TranslatedText>Sipariş iptal edemez</TranslatedText></span>
+                    </li>
+                  </ul>
+                  <div className="flex gap-2">
+                    <a href="/mutfak" target="_blank" className="flex-1 text-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm">
+                      <TranslatedText>Klasik Panel</TranslatedText>
+                    </a>
+                    <a href="/business/kitchen/role-based-page" target="_blank" className="flex-1 text-center px-4 py-2 bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition-colors font-medium text-sm">
+                      <TranslatedText>Rol Bazlı Panel</TranslatedText>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Garson Paneli */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl overflow-hidden">
+                <div className="bg-blue-600 text-white p-4">
+                  <h4 className="font-semibold text-lg flex items-center">
+                    👔 <TranslatedText>Garson Paneli</TranslatedText>
+                  </h4>
+                </div>
+                <div className="p-4">
+                  <h5 className="font-medium text-gray-800 mb-2"><TranslatedText>Yetkiler:</TranslatedText></h5>
+                  <ul className="space-y-2 mb-4">
+                    <li className="flex items-center gap-2">
+                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                      <span className="text-sm"><TranslatedText>Tüm siparişleri görüntüleme</TranslatedText></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                      <span className="text-sm"><TranslatedText>Siparişleri "Servis Edildi" olarak işaretleme</TranslatedText></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                      <span className="text-sm"><TranslatedText>Siparişleri "Tamamlandı" olarak işaretleme</TranslatedText></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                      <span className="text-sm"><TranslatedText>Sipariş iptal edebilir</TranslatedText></span>
+                    </li>
+                  </ul>
+                  <div className="flex gap-2">
+                    <a href="/garson" target="_blank" className="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                      <TranslatedText>Klasik Panel</TranslatedText>
+                    </a>
+                    <a href="/business/waiter/role-based-page" target="_blank" className="flex-1 text-center px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-medium text-sm">
+                      <TranslatedText>Rol Bazlı Panel</TranslatedText>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Kasa Paneli */}
+              <div className="bg-green-50 border border-green-200 rounded-xl overflow-hidden">
+                <div className="bg-green-600 text-white p-4">
+                  <h4 className="font-semibold text-lg flex items-center">
+                    💰 <TranslatedText>Kasa Paneli</TranslatedText>
+                  </h4>
+                </div>
+                <div className="p-4">
+                  <h5 className="font-medium text-gray-800 mb-2"><TranslatedText>Yetkiler:</TranslatedText></h5>
+                  <ul className="space-y-2 mb-4">
+                    <li className="flex items-center gap-2">
+                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                      <span className="text-sm"><TranslatedText>Siparişleri onaylama (mutfağa gönderme)</TranslatedText></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                      <span className="text-sm"><TranslatedText>Siparişleri reddetme</TranslatedText></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                      <span className="text-sm"><TranslatedText>Tamamlanan siparişlerden ödeme alma</TranslatedText></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <FaExclamationTriangle className="text-amber-500 flex-shrink-0" />
+                      <span className="text-sm font-medium text-amber-700"><TranslatedText>Onay olmadan sipariş mutfağa düşmez!</TranslatedText></span>
+                    </li>
+                  </ul>
+                  <div className="flex gap-2">
+                    <a href="/kasa" target="_blank" className="flex-1 text-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm">
+                      <TranslatedText>Klasik Panel</TranslatedText>
+                    </a>
+                    <a href="/business/cashier/role-based-page" target="_blank" className="flex-1 text-center px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors font-medium text-sm">
+                      <TranslatedText>Rol Bazlı Panel</TranslatedText>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h5 className="font-medium text-gray-800 mb-2 flex items-center">
+                <FaUserShield className="text-purple-600 mr-2" />
+                <TranslatedText>Sipariş Akışı ve Yetkilendirme</TranslatedText>
+              </h5>
+              <ol className="list-decimal pl-5 space-y-1 text-sm text-gray-700">
+                <li><TranslatedText>Garson siparişi oluşturur</TranslatedText></li>
+                <li><strong className="text-green-700"><TranslatedText>Kasa siparişi onaylar</TranslatedText></strong> <span className="text-xs text-red-600">*Zorunlu adım</span></li>
+                <li><TranslatedText>Mutfak siparişi hazırlar ve "Hazır" olarak işaretler</TranslatedText></li>
+                <li><TranslatedText>Garson siparişi servis eder ve "Tamamlandı" olarak işaretler</TranslatedText></li>
+                <li><TranslatedText>Kasa ödemeyi alır ve "Ödendi" olarak işaretler</TranslatedText></li>
+              </ol>
             </div>
           </div>
 
