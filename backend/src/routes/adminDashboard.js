@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Restaurant, Table } = require('../models');
+const { Restaurant, QRToken } = require('../models');
 const adminAuthMiddleware = require('../middleware/adminAuthMiddleware');
 
 // Dashboard stats endpoint
@@ -18,8 +18,11 @@ router.get('/stats', adminAuthMiddleware, async (req, res) => {
     });
     console.log('Active restaurants:', activeRestaurants);
     
-    // Get total tables count
-    const totalTables = await Table.count();
+    // Get total tables count (unique table numbers from QRTokens)
+    const totalTables = await QRToken.count({
+      distinct: true,
+      col: 'tableNumber'
+    });
     console.log('Total tables:', totalTables);
     
     // Get recent restaurants (last 5)
