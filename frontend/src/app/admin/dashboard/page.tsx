@@ -2,26 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import AdminLayout from '@/components/admin/AdminLayout';
 import { 
   FaStore, 
-  FaUsers, 
-  FaChartLine,
-  FaCog,
-  FaSignOutAlt,
-  FaBell,
   FaCheckCircle,
-  FaExclamationCircle,
-  FaDatabase
+  FaDatabase,
+  FaChartLine
 } from 'react-icons/fa';
-
-interface AdminUser {
-  id: string;
-  username: string;
-  email: string;
-  name: string;
-  role: string;
-}
 
 interface DashboardStats {
   totalRestaurants: number;
@@ -38,7 +25,6 @@ interface DashboardStats {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [user, setUser] = useState<AdminUser | null>(null);
   const [stats, setStats] = useState<DashboardStats>({
     totalRestaurants: 0,
     activeRestaurants: 0,
@@ -46,7 +32,6 @@ export default function AdminDashboard() {
     recentRestaurants: []
   });
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const adminUser = localStorage.getItem('admin_user');
@@ -57,14 +42,7 @@ export default function AdminDashboard() {
       return;
     }
     
-    try {
-      const userData = JSON.parse(adminUser);
-      setUser(userData);
-      fetchDashboardData(accessToken);
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-      router.push('/admin/login');
-    }
+    fetchDashboardData(accessToken);
   }, [router]);
 
   const fetchDashboardData = async (token: string) => {
@@ -87,171 +65,94 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_user');
-    localStorage.removeItem('admin_access_token');
-    localStorage.removeItem('admin_refresh_token');
-    router.push('/admin/login');
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <div className={`fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-blue-900 to-blue-800 text-white transform transition-transform duration-300 ease-in-out z-50 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0`}>
-        <div className="p-6">
-          <h1 className="text-2xl font-bold">RestXQr Admin</h1>
-          <p className="text-blue-200 text-sm mt-1">Sistem Yönetimi</p>
+    <AdminLayout title="Süper Yönetici Paneli" description="Sistem genel bakış ve istatistikler">
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-500">Yükleniyor...</div>
         </div>
-
-        <nav className="mt-6">
-          <Link href="/admin/dashboard" className="flex items-center px-6 py-3 bg-blue-700 bg-opacity-50 border-l-4 border-white">
-            <FaChartLine className="mr-3" />
-            <span className="font-medium">Dashboard</span>
-          </Link>
-          <Link href="/admin/restaurants" className="flex items-center px-6 py-3 hover:bg-blue-700 transition-colors">
-            <FaStore className="mr-3" />
-            <span className="font-medium">Restoranlar</span>
-          </Link>
-          <Link href="/admin/settings" className="flex items-center px-6 py-3 hover:bg-blue-700 transition-colors">
-            <FaCog className="mr-3" />
-            <span className="font-medium">Ayarlar</span>
-          </Link>
-        </nav>
-
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <div className="border-t border-blue-700 pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">{user?.name}</p>
-                <p className="text-xs text-blue-200">{user?.email}</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-600 font-medium">Toplam Restoran</p>
+                  <p className="text-3xl font-bold text-blue-900 mt-2">{stats.totalRestaurants}</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                  <FaStore className="text-white text-xl" />
+                </div>
               </div>
-              <button onClick={handleLogout} className="p-2 hover:bg-blue-700 rounded-lg">
-                <FaSignOutAlt />
-              </button>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-green-600 font-medium">Aktif Restoranlar</p>
+                  <p className="text-3xl font-bold text-green-900 mt-2">{stats.activeRestaurants}</p>
+                </div>
+                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                  <FaCheckCircle className="text-white text-xl" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-purple-600 font-medium">Toplam Masa</p>
+                  <p className="text-3xl font-bold text-purple-900 mt-2">{stats.totalTables}</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
+                  <FaDatabase className="text-white text-xl" />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="ml-0 lg:ml-64">
-        <header className="bg-white shadow-sm border-b">
-          <div className="px-6 py-4 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+          <div className="bg-white rounded-xl shadow-sm p-6 border">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-800">Son Eklenen Restoranlar</h3>
+              <button 
+                onClick={() => router.push('/admin/restaurants')}
+                className="text-blue-600 text-sm hover:underline font-medium"
               >
-                <FaChartLine className="text-lg text-gray-600" />
+                Tümünü Gör
               </button>
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-800">Dashboard</h2>
-                <p className="text-sm text-gray-500 mt-1">Sistem Genel Bakış</p>
-              </div>
             </div>
-            <div className="flex items-center gap-4">
-              <button className="relative p-2 text-gray-600 hover:text-gray-800">
-                <FaBell />
-              </button>
-              <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                {user?.name?.charAt(0) || 'A'}
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div className="p-6">
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-gray-500">Yükleniyor...</div>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Toplam Restoran</p>
-                      <p className="text-3xl font-bold text-gray-800 mt-2">{stats.totalRestaurants}</p>
-                    </div>
-                    <div className="bg-blue-100 p-3 rounded-lg">
-                      <FaStore className="text-blue-600 text-2xl" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Aktif Restoranlar</p>
-                      <p className="text-3xl font-bold text-gray-800 mt-2">{stats.activeRestaurants}</p>
-                    </div>
-                    <div className="bg-green-100 p-3 rounded-lg">
-                      <FaCheckCircle className="text-green-600 text-2xl" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Toplam Masa</p>
-                      <p className="text-3xl font-bold text-gray-800 mt-2">{stats.totalTables}</p>
-                    </div>
-                    <div className="bg-purple-100 p-3 rounded-lg">
-                      <FaDatabase className="text-purple-600 text-2xl" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800">Son Eklenen Restoranlar</h3>
-                  <Link href="/admin/restaurants" className="text-blue-600 text-sm hover:underline">
-                    Tümünü Gör
-                  </Link>
-                </div>
-                {stats.recentRestaurants.length > 0 ? (
-                  <div className="space-y-4">
-                    {stats.recentRestaurants.map((restaurant) => (
-                      <div key={restaurant.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center">
-                          <div className="bg-blue-100 p-2 rounded-lg mr-3">
-                            <FaStore className="text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-800">{restaurant.name}</p>
-                            <p className="text-sm text-gray-500">{restaurant.subdomain}</p>
-                          </div>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          restaurant.status === 'active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {restaurant.status === 'active' ? 'Aktif' : 'Beklemede'}
-                        </span>
+            {stats.recentRestaurants.length > 0 ? (
+              <div className="space-y-4">
+                {stats.recentRestaurants.map((restaurant) => (
+                  <div key={restaurant.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                    <div className="flex items-center">
+                      <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                        <FaStore className="text-blue-600 text-lg" />
                       </div>
-                    ))}
+                      <div>
+                        <p className="font-semibold text-gray-800">{restaurant.name}</p>
+                        <p className="text-sm text-gray-500">{restaurant.subdomain}</p>
+                      </div>
+                    </div>
+                    <span className={`px-4 py-2 rounded-full text-xs font-semibold ${
+                      restaurant.status === 'active' 
+                        ? 'bg-green-100 text-green-800 border border-green-200' 
+                        : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                    }`}>
+                      {restaurant.status === 'active' ? 'Aktif' : 'Beklemede'}
+                    </span>
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    Henüz restoran eklenmemiş
-                  </div>
-                )}
+                ))}
               </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                <FaStore className="text-4xl mx-auto mb-3 text-gray-300" />
+                <p>Henüz restoran eklenmemiş</p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </AdminLayout>
   );
 }
