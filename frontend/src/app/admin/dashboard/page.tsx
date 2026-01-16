@@ -47,6 +47,7 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async (token: string) => {
     try {
+      console.log('Fetching dashboard stats...');
       const response = await fetch('https://masapp-backend.onrender.com/api/admin/dashboard/stats', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -54,9 +55,21 @@ export default function AdminDashboard() {
         }
       });
       
+      console.log('Dashboard stats response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        setStats(data);
+        console.log('Dashboard stats data:', data);
+        if (data.success) {
+          setStats({
+            totalRestaurants: data.totalRestaurants || 0,
+            activeRestaurants: data.activeRestaurants || 0,
+            totalTables: data.totalTables || 0,
+            recentRestaurants: data.recentRestaurants || []
+          });
+        }
+      } else {
+        console.error('Dashboard stats failed:', response.status);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
