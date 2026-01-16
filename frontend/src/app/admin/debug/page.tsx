@@ -99,6 +99,38 @@ export default function DebugPage() {
                         >
                             2. Tabloları Onar (Force Sync)
                         </button>
+
+                        <button
+                            onClick={async () => {
+                                if (!confirm('⚠️ DİKKAT: Bu işlem tüm veritabanını SIFIRLAR ve tüm verileri SİLER!\n\nDevam etmek istediğinize emin misiniz?')) return;
+
+                                setLoading(true);
+                                setStatus('Veritabanı sıfırlanıyor (Hard Reset)...');
+                                setResult(null);
+
+                                try {
+                                    const response = await fetch(`${API_URL}/api/admin/setup/reset-db`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' }
+                                    });
+                                    const data = await response.json();
+                                    setResult(data);
+                                    if (response.ok) {
+                                        setStatus('✅ Sıfırlama Başarılı: Tüm tablolar yeniden oluşturuldu.');
+                                    } else {
+                                        setStatus(`❌ Sıfırlama Hatası: ${data.message}`);
+                                    }
+                                } catch (error: any) {
+                                    setStatus(`❌ Bağlantı Hatası: ${error.message}`);
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }}
+                            disabled={loading}
+                            className="px-6 py-3 bg-red-800 hover:bg-red-900 border border-red-600 rounded-lg font-medium transition-colors disabled:opacity-50 text-red-100"
+                        >
+                            3. SIFIRLA (Hard Reset)
+                        </button>
                     </div>
                 </div>
 

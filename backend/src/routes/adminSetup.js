@@ -133,8 +133,16 @@ router.post('/sync-db', async (req, res) => {
         const { sequelize } = require('../models');
         console.log('🔄 Manual database sync requested (light mode)...');
 
-        // Timeout önlemek için alter: true yerine sadece sync kullanıyoruz
-        // Bu işlem sadece tablolar yoksa oluşturur, varolanları değiştirmez (çok daha hızlı)
+        // Önce kritik tablonun (AdminUser) senkronize olduğundan emin olalım
+        // Bu, diğer tablolar patlasa bile admin panelinin çalışmasını sağlar
+        try {
+            await AdminUser.sync();
+            console.log('✅ AdminUser table synced successfully');
+        } catch (adminSyncError) {
+            console.error('⚠️ AdminUser specific sync failed:', adminSyncError);
+        }
+
+        // Genel sync denemesi
         await sequelize.sync();
 
         console.log('✅ Manual database sync completed');
@@ -148,6 +156,32 @@ router.post('/sync-db', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Sync hatası: ' + error.message,
+            stack: error.stack
+        });
+    }
+});
+
+// POST /api/admin/setup/reset-db - HARD RESET (Data Loss)
+router.post('/reset-db', async (req, res) => {
+    try {
+        const { sequelize } = require('../models');
+        console.log('☢️ HARD DATABASE RESET REQUESTED...');
+
+        // force: true mevcut tabloları DROP eder ve yeniden oluşturur
+        // Bu işlem "cache lookup failed" gibi bozuk şema hatalarını kesin çözer
+        await sequelize.sync({ force: true });
+
+        console.log('✅ Hard database reset completed');
+
+        res.json({
+            success: true,
+            message: 'Veritabanı tamamen sıfırlandı ve yeniden oluşturuldu.'
+        });
+    } catch (error) {
+        console.error('Hard reset error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Reset hatası: ' + error.message,
             stack: error.stack
         });
     }
