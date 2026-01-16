@@ -12,6 +12,10 @@ export default function AdminSetup() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    // API URL'i normalize et
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
+    const API_URL = rawApiUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+
     // Generated keys
     const [jwtSecret, setJwtSecret] = useState('');
     const [encryptionKey, setEncryptionKey] = useState('');
@@ -32,7 +36,7 @@ export default function AdminSetup() {
 
     const checkAdminExists = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/admin/setup/check`);
+            const response = await fetch(`${API_URL}/api/admin/setup/check`);
             const data = await response.json();
 
             if (data.success) {
@@ -95,7 +99,7 @@ export default function AdminSetup() {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/admin/setup/create-first-admin`, {
+            const response = await fetch(`${API_URL}/api/admin/setup/create-first-admin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

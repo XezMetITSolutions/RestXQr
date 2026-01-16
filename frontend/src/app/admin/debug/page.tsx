@@ -7,7 +7,9 @@ export default function DebugPage() {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
+    // API URL'i normalize et (sonundaki /api'yi kaldır eğer varsa)
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
+    const API_URL = rawApiUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
 
     const handleSync = async () => {
         setLoading(true);
