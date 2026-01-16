@@ -113,7 +113,8 @@ const RoleCard = ({
   headerBgClass, 
   onPermissionChange,
   onSave,
-  onSelectAll
+  onSelectAll,
+  loading
 }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
@@ -756,6 +757,7 @@ export default function PermissionsPanel() {
               onPermissionChange={handleKitchenPermissionChange}
               onSave={() => handleSave('Mutfak')}
               onSelectAll={handleSelectAllKitchen}
+              loading={loading}
             />
             
             {/* Waiter Permissions */}
@@ -767,6 +769,7 @@ export default function PermissionsPanel() {
               onPermissionChange={handleWaiterPermissionChange}
               onSave={() => handleSave('Garson')}
               onSelectAll={handleSelectAllWaiter}
+              loading={loading}
             />
             
             {/* Cashier Permissions */}
@@ -778,6 +781,7 @@ export default function PermissionsPanel() {
               onPermissionChange={handleCashierPermissionChange}
               onSave={() => handleSave('Kasa')}
               onSelectAll={handleSelectAllCashier}
+              loading={loading}
             />
           </div>
           
