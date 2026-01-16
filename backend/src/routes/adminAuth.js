@@ -159,22 +159,35 @@ router.post('/verify-2fa', async (req, res) => {
         }
 
         // Verify 2FA token or backup code
-        const { verifyTOTP, verifyBackupCodeForUser } = require('../lib/twoFactorAuth');
+        const twoFactorAuth = require('../lib/twoFactorAuth');
+        const { decrypt } = require('../lib/adminAuth');
 
         let isValid = false;
         let usedBackupCode = false;
 
+        // Decrypt the secret first
+        const decryptedSecret = decrypt(adminUser.two_factor_secret);
+        
         // Try TOTP first
-        isValid = verifyTOTP(adminUser.two_factor_secret, token);
+        isValid = twoFactorAuth.verifyToken(decryptedSecret, token);
 
         // If TOTP fails, try backup codes
         if (!isValid && token.length > 6) {
-            const backupResult = await verifyBackupCodeForUser(adminUser, token);
-            if (backupResult.verified) {
-                isValid = true;
-                usedBackupCode = true;
-                // Save updated backup codes
-                await adminUser.save();
+            const bcrypt = require('bcrypt');
+            const backupCodes = adminUser.backup_codes || [];
+            
+            // Check if token matches any hashed backup code
+            for (let i = 0; i < backupCodes.length; i++) {
+                const isMatch = await bcrypt.compare(token.toUpperCase(), backupCodes[i]);
+                if (isMatch) {
+                    isValid = true;
+                    usedBackupCode = true;
+                    // Remove used backup code
+                    backupCodes.splice(i, 1);
+                    adminUser.backup_codes = backupCodes;
+                    await adminUser.save();
+                    break;
+                }
             }
         }
 
