@@ -370,6 +370,65 @@ router.get('/setup-xezmet', async (req, res) => {
     }
 });
 
+// POST /api/admin/auth/emergency-disable-2fa - Emergency 2FA disable (for broken 2FA)
+router.post('/emergency-disable-2fa', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Kullanıcı adı ve şifre gereklidir'
+            });
+        }
+
+        // Find admin user
+        const adminUser = await AdminUser.findOne({
+            where: {
+                [require('sequelize').Op.or]: [
+                    { username: username },
+                    { email: username }
+                ]
+            }
+        });
+
+        if (!adminUser) {
+            return res.status(401).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+        }
+
+        // Verify password
+        const isPasswordValid = await verifyPassword(password, adminUser.password_hash);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'Geçersiz şifre'
+            });
+        }
+
+        // Disable 2FA
+        adminUser.two_factor_enabled = false;
+        adminUser.two_factor_secret = null;
+        adminUser.backup_codes = null;
+        await adminUser.save();
+
+        res.json({
+            success: true,
+            message: '2FA başarıyla devre dışı bırakıldı'
+        });
+
+    } catch (error) {
+        console.error('Emergency 2FA disable error:', error);
+        res.status(500).json({
+            success: false,
+            message: '2FA kapatma hatası'
+        });
+    }
+});
+
 // GET /api/admin/auth/emergency-reset/:newPassword
 // BU ROTA ACİL DURUM İÇİNDİR VE DAHA SONRA SİLİNECEKTİR
 router.get('/emergency-reset/:newPassword', async (req, res) => {

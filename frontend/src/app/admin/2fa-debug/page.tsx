@@ -14,6 +14,7 @@ export default function Admin2FADebug() {
   const [loginForm, setLoginForm] = useState({ username: 'xezmet', password: '01528797Mb##' });
   const [loginResult, setLoginResult] = useState<any>(null);
   const [tempUserId, setTempUserId] = useState<string | null>(null);
+  const [disableResult, setDisableResult] = useState<any>(null);
 
   const API_URL = 'https://masapp-backend.onrender.com';
 
@@ -152,6 +153,85 @@ export default function Admin2FADebug() {
     }
   };
 
+  const emergencyDisable2FA = async () => {
+    if (!confirm('2FA devre dışı bırakılsın mı? Bu işlem geri alınamaz.')) {
+      return;
+    }
+
+    setLoading(true);
+    setDisableResult(null);
+
+    try {
+      // First login to get userId
+      const loginResponse = await fetch(`${API_URL}/api/admin/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: loginForm.username,
+          password: loginForm.password
+        })
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (!loginResponse.ok || !loginData.success) {
+        setDisableResult({
+          success: false,
+          message: `❌ Login başarısız: ${loginData.message}`
+        });
+        return;
+      }
+
+      const userId = loginData.userId || loginData.data?.user?.id;
+
+      if (!userId) {
+        setDisableResult({
+          success: false,
+          message: '❌ Kullanıcı ID bulunamadı'
+        });
+        return;
+      }
+
+      // Directly update database to disable 2FA (emergency endpoint needed)
+      const response = await fetch(`${API_URL}/api/admin/auth/emergency-disable-2fa`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: loginForm.username,
+          password: loginForm.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setDisableResult({
+          success: true,
+          message: '✅ 2FA başarıyla devre dışı bırakıldı! Artık normal giriş yapabilirsiniz.',
+          data: data
+        });
+      } else {
+        setDisableResult({
+          success: false,
+          message: `❌ 2FA kapatılamadı: ${data.message || 'Bilinmeyen hata'}`,
+          data: data
+        });
+      }
+    } catch (error: any) {
+      setDisableResult({
+        success: false,
+        message: '❌ Bağlantı hatası',
+        error: error.message
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const testAuthCode = async () => {
     if (!authCode || authCode.length !== 6) {
       setCodeTestResult({ success: false, message: '6 haneli kod girin' });
@@ -257,13 +337,22 @@ export default function Admin2FADebug() {
                   />
                 </div>
               </div>
-              <button
-                onClick={handleLogin}
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 disabled:opacity-50"
-              >
-                {loading ? 'Giriş Yapılıyor...' : '🔐 Giriş Yap'}
-              </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button
+                  onClick={handleLogin}
+                  disabled={loading}
+                  className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 disabled:opacity-50"
+                >
+                  {loading ? 'Giriş Yapılıyor...' : '🔐 Giriş Yap'}
+                </button>
+                <button
+                  onClick={emergencyDisable2FA}
+                  disabled={loading}
+                  className="bg-gradient-to-r from-red-600 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-red-700 hover:to-orange-700 disabled:opacity-50"
+                >
+                  {loading ? 'Kapatılıyor...' : '🚨 2FA Kapat (Acil)'}
+                </button>
+              </div>
               
               {loginResult && (
                 <div className={`mt-4 p-4 rounded-lg border ${
@@ -290,6 +379,44 @@ export default function Admin2FADebug() {
                           </summary>
                           <pre className="text-xs bg-white p-2 rounded border mt-2 overflow-auto max-h-32">
                             {JSON.stringify(loginResult.data, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {disableResult && (
+                <div className={`mt-4 p-4 rounded-lg border ${
+                  disableResult.success 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-red-50 border-red-200'
+                }`}>
+                  <div className="flex items-start">
+                    {disableResult.success ? (
+                      <FaCheckCircle className="text-green-600 text-xl mr-3 mt-1" />
+                    ) : (
+                      <FaTimesCircle className="text-red-600 text-xl mr-3 mt-1" />
+                    )}
+                    <div className="flex-1">
+                      <p className={`font-semibold ${
+                        disableResult.success ? 'text-green-900' : 'text-red-900'
+                      }`}>
+                        {disableResult.message}
+                      </p>
+                      {disableResult.error && (
+                        <p className="text-sm text-red-700 mt-2">
+                          <strong>Hata:</strong> {disableResult.error}
+                        </p>
+                      )}
+                      {disableResult.data && (
+                        <details className="mt-2">
+                          <summary className="text-sm cursor-pointer text-gray-600 hover:text-gray-800">
+                            Detaylı Response
+                          </summary>
+                          <pre className="text-xs bg-white p-2 rounded border mt-2 overflow-auto max-h-32">
+                            {JSON.stringify(disableResult.data, null, 2)}
                           </pre>
                         </details>
                       )}
