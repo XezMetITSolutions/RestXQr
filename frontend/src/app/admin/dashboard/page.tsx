@@ -17,13 +17,18 @@ import {
   FaClock,
   FaExclamationCircle
 } from 'react-icons/fa';
-import { useAuthStore } from '@/store/useAuthStore';
-import useRestaurantStore from '@/store/useRestaurantStore';
+
+interface AdminUser {
+  id: string;
+  username: string;
+  email: string;
+  name: string;
+  role: string;
+}
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
-  const { restaurants } = useRestaurantStore();
+  const [user, setUser] = useState<AdminUser | null>(null);
   const [stats, setStats] = useState({
     totalRestaurants: 0,
     activeRestaurants: 0,
@@ -32,21 +37,28 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    // Güvenli kullanıcı kontrolü
-    const checkAuth = async () => {
-      const { checkAuth: authCheck, isAdmin } = useAuthStore.getState();
-      const isValid = await authCheck();
-      
-      if (!isValid || !isAdmin()) {
-        router.push('/admin/login');
-      }
-    };
+    // Check authentication
+    const adminUser = localStorage.getItem('admin_user');
+    const accessToken = localStorage.getItem('admin_access_token');
     
-    checkAuth();
+    if (!adminUser || !accessToken) {
+      router.push('/admin/login');
+      return;
+    }
+    
+    try {
+      const userData = JSON.parse(adminUser);
+      setUser(userData);
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      router.push('/admin/login');
+    }
   }, [router]);
 
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = () => {
+    localStorage.removeItem('admin_user');
+    localStorage.removeItem('admin_access_token');
+    localStorage.removeItem('admin_refresh_token');
     router.push('/admin/login');
   };
 
