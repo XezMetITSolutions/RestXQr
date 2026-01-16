@@ -1,6 +1,6 @@
 const readline = require('readline');
 const { AdminUser } = require('../models');
-const { hashPassword } = require('../lib/adminAuth');
+const bcrypt = require('bcryptjs'); // Replaced hashPassword import with bcryptjs
 
 const rl = readline.createInterface({
     input: process.stdin,
