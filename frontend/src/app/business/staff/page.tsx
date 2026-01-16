@@ -587,6 +587,19 @@ export default function StaffPage() {
                 <li><TranslatedText>Garson siparişi servis eder ve "Tamamlandı" olarak işaretler</TranslatedText></li>
                 <li><TranslatedText>Kasa ödemeyi alır ve "Ödendi" olarak işaretler</TranslatedText></li>
               </ol>
+              
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <a 
+                  href="/business/staff/permissions" 
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                >
+                  <FaCog className="text-white" />
+                  <TranslatedText>Detaylı Yetkilendirme Paneli</TranslatedText>
+                </a>
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  <TranslatedText>Toggle switch'li modern yetkilendirme paneline geçiş yapın</TranslatedText>
+                </p>
+              </div>
             </div>
           </div>
 
