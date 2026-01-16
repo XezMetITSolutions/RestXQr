@@ -32,6 +32,7 @@ import {
   FaCalendarAlt,
   FaExclamationTriangle,
   FaCheckCircle,
+  FaTimesCircle,
   FaTimes,
   FaSort,
   FaDownload,
