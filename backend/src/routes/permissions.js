@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { Restaurant, Staff } = require('../models');
-const { checkSubdomainAuth } = require('../middleware/auth');
+const staffAuth = require('../middleware/staffAuth');
 
 // Permissions storage (production'da veritabanına taşınmalı)
 // Bu örnek için in-memory storage kullanıyoruz
@@ -192,7 +192,7 @@ const initializePermissions = (restaurantId) => {
 };
 
 // GET /api/permissions/:restaurantId - Get all permissions for a restaurant
-router.get('/:restaurantId', checkSubdomainAuth, async (req, res) => {
+router.get('/:restaurantId', staffAuth, async (req, res) => {
   try {
     const { restaurantId } = req.params;
     
@@ -223,7 +223,7 @@ router.get('/:restaurantId', checkSubdomainAuth, async (req, res) => {
 });
 
 // GET /api/permissions/:restaurantId/:role - Get permissions for a specific role
-router.get('/:restaurantId/:role', checkSubdomainAuth, async (req, res) => {
+router.get('/:restaurantId/:role', staffAuth, async (req, res) => {
   try {
     const { restaurantId, role } = req.params;
     
@@ -261,7 +261,7 @@ router.get('/:restaurantId/:role', checkSubdomainAuth, async (req, res) => {
 });
 
 // PUT /api/permissions/:restaurantId - Update all permissions for a restaurant
-router.put('/:restaurantId', checkSubdomainAuth, async (req, res) => {
+router.put('/:restaurantId', staffAuth, async (req, res) => {
   try {
     const { restaurantId } = req.params;
     const { permissions } = req.body;
@@ -313,7 +313,7 @@ router.put('/:restaurantId', checkSubdomainAuth, async (req, res) => {
 });
 
 // PUT /api/permissions/:restaurantId/:role - Update permissions for a specific role
-router.put('/:restaurantId/:role', checkSubdomainAuth, async (req, res) => {
+router.put('/:restaurantId/:role', staffAuth, async (req, res) => {
   try {
     const { restaurantId, role } = req.params;
     const { permissions } = req.body;
