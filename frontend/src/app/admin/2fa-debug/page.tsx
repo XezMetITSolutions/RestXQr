@@ -9,6 +9,8 @@ export default function Admin2FADebug() {
   const [tokenInfo, setTokenInfo] = useState<any>(null);
   const [apiTests, setApiTests] = useState<any>({});
   const [loading, setLoading] = useState(false);
+  const [authCode, setAuthCode] = useState('');
+  const [codeTestResult, setCodeTestResult] = useState<any>(null);
 
   const API_URL = 'https://masapp-backend.onrender.com';
 
@@ -85,6 +87,60 @@ export default function Admin2FADebug() {
     localStorage.removeItem('admin_refresh_token');
     loadTokenInfo();
     setApiTests({});
+  };
+
+  const testAuthCode = async () => {
+    if (!authCode || authCode.length !== 6) {
+      setCodeTestResult({ success: false, message: '6 haneli kod girin' });
+      return;
+    }
+
+    setLoading(true);
+    setCodeTestResult(null);
+
+    try {
+      const user = tokenInfo?.user;
+      if (!user?.id) {
+        setCodeTestResult({ success: false, message: 'Kullanıcı bilgisi bulunamadı' });
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/admin/auth/verify-2fa`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          token: authCode
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setCodeTestResult({
+          success: true,
+          message: '✅ Kod doğru! Authenticator düzgün çalışıyor.',
+          data: data
+        });
+      } else {
+        setCodeTestResult({
+          success: false,
+          message: `❌ Kod yanlış: ${data.message || 'Bilinmeyen hata'}`,
+          error: data.error,
+          data: data
+        });
+      }
+    } catch (error: any) {
+      setCodeTestResult({
+        success: false,
+        message: '❌ Bağlantı hatası',
+        error: error.message
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -170,6 +226,71 @@ export default function Admin2FADebug() {
               >
                 LocalStorage Temizle
               </button>
+            </div>
+          </div>
+
+          {/* Authenticator Code Test */}
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold mb-4">Authenticator Kod Testi</h2>
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+              <p className="text-sm text-gray-700 mb-4">
+                Google Authenticator'daki 6 haneli kodu girin ve doğru olup olmadığını test edin.
+              </p>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={authCode}
+                  onChange={(e) => setAuthCode(e.target.value.replace(/\D/g, '').substring(0, 6))}
+                  placeholder="000000"
+                  className="flex-1 px-4 py-3 border rounded-lg text-center text-2xl tracking-widest font-mono focus:ring-2 focus:ring-blue-500"
+                  maxLength={6}
+                />
+                <button
+                  onClick={testAuthCode}
+                  disabled={loading || authCode.length !== 6}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Test Ediliyor...' : 'Kodu Test Et'}
+                </button>
+              </div>
+              
+              {codeTestResult && (
+                <div className={`mt-4 p-4 rounded-lg border ${
+                  codeTestResult.success 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-red-50 border-red-200'
+                }`}>
+                  <div className="flex items-start">
+                    {codeTestResult.success ? (
+                      <FaCheckCircle className="text-green-600 text-xl mr-3 mt-1" />
+                    ) : (
+                      <FaTimesCircle className="text-red-600 text-xl mr-3 mt-1" />
+                    )}
+                    <div className="flex-1">
+                      <p className={`font-semibold ${
+                        codeTestResult.success ? 'text-green-900' : 'text-red-900'
+                      }`}>
+                        {codeTestResult.message}
+                      </p>
+                      {codeTestResult.error && (
+                        <p className="text-sm text-red-700 mt-2">
+                          <strong>Hata:</strong> {codeTestResult.error}
+                        </p>
+                      )}
+                      {codeTestResult.data && (
+                        <details className="mt-2">
+                          <summary className="text-sm cursor-pointer text-gray-600 hover:text-gray-800">
+                            Detaylı Response
+                          </summary>
+                          <pre className="text-xs bg-white p-2 rounded border mt-2 overflow-auto max-h-32">
+                            {JSON.stringify(codeTestResult.data, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
