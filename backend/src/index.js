@@ -416,6 +416,7 @@ app.use('/api/videomenu', require('./routes/videomenu')); // Video menu
 app.use('/api/events', require('./routes/events')); // Event management
 app.use('/api/translate', require('./routes/translate')); // Translation service
 app.use('/api/sessions', require('./routes/sessions')); // Session management for real-time cart
+app.use('/api/permissions', require('./routes/permissions').router); // Role-based permissions management
 // File upload routes - Cloudinary ile kalıcı depolama
 const multer = require('multer');
 const { uploadToCloudinary } = require('./lib/cloudinary');

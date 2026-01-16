@@ -13,11 +13,13 @@ import {
   FaMoneyBillWave,
   FaCheck,
   FaSave,
-  FaQuestionCircle
+  FaQuestionCircle,
+  FaSpinner
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import BusinessSidebar from '@/components/BusinessSidebar';
 import TranslatedText, { useTranslation } from '@/components/TranslatedText';
+import { permissionsApi, Permission } from '@/services/permissionsApi';
 
 // Toggle Switch Component
 const ToggleSwitch = ({ 
@@ -144,10 +146,20 @@ const RoleCard = ({
         </button>
         <button 
           onClick={onSave}
-          className={`px-4 py-2 ${headerBgClass} text-white rounded-lg hover:opacity-90 transition-colors flex items-center gap-2`}
+          disabled={loading}
+          className={`px-4 py-2 ${headerBgClass} text-white rounded-lg hover:opacity-90 transition-colors flex items-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          <FaSave />
-          <TranslatedText>Ayarları Kaydet</TranslatedText>
+          {loading ? (
+            <>
+              <FaSpinner className="animate-spin" />
+              <TranslatedText>Kaydediliyor...</TranslatedText>
+            </>
+          ) : (
+            <>
+              <FaSave />
+              <TranslatedText>Ayarları Kaydet</TranslatedText>
+            </>
+          )}
         </button>
       </div>
     </div>
@@ -173,6 +185,8 @@ export default function PermissionsPanel() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<null | 'success' | 'error'>(null);
   const [saveMessage, setSaveMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingPermissions, setLoadingPermissions] = useState(false);
   
   // Kitchen Permissions
   const [kitchenPermissions, setKitchenPermissions] = useState([
@@ -356,6 +370,13 @@ export default function PermissionsPanel() {
       }
     }
   }, [isAuthenticated, router]);
+  
+  // Load permissions when component mounts
+  useEffect(() => {
+    if (authenticatedRestaurant?.id) {
+      loadPermissionsFromBackend();
+    }
+  }, [authenticatedRestaurant?.id]);
 
   // Handle permission changes
   const handleKitchenPermissionChange = (id) => {
@@ -395,16 +416,92 @@ export default function PermissionsPanel() {
     );
   };
 
-  // Handle save
-  const handleSave = (role) => {
-    // Burada API'ye kaydetme işlemi yapılacak
-    setSaveStatus('success');
-    setSaveMessage(`${role} yetkileri başarıyla kaydedildi.`);
+  // Load permissions from backend
+  const loadPermissionsFromBackend = async () => {
+    if (!authenticatedRestaurant?.id) return;
     
-    setTimeout(() => {
-      setSaveStatus(null);
-      setSaveMessage('');
-    }, 3000);
+    try {
+      setLoadingPermissions(true);
+      
+      const allPermissions = await permissionsApi.loadAllPermissions(authenticatedRestaurant.id);
+      
+      // Update state with loaded permissions if available
+      if (allPermissions.kitchen?.length > 0) {
+        setKitchenPermissions(allPermissions.kitchen);
+      }
+      
+      if (allPermissions.waiter?.length > 0) {
+        setWaiterPermissions(allPermissions.waiter);
+      }
+      
+      if (allPermissions.cashier?.length > 0) {
+        setCashierPermissions(allPermissions.cashier);
+      }
+      
+      console.log('✅ Permissions loaded from backend');
+    } catch (error) {
+      console.error('❌ Error loading permissions:', error);
+      // Fallback to default permissions already in state
+    } finally {
+      setLoadingPermissions(false);
+    }
+  };
+  
+  // Handle save
+  const handleSave = async (role) => {
+    if (!authenticatedRestaurant?.id) {
+      setSaveStatus('error');
+      setSaveMessage(t('Restoran bilgisi bulunamadı'));
+      return;
+    }
+    
+    setLoading(true);
+    setSaveStatus(null);
+    
+    try {
+      let success = false;
+      
+      // Role'e göre ilgili izinleri gönder
+      if (role === 'Mutfak') {
+        success = await permissionsApi.updatePermissions(
+          authenticatedRestaurant.id,
+          'kitchen',
+          kitchenPermissions
+        );
+      } else if (role === 'Garson') {
+        success = await permissionsApi.updatePermissions(
+          authenticatedRestaurant.id,
+          'waiter',
+          waiterPermissions
+        );
+      } else if (role === 'Kasa') {
+        success = await permissionsApi.updatePermissions(
+          authenticatedRestaurant.id,
+          'cashier',
+          cashierPermissions
+        );
+      }
+      
+      if (success) {
+        setSaveStatus('success');
+        setSaveMessage(`${role} yetkileri başarıyla kaydedildi.`);
+      } else {
+        setSaveStatus('error');
+        setSaveMessage(`${role} yetkileri kaydedilirken hata oluştu.`);
+      }
+    } catch (error) {
+      console.error(`Error saving ${role} permissions:`, error);
+      setSaveStatus('error');
+      setSaveMessage(`${role} yetkileri kaydedilirken hata oluştu: ${error.message}`);
+    } finally {
+      setLoading(false);
+      
+      // 3 saniye sonra mesajı temizle
+      setTimeout(() => {
+        setSaveStatus(null);
+        setSaveMessage('');
+      }, 3000);
+    }
   };
 
   // Handle presets
