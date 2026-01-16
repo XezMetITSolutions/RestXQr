@@ -399,6 +399,7 @@ app.use('/api/waiter', require('./routes/waiter')); // Waiter calls
 app.use('/api/admin/setup', require('./routes/adminSetup')); // Admin setup
 app.use('/api/admin/auth', require('./routes/adminAuth')); // Admin authentication
 app.use('/api/admin/2fa', require('./routes/admin2fa')); // Admin 2FA
+app.use('/api/admin/dashboard', require('./routes/adminDashboard')); // Admin dashboard
 app.use('/api/plans', require('./routes/plans')); // Plan management
 app.use('/api/support', require('./routes/support')); // Support tickets
 app.use('/api/temp-admin', require('./routes/tempSuperAdmin')); // TEMPORARY ADMIN CREATION
