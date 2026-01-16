@@ -201,7 +201,7 @@ export default function PermissionsPanel() {
       id: 'kitchen_cancel_order',
       label: t('Sipariş İptal Etme'),
       description: t('Siparişleri iptal edebilir'),
-      enabled: false,
+      enabled: true,
       locked: false
     },
     {
@@ -215,7 +215,7 @@ export default function PermissionsPanel() {
       id: 'kitchen_edit_menu',
       label: t('Menü Düzenleme'),
       description: t('Menü öğelerini düzenleyebilir (stok durumu, hazırlama süresi)'),
-      enabled: false,
+      enabled: true,
       locked: false
     },
     {
@@ -314,7 +314,7 @@ export default function PermissionsPanel() {
       id: 'cashier_apply_discount',
       label: t('İndirim Uygulama'),
       description: t('Siparişlere indirim uygulayabilir'),
-      enabled: false,
+      enabled: true,
       locked: false
     },
     {
@@ -328,7 +328,7 @@ export default function PermissionsPanel() {
       id: 'cashier_manage_refunds',
       label: t('İade İşlemleri'),
       description: t('İade işlemlerini gerçekleştirebilir'),
-      enabled: false,
+      enabled: true,
       locked: false
     }
   ]);
