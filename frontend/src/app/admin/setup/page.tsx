@@ -32,7 +32,7 @@ export default function AdminSetup() {
 
     const checkAdminExists = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com'}/api/admin/setup/check`);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/admin/setup/check`);
             const data = await response.json();
 
             if (data.success) {
@@ -95,7 +95,7 @@ export default function AdminSetup() {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com'}/api/admin/setup/create-first-admin`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/admin/setup/create-first-admin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
