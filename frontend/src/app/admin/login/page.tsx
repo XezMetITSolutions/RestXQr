@@ -27,7 +27,7 @@ export default function AdminLogin() {
       if (lockoutEnd > new Date()) {
         setIsLocked(true);
         setLockoutTime(lockoutEnd);
-        
+
         const timer = setInterval(() => {
           if (new Date() >= lockoutEnd) {
             setIsLocked(false);
@@ -36,7 +36,7 @@ export default function AdminLogin() {
             clearInterval(timer);
           }
         }, 1000);
-        
+
         return () => clearInterval(timer);
       } else {
         localStorage.removeItem('admin_lockout');
@@ -53,54 +53,69 @@ export default function AdminLogin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isLocked) return;
 
     try {
-      // Gerçek admin bilgileri
-      const validCredentials = {
-        username: 'xezmet',
-        password: '01528797Mb##'
-      };
-
-      if (credentials.username === validCredentials.username && 
-          credentials.password === validCredentials.password) {
-        
-        if (!showTwoFactor) {
-          // 2FA durumunu kontrol et
-          const statusResponse = await fetch(`https://masapp-backend.onrender.com/api/admin/2fa/status`);
-          const statusData = await statusResponse.json();
-          
-          if (statusData.success && statusData.data.twoFactorEnabled) {
-            setShowTwoFactor(true);
-            return;
-          } else {
-            // 2FA aktif değilse direkt giriş yap
-            await login({
-              id: '1',
-              email: 'xezmet@restxqr.com',
-              name: 'XezMet Super Admin',
-              role: 'super_admin',
-              status: 'active',
-              twoFactorEnabled: false
-            });
-            
-            setLoginAttempts(0);
-            localStorage.removeItem('admin_login_attempts');
-            router.push('/admin/dashboard');
-            return;
-          }
-        }
-
-        // 2FA ile giriş
-        const response = await fetch(`https://masapp-backend.onrender.com/api/admin/2fa/login`, {
+      if (!showTwoFactor) {
+        // Step 1: Initial login with username/password
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com'}/api/admin/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             username: credentials.username,
-            password: credentials.password,
+            password: credentials.password
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          if (data.requires2FA) {
+            // Show 2FA input
+            setShowTwoFactor(true);
+            setUserId(data.userId);
+            return;
+          } else {
+            // No 2FA required, login successful
+            await login({
+              id: data.data.user.id,
+              email: data.data.user.email,
+              name: data.data.user.name,
+              role: data.data.user.role,
+              status: 'active',
+              twoFactorEnabled: data.data.user.twoFactorEnabled
+            });
+
+            // Store tokens
+            localStorage.setItem('adminAccessToken', data.data.accessToken);
+            localStorage.setItem('adminRefreshToken', data.data.refreshToken);
+
+            setLoginAttempts(0);
+            localStorage.removeItem('admin_login_attempts');
+            router.push('/admin');
+            return;
+          }
+        } else {
+          // Handle login errors
+          if (data.locked) {
+            setIsLocked(true);
+            setLockoutTime(new Date(data.locked_until));
+            localStorage.setItem('admin_lockout', data.locked_until);
+          }
+          throw new Error(data.message || 'Giriş başarısız');
+        }
+      } else {
+        // Step 2: Verify 2FA token
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com'}/api/admin/auth/verify-2fa`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: userId,
             token: credentials.twoFactorCode
           }),
         });
@@ -108,32 +123,37 @@ export default function AdminLogin() {
         const data = await response.json();
 
         if (data.success) {
-          // Başarılı giriş
+          // Successful login with 2FA
           await login({
             id: data.data.user.id,
             email: data.data.user.email,
             name: data.data.user.name,
             role: data.data.user.role,
-            status: data.data.user.status,
+            status: 'active',
             twoFactorEnabled: data.data.user.twoFactorEnabled
           });
-          
-          // Başarılı giriş sonrası lockout sıfırla
+
+          // Store tokens
+          localStorage.setItem('adminAccessToken', data.data.accessToken);
+          localStorage.setItem('adminRefreshToken', data.data.refreshToken);
+
           setLoginAttempts(0);
           localStorage.removeItem('admin_login_attempts');
-          
-          router.push('/admin/dashboard');
+
+          if (data.data.usedBackupCode) {
+            alert('⚠️ Backup kod kullanıldı. Yeni backup kodları oluşturmayı unutmayın!');
+          }
+
+          router.push('/admin');
         } else {
-          throw new Error(data.message);
+          throw new Error(data.message || ' Geçersiz doğrulama kodu');
         }
-      } else {
-        throw new Error('Geçersiz kullanıcı adı veya şifre');
       }
     } catch (error) {
       const newAttempts = loginAttempts + 1;
       setLoginAttempts(newAttempts);
       localStorage.setItem('admin_login_attempts', newAttempts.toString());
-      
+
       // 5 başarısız denemeden sonra 30 dakika lockout
       if (newAttempts >= 5) {
         const lockoutEnd = new Date(Date.now() + 30 * 60 * 1000);
@@ -141,22 +161,24 @@ export default function AdminLogin() {
         setLockoutTime(lockoutEnd);
         localStorage.setItem('admin_lockout', lockoutEnd.toISOString());
       }
-      
+
       alert(error instanceof Error ? error.message : 'Giriş başarısız');
     }
   };
 
+  const [userId, setUserId] = useState<string>('');
+
   const getRemainingTime = () => {
     if (!lockoutTime) return '';
-    
+
     const now = new Date();
     const diff = lockoutTime.getTime() - now.getTime();
-    
+
     if (diff <= 0) return '';
-    
+
     const minutes = Math.floor(diff / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
-    
+
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
@@ -280,8 +302,8 @@ export default function AdminLogin() {
 
         {/* 2FA Kurulum Linki */}
         <div className="mt-4 text-center">
-          <a 
-            href="/admin/2fa-setup" 
+          <a
+            href="/admin/2fa-setup"
             className="text-blue-400 hover:text-blue-300 text-sm underline"
           >
             🔐 2FA Kurulumu Yap

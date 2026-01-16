@@ -36,12 +36,20 @@ export default function Admin2FASetup() {
     setError('');
 
     try {
-      const response = await fetch(`https://masapp-backend.onrender.com/api/admin/2fa/setup`, {
+      // Get token from localStorage
+      const token = localStorage.getItem('adminAccessToken');
+      if (!token) {
+        setError('Lütfen önce giriş yapın');
+        router.push('/admin/login');
+        return;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com'}/api/admin/2fa/setup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       const data = await response.json();
@@ -67,13 +75,20 @@ export default function Admin2FASetup() {
     setError('');
 
     try {
-      const response = await fetch(`https://masapp-backend.onrender.com/api/admin/2fa/verify-setup`, {
+      const token = localStorage.getItem('adminAccessToken');
+      if (!token) {
+        setError('Lütfen önce giriş yapın');
+        router.push('/admin/login');
+        return;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com'}/api/admin/2fa/verify-setup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          ...credentials,
           token: twoFactorCode
         }),
       });
@@ -81,7 +96,6 @@ export default function Admin2FASetup() {
       const data = await response.json();
 
       if (data.success) {
-        setBackupCodes(data.data.backupCodes);
         setStep(3);
       } else {
         setError(data.message);
@@ -95,16 +109,7 @@ export default function Admin2FASetup() {
 
   const handleComplete = async () => {
     // 2FA kurulumu tamamlandı, admin paneline yönlendir
-    await login({
-      id: '1',
-      email: 'xezmet@restxqr.com',
-      name: 'XezMet Super Admin',
-      role: 'super_admin',
-      status: 'active',
-      twoFactorEnabled: true
-    });
-    
-    router.push('/admin/dashboard');
+    router.push('/admin');
   };
 
   const copyToClipboard = async (text: string, item: string) => {

@@ -42,6 +42,7 @@ const AIRecommendation = require('./AIRecommendation')(sequelize, Sequelize.Data
 const VideoMenuItem = require('./VideoMenuItem')(sequelize, Sequelize.DataTypes);
 const Event = require('./Event')(sequelize, Sequelize.DataTypes);
 const InventoryItem = require('./InventoryItem')(sequelize, Sequelize.DataTypes);
+const AdminUser = require('./AdminUser')(sequelize, Sequelize.DataTypes);
 
 // Define associations
 Restaurant.hasMany(MenuCategory, { foreignKey: 'restaurantId', as: 'categories' });
@@ -148,5 +149,6 @@ module.exports = {
   AIRecommendation,
   VideoMenuItem,
   Event,
-  InventoryItem
+  InventoryItem,
+  AdminUser
 };
