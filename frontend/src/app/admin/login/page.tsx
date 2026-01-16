@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaShieldAlt, FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
-import { useAuthStore } from '@/store/useAuthStore';
 
 export default function AdminLogin() {
   const [credentials, setCredentials] = useState({
@@ -18,7 +17,6 @@ export default function AdminLogin() {
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutTime, setLockoutTime] = useState<Date | null>(null);
   const router = useRouter();
-  const { login, user, isAuthenticated } = useAuthStore();
 
   // API URL'i normalize et
   const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
@@ -51,10 +49,12 @@ export default function AdminLogin() {
 
   // Zaten giriş yapmışsa admin paneline yönlendir
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'super_admin') {
+    const adminUser = localStorage.getItem('admin_user');
+    const accessToken = localStorage.getItem('admin_access_token');
+    if (adminUser && accessToken) {
       router.push('/admin/dashboard');
     }
-  }, [isAuthenticated, user, router]);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,14 +90,8 @@ export default function AdminLogin() {
             return;
           } else {
             // 2FA yok, direkt giriş başarılı
-            await login({
-              id: data.data.user.id,
-              email: data.data.user.email,
-              name: data.data.user.name,
-              role: data.data.user.role,
-              status: data.data.user.status || 'active',
-              twoFactorEnabled: data.data.user.twoFactorEnabled
-            });
+            // User bilgilerini localStorage'a kaydet
+            localStorage.setItem('admin_user', JSON.stringify(data.data.user));
             
             // Token'ları localStorage'a kaydet
             if (data.data.accessToken) {
@@ -134,14 +128,8 @@ export default function AdminLogin() {
 
         if (data.success) {
           // Başarılı giriş
-          await login({
-            id: data.data.user.id,
-            email: data.data.user.email,
-            name: data.data.user.name,
-            role: data.data.user.role,
-            status: data.data.user.status || 'active',
-            twoFactorEnabled: data.data.user.twoFactorEnabled
-          });
+          // User bilgilerini localStorage'a kaydet
+          localStorage.setItem('admin_user', JSON.stringify(data.data.user));
           
           // Token'ları localStorage'a kaydet
           if (data.data.accessToken) {
