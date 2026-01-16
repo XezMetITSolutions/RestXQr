@@ -96,6 +96,29 @@ router.get('/check', async (req, res) => {
         });
     } catch (error) {
         console.error('Setup check error:', error);
+
+        // Self-healing: If table doesn't exist, create it and retry
+        if (error.original && error.original.code === '42P01') { // Postgres code for undefined_table
+            try {
+                console.log('⚠️ Admin table missing, attempting to auto-create...');
+                await AdminUser.sync({ alter: true });
+                console.log('✅ Admin table created successfully');
+
+                const adminCount = await AdminUser.count();
+                return res.json({
+                    success: true,
+                    data: {
+                        hasAdmin: adminCount > 0,
+                        adminCount: adminCount
+                    },
+                    message: 'Database initialized automatically'
+                });
+            } catch (syncError) {
+                console.error('Auto-creation failed:', syncError);
+                // Fall through to error response
+            }
+        }
+
         res.status(500).json({
             success: false,
             message: 'Kontrol hatası: ' + error.message,
