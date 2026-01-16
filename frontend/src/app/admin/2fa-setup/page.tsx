@@ -23,6 +23,10 @@ export default function Admin2FASetup() {
   const router = useRouter();
   const { login, user, isAuthenticated } = useAuthStore();
 
+  // API URL'i normalize et
+  const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
+  const API_URL = rawApiUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+
   // Zaten giriş yapmışsa admin paneline yönlendir
   useEffect(() => {
     if (isAuthenticated && user?.role === 'super_admin') {
@@ -44,7 +48,7 @@ export default function Admin2FASetup() {
         return;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/admin/2fa/setup`, {
+      const response = await fetch(`${API_URL}/api/admin/2fa/setup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -82,7 +86,7 @@ export default function Admin2FASetup() {
         return;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/admin/2fa/verify-setup`, {
+      const response = await fetch(`${API_URL}/api/admin/2fa/verify-setup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

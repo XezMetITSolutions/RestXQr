@@ -19,6 +19,10 @@ export default function AdminLogin() {
   const router = useRouter();
   const { login, user, isAuthenticated } = useAuthStore();
 
+  // API URL'i normalize et
+  const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
+  const API_URL = rawApiUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+
   // Lockout kontrolü
   useEffect(() => {
     const storedLockout = localStorage.getItem('admin_lockout');
@@ -59,7 +63,7 @@ export default function AdminLogin() {
     try {
       if (!showTwoFactor) {
         // Step 1: Initial login with username/password
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/admin/auth/login`, {
+        const response = await fetch(`${API_URL}/api/admin/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -109,7 +113,7 @@ export default function AdminLogin() {
         }
       } else {
         // Step 2: Verify 2FA token
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/admin/auth/verify-2fa`, {
+        const response = await fetch(`${API_URL}/api/admin/auth/verify-2fa`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
