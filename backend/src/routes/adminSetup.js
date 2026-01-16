@@ -101,7 +101,11 @@ router.get('/check', async (req, res) => {
         if (error.original && error.original.code === '42P01') { // Postgres code for undefined_table
             try {
                 console.log('⚠️ Admin table missing, attempting to auto-create...');
-                await AdminUser.sync({ alter: true });
+
+                // FIXED: alter: true kaldırıldı (timeout/crash önlemek için)
+                // Sadece tablo yoksa oluşturur
+                await AdminUser.sync();
+
                 console.log('✅ Admin table created successfully');
 
                 const adminCount = await AdminUser.count();
@@ -134,7 +138,6 @@ router.post('/sync-db', async (req, res) => {
         console.log('🔄 Manual database sync requested (light mode)...');
 
         // Önce kritik tablonun (AdminUser) senkronize olduğundan emin olalım
-        // Bu, diğer tablolar patlasa bile admin panelinin çalışmasını sağlar
         try {
             await AdminUser.sync();
             console.log('✅ AdminUser table synced successfully');
@@ -165,21 +168,57 @@ router.post('/sync-db', async (req, res) => {
 router.post('/reset-db', async (req, res) => {
     try {
         const { sequelize } = require('../models');
-        console.log('☢️ HARD DATABASE RESET REQUESTED (RAW SQL)...');
+        console.log('☢️ HARD DATABASE RESET REQUESTED (ITERATIVE MODE)...');
 
-        // 1. Raw SQL ile şemayı tamamen sil ve yeniden oluştur (En temiz yöntem)
-        console.log('🔥 Dropping schema...');
-        await sequelize.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO public;');
-        console.log('✅ Schema dropped and recreated.');
+        // "out of shared memory" hatasını önlemek için "DROP SCHEMA" yerine
+        // tabloları ve tipleri TEK TEK siliyoruz (Iterative Dozer Strategy)
 
-        // 2. Tabloları yeniden oluştur (Sync)
+        // 1. Tabloları bul ve sil
+        console.log('🔥 Fetching tables...');
+        try {
+            const [tables] = await sequelize.query(`SELECT tablename FROM pg_tables WHERE schemaname = 'public'`);
+            console.log(`Found ${tables.length} tables.`);
+
+            // Disable triggers/constraints loop is hard, so we rely on CASCADE
+            for (const t of tables) {
+                console.log(`🗑️ Dropping table: ${t.tablename}`);
+                await sequelize.query(`DROP TABLE IF EXISTS "public"."${t.tablename}" CASCADE`);
+            }
+        } catch (tableError) {
+            console.error('Error dropping tables:', tableError);
+            throw tableError;
+        }
+
+        // 2. Enum/Type'ları bul ve sil
+        console.log('🔥 Fetching types...');
+        try {
+            const [types] = await sequelize.query(`
+                SELECT t.typname as typename
+                FROM pg_type t 
+                JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace 
+                WHERE n.nspname = 'public' AND t.typtype = 'e';
+            `);
+            console.log(`Found ${types.length} custom types.`);
+
+            for (const t of types) {
+                console.log(`🗑️ Dropping type: ${t.typename}`);
+                await sequelize.query(`DROP TYPE IF EXISTS "public"."${t.typename}" CASCADE`);
+            }
+        } catch (typeError) {
+            console.error('Error dropping types:', typeError);
+            // Types are less critical, continue
+        }
+
+        console.log('✅ Cleaned up schema successfully.');
+
+        // 3. Tabloları yeniden oluştur (Sync)
         console.log('🏗️ Rebuilding tables...');
         await sequelize.sync();
         console.log('✅ Tables rebuilt.');
 
         res.json({
             success: true,
-            message: 'Veritabanı "Nuclear Option" ile sıfırlandı. Tüm tablolar yeniden oluşturuldu.'
+            message: 'Veritabanı "Iterative Mode" ile sıfırlandı. Tüm tablolar tek tek temizlendi ve yeniden oluşturuldu.'
         });
     } catch (error) {
         console.error('Hard reset error:', error);
