@@ -29,6 +29,7 @@ export default function Admin2FASetup() {
   const initiate2FASetup = async (token: string) => {
     setIsLoading(true);
     try {
+      console.log('Initiating 2FA setup with token:', token ? 'Token exists' : 'No token');
       const response = await fetch(`${API_URL}/api/admin/2fa/setup`, {
         method: 'POST',
         headers: {
@@ -37,7 +38,16 @@ export default function Admin2FASetup() {
         }
       });
 
+      console.log('2FA setup response status:', response.status);
+
+      if (response.status === 401) {
+        setError('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
+        setTimeout(() => router.push('/admin/login'), 2000);
+        return;
+      }
+
       const data = await response.json();
+      console.log('2FA setup response:', data);
 
       if (data.success) {
         setQrCodeDataURL(data.data.qrCodeDataURL);
@@ -48,6 +58,7 @@ export default function Admin2FASetup() {
         setError(data.message || '2FA kurulumu başlatılamadı');
       }
     } catch (error) {
+      console.error('2FA setup error:', error);
       setError('Bağlantı hatası oluştu');
     } finally {
       setIsLoading(false);

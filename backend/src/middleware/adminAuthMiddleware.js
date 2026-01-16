@@ -7,8 +7,10 @@ const adminAuthMiddleware = async (req, res, next) => {
     try {
         // Get token from Authorization header
         const authHeader = req.headers.authorization;
+        console.log('Admin auth middleware - Authorization header:', authHeader ? 'Present' : 'Missing');
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            console.log('Admin auth middleware - No Bearer token found');
             return res.status(401).json({
                 success: false,
                 message: 'Authentication required'
@@ -16,16 +18,21 @@ const adminAuthMiddleware = async (req, res, next) => {
         }
 
         const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+        console.log('Admin auth middleware - Token extracted:', token.substring(0, 20) + '...');
 
         // Verify token
         const decoded = verifyToken(token);
+        console.log('Admin auth middleware - Token decoded:', decoded ? 'Success' : 'Failed');
 
         if (!decoded) {
+            console.log('Admin auth middleware - Token verification failed');
             return res.status(401).json({
                 success: false,
                 message: 'Invalid or expired token'
             });
         }
+
+        console.log('Admin auth middleware - Decoded token:', { id: decoded.id, role: decoded.role, type: decoded.type });
 
         // Check if token is access token (not refresh)
         if (decoded.type !== 'access') {
