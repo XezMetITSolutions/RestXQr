@@ -488,11 +488,8 @@ export default function StaffPage() {
                     </li>
                   </ul>
                   <div className="flex gap-2">
-                    <a href="/mutfak" target="_blank" className="flex-1 text-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm">
-                      <TranslatedText>Klasik Panel</TranslatedText>
-                    </a>
-                    <a href="/business/kitchen/role-based-page" target="_blank" className="flex-1 text-center px-4 py-2 bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition-colors font-medium text-sm">
-                      <TranslatedText>Rol Bazlı Panel</TranslatedText>
+                    <a href="/mutfak" target="_blank" className="w-full text-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm">
+                      <TranslatedText>Panel</TranslatedText>
                     </a>
                   </div>
                 </div>
@@ -526,11 +523,8 @@ export default function StaffPage() {
                     </li>
                   </ul>
                   <div className="flex gap-2">
-                    <a href="/garson" target="_blank" className="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
-                      <TranslatedText>Klasik Panel</TranslatedText>
-                    </a>
-                    <a href="/business/waiter/role-based-page" target="_blank" className="flex-1 text-center px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-medium text-sm">
-                      <TranslatedText>Rol Bazlı Panel</TranslatedText>
+                    <a href="/garson" target="_blank" className="w-full text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                      <TranslatedText>Panel</TranslatedText>
                     </a>
                   </div>
                 </div>
@@ -564,11 +558,8 @@ export default function StaffPage() {
                     </li>
                   </ul>
                   <div className="flex gap-2">
-                    <a href="/kasa" target="_blank" className="flex-1 text-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm">
-                      <TranslatedText>Klasik Panel</TranslatedText>
-                    </a>
-                    <a href="/business/cashier/role-based-page" target="_blank" className="flex-1 text-center px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors font-medium text-sm">
-                      <TranslatedText>Rol Bazlı Panel</TranslatedText>
+                    <a href="/kasa" target="_blank" className="w-full text-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm">
+                      <TranslatedText>Panel</TranslatedText>
                     </a>
                   </div>
                 </div>

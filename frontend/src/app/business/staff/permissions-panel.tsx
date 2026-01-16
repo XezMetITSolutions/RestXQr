@@ -333,10 +333,27 @@ export default function PermissionsPanel() {
     }
   ]);
 
-  // Check authentication
+  // Check authentication and restore session
   useEffect(() => {
+    // Önce normal kimlik doğrulama kontrolü
     if (!isAuthenticated()) {
-      router.push('/login');
+      // LocalStorage'dan oturum bilgilerini kontrol et
+      const staffUser = localStorage.getItem('staff_user');
+      const staffToken = localStorage.getItem('staff_token');
+      
+      // Eğer localStorage'da oturum bilgileri varsa, oturumu geri yükle
+      if (staffUser && staffToken) {
+        try {
+          console.log('🔄 Oturum bilgileri localStorage\'dan geri yükleniyor');
+          // Oturum bilgilerini zaten localStorage'dan aldık, işleme devam edebiliriz
+        } catch (error) {
+          console.error('❌ Oturum geri yükleme hatası:', error);
+          router.push('/login');
+        }
+      } else {
+        // Oturum bilgileri yoksa login sayfasına yönlendir
+        router.push('/login');
+      }
     }
   }, [isAuthenticated, router]);
 
