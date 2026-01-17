@@ -254,11 +254,85 @@ class ApiService {
     try {
       console.log('Getting staff for restaurant:', restaurantId);
       
-      // Use the standard request method to ensure consistent header handling
-      return this.request<any>(`/staff/restaurant/${restaurantId}`, {
-        method: 'GET',
-        // No need to specify headers here as they will be added by the request method
-      });
+      // Get staff token directly to ensure it's available
+      const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
+      if (!staffToken) {
+        console.error('Staff token is missing for getStaff request');
+        throw new Error('Authentication token is missing');
+      }
+      
+      // Get subdomain directly
+      const subdomain = typeof window !== 'undefined' 
+        ? window.location.hostname.split('.')[0] 
+        : 'kroren';
+      
+      // Make direct fetch request with error handling
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+      const url = `${API_URL}/staff/restaurant/${restaurantId}`;
+      
+      console.log('Making staff API request to:', url);
+      
+      // Ensure token is properly formatted
+      const token = staffToken.startsWith('Bearer ') ? staffToken : `Bearer ${staffToken}`;
+      
+      try {
+        // First attempt with standard headers
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json',
+            'X-Subdomain': subdomain
+          }
+        });
+        
+        console.log('Staff API response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Cache successful response in localStorage
+          if (typeof window !== 'undefined' && data?.data) {
+            try {
+              localStorage.setItem('business_staff', JSON.stringify(data.data));
+              console.log('Staff data cached in localStorage');
+            } catch (cacheError) {
+              console.warn('Failed to cache staff data:', cacheError);
+            }
+          }
+          
+          return data;
+        } else {
+          // If response is not OK, try to get error details
+          try {
+            const errorData = await response.json();
+            console.error('Staff API error details:', errorData);
+            throw new Error(errorData.message || `API error: ${response.status}`);
+          } catch (jsonError) {
+            // If can't parse JSON, throw generic error
+            throw new Error(`API error: ${response.status}`);
+          }
+        }
+      } catch (fetchError) {
+        console.error('Staff API fetch error:', fetchError);
+        
+        // Try to load from localStorage as fallback
+        if (typeof window !== 'undefined') {
+          const savedStaff = localStorage.getItem('business_staff');
+          if (savedStaff) {
+            console.log('Using cached staff data from localStorage');
+            try {
+              const parsedStaff = JSON.parse(savedStaff);
+              return { success: true, data: parsedStaff };
+            } catch (parseError) {
+              console.error('Error parsing cached staff data:', parseError);
+            }
+          }
+        }
+        
+        // If no cached data or parsing failed, rethrow the original error
+        throw fetchError;
+      }
     } catch (error) {
       console.error('Error in getStaff:', error);
       throw error;
