@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  FaInfoCircle, 
-  FaCheckCircle, 
-  FaTimesCircle, 
-  FaExclamationTriangle, 
+import {
+  FaInfoCircle,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaExclamationTriangle,
   FaUserShield,
   FaUtensils,
   FaUser,
@@ -22,25 +22,33 @@ import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 import { permissionsApi, Permission } from '@/services/permissionsApi';
 
 // Toggle Switch Component
-const ToggleSwitch = ({ 
-  isOn, 
-  handleToggle, 
+const ToggleSwitch = ({
+  isOn,
+  handleToggle,
   colorClass = 'bg-blue-500',
   disabled = false
+}: {
+  isOn: boolean;
+  handleToggle: () => void;
+  colorClass?: string;
+  disabled?: boolean;
 }) => {
+  const id = React.useId();
+
   return (
     <div className="relative inline-block w-12 align-middle select-none transition duration-200 ease-in">
       <input
         type="checkbox"
         name="toggle"
-        id={`toggle-${Math.random().toString(36).substr(2, 9)}`}
-        className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+        id={id}
+        className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10"
         checked={isOn}
         onChange={handleToggle}
         disabled={disabled}
       />
       <label
-        className={`toggle-label block overflow-hidden h-6 rounded-full ${disabled ? 'bg-gray-300' : colorClass} cursor-pointer`}
+        htmlFor={id}
+        className={`toggle-label block overflow-hidden h-6 rounded-full ${disabled ? 'bg-gray-300' : (isOn ? colorClass : 'bg-gray-300')} cursor-pointer transition-colors duration-200`}
       ></label>
       <style jsx>{`
         .toggle-checkbox {
@@ -56,22 +64,19 @@ const ToggleSwitch = ({
         .toggle-label {
           transition: background-color 0.2s ease-in;
         }
-        .toggle-checkbox:checked + .toggle-label {
-          background-color: ${disabled ? '#d1d5db' : ''};
-        }
       `}</style>
     </div>
   );
 };
 
 // Tooltip Component
-const Tooltip = ({ text }) => {
+const Tooltip = ({ text }: { text: string }) => {
   const [isVisible, setIsVisible] = useState(false);
-  
+
   return (
     <div className="relative inline-block ml-2">
-      <FaInfoCircle 
-        className="text-gray-400 hover:text-gray-600 cursor-help transition-colors" 
+      <FaInfoCircle
+        className="text-gray-400 hover:text-gray-600 cursor-help transition-colors"
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
       />
@@ -86,13 +91,20 @@ const Tooltip = ({ text }) => {
 };
 
 // Permission Item Component
-const PermissionItem = ({ 
-  label, 
-  description, 
-  isEnabled, 
-  onChange, 
+const PermissionItem = ({
+  label,
+  description,
+  isEnabled,
+  onChange,
   colorClass,
   disabled = false
+}: {
+  label: string;
+  description: string;
+  isEnabled: boolean;
+  onChange: () => void;
+  colorClass: string;
+  disabled?: boolean;
 }) => {
   return (
     <div className={`flex items-center justify-between py-3 ${disabled ? 'opacity-50' : ''}`}>
@@ -100,9 +112,9 @@ const PermissionItem = ({
         <span className="text-gray-700">{label}</span>
         <Tooltip text={description} />
       </div>
-      <ToggleSwitch 
-        isOn={isEnabled} 
-        handleToggle={onChange} 
+      <ToggleSwitch
+        isOn={isEnabled}
+        handleToggle={onChange}
         colorClass={colorClass}
         disabled={disabled}
       />
@@ -111,22 +123,31 @@ const PermissionItem = ({
 };
 
 // Role Card Component
-const RoleCard = ({ 
-  title, 
-  permissions, 
-  colorClass, 
-  headerBgClass, 
+const RoleCard = ({
+  title,
+  permissions,
+  colorClass,
+  headerBgClass,
   onPermissionChange,
   onSave,
   onSelectAll,
   loading
+}: {
+  title: string;
+  permissions: any[];
+  colorClass: string;
+  headerBgClass: string;
+  onPermissionChange: (id: string) => void;
+  onSave: () => void;
+  onSelectAll: () => void;
+  loading: boolean;
 }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
       <div className={`${headerBgClass} text-white p-4 text-center`}>
         <h3 className="text-xl font-semibold">{title}</h3>
       </div>
-      
+
       <div className="p-5">
         {permissions.map((permission, index) => (
           <React.Fragment key={permission.id}>
@@ -142,15 +163,15 @@ const RoleCard = ({
           </React.Fragment>
         ))}
       </div>
-      
+
       <div className="px-5 pb-5 pt-2 border-t border-gray-100 flex justify-between items-center">
-        <button 
+        <button
           onClick={onSelectAll}
           className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
           <TranslatedText>Tümünü Seç</TranslatedText>
         </button>
-        <button 
+        <button
           onClick={onSave}
           disabled={loading}
           className={`px-4 py-2 ${headerBgClass} text-white rounded-lg hover:opacity-90 transition-colors flex items-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
@@ -173,7 +194,15 @@ const RoleCard = ({
 };
 
 // Preset Button Component
-const PresetButton = ({ label, onClick, colorClass }) => {
+const PresetButton = ({
+  label,
+  onClick,
+  colorClass
+}: {
+  label: string;
+  onClick: () => void;
+  colorClass: string;
+}) => {
   return (
     <button
       onClick={onClick}
@@ -193,7 +222,7 @@ export default function PermissionsPanel() {
   const [saveMessage, setSaveMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
-  
+
   // Kitchen Permissions
   const [kitchenPermissions, setKitchenPermissions] = useState([
     {
@@ -246,7 +275,7 @@ export default function PermissionsPanel() {
       locked: false
     }
   ]);
-  
+
   // Waiter Permissions
   const [waiterPermissions, setWaiterPermissions] = useState([
     {
@@ -299,7 +328,7 @@ export default function PermissionsPanel() {
       locked: false
     }
   ]);
-  
+
   // Cashier Permissions
   const [cashierPermissions, setCashierPermissions] = useState([
     {
@@ -360,7 +389,7 @@ export default function PermissionsPanel() {
       // LocalStorage'dan oturum bilgilerini kontrol et
       const staffUser = localStorage.getItem('staff_user');
       const staffToken = localStorage.getItem('staff_token');
-      
+
       // Eğer localStorage'da oturum bilgileri varsa, oturumu geri yükle
       if (staffUser && staffToken) {
         try {
@@ -376,7 +405,7 @@ export default function PermissionsPanel() {
       }
     }
   }, [isAuthenticated, router]);
-  
+
   // Load permissions when component mounts
   useEffect(() => {
     if (authenticatedRestaurant?.id) {
@@ -385,39 +414,39 @@ export default function PermissionsPanel() {
   }, [authenticatedRestaurant?.id]);
 
   // Handle permission changes
-  const handleKitchenPermissionChange = (id) => {
-    setKitchenPermissions(prev => 
+  const handleKitchenPermissionChange = (id: string) => {
+    setKitchenPermissions(prev =>
       prev.map(p => p.id === id && !p.locked ? { ...p, enabled: !p.enabled } : p)
     );
   };
-  
-  const handleWaiterPermissionChange = (id) => {
-    setWaiterPermissions(prev => 
+
+  const handleWaiterPermissionChange = (id: string) => {
+    setWaiterPermissions(prev =>
       prev.map(p => p.id === id && !p.locked ? { ...p, enabled: !p.enabled } : p)
     );
   };
-  
-  const handleCashierPermissionChange = (id) => {
-    setCashierPermissions(prev => 
+
+  const handleCashierPermissionChange = (id: string) => {
+    setCashierPermissions(prev =>
       prev.map(p => p.id === id && !p.locked ? { ...p, enabled: !p.enabled } : p)
     );
   };
 
   // Handle select all
   const handleSelectAllKitchen = () => {
-    setKitchenPermissions(prev => 
+    setKitchenPermissions(prev =>
       prev.map(p => p.locked ? p : { ...p, enabled: true })
     );
   };
-  
+
   const handleSelectAllWaiter = () => {
-    setWaiterPermissions(prev => 
+    setWaiterPermissions(prev =>
       prev.map(p => p.locked ? p : { ...p, enabled: true })
     );
   };
-  
+
   const handleSelectAllCashier = () => {
-    setCashierPermissions(prev => 
+    setCashierPermissions(prev =>
       prev.map(p => p.locked ? p : { ...p, enabled: true })
     );
   };
@@ -425,25 +454,25 @@ export default function PermissionsPanel() {
   // Load permissions from backend
   const loadPermissionsFromBackend = async () => {
     if (!authenticatedRestaurant?.id) return;
-    
+
     try {
       setLoadingPermissions(true);
-      
+
       const allPermissions = await permissionsApi.loadAllPermissions(authenticatedRestaurant.id);
-      
+
       // Update state with loaded permissions if available
       if (allPermissions.kitchen?.length > 0) {
         setKitchenPermissions(allPermissions.kitchen);
       }
-      
+
       if (allPermissions.waiter?.length > 0) {
         setWaiterPermissions(allPermissions.waiter);
       }
-      
+
       if (allPermissions.cashier?.length > 0) {
         setCashierPermissions(allPermissions.cashier);
       }
-      
+
       console.log('✅ Permissions loaded from backend');
     } catch (error) {
       console.error('❌ Error loading permissions:', error);
@@ -452,21 +481,21 @@ export default function PermissionsPanel() {
       setLoadingPermissions(false);
     }
   };
-  
+
   // Handle save
-  const handleSave = async (role) => {
+  const handleSave = async (role: string) => {
     if (!authenticatedRestaurant?.id) {
       setSaveStatus('error');
       setSaveMessage(t('Restoran bilgisi bulunamadı'));
       return;
     }
-    
+
     setLoading(true);
     setSaveStatus(null);
-    
+
     try {
       let success = false;
-      
+
       // Role'e göre ilgili izinleri gönder
       if (role === 'Mutfak') {
         success = await permissionsApi.updatePermissions(
@@ -487,7 +516,7 @@ export default function PermissionsPanel() {
           cashierPermissions
         );
       }
-      
+
       if (success) {
         setSaveStatus('success');
         setSaveMessage(`${role} yetkileri başarıyla kaydedildi.`);
@@ -495,13 +524,13 @@ export default function PermissionsPanel() {
         setSaveStatus('error');
         setSaveMessage(`${role} yetkileri kaydedilirken hata oluştu.`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error saving ${role} permissions:`, error);
       setSaveStatus('error');
-      setSaveMessage(`${role} yetkileri kaydedilirken hata oluştu: ${error.message}`);
+      setSaveMessage(`${role} yetkileri kaydedilirken hata oluştu: ${error.message || 'Bilinmeyen hata'}`);
     } finally {
       setLoading(false);
-      
+
       // 3 saniye sonra mesajı temizle
       setTimeout(() => {
         setSaveStatus(null);
@@ -511,9 +540,9 @@ export default function PermissionsPanel() {
   };
 
   // Handle presets
-  const applyKitchenPreset = (preset) => {
+  const applyKitchenPreset = (preset: string) => {
     if (preset === 'minimal') {
-      setKitchenPermissions(prev => 
+      setKitchenPermissions(prev =>
         prev.map(p => {
           if (p.locked) return p;
           if (['kitchen_view_orders', 'kitchen_mark_preparing', 'kitchen_mark_ready'].includes(p.id)) {
@@ -523,7 +552,7 @@ export default function PermissionsPanel() {
         })
       );
     } else if (preset === 'standard') {
-      setKitchenPermissions(prev => 
+      setKitchenPermissions(prev =>
         prev.map(p => {
           if (p.locked) return p;
           if (['kitchen_edit_menu', 'kitchen_cancel_order'].includes(p.id)) {
@@ -533,15 +562,15 @@ export default function PermissionsPanel() {
         })
       );
     } else if (preset === 'chef') {
-      setKitchenPermissions(prev => 
+      setKitchenPermissions(prev =>
         prev.map(p => p.locked ? p : { ...p, enabled: true })
       );
     }
   };
-  
-  const applyWaiterPreset = (preset) => {
+
+  const applyWaiterPreset = (preset: string) => {
     if (preset === 'minimal') {
-      setWaiterPermissions(prev => 
+      setWaiterPermissions(prev =>
         prev.map(p => {
           if (p.locked) return p;
           if (['waiter_mark_served', 'waiter_view_tables'].includes(p.id)) {
@@ -551,7 +580,7 @@ export default function PermissionsPanel() {
         })
       );
     } else if (preset === 'standard') {
-      setWaiterPermissions(prev => 
+      setWaiterPermissions(prev =>
         prev.map(p => {
           if (p.locked) return p;
           if (['waiter_cancel_order'].includes(p.id)) {
@@ -561,15 +590,15 @@ export default function PermissionsPanel() {
         })
       );
     } else if (preset === 'head') {
-      setWaiterPermissions(prev => 
+      setWaiterPermissions(prev =>
         prev.map(p => p.locked ? p : { ...p, enabled: true })
       );
     }
   };
-  
-  const applyCashierPreset = (preset) => {
+
+  const applyCashierPreset = (preset: string) => {
     if (preset === 'minimal') {
-      setCashierPermissions(prev => 
+      setCashierPermissions(prev =>
         prev.map(p => {
           if (p.locked) return p;
           if (['cashier_view_orders', 'cashier_approve_orders', 'cashier_process_payment'].includes(p.id)) {
@@ -579,7 +608,7 @@ export default function PermissionsPanel() {
         })
       );
     } else if (preset === 'standard') {
-      setCashierPermissions(prev => 
+      setCashierPermissions(prev =>
         prev.map(p => {
           if (p.locked) return p;
           if (['cashier_apply_discount', 'cashier_manage_refunds'].includes(p.id)) {
@@ -589,7 +618,7 @@ export default function PermissionsPanel() {
         })
       );
     } else if (preset === 'manager') {
-      setCashierPermissions(prev => 
+      setCashierPermissions(prev =>
         prev.map(p => p.locked ? p : { ...p, enabled: true })
       );
     }
@@ -637,9 +666,8 @@ export default function PermissionsPanel() {
         <div className="p-4 sm:p-6 lg:p-8">
           {/* Save Status Message */}
           {saveStatus && (
-            <div className={`mb-6 p-4 rounded-lg ${
-              saveStatus === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-            }`}>
+            <div className={`mb-6 p-4 rounded-lg ${saveStatus === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+              }`}>
               <div className="flex items-center">
                 {saveStatus === 'success' ? (
                   <FaCheckCircle className="text-green-500 mr-3" />
@@ -661,7 +689,7 @@ export default function PermissionsPanel() {
                 <TranslatedText>Hazır Şablonlar</TranslatedText>
               </h2>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Kitchen Presets */}
               <div>
@@ -670,24 +698,24 @@ export default function PermissionsPanel() {
                   <TranslatedText>Mutfak Şablonları</TranslatedText>
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  <PresetButton 
-                    label={t("Minimal Mutfak")} 
-                    onClick={() => applyKitchenPreset('minimal')} 
+                  <PresetButton
+                    label={t("Minimal Mutfak")}
+                    onClick={() => applyKitchenPreset('minimal')}
                     colorClass="bg-orange-300"
                   />
-                  <PresetButton 
-                    label={t("Standart Mutfak")} 
-                    onClick={() => applyKitchenPreset('standard')} 
+                  <PresetButton
+                    label={t("Standart Mutfak")}
+                    onClick={() => applyKitchenPreset('standard')}
                     colorClass="bg-orange-500"
                   />
-                  <PresetButton 
-                    label={t("Şef Yetkisi")} 
-                    onClick={() => applyKitchenPreset('chef')} 
+                  <PresetButton
+                    label={t("Şef Yetkisi")}
+                    onClick={() => applyKitchenPreset('chef')}
                     colorClass="bg-orange-700"
                   />
                 </div>
               </div>
-              
+
               {/* Waiter Presets */}
               <div>
                 <h3 className="text-md font-medium text-gray-700 mb-3 flex items-center">
@@ -695,24 +723,24 @@ export default function PermissionsPanel() {
                   <TranslatedText>Garson Şablonları</TranslatedText>
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  <PresetButton 
-                    label={t("Minimal Garson")} 
-                    onClick={() => applyWaiterPreset('minimal')} 
+                  <PresetButton
+                    label={t("Minimal Garson")}
+                    onClick={() => applyWaiterPreset('minimal')}
                     colorClass="bg-blue-300"
                   />
-                  <PresetButton 
-                    label={t("Standart Garson")} 
-                    onClick={() => applyWaiterPreset('standard')} 
+                  <PresetButton
+                    label={t("Standart Garson")}
+                    onClick={() => applyWaiterPreset('standard')}
                     colorClass="bg-blue-500"
                   />
-                  <PresetButton 
-                    label={t("Baş Garson")} 
-                    onClick={() => applyWaiterPreset('head')} 
+                  <PresetButton
+                    label={t("Baş Garson")}
+                    onClick={() => applyWaiterPreset('head')}
                     colorClass="bg-blue-700"
                   />
                 </div>
               </div>
-              
+
               {/* Cashier Presets */}
               <div>
                 <h3 className="text-md font-medium text-gray-700 mb-3 flex items-center">
@@ -720,25 +748,25 @@ export default function PermissionsPanel() {
                   <TranslatedText>Kasa Şablonları</TranslatedText>
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  <PresetButton 
-                    label={t("Minimal Kasa")} 
-                    onClick={() => applyCashierPreset('minimal')} 
+                  <PresetButton
+                    label={t("Minimal Kasa")}
+                    onClick={() => applyCashierPreset('minimal')}
                     colorClass="bg-green-300"
                   />
-                  <PresetButton 
-                    label={t("Standart Kasa")} 
-                    onClick={() => applyCashierPreset('standard')} 
+                  <PresetButton
+                    label={t("Standart Kasa")}
+                    onClick={() => applyCashierPreset('standard')}
                     colorClass="bg-green-500"
                   />
-                  <PresetButton 
-                    label={t("Yönetici Kasa")} 
-                    onClick={() => applyCashierPreset('manager')} 
+                  <PresetButton
+                    label={t("Yönetici Kasa")}
+                    onClick={() => applyCashierPreset('manager')}
                     colorClass="bg-green-700"
                   />
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-start">
                 <FaQuestionCircle className="text-blue-500 mt-1 mr-3" />
@@ -764,7 +792,7 @@ export default function PermissionsPanel() {
               onSelectAll={handleSelectAllKitchen}
               loading={loading}
             />
-            
+
             {/* Waiter Permissions */}
             <RoleCard
               title={t("Garson")}
@@ -776,7 +804,7 @@ export default function PermissionsPanel() {
               onSelectAll={handleSelectAllWaiter}
               loading={loading}
             />
-            
+
             {/* Cashier Permissions */}
             <RoleCard
               title={t("Kasa")}
@@ -789,7 +817,7 @@ export default function PermissionsPanel() {
               loading={loading}
             />
           </div>
-          
+
           {/* Legend */}
           <div className="mt-6 bg-white rounded-lg shadow-sm p-4">
             <h3 className="font-medium text-gray-800 mb-3">
