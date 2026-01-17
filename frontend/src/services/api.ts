@@ -23,19 +23,28 @@ class ApiService {
       const subdomain = typeof window !== 'undefined'
         ? window.location.hostname.split('.')[0]
         : null;
+        
+      // Staff token'i al
+      const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
 
-      // Subdomain'i her zaman gönder (test için)
+      // Subdomain'i ve token'i her zaman gönder
       const headers = {
         'Content-Type': 'application/json',
-        'X-Subdomain': subdomain || 'hazal', // Fallback olarak hazal kullan
+        'X-Subdomain': subdomain || 'kroren', // Fallback olarak kroren kullan
         ...options.headers,
       };
+      
+      // Staff token varsa Authorization header'a ekle
+      if (staffToken) {
+        headers['Authorization'] = `Bearer ${staffToken}`;
+      }
 
       console.log('🌐 API Request:', {
         url,
         subdomain,
+        hasToken: !!staffToken,
         hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
-        headers
+        headers: { ...headers, Authorization: staffToken ? 'Bearer [HIDDEN]' : undefined }
       });
 
       const response = await fetch(url, {

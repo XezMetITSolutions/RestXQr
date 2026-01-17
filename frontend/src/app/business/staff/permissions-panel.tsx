@@ -471,11 +471,18 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       
       // Make direct API call to ensure it works
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+      
+      // Get subdomain from hostname
+      const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+      const subdomain = hostname.split('.')[0] || 'kroren';
+      console.log('Using subdomain for API request:', subdomain);
+      
       const response = await fetch(`${API_URL}/permissions/${authenticatedRestaurant.id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${staffToken}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Subdomain': subdomain
         }
       });
       
@@ -569,11 +576,18 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
 
       // Make direct API call to ensure it works
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+      
+      // Get subdomain from hostname
+      const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+      const subdomain = hostname.split('.')[0] || 'kroren';
+      console.log('Using subdomain for save API request:', subdomain);
+      
       const response = await fetch(`${API_URL}/permissions/${authenticatedRestaurant.id}/${roleKey}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${staffToken}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Subdomain': subdomain
         },
         body: JSON.stringify({ permissions })
       });
