@@ -309,6 +309,34 @@ export default function MutfakPanel() {
     return Math.floor(diffMs / (1000 * 60)); // dakika
   };
 
+  // Tahmini hazırlama süresini hesapla (toplam süre / ürün adeti)
+  const calculateEstimatedPrepTime = (items: OrderItem[]) => {
+    // Ürün başına ortalama hazırlama süresi (dakika)
+    const prepTimePerItemType = {
+      'izgara': 15, // Izgara istasyonu için ortalama 15 dakika
+      'makarna': 12, // Makarna istasyonu için ortalama 12 dakika
+      'soguk': 8,   // Soğuk istasyonu için ortalama 8 dakika
+      'tatli': 10,  // Tatlı istasyonu için ortalama 10 dakika
+      'default': 10 // Varsayılan hazırlama süresi
+    };
+    
+    let totalPrepTime = 0;
+    let totalQuantity = 0;
+    
+    items.forEach(item => {
+      const station = item.kitchenStation || 'default';
+      const prepTime = prepTimePerItemType[station as keyof typeof prepTimePerItemType] || prepTimePerItemType.default;
+      totalPrepTime += prepTime * item.quantity;
+      totalQuantity += item.quantity;
+    });
+    
+    // Toplam ürün adeti 0 ise, varsayılan süre döndür
+    if (totalQuantity === 0) return prepTimePerItemType.default;
+    
+    // Toplam süreyi ürün adetine böl ve yuvarla
+    return Math.round(totalPrepTime / totalQuantity);
+  };
+
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'pending':
@@ -645,7 +673,8 @@ export default function MutfakPanel() {
               <AnimatePresence mode="popLayout">
                 {filteredOrders.map((order) => {
                   const statusInfo = getStatusInfo(order.status);
-                  const estimatedTime = calculateTime(order.created_at);
+                  const waitTime = calculateTime(order.created_at);
+                  const estimatedPrepTime = calculateEstimatedPrepTime(order.items);
 
                   return (
                     <motion.div
@@ -717,7 +746,7 @@ export default function MutfakPanel() {
                           <div className="space-y-2 md:space-y-3">
                             <div className="flex justify-between items-center">
                               <span className="text-gray-600">Tahmini Süre:</span>
-                              <span className="font-semibold text-gray-800">{estimatedTime} dk</span>
+                              <span className="font-semibold text-gray-800">{estimatedPrepTime} dk</span>
                             </div>
                             {cleanNotes(order.notes) && (
                               <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
