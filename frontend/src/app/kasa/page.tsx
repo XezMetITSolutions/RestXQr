@@ -98,10 +98,12 @@ export default function KasaPanel() {
         }));
 
         const groupOrdersByTable = (orders: Order[]) => {
-          const grouped = new Map<number, Order[]>();
+          // Use Map<number | 'null', Order[]> to handle null table numbers
+          const grouped = new Map<number | 'null', Order[]>();
           
           orders.forEach(order => {
-            const tableNumber = order.tableNumber;
+            // Convert null/undefined table numbers to 'null' string key
+            const tableNumber = order.tableNumber != null ? order.tableNumber : 'null';
             if (!grouped.has(tableNumber)) {
               grouped.set(tableNumber, []);
             }
@@ -140,6 +142,9 @@ export default function KasaPanel() {
             return statusPriority[prev.status] > statusPriority[current.status] ? prev : current;
           }).status;
           
+          // Handle null/undefined table numbers
+          const tableNumberForId = latestOrder.tableNumber != null ? latestOrder.tableNumber : 'null';
+          
           return {
             ...latestOrder,
             items: allItems,
@@ -147,7 +152,7 @@ export default function KasaPanel() {
             paidAmount: totalPaidAmount,
             discountAmount: totalDiscountAmount,
             status: mostCriticalStatus,
-            id: `table-${latestOrder.tableNumber}-grouped`,
+            id: `table-${tableNumberForId}-grouped`,
             notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).join(' | ') || latestOrder.notes
           };
         };
@@ -412,11 +417,13 @@ export default function KasaPanel() {
                 >
                   <div className="bg-gray-50 p-5 flex justify-between items-center border-b">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-green-500 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg shadow-green-100">
-                        {order.tableNumber}
+                      <div className={`w-12 h-12 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg ${order.tableNumber != null ? 'bg-green-500 shadow-green-100' : 'bg-purple-500 shadow-purple-100'}`}>
+                        {order.tableNumber != null ? order.tableNumber : '?'}
                       </div>
                       <div>
-                        <div className="font-black text-gray-800">MASA {order.tableNumber}</div>
+                        <div className="font-black text-gray-800">
+                          {order.tableNumber != null ? `MASA ${order.tableNumber}` : 'MASASIZ SİPARİŞ'}
+                        </div>
                         <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
                       </div>
                     </div>
@@ -448,6 +455,71 @@ export default function KasaPanel() {
                         <span className="font-black text-green-700 text-xs uppercase">KALAN</span>
                         <span className="text-2xl font-black text-green-600 font-mono tracking-tighter">{(Number(order.totalAmount || 0) - Number(order.paidAmount || 0) - Number(order.discountAmount || 0)).toFixed(2)}₺</span>
                       </div>
+                      
+                      {/* Special delete button for null table orders */}
+                      {order.tableNumber == null && (
+                        <button 
+                          onClick={() => {
+                            if (confirm('Bu masasız siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
+                              // Handle grouped orders
+                              if (order.id.includes('grouped')) {
+                                // Find all orders without table numbers
+                                const nullTableOrders = orders.filter(o => o.tableNumber == null);
+                                
+                                if (nullTableOrders.length === 0) {
+                                  alert('Masasız sipariş bulunamadı');
+                                  fetchOrders();
+                                  return;
+                                }
+                                
+                                // Delete each order individually
+                                Promise.all(nullTableOrders.map(async (nullOrder) => {
+                                  try {
+                                    const response = await fetch(`${API_URL}/orders/${nullOrder.id}`, {
+                                      method: 'DELETE',
+                                      headers: { 'Accept': 'application/json' }
+                                    });
+                                    return response.ok;
+                                  } catch (error) {
+                                    console.error(`Sipariş silme hatası: ${nullOrder.id}`, error);
+                                    return false;
+                                  }
+                                })).then(results => {
+                                  const allSuccessful = results.every(result => result === true);
+                                  if (allSuccessful) {
+                                    alert('Tüm masasız siparişler başarıyla silindi');
+                                  } else {
+                                    alert('Bazı masasız siparişler silinemedi. Lütfen sayfayı yenileyip tekrar deneyin.');
+                                  }
+                                  fetchOrders();
+                                });
+                              } else {
+                                // Regular order deletion
+                                fetch(`${API_URL}/orders/${order.id}`, {
+                                  method: 'DELETE',
+                                  headers: { 'Accept': 'application/json' }
+                                }).then(response => {
+                                  if (response.ok) {
+                                    alert('Masasız sipariş başarıyla silindi');
+                                    fetchOrders();
+                                  } else {
+                                    alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
+                                    fetchOrders();
+                                  }
+                                }).catch(error => {
+                                  console.error('Sipariş silme hatası:', error);
+                                  alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
+                                  fetchOrders();
+                                });
+                              }
+                            }
+                          }}
+                          className="w-full mt-3 py-2 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <FaTrash size={14} />
+                          <span>MASASIZ SİPARİŞİ SİL</span>
+                        </button>
+                      )}
                     </div>
                     <div className="flex gap-3 mt-6">
                       <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
