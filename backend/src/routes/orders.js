@@ -296,6 +296,12 @@ router.options('/:id', (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    if (id.startsWith('table-') && id.endsWith('-grouped')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Grouped order ids are virtual. Update individual orders instead.'
+      });
+    }
     const { status, items, totalAmount, tableNumber, paidAmount, discountAmount, discountReason, cashierNote } = req.body;
     const allowed = ['pending', 'preparing', 'ready', 'completed', 'cancelled'];
     if (status && !allowed.includes(status)) {

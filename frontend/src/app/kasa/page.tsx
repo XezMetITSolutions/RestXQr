@@ -494,7 +494,13 @@ export default function KasaPanel() {
                         onClick={() => {
                           if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
                             if (order.id.includes('grouped')) {
-                              const tableNumber = parseInt(order.id.split('-')[1]);
+                              const tableNumberToken = order.id.split('-')[1];
+                              if (tableNumberToken === 'null') {
+                                alert('Masasız toplu sipariş silinemez. Lütfen tekli masasız siparişi silin.');
+                                fetchOrders();
+                                return;
+                              }
+                              const tableNumber = parseInt(tableNumberToken);
                               const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
                               
                               if (tableOrders.length === 0) {
