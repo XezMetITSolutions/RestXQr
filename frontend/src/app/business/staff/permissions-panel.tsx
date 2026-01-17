@@ -213,10 +213,10 @@ const PresetButton = ({
   );
 };
 
-export default function PermissionsPanel() {
+export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: boolean }) {
   const router = useRouter();
   const { t } = useTranslation();
-  const { authenticatedRestaurant, isAuthenticated, logout } = useAuthStore();
+  const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<null | 'success' | 'error'>(null);
   const [saveMessage, setSaveMessage] = useState('');
@@ -453,29 +453,68 @@ export default function PermissionsPanel() {
 
   // Load permissions from backend
   const loadPermissionsFromBackend = async () => {
-    if (!authenticatedRestaurant?.id) return;
+    if (!authenticatedRestaurant?.id) {
+      console.error('Cannot load permissions: Restaurant ID is missing');
+      return;
+    }
 
     try {
       setLoadingPermissions(true);
-
-      const allPermissions = await permissionsApi.loadAllPermissions(authenticatedRestaurant.id);
+      console.log(`Loading permissions for restaurant ${authenticatedRestaurant.id}...`);
+      
+      // Get staff token
+      const staffToken = localStorage.getItem('staff_token');
+      if (!staffToken) {
+        console.error('Cannot load permissions: Staff token is missing');
+        return;
+      }
+      
+      // Make direct API call to ensure it works
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+      const response = await fetch(`${API_URL}/permissions/${authenticatedRestaurant.id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${staffToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error(`API error loading permissions: ${response.status}`);
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Permissions API response:', data);
+      
+      if (!data.success) {
+        console.error('API returned error:', data.message);
+        throw new Error(data.message || 'Failed to load permissions');
+      }
+      
+      const allPermissions = data.permissions || { kitchen: [], waiter: [], cashier: [] };
 
       // Update state with loaded permissions if available
       if (allPermissions.kitchen?.length > 0) {
+        console.log('Setting kitchen permissions:', allPermissions.kitchen);
         setKitchenPermissions(allPermissions.kitchen);
       }
 
       if (allPermissions.waiter?.length > 0) {
+        console.log('Setting waiter permissions:', allPermissions.waiter);
         setWaiterPermissions(allPermissions.waiter);
       }
 
       if (allPermissions.cashier?.length > 0) {
+        console.log('Setting cashier permissions:', allPermissions.cashier);
         setCashierPermissions(allPermissions.cashier);
       }
 
-      console.log('✅ Permissions loaded from backend');
-    } catch (error) {
+      console.log('✅ Permissions loaded from backend successfully');
+    } catch (error: any) {
       console.error('❌ Error loading permissions:', error);
+      setSaveStatus('error');
+      setSaveMessage(`Yetkiler yüklenirken hata oluştu: ${error.message || 'Bilinmeyen hata'}`);
       // Fallback to default permissions already in state
     } finally {
       setLoadingPermissions(false);
@@ -487,6 +526,7 @@ export default function PermissionsPanel() {
     if (!authenticatedRestaurant?.id) {
       setSaveStatus('error');
       setSaveMessage(t('Restoran bilgisi bulunamadı'));
+      console.error('Cannot save permissions: Restaurant ID is missing');
       return;
     }
 
@@ -495,34 +535,65 @@ export default function PermissionsPanel() {
 
     try {
       let success = false;
+      let roleKey = '';
+      let permissions: Permission[] = [];
 
       // Role'e göre ilgili izinleri gönder
       if (role === 'Mutfak') {
-        success = await permissionsApi.updatePermissions(
-          authenticatedRestaurant.id,
-          'kitchen',
-          kitchenPermissions
-        );
+        roleKey = 'kitchen';
+        permissions = kitchenPermissions;
       } else if (role === 'Garson') {
-        success = await permissionsApi.updatePermissions(
-          authenticatedRestaurant.id,
-          'waiter',
-          waiterPermissions
-        );
+        roleKey = 'waiter';
+        permissions = waiterPermissions;
       } else if (role === 'Kasa') {
-        success = await permissionsApi.updatePermissions(
-          authenticatedRestaurant.id,
-          'cashier',
-          cashierPermissions
-        );
+        roleKey = 'cashier';
+        permissions = cashierPermissions;
       }
 
-      if (success) {
+      // Debug log
+      console.log(`Saving ${roleKey} permissions for restaurant ${authenticatedRestaurant.id}:`, {
+        restaurantId: authenticatedRestaurant.id,
+        role: roleKey,
+        permissionsCount: permissions.length,
+        permissions: permissions
+      });
+
+      // Get staff token
+      const staffToken = localStorage.getItem('staff_token');
+      if (!staffToken) {
+        console.error('Cannot save permissions: Staff token is missing');
+        setSaveStatus('error');
+        setSaveMessage(`${role} yetkileri kaydedilemedi: Oturum bilgisi eksik`);
+        return;
+      }
+
+      // Make direct API call to ensure it works
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+      const response = await fetch(`${API_URL}/permissions/${authenticatedRestaurant.id}/${roleKey}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${staffToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ permissions })
+      });
+
+      const data = await response.json();
+      console.log(`API Response for ${roleKey} permissions:`, data);
+
+      if (response.ok && data.success) {
+        success = true;
         setSaveStatus('success');
         setSaveMessage(`${role} yetkileri başarıyla kaydedildi.`);
+        
+        // Reload permissions to confirm changes were saved
+        setTimeout(() => {
+          loadPermissionsFromBackend();
+        }, 1000);
       } else {
+        console.error(`API error saving ${roleKey} permissions:`, { status: response.status, data });
         setSaveStatus('error');
-        setSaveMessage(`${role} yetkileri kaydedilirken hata oluştu.`);
+        setSaveMessage(`${role} yetkileri kaydedilirken hata oluştu: ${data.message || 'API hatası'}`);
       }
     } catch (error: any) {
       console.error(`Error saving ${role} permissions:`, error);
@@ -531,11 +602,11 @@ export default function PermissionsPanel() {
     } finally {
       setLoading(false);
 
-      // 3 saniye sonra mesajı temizle
+      // 5 saniye sonra mesajı temizle
       setTimeout(() => {
         setSaveStatus(null);
         setSaveMessage('');
-      }, 3000);
+      }, 5000);
     }
   };
 
@@ -629,6 +700,203 @@ export default function PermissionsPanel() {
     router.push('/login');
   };
 
+  const content = (
+    <div className={`${isEmbedded ? '' : 'p-4 sm:p-6 lg:p-8'}`}>
+      {/* Save Status Message */}
+      {saveStatus && (
+        <div className={`mb-6 p-4 rounded-lg ${saveStatus === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+          }`}>
+          <div className="flex items-center">
+            {saveStatus === 'success' ? (
+              <FaCheckCircle className="text-green-500 mr-3" />
+            ) : (
+              <FaTimesCircle className="text-red-500 mr-3" />
+            )}
+            <p className={saveStatus === 'success' ? 'text-green-700' : 'text-red-700'}>
+              {saveMessage}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Presets Section */}
+      <div className="bg-white rounded-xl shadow-sm p-5 mb-6">
+        <div className="flex items-center mb-4">
+          <FaUserShield className="text-purple-600 mr-2 text-lg" />
+          <h2 className="text-lg font-semibold text-gray-800">
+            <TranslatedText>Hazır Şablonlar</TranslatedText>
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Kitchen Presets */}
+          <div>
+            <h3 className="text-md font-medium text-gray-700 mb-3 flex items-center">
+              <FaUtensils className="text-orange-500 mr-2" />
+              <TranslatedText>Mutfak Şablonları</TranslatedText>
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              <PresetButton
+                label={t("Minimal Mutfak")}
+                onClick={() => applyKitchenPreset('minimal')}
+                colorClass="bg-orange-300"
+              />
+              <PresetButton
+                label={t("Standart Mutfak")}
+                onClick={() => applyKitchenPreset('standard')}
+                colorClass="bg-orange-500"
+              />
+              <PresetButton
+                label={t("Şef Yetkisi")}
+                onClick={() => applyKitchenPreset('chef')}
+                colorClass="bg-orange-700"
+              />
+            </div>
+          </div>
+
+          {/* Waiter Presets */}
+          <div>
+            <h3 className="text-md font-medium text-gray-700 mb-3 flex items-center">
+              <FaUser className="text-blue-500 mr-2" />
+              <TranslatedText>Garson Şablonları</TranslatedText>
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              <PresetButton
+                label={t("Minimal Garson")}
+                onClick={() => applyWaiterPreset('minimal')}
+                colorClass="bg-blue-300"
+              />
+              <PresetButton
+                label={t("Standart Garson")}
+                onClick={() => applyWaiterPreset('standard')}
+                colorClass="bg-blue-500"
+              />
+              <PresetButton
+                label={t("Baş Garson")}
+                onClick={() => applyWaiterPreset('head')}
+                colorClass="bg-blue-700"
+              />
+            </div>
+          </div>
+
+          {/* Cashier Presets */}
+          <div>
+            <h3 className="text-md font-medium text-gray-700 mb-3 flex items-center">
+              <FaMoneyBillWave className="text-green-500 mr-2" />
+              <TranslatedText>Kasa Şablonları</TranslatedText>
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              <PresetButton
+                label={t("Minimal Kasa")}
+                onClick={() => applyCashierPreset('minimal')}
+                colorClass="bg-green-300"
+              />
+              <PresetButton
+                label={t("Standart Kasa")}
+                onClick={() => applyCashierPreset('standard')}
+                colorClass="bg-green-500"
+              />
+              <PresetButton
+                label={t("Yönetici Kasa")}
+                onClick={() => applyCashierPreset('manager')}
+                colorClass="bg-green-700"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start">
+            <FaQuestionCircle className="text-blue-500 mt-1 mr-3" />
+            <p className="text-sm text-blue-700">
+              <TranslatedText>
+                Hazır şablonlar, yetkileri hızlıca yapılandırmanızı sağlar. Şablonu seçtikten sonra, ihtiyacınıza göre yetkileri özelleştirebilirsiniz. Kilitli yetkiler değiştirilemez.
+              </TranslatedText>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Permissions Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Kitchen Permissions */}
+        <RoleCard
+          title={t("Mutfak")}
+          permissions={kitchenPermissions}
+          colorClass="bg-orange-500"
+          headerBgClass="bg-orange-600"
+          onPermissionChange={handleKitchenPermissionChange}
+          onSave={() => handleSave('Mutfak')}
+          onSelectAll={handleSelectAllKitchen}
+          loading={loading}
+        />
+
+        {/* Waiter Permissions */}
+        <RoleCard
+          title={t("Garson")}
+          permissions={waiterPermissions}
+          colorClass="bg-blue-500"
+          headerBgClass="bg-blue-600"
+          onPermissionChange={handleWaiterPermissionChange}
+          onSave={() => handleSave('Garson')}
+          onSelectAll={handleSelectAllWaiter}
+          loading={loading}
+        />
+
+        {/* Cashier Permissions */}
+        <RoleCard
+          title={t("Kasa")}
+          permissions={cashierPermissions}
+          colorClass="bg-green-500"
+          headerBgClass="bg-green-600"
+          onPermissionChange={handleCashierPermissionChange}
+          onSave={() => handleSave('Kasa')}
+          onSelectAll={handleSelectAllCashier}
+          loading={loading}
+        />
+      </div>
+
+      {/* Legend */}
+      <div className="mt-6 bg-white rounded-lg shadow-sm p-4">
+        <h3 className="font-medium text-gray-800 mb-3">
+          <TranslatedText>Açıklamalar</TranslatedText>
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center">
+            <div className="w-4 h-4 bg-gray-300 rounded-full mr-2"></div>
+            <span className="text-sm text-gray-600">
+              <TranslatedText>Devre dışı yetki</TranslatedText>
+            </span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
+            <span className="text-sm text-gray-600">
+              <TranslatedText>Etkin yetki</TranslatedText>
+            </span>
+          </div>
+          <div className="flex items-center">
+            <FaInfoCircle className="text-gray-400 mr-2" />
+            <span className="text-sm text-gray-600">
+              <TranslatedText>Bilgi ikonu üzerine gelerek detaylı açıklama görebilirsiniz</TranslatedText>
+            </span>
+          </div>
+          <div className="flex items-center">
+            <div className="opacity-50 mr-2 flex items-center">
+              <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
+            </div>
+            <span className="text-sm text-gray-600">
+              <TranslatedText>Kilitli yetkiler değiştirilemez</TranslatedText>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (isEmbedded) {
+    return content;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <BusinessSidebar
@@ -663,196 +931,7 @@ export default function PermissionsPanel() {
           </div>
         </header>
 
-        <div className="p-4 sm:p-6 lg:p-8">
-          {/* Save Status Message */}
-          {saveStatus && (
-            <div className={`mb-6 p-4 rounded-lg ${saveStatus === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-              }`}>
-              <div className="flex items-center">
-                {saveStatus === 'success' ? (
-                  <FaCheckCircle className="text-green-500 mr-3" />
-                ) : (
-                  <FaTimesCircle className="text-red-500 mr-3" />
-                )}
-                <p className={saveStatus === 'success' ? 'text-green-700' : 'text-red-700'}>
-                  {saveMessage}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Presets Section */}
-          <div className="bg-white rounded-xl shadow-sm p-5 mb-6">
-            <div className="flex items-center mb-4">
-              <FaUserShield className="text-purple-600 mr-2 text-lg" />
-              <h2 className="text-lg font-semibold text-gray-800">
-                <TranslatedText>Hazır Şablonlar</TranslatedText>
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Kitchen Presets */}
-              <div>
-                <h3 className="text-md font-medium text-gray-700 mb-3 flex items-center">
-                  <FaUtensils className="text-orange-500 mr-2" />
-                  <TranslatedText>Mutfak Şablonları</TranslatedText>
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  <PresetButton
-                    label={t("Minimal Mutfak")}
-                    onClick={() => applyKitchenPreset('minimal')}
-                    colorClass="bg-orange-300"
-                  />
-                  <PresetButton
-                    label={t("Standart Mutfak")}
-                    onClick={() => applyKitchenPreset('standard')}
-                    colorClass="bg-orange-500"
-                  />
-                  <PresetButton
-                    label={t("Şef Yetkisi")}
-                    onClick={() => applyKitchenPreset('chef')}
-                    colorClass="bg-orange-700"
-                  />
-                </div>
-              </div>
-
-              {/* Waiter Presets */}
-              <div>
-                <h3 className="text-md font-medium text-gray-700 mb-3 flex items-center">
-                  <FaUser className="text-blue-500 mr-2" />
-                  <TranslatedText>Garson Şablonları</TranslatedText>
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  <PresetButton
-                    label={t("Minimal Garson")}
-                    onClick={() => applyWaiterPreset('minimal')}
-                    colorClass="bg-blue-300"
-                  />
-                  <PresetButton
-                    label={t("Standart Garson")}
-                    onClick={() => applyWaiterPreset('standard')}
-                    colorClass="bg-blue-500"
-                  />
-                  <PresetButton
-                    label={t("Baş Garson")}
-                    onClick={() => applyWaiterPreset('head')}
-                    colorClass="bg-blue-700"
-                  />
-                </div>
-              </div>
-
-              {/* Cashier Presets */}
-              <div>
-                <h3 className="text-md font-medium text-gray-700 mb-3 flex items-center">
-                  <FaMoneyBillWave className="text-green-500 mr-2" />
-                  <TranslatedText>Kasa Şablonları</TranslatedText>
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  <PresetButton
-                    label={t("Minimal Kasa")}
-                    onClick={() => applyCashierPreset('minimal')}
-                    colorClass="bg-green-300"
-                  />
-                  <PresetButton
-                    label={t("Standart Kasa")}
-                    onClick={() => applyCashierPreset('standard')}
-                    colorClass="bg-green-500"
-                  />
-                  <PresetButton
-                    label={t("Yönetici Kasa")}
-                    onClick={() => applyCashierPreset('manager')}
-                    colorClass="bg-green-700"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start">
-                <FaQuestionCircle className="text-blue-500 mt-1 mr-3" />
-                <p className="text-sm text-blue-700">
-                  <TranslatedText>
-                    Hazır şablonlar, yetkileri hızlıca yapılandırmanızı sağlar. Şablonu seçtikten sonra, ihtiyacınıza göre yetkileri özelleştirebilirsiniz. Kilitli yetkiler değiştirilemez.
-                  </TranslatedText>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Permissions Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Kitchen Permissions */}
-            <RoleCard
-              title={t("Mutfak")}
-              permissions={kitchenPermissions}
-              colorClass="bg-orange-500"
-              headerBgClass="bg-orange-600"
-              onPermissionChange={handleKitchenPermissionChange}
-              onSave={() => handleSave('Mutfak')}
-              onSelectAll={handleSelectAllKitchen}
-              loading={loading}
-            />
-
-            {/* Waiter Permissions */}
-            <RoleCard
-              title={t("Garson")}
-              permissions={waiterPermissions}
-              colorClass="bg-blue-500"
-              headerBgClass="bg-blue-600"
-              onPermissionChange={handleWaiterPermissionChange}
-              onSave={() => handleSave('Garson')}
-              onSelectAll={handleSelectAllWaiter}
-              loading={loading}
-            />
-
-            {/* Cashier Permissions */}
-            <RoleCard
-              title={t("Kasa")}
-              permissions={cashierPermissions}
-              colorClass="bg-green-500"
-              headerBgClass="bg-green-600"
-              onPermissionChange={handleCashierPermissionChange}
-              onSave={() => handleSave('Kasa')}
-              onSelectAll={handleSelectAllCashier}
-              loading={loading}
-            />
-          </div>
-
-          {/* Legend */}
-          <div className="mt-6 bg-white rounded-lg shadow-sm p-4">
-            <h3 className="font-medium text-gray-800 mb-3">
-              <TranslatedText>Açıklamalar</TranslatedText>
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-gray-300 rounded-full mr-2"></div>
-                <span className="text-sm text-gray-600">
-                  <TranslatedText>Devre dışı yetki</TranslatedText>
-                </span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
-                <span className="text-sm text-gray-600">
-                  <TranslatedText>Etkin yetki</TranslatedText>
-                </span>
-              </div>
-              <div className="flex items-center">
-                <FaInfoCircle className="text-gray-400 mr-2" />
-                <span className="text-sm text-gray-600">
-                  <TranslatedText>Bilgi ikonu üzerine gelerek detaylı açıklama görebilirsiniz</TranslatedText>
-                </span>
-              </div>
-              <div className="flex items-center">
-                <div className="opacity-50 mr-2 flex items-center">
-                  <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
-                </div>
-                <span className="text-sm text-gray-600">
-                  <TranslatedText>Kilitli yetkiler değiştirilemez</TranslatedText>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        {content}
       </div>
     </div>
   );
