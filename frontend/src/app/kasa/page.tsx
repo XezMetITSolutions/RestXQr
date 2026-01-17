@@ -457,61 +457,26 @@ export default function KasaPanel() {
                       </div>
                       
                       {/* Special delete button for null table orders */}
-                      {order.tableNumber == null && (
+                      {order.tableNumber == null && !order.id.includes('grouped') && (
                         <button 
                           onClick={() => {
                             if (confirm('Bu masasız siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
-                              // Handle grouped orders
-                              if (order.id.includes('grouped')) {
-                                // Find all orders without table numbers
-                                const nullTableOrders = orders.filter(o => o.tableNumber == null);
-                                
-                                if (nullTableOrders.length === 0) {
-                                  alert('Masasız sipariş bulunamadı');
+                              fetch(`${API_URL}/orders/${order.id}`, {
+                                method: 'DELETE',
+                                headers: { 'Accept': 'application/json' }
+                              }).then(response => {
+                                if (response.ok) {
+                                  alert('Masasız sipariş başarıyla silindi');
                                   fetchOrders();
-                                  return;
+                                } else {
+                                  alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
+                                  fetchOrders();
                                 }
-                                
-                                // Delete each order individually
-                                Promise.all(nullTableOrders.map(async (nullOrder) => {
-                                  try {
-                                    const response = await fetch(`${API_URL}/orders/${nullOrder.id}`, {
-                                      method: 'DELETE',
-                                      headers: { 'Accept': 'application/json' }
-                                    });
-                                    return response.ok;
-                                  } catch (error) {
-                                    console.error(`Sipariş silme hatası: ${nullOrder.id}`, error);
-                                    return false;
-                                  }
-                                })).then(results => {
-                                  const allSuccessful = results.every(result => result === true);
-                                  if (allSuccessful) {
-                                    alert('Tüm masasız siparişler başarıyla silindi');
-                                  } else {
-                                    alert('Bazı masasız siparişler silinemedi. Lütfen sayfayı yenileyip tekrar deneyin.');
-                                  }
-                                  fetchOrders();
-                                });
-                              } else {
-                                // Regular order deletion
-                                fetch(`${API_URL}/orders/${order.id}`, {
-                                  method: 'DELETE',
-                                  headers: { 'Accept': 'application/json' }
-                                }).then(response => {
-                                  if (response.ok) {
-                                    alert('Masasız sipariş başarıyla silindi');
-                                    fetchOrders();
-                                  } else {
-                                    alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
-                                    fetchOrders();
-                                  }
-                                }).catch(error => {
-                                  console.error('Sipariş silme hatası:', error);
-                                  alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
-                                  fetchOrders();
-                                });
-                              }
+                              }).catch(error => {
+                                console.error('Sipariş silme hatası:', error);
+                                alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
+                                fetchOrders();
+                              });
                             }
                           }}
                           className="w-full mt-3 py-2 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"

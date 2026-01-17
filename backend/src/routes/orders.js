@@ -261,6 +261,12 @@ router.delete('/:id', async (req, res) => {
   console.log(`🗑️ DELETE /api/orders/${id} isteği alındı`);
 
   try {
+    if (id.startsWith('table-') && id.endsWith('-grouped')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Grouped order ids are virtual. Delete individual orders instead.'
+      });
+    }
     const order = await Order.findByPk(id);
 
     if (!order) {
