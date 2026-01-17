@@ -593,6 +593,22 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       }
       
       if (!authToken) {
+        try {
+          console.log('🔄 No token found, requesting bootstrap token...');
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+          const tokenResponse = await fetch(`${API_URL}/auth/token/${authenticatedRestaurant.id}`);
+          const tokenData = await tokenResponse.json();
+          if (tokenResponse.ok && tokenData?.data?.token) {
+            authToken = tokenData.data.token;
+            localStorage.setItem('business_token', tokenData.data.token);
+            console.log('✅ Bootstrap token stored as business_token');
+          }
+        } catch (tokenError) {
+          console.error('❌ Token bootstrap failed:', tokenError);
+        }
+      }
+
+      if (!authToken) {
         console.error('❌ Cannot save permissions: No authentication token found');
         console.error('❌ Available localStorage keys:', Object.keys(localStorage));
         setSaveStatus('error');

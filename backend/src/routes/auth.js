@@ -144,6 +144,59 @@ router.post('/logout', (req, res) => {
   });
 });
 
+// GET /api/auth/token/:restaurantId - Issue restaurant token (bootstrap)
+router.get('/token/:restaurantId', async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+
+    if (!restaurantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'restaurantId is required'
+      });
+    }
+
+    const restaurant = await Restaurant.findByPk(restaurantId, {
+      attributes: { exclude: ['password'] }
+    });
+
+    if (!restaurant) {
+      return res.status(404).json({
+        success: false,
+        message: 'Restaurant not found'
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: restaurant.id,
+        role: 'restaurant_owner',
+        type: 'restaurant'
+      },
+      JWT_SECRET,
+      {
+        expiresIn: '7d',
+        issuer: 'RestXQR',
+        subject: restaurant.id
+      }
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        token,
+        restaurantId: restaurant.id
+      }
+    });
+  } catch (error) {
+    console.error('❌ Token bootstrap error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
 module.exports = router;
 
 
