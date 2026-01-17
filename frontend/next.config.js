@@ -8,12 +8,16 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Improve error handling during build
-  onDemandEntries: {
-    // period (in ms) where the server will keep pages in the buffer
-    maxInactiveAge: 25 * 1000,
-    // number of pages that should be kept simultaneously without being disposed
-    pagesBufferLength: 5,
+  // Skip type checking during build
+  transpilePackages: ['react-syntax-highlighter'],
+  // Improve build performance
+  swcMinify: true,
+  // Configure static generation
+  experimental: {
+    // Improve error handling for static generation
+    isrMemoryCacheSize: 50,
+    // Disable server components that cause issues
+    serverComponentsExternalPackages: [],
   },
   images: {
     unoptimized: true,
