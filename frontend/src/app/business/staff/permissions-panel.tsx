@@ -580,20 +580,27 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       });
 
       // Get staff token or business token
+      console.log('🔍 DEBUG: Checking localStorage for tokens...');
+      console.log('🔍 DEBUG: All localStorage keys:', Object.keys(localStorage));
+      
       let authToken = localStorage.getItem('staff_token');
+      console.log('🔍 DEBUG: staff_token:', authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND');
+      
       if (!authToken) {
         // Fallback to business token if staff token is not available
         authToken = localStorage.getItem('business_token');
+        console.log('🔍 DEBUG: business_token:', authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND');
       }
       
       if (!authToken) {
-        console.error('Cannot save permissions: No authentication token found');
+        console.error('❌ Cannot save permissions: No authentication token found');
+        console.error('❌ Available localStorage keys:', Object.keys(localStorage));
         setSaveStatus('error');
-        setSaveMessage(`${role} yetkileri kaydedilemedi: Oturum bilgisi eksik`);
+        setSaveMessage(`${role} yetkileri kaydedilemedi: Oturum bilgisi eksik (Token bulunamadı)`);
         return;
       }
       
-      console.log('Using auth token for save:', authToken.substring(0, 10) + '...');
+      console.log('✅ Using auth token for save:', authToken.substring(0, 10) + '...');
 
       // Make direct API call to ensure it works
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
@@ -606,6 +613,17 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       const token = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
       console.log('Using authorization header for save:', token.substring(0, 15) + '...');
       
+      console.log('🚀 Making API request:', {
+        url: `${API_URL}/permissions/${authenticatedRestaurant.id}/${roleKey}`,
+        method: 'POST',
+        headers: {
+          'Authorization': token.substring(0, 20) + '...',
+          'Content-Type': 'application/json',
+          'X-Subdomain': subdomain
+        },
+        bodySize: JSON.stringify({ permissions }).length
+      });
+
       const response = await fetch(`${API_URL}/permissions/${authenticatedRestaurant.id}/${roleKey}`, {
         method: 'POST',
         headers: {
@@ -619,10 +637,11 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       });
       
       // Log response status for debugging
-      console.log('Save permissions API response status:', response.status);
+      console.log('📥 Save permissions API response status:', response.status);
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
       
       const data = await response.json();
-      console.log(`API Response for ${roleKey} permissions:`, data);
+      console.log(`📥 API Response for ${roleKey} permissions:`, data);
 
       if (response.ok && data.success) {
         success = true;
@@ -745,6 +764,19 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
 
   const content = (
     <div className={`${isEmbedded ? '' : 'p-4 sm:p-6 lg:p-8'}`}>
+      {/* Debug Info Panel */}
+      <div className="mb-6 bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs">
+        <div className="font-bold mb-2">🔍 DEBUG INFO:</div>
+        <div>Restaurant ID: {authenticatedRestaurant?.id || 'NOT SET'}</div>
+        <div>Restaurant Name: {authenticatedRestaurant?.name || 'NOT SET'}</div>
+        <div className="mt-2 font-bold">LocalStorage Tokens:</div>
+        <div>staff_token: {typeof window !== 'undefined' && localStorage.getItem('staff_token') ? localStorage.getItem('staff_token')?.substring(0, 30) + '...' : '❌ NOT FOUND'}</div>
+        <div>business_token: {typeof window !== 'undefined' && localStorage.getItem('business_token') ? localStorage.getItem('business_token')?.substring(0, 30) + '...' : '❌ NOT FOUND'}</div>
+        <div>currentRestaurant: {typeof window !== 'undefined' && localStorage.getItem('currentRestaurant') ? '✅ EXISTS' : '❌ NOT FOUND'}</div>
+        <div className="mt-2 font-bold">All localStorage keys:</div>
+        <div>{typeof window !== 'undefined' ? Object.keys(localStorage).join(', ') : 'N/A'}</div>
+      </div>
+
       {/* Save Status Message */}
       {saveStatus && (
         <div className={`mb-6 p-4 rounded-lg ${saveStatus === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
