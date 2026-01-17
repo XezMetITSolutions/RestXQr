@@ -515,6 +515,13 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       
       const allPermissions = data.permissions || { kitchen: [], waiter: [], cashier: [] };
 
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          `permissions_${authenticatedRestaurant.id}`,
+          JSON.stringify(allPermissions)
+        );
+      }
+
       // Update state with loaded permissions if available
       if (allPermissions.kitchen?.length > 0) {
         console.log('Setting kitchen permissions:', allPermissions.kitchen);
@@ -536,6 +543,20 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       console.error('❌ Error loading permissions:', error);
       setSaveStatus('error');
       setSaveMessage(`Yetkiler yüklenirken hata oluştu: ${error.message || 'Bilinmeyen hata'}`);
+      // Fallback to localStorage if available
+      if (typeof window !== 'undefined' && authenticatedRestaurant?.id) {
+        const cachedPermissions = localStorage.getItem(`permissions_${authenticatedRestaurant.id}`);
+        if (cachedPermissions) {
+          try {
+            const parsed = JSON.parse(cachedPermissions);
+            if (parsed.kitchen) setKitchenPermissions(parsed.kitchen);
+            if (parsed.waiter) setWaiterPermissions(parsed.waiter);
+            if (parsed.cashier) setCashierPermissions(parsed.cashier);
+          } catch (cacheError) {
+            console.warn('Failed to parse cached permissions:', cacheError);
+          }
+        }
+      }
       // Fallback to default permissions already in state
     } finally {
       setLoadingPermissions(false);
@@ -663,6 +684,17 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
         success = true;
         setSaveStatus('success');
         setSaveMessage(`${role} yetkileri başarıyla kaydedildi.`);
+
+        if (typeof window !== 'undefined' && authenticatedRestaurant?.id) {
+          const cacheKey = `permissions_${authenticatedRestaurant.id}`;
+          const cached = localStorage.getItem(cacheKey);
+          let nextCache = cached ? JSON.parse(cached) : {};
+          nextCache = {
+            ...nextCache,
+            [roleKey]: permissions
+          };
+          localStorage.setItem(cacheKey, JSON.stringify(nextCache));
+        }
         
         // Reload permissions to confirm changes were saved
         setTimeout(() => {
