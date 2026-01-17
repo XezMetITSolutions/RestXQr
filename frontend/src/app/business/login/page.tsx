@@ -97,6 +97,14 @@ export default function LoginPage() {
       if (response.success && response.data) {
         loginRestaurant(response.data);
 
+        // Save business token to localStorage
+        if (response.data.token) {
+          const token = response.data.token.startsWith('Bearer ') 
+            ? response.data.token 
+            : `Bearer ${response.data.token}`;
+          localStorage.setItem('business_token', token);
+        }
+
         if (rememberMe) {
           localStorage.setItem('rememberedUsername', username);
           localStorage.setItem('rememberMe', 'true');
