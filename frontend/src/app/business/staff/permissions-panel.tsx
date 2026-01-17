@@ -641,7 +641,7 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       });
 
       const response = await fetch(`${API_URL}/permissions/${authenticatedRestaurant.id}/${roleKey}`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Authorization': token,
           'Content-Type': 'application/json',
@@ -780,19 +780,6 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
 
   const content = (
     <div className={`${isEmbedded ? '' : 'p-4 sm:p-6 lg:p-8'}`}>
-      {/* Debug Info Panel */}
-      <div className="mb-6 bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs">
-        <div className="font-bold mb-2">🔍 DEBUG INFO:</div>
-        <div>Restaurant ID: {authenticatedRestaurant?.id || 'NOT SET'}</div>
-        <div>Restaurant Name: {authenticatedRestaurant?.name || 'NOT SET'}</div>
-        <div className="mt-2 font-bold">LocalStorage Tokens:</div>
-        <div>staff_token: {typeof window !== 'undefined' && localStorage.getItem('staff_token') ? localStorage.getItem('staff_token')?.substring(0, 30) + '...' : '❌ NOT FOUND'}</div>
-        <div>business_token: {typeof window !== 'undefined' && localStorage.getItem('business_token') ? localStorage.getItem('business_token')?.substring(0, 30) + '...' : '❌ NOT FOUND'}</div>
-        <div>currentRestaurant: {typeof window !== 'undefined' && localStorage.getItem('currentRestaurant') ? '✅ EXISTS' : '❌ NOT FOUND'}</div>
-        <div className="mt-2 font-bold">All localStorage keys:</div>
-        <div>{typeof window !== 'undefined' ? Object.keys(localStorage).join(', ') : 'N/A'}</div>
-      </div>
-
       {/* Save Status Message */}
       {saveStatus && (
         <div className={`mb-6 p-4 rounded-lg ${saveStatus === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
