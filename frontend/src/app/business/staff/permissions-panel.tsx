@@ -479,14 +479,21 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       const subdomain = hostname.split('.')[0] || 'kroren';
       console.log('Using subdomain for API request:', subdomain);
       
+      // Ensure token is properly formatted
+      const token = staffToken.startsWith('Bearer ') ? staffToken : `Bearer ${staffToken}`;
+      console.log('Using authorization header:', token.substring(0, 15) + '...');
+      
       const response = await fetch(`${API_URL}/permissions/${authenticatedRestaurant.id}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${staffToken}`,
+          'Authorization': token,
           'Content-Type': 'application/json',
           'X-Subdomain': subdomain
         }
       });
+      
+      // Log response status for debugging
+      console.log('Permissions API response status:', response.status);
       
       if (!response.ok) {
         console.error(`API error loading permissions: ${response.status}`);
@@ -586,16 +593,24 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       const subdomain = hostname.split('.')[0] || 'kroren';
       console.log('Using subdomain for save API request:', subdomain);
       
+      const token = staffToken.startsWith('Bearer ') ? staffToken : `Bearer ${staffToken}`;
+      console.log('Using authorization header for save:', token.substring(0, 15) + '...');
+      
       const response = await fetch(`${API_URL}/permissions/${authenticatedRestaurant.id}/${roleKey}`, {
-        method: 'PUT',
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${staffToken}`,
+          'Authorization': token,
           'Content-Type': 'application/json',
           'X-Subdomain': subdomain
         },
-        body: JSON.stringify({ permissions })
+        body: JSON.stringify({
+          permissions: permissions
+        })
       });
-
+      
+      // Log response status for debugging
+      console.log('Save permissions API response status:', response.status);
+      
       const data = await response.json();
       console.log(`API Response for ${roleKey} permissions:`, data);
 
