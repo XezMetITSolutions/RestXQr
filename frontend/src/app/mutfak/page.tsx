@@ -204,6 +204,35 @@ export default function MutfakPanel() {
       // Optimistic update
       setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
 
+      // Handle grouped orders differently
+      if (orderId.includes('table-') && orderId.includes('-grouped')) {
+        // For grouped orders, we need to extract the table number and delete all orders for that table
+        const tableMatch = orderId.match(/table-(\d+)-grouped/);
+        if (tableMatch && tableMatch[1]) {
+          const tableNumber = tableMatch[1];
+          console.log(`Grouped order deletion for table ${tableNumber}`);
+          // This endpoint should be implemented on the backend to handle grouped order deletion
+          const response = await fetch(`${API_URL}/orders/table/${tableNumber}`, {
+            method: 'DELETE',
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            console.log(`✅ Masa ${tableNumber} siparişleri silindi`);
+            fetchOrders(false);
+          } else {
+            const errorText = await response.text();
+            console.error(`❌ Masa siparişleri silinemedi! Status: ${response.status}, Response:`, errorText);
+            alert(`Masa siparişleri silinemedi! (Hata Kodu: ${response.status})`);
+            fetchOrders(false);
+          }
+          return;
+        }
+      }
+
+      // Regular order deletion
       const response = await fetch(`${API_URL}/orders/${orderId}`, {
         method: 'DELETE',
         headers: {
@@ -861,9 +890,11 @@ export default function MutfakPanel() {
                   <div className="text-orange-600 text-sm font-medium mb-1">Masa Numarası</div>
                   <div className="text-2xl font-bold text-orange-900">#{selectedOrder.tableNumber}</div>
                 </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
-                  <div className="text-green-600 text-sm font-medium mb-1">Toplam Tutar</div>
-                  <div className="text-2xl font-bold text-green-900">{parseFloat(selectedOrder.totalAmount.toString()).toFixed(2)}₺</div>
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <div className="text-gray-600 text-sm font-medium mb-2">Toplam Ürün Sayısı</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {selectedOrder.items.reduce((sum, item) => sum + item.quantity, 0)} Adet
+                  </div>
                 </div>
               </div>
 
@@ -904,21 +935,13 @@ export default function MutfakPanel() {
                           <div className="bg-purple-100 text-purple-700 rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">
                             {item.quantity}x
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <div className="font-semibold text-gray-900">{item.name}</div>
                             {item.notes && (
-                              <div className="text-sm text-gray-500 mt-1">
-                                💬 {item.notes}
+                              <div className="text-sm text-yellow-700 mt-1 italic">
+                                📝 {item.notes}
                               </div>
                             )}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-gray-900">
-                            {parseFloat(item.price.toString()).toFixed(2)}₺
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Birim: {(parseFloat(item.price.toString()) / item.quantity).toFixed(2)}₺
                           </div>
                         </div>
                       </div>
@@ -946,12 +969,6 @@ export default function MutfakPanel() {
                   <div className="text-gray-700 font-medium">Toplam Ürün Sayısı</div>
                   <div className="text-xl font-bold text-purple-700">
                     {selectedOrder.items.reduce((sum, item) => sum + item.quantity, 0)} Adet
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-purple-200">
-                  <div className="text-gray-900 font-bold text-lg">Toplam Tutar</div>
-                  <div className="text-2xl font-bold text-purple-700">
-                    {parseFloat(selectedOrder.totalAmount.toString()).toFixed(2)}₺
                   </div>
                 </div>
               </div>
