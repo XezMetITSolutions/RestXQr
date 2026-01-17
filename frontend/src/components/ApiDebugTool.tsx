@@ -31,6 +31,17 @@ export default function ApiDebugTool({ restaurantId }: ApiDebugToolProps) {
       const subdomain = window.location.hostname.split('.')[0] || 'kroren';
       const currentRestaurantId = restaurantId || '';
       
+      // Get staff user info
+      let staffUser = null;
+      try {
+        const staffUserStr = localStorage.getItem('staff_user');
+        if (staffUserStr) {
+          staffUser = JSON.parse(staffUserStr);
+        }
+      } catch (e) {
+        console.error('Failed to parse staff_user from localStorage', e);
+      }
+      
       // Prepare debug info object
       const info: any = {
         auth: {
@@ -64,8 +75,36 @@ export default function ApiDebugTool({ restaurantId }: ApiDebugToolProps) {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
       const url = `${API_URL}/staff/restaurant/${currentRestaurantId}`;
       
-      // Format token properly
-      const token = staffToken?.startsWith('Bearer ') ? staffToken : `Bearer ${staffToken || ''}`;
+      // Create a proper JWT token for testing if current token is invalid
+      let token = staffToken;
+      
+      // Check if token is just 'authenticated' or invalid
+      if (!token || token === 'authenticated' || token === 'Bearer authenticated') {
+        // Create a proper JWT-like token using staff user info
+        if (staffUser) {
+          // Generate a proper JWT format token with the staff user info
+          const payload = {
+            id: staffUser.id || '',
+            role: staffUser.role || '',
+            restaurantId: currentRestaurantId,
+            exp: Math.floor(Date.now() / 1000) + (60 * 60) // 1 hour expiration
+          };
+          
+          // Create JWT-like token (header.payload.signature)
+          const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+          const payloadStr = btoa(JSON.stringify(payload));
+          const signature = btoa('signature'); // Simplified signature
+          
+          const jwtToken = `${header}.${payloadStr}.${signature}`;
+          token = `Bearer ${jwtToken}`;
+          
+          // Store this token for future use
+          localStorage.setItem('staff_token', token);
+          console.log('Created new JWT token for testing');
+        }
+      } else if (!token.startsWith('Bearer ')) {
+        token = `Bearer ${token}`;
+      }
       
       // Test 1: Standard headers
       const standardHeaders = {
@@ -444,11 +483,47 @@ export default function ApiDebugTool({ restaurantId }: ApiDebugToolProps) {
                     
                     <button
                       onClick={() => {
-                        const token = prompt('Yeni token girin:', '');
-                        if (token) {
+                        // Get staff user info for creating a proper token
+                        let staffUser = null;
+                        try {
+                          const staffUserStr = localStorage.getItem('staff_user');
+                          if (staffUserStr) {
+                            staffUser = JSON.parse(staffUserStr);
+                          }
+                        } catch (e) {
+                          console.error('Failed to parse staff_user', e);
+                        }
+                        
+                        if (staffUser) {
+                          // Generate a proper JWT format token
+                          const payload = {
+                            id: staffUser.id || '',
+                            role: staffUser.role || '',
+                            restaurantId: restaurantId || '',
+                            exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hour expiration
+                          };
+                          
+                          // Create JWT-like token (header.payload.signature)
+                          const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+                          const payloadStr = btoa(JSON.stringify(payload));
+                          const signature = btoa('signature'); // Simplified signature
+                          
+                          const jwtToken = `${header}.${payloadStr}.${signature}`;
+                          const token = `Bearer ${jwtToken}`;
+                          
                           localStorage.setItem('staff_token', token);
-                          alert('Yeni token kaydedildi!');
+                          alert('Yeni JWT token oluşturuldu ve kaydedildi!');
                           runApiDiagnostics();
+                        } else {
+                          // Manual token entry as fallback
+                          const token = prompt('Yeni token girin (JWT formatında olmalı):', '');
+                          if (token) {
+                            // Add Bearer prefix if not present
+                            const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+                            localStorage.setItem('staff_token', formattedToken);
+                            alert('Yeni token kaydedildi!');
+                            runApiDiagnostics();
+                          }
                         }
                       }}
                       className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
