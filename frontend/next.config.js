@@ -14,11 +14,11 @@ const nextConfig = {
   swcMinify: true,
   // Configure static generation
   experimental: {
-    // Improve error handling for static generation
-    isrMemoryCacheSize: 50,
     // Disable server components that cause issues
     serverComponentsExternalPackages: [],
   },
+  // Improve error handling for static generation
+  cacheMaxMemorySize: 50,
   images: {
     unoptimized: true,
     formats: ['image/webp', 'image/avif'],
