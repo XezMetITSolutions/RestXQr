@@ -495,46 +495,53 @@ export default function MutfakPanel() {
       items: allItems,
       totalAmount,
       status: mostCriticalStatus,
-  
-let totalPrepTime = 0;
-let totalQuantity = 0;
-  
-items.forEach(item => {
-const station = item.kitchenStation || 'default';
-const prepTime = prepTimePerItemType[station as keyof typeof prepTimePerItemType] || prepTimePerItemType.default;
-totalPrepTime += prepTime * item.quantity;
-totalQuantity += item.quantity;
-});
-  
-// Toplam ürün adeti 0 ise, varsayılan süre döndür
-if (totalQuantity === 0) return prepTimePerItemType.default;
-  
-// Toplam süreyi ürün adetine böl ve yuvarla
-return Math.round(totalPrepTime / totalQuantity);
-};
+      id: `table-${tableNumberForId}-grouped`,
+      notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).filter(note => note && !note.includes('Ödeme yöntemi') && !note.includes('Debug Simülasyonu')).join(' | ') || (latestOrder.notes ? latestOrder.notes.replace(/Ödeme yöntemi:.*?(?:\||$)/g, '').replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:\s*[^,|]+(,\s*|\|\s*)?/gi, '').trim() : '')
+    };
+  };
 
-const getStatusInfo = (status: string) => {
-switch (status) {
-case 'pending':
-return { text: 'BEKLEMEDE', bg: '#fff3cd', color: '#856404' };
-case 'preparing':
-return { text: 'HAZIRLANIYOR', bg: '#d4edda', color: '#155724' };
-case 'ready':
-return { text: 'HAZIR', bg: '#cce5ff', color: '#004085' };
-case 'completed':
-return { text: 'TESLİM EDİLDİ', bg: '#d1ecf1', color: '#0c5460' };
-case 'cancelled':
-return { text: 'İPTAL EDİLDİ', bg: '#f8d7da', color: '#721c24' };
-default:
-return { text: 'BİLİNMEYEN', bg: '#f0f0f0', color: '#333' };
-}
-};
+  // Sipariş sayılarını hesapla
+  const orderCounts = {
+    all: orders.length,
     pending: orders.filter(o => o.status === 'pending').length,
     preparing: orders.filter(o => o.status === 'preparing').length,
     ready: orders.filter(o => o.status === 'ready').length,
     completed: orders.filter(o => o.status === 'completed').length,
     cancelled: orders.filter(o => o.status === 'cancelled').length,
   };
+  
+  // Filtrelenmiş ve gruplu siparişler
+  const filteredOrders = (() => {
+    const filtered = orders.filter((order: Order) => {
+      // Durum filtresi
+      if (activeTab !== 'all' && order.status !== activeTab) return false;
+
+      // İstasyon filtresi
+      if (stationFilter !== 'all') {
+        const hasStationItem = order.items.some((item: OrderItem) => 
+          item.kitchenStation === stationFilter
+        );
+        if (!hasStationItem) return false;
+      }
+
+      // Arama filtresi
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          order.tableNumber.toString().includes(searchLower) ||
+          order.items.some(item => item.name.toLowerCase().includes(searchLower))
+        );
+      }
+
+      return true;
+    });
+
+    // Masa numarasına göre grupla
+    const groupedByTable = groupOrdersByTable(filtered);
+    
+    // Her masa grubu için tek bir sipariş oluştur
+    return groupedByTable.map(tableOrders => createGroupedOrder(tableOrders));
+  })();
 
   return (
     <div className="min-h-screen bg-gray-50">
