@@ -462,14 +462,19 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       setLoadingPermissions(true);
       console.log(`Loading permissions for restaurant ${authenticatedRestaurant.id}...`);
       
-      // Get staff token
-      const staffToken = localStorage.getItem('staff_token');
-      if (!staffToken) {
-        console.error('Cannot load permissions: Staff token is missing');
+      // Get staff token or business token
+      let authToken = localStorage.getItem('staff_token');
+      if (!authToken) {
+        // Fallback to business token if staff token is not available
+        authToken = localStorage.getItem('business_token');
+      }
+      
+      if (!authToken) {
+        console.error('Cannot load permissions: No authentication token found');
         return;
       }
       
-      console.log('Staff token found:', staffToken.substring(0, 10) + '...');
+      console.log('Auth token found:', authToken.substring(0, 10) + '...');
       
       // Make direct API call to ensure it works
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
@@ -480,7 +485,7 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       console.log('Using subdomain for API request:', subdomain);
       
       // Ensure token is properly formatted
-      const token = staffToken.startsWith('Bearer ') ? staffToken : `Bearer ${staffToken}`;
+      const token = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
       console.log('Using authorization header:', token.substring(0, 15) + '...');
       
       const response = await fetch(`${API_URL}/permissions/${authenticatedRestaurant.id}`, {
@@ -574,16 +579,21 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
         permissions: permissions
       });
 
-      // Get staff token
-      const staffToken = localStorage.getItem('staff_token');
-      if (!staffToken) {
-        console.error('Cannot save permissions: Staff token is missing');
+      // Get staff token or business token
+      let authToken = localStorage.getItem('staff_token');
+      if (!authToken) {
+        // Fallback to business token if staff token is not available
+        authToken = localStorage.getItem('business_token');
+      }
+      
+      if (!authToken) {
+        console.error('Cannot save permissions: No authentication token found');
         setSaveStatus('error');
         setSaveMessage(`${role} yetkileri kaydedilemedi: Oturum bilgisi eksik`);
         return;
       }
       
-      console.log('Using staff token for save:', staffToken.substring(0, 10) + '...');
+      console.log('Using auth token for save:', authToken.substring(0, 10) + '...');
 
       // Make direct API call to ensure it works
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
@@ -593,7 +603,7 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       const subdomain = hostname.split('.')[0] || 'kroren';
       console.log('Using subdomain for save API request:', subdomain);
       
-      const token = staffToken.startsWith('Bearer ') ? staffToken : `Bearer ${staffToken}`;
+      const token = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
       console.log('Using authorization header for save:', token.substring(0, 15) + '...');
       
       const response = await fetch(`${API_URL}/permissions/${authenticatedRestaurant.id}/${roleKey}`, {
