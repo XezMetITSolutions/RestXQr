@@ -729,8 +729,16 @@ function MenuPageContent() {
       )}
       <Toast message="Ürün sepete eklendi!" visible={toastVisible} onClose={() => setToastVisible(false)} />
       <main className="min-h-screen pb-20 overflow-x-hidden">
+        {/* Notice Banner */}
+        <div className="bg-yellow-100 border-b border-yellow-200 py-2 px-4 text-center fixed top-0 left-0 right-0 z-30">
+          <p className="text-yellow-800 text-sm font-medium">
+            <span className="mr-1">⚠️</span>
+            <TranslatedText>Sadece menü görüntüleme modu aktif. Sipariş verme kapalıdır.</TranslatedText>
+          </p>
+        </div>
+        
         {/* Header */}
-        <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-20">
+        <header className="bg-white shadow-sm fixed top-0 mt-9 left-0 right-0 z-20">
           <div className="container mx-auto px-3 py-3 flex justify-between items-center">
             <div className="flex items-center">
               <h1 className="text-dynamic-lg font-bold text-primary">
@@ -752,14 +760,14 @@ function MenuPageContent() {
             </div>
             <div className="flex items-center gap-2">
               <LanguageSelector enabledLanguages={settings.menuSettings.language} />
-              <Link href="/cart" className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <FaShoppingCart className="text-xl" style={{ color: primary }} />
-                {cartItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" style={{ backgroundColor: primary }}>
-                    {cartItems.length}
-                  </span>
-                )}
-              </Link>
+              <div className="relative p-2 rounded-lg cursor-not-allowed">
+                <FaShoppingCart className="text-xl text-gray-400" />
+                <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                  </svg>
+                </span>
+              </div>
             </div>
           </div>
         </header>
@@ -909,11 +917,12 @@ function MenuPageContent() {
                       <TranslatedText>Detayları Gör</TranslatedText>
                     </button>
                     <button
-                      className="btn btn-secondary py-1 px-3 text-xs rounded flex items-center"
-                      onClick={() => addToCart(item)}
+                      className="btn py-1 px-3 text-xs rounded flex items-center bg-gray-300 text-gray-600 cursor-not-allowed"
+                      disabled
+                      title="Sipariş verme yetkisi bulunmamaktadır"
                     >
                       <FaPlus className="mr-1" size={10} />
-                      <TranslatedText>Sepete Ekle</TranslatedText>
+                      <TranslatedText>Sipariş Kapalı</TranslatedText>
                     </button>
                   </div>
                 </div>
@@ -1005,17 +1014,17 @@ function MenuPageContent() {
               <FaUtensils className="mb-0.5" size={16} />
               <span className="text-[10px]"><TranslatedText>Menü</TranslatedText></span>
             </Link>
-            <Link href="/cart" className="flex flex-col items-center" style={{ color: primary }}>
+            <div className="flex flex-col items-center text-gray-400 cursor-not-allowed">
               <div className="relative">
                 <FaShoppingCart className="mb-0.5" size={16} />
-                {isClient && cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
+                <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                  </svg>
+                </span>
               </div>
-              <span className="text-[10px]"><TranslatedText>Sepet</TranslatedText></span>
-            </Link>
+              <span className="text-[10px]"><TranslatedText>Kapalı</TranslatedText></span>
+            </div>
             <Link href="/garson-cagir" className="flex flex-col items-center" style={{ color: primary }}>
               <FaBell className="mb-0.5" size={16} />
               <span className="text-[10px]"><TranslatedText>Garson Çağır</TranslatedText></span>
