@@ -48,6 +48,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
 import BusinessSidebar from '@/components/BusinessSidebar';
 import { apiService } from '@/services/api';
+import ApiDebugTool from '@/components/ApiDebugTool';
 import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 import LanguageSelector from '@/components/LanguageSelector';
 import PermissionsPanel from './permissions-panel';
@@ -368,7 +369,7 @@ export default function StaffPage() {
     alert(t('Personel bilgileri başarıyla güncellendi!'));
   };
 
-  const handleGoToPanel = async (staffMember: any) => {
+  const handleGoToPanel = (staffMember: any) => {
     if (!authenticatedRestaurant) return;
 
     const loginData = {
@@ -380,43 +381,9 @@ export default function StaffPage() {
       restaurantUsername: authenticatedRestaurant.username
     };
 
-    const creds = settings?.staffCredentials?.[staffMember.id];
-    if (!creds?.username || !creds?.password) {
-      alert(t('Bu personel için panel kullanıcı adı/şifre bilgisi bulunamadı. Önce panel bilgilerini oluşturun.'));
-      return;
-    }
-
-    try {
-      const response = await apiService.staffLogin({
-        username: String(creds.username).trim(),
-        password: String(creds.password)
-      });
-
-      if (response?.success && response?.data?.token) {
-        const token = response.data.token.startsWith('Bearer ')
-          ? response.data.token
-          : `Bearer ${response.data.token}`;
-
-        localStorage.setItem('staff_token', token);
-        localStorage.setItem(
-          'staff_user',
-          JSON.stringify({
-            ...response.data,
-            restaurantName: authenticatedRestaurant.name,
-            restaurantUsername: authenticatedRestaurant.username
-          })
-        );
-      } else {
-        localStorage.setItem('staff_user', JSON.stringify(loginData));
-        alert(t('Personel girişi başarısız. Kullanıcı adı/şifre veya backend token hatası.'));
-        return;
-      }
-    } catch (error) {
-      console.error('Staff panel login failed:', error);
-      localStorage.setItem('staff_user', JSON.stringify(loginData));
-      alert(t('Personel girişi sırasında hata oluştu.'));
-      return;
-    }
+    // Staff session bilgilerini hazırla
+    localStorage.setItem('staff_user', JSON.stringify(loginData));
+    localStorage.setItem('staff_token', 'authenticated'); // Admin tarafından giriş yapıldığı için token simüle ediliyor
 
     // Role göre ilgili panele yönlendir
     let panelUrl = '/garson';
@@ -489,6 +456,7 @@ export default function StaffPage() {
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
               <LanguageSelector />
+              <ApiDebugTool restaurantId={authenticatedRestaurant?.id} />
               <button
                 onClick={() => setShowAddModal(true)}
                 className="px-2 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
