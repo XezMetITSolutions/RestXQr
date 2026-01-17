@@ -8,13 +8,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Exclude debug-api page from static export
-  exportPathMap: async function (defaultPathMap) {
-    // Remove debug-api page from static export
-    const pathMap = { ...defaultPathMap };
-    delete pathMap['/debug-api'];
-    return pathMap;
-  },
   images: {
     unoptimized: true,
     formats: ['image/webp', 'image/avif'],
