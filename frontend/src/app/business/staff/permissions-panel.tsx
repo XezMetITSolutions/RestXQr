@@ -21,6 +21,12 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 import { permissionsApi, Permission } from '@/services/permissionsApi';
 
+type PermissionSet = {
+  kitchen?: Permission[];
+  waiter?: Permission[];
+  cashier?: Permission[];
+};
+
 // Toggle Switch Component
 const ToggleSwitch = ({
   isOn,
@@ -222,6 +228,8 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
   const [saveMessage, setSaveMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
+
+  const permissionsEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
 
   // Kitchen Permissions
   const [kitchenPermissions, setKitchenPermissions] = useState([
@@ -514,12 +522,21 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       }
       
       const allPermissions = data.permissions || { kitchen: [], waiter: [], cashier: [] };
+      const cacheKey = `permissions_${authenticatedRestaurant.id}`;
+      const cachedPermissions = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null;
+      const parsedCache = cachedPermissions ? JSON.parse(cachedPermissions) : null;
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem(
-          `permissions_${authenticatedRestaurant.id}`,
-          JSON.stringify(allPermissions)
-        );
+        localStorage.setItem(cacheKey, JSON.stringify(allPermissions));
+      }
+
+      if (parsedCache && !permissionsEqual(parsedCache, allPermissions)) {
+        console.warn('Permissions mismatch detected; preferring local cache and syncing backend.');
+        if (parsedCache.kitchen) setKitchenPermissions(parsedCache.kitchen);
+        if (parsedCache.waiter) setWaiterPermissions(parsedCache.waiter);
+        if (parsedCache.cashier) setCashierPermissions(parsedCache.cashier);
+        await syncPermissionsToBackend(parsedCache, authenticatedRestaurant.id);
+        return;
       }
 
       // Update state with loaded permissions if available
@@ -564,6 +581,37 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
   };
 
   // Handle save
+  const syncPermissionsToBackend = async (permissionsPayload: PermissionSet, restaurantId: string) => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+      const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+      const subdomain = hostname.split('.')[0] || 'kroren';
+      const staffToken = localStorage.getItem('staff_token');
+      const businessToken = localStorage.getItem('business_token');
+      const authToken = staffToken || businessToken;
+      if (!authToken) return;
+      const token = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
+
+      const roles: Array<keyof PermissionSet> = ['kitchen', 'waiter', 'cashier'];
+      await Promise.all(
+        roles.map((role) => {
+          if (!permissionsPayload[role]) return Promise.resolve();
+          return fetch(`${API_URL}/permissions/${restaurantId}/${String(role)}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': token,
+              'Content-Type': 'application/json',
+              'X-Subdomain': subdomain
+            },
+            body: JSON.stringify({ permissions: permissionsPayload[role] })
+          });
+        })
+      );
+    } catch (error) {
+      console.warn('Failed to sync cached permissions to backend:', error);
+    }
+  };
+
   const handleSave = async (role: string) => {
     if (!authenticatedRestaurant?.id) {
       setSaveStatus('error');
