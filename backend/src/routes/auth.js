@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { Restaurant } = require('../models');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 
 // Test endpoint
 router.get('/test', (req, res) => {
@@ -95,10 +98,26 @@ router.post('/login', async (req, res) => {
     
     // Password'u response'dan çıkar
     const { password: _, ...restaurantData } = restaurant.toJSON();
+    const token = jwt.sign(
+      {
+        id: restaurant.id,
+        role: 'restaurant_owner',
+        type: 'restaurant'
+      },
+      JWT_SECRET,
+      {
+        expiresIn: '7d',
+        issuer: 'RestXQR',
+        subject: restaurant.id
+      }
+    );
     
     res.json({
       success: true,
-      data: restaurantData,
+      data: {
+        ...restaurantData,
+        token
+      },
       message: 'Login successful'
     });
     

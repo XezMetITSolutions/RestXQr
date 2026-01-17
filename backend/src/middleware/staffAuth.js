@@ -4,7 +4,7 @@
  */
 
 const jwt = require('jsonwebtoken');
-const { Staff } = require('../models');
+const { Staff, Restaurant } = require('../models');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 
@@ -34,6 +34,26 @@ const staffAuth = async (req, res, next) => {
         success: false,
         message: 'Invalid token'
       });
+    }
+
+    // Allow restaurant owner tokens
+    if (decoded.type === 'restaurant' || decoded.role === 'restaurant_owner') {
+      const restaurant = await Restaurant.findByPk(decoded.id);
+      if (!restaurant) {
+        return res.status(401).json({
+          success: false,
+          message: 'Restaurant not found'
+        });
+      }
+
+      req.restaurant = restaurant;
+      req.staff = {
+        id: restaurant.id,
+        role: 'restaurant_owner',
+        restaurantId: restaurant.id,
+        status: 'active'
+      };
+      return next();
     }
 
     // Find staff by ID
