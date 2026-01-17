@@ -43,9 +43,14 @@ const ToggleSwitch = ({
         className={`toggle-label block overflow-hidden h-6 rounded-full ${disabled ? 'bg-gray-300' : colorClass} cursor-pointer`}
       ></label>
       <style jsx>{`
+        .toggle-checkbox {
+          left: 0;
+          transition: all 0.3s ease-in-out;
+          border-color: #d1d5db;
+        }
         .toggle-checkbox:checked {
-          right: 0;
-          transform: translateX(100%);
+          left: 100%;
+          transform: translateX(-100%);
           border-color: white;
         }
         .toggle-label {
