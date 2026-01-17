@@ -91,9 +91,17 @@ export default function ApiDebugTool({ restaurantId }: ApiDebugToolProps) {
           };
           
           // Create JWT-like token (header.payload.signature)
-          const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-          const payloadStr = btoa(JSON.stringify(payload));
-          const signature = btoa('signature'); // Simplified signature
+          // Use proper base64url encoding (replace '+' with '-', '/' with '_', and remove padding '=')
+          const base64UrlEncode = (str: string) => {
+            return btoa(str)
+              .replace(/\+/g, '-')
+              .replace(/\//g, '_')
+              .replace(/=/g, '');
+          };
+          
+          const header = base64UrlEncode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+          const payloadStr = base64UrlEncode(JSON.stringify(payload));
+          const signature = base64UrlEncode('signature'); // Simplified signature
           
           const jwtToken = `${header}.${payloadStr}.${signature}`;
           token = `Bearer ${jwtToken}`;
@@ -504,9 +512,17 @@ export default function ApiDebugTool({ restaurantId }: ApiDebugToolProps) {
                           };
                           
                           // Create JWT-like token (header.payload.signature)
-                          const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-                          const payloadStr = btoa(JSON.stringify(payload));
-                          const signature = btoa('signature'); // Simplified signature
+                          // Use proper base64url encoding (replace '+' with '-', '/' with '_', and remove padding '=')
+                          const base64UrlEncode = (str: string) => {
+                            return btoa(str)
+                              .replace(/\+/g, '-')
+                              .replace(/\//g, '_')
+                              .replace(/=/g, '');
+                          };
+                          
+                          const header = base64UrlEncode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+                          const payloadStr = base64UrlEncode(JSON.stringify(payload));
+                          const signature = base64UrlEncode('signature'); // Simplified signature
                           
                           const jwtToken = `${header}.${payloadStr}.${signature}`;
                           const token = `Bearer ${jwtToken}`;
