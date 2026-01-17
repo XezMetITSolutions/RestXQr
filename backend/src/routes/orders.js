@@ -262,11 +262,49 @@ router.delete('/:id', async (req, res) => {
 
   try {
     if (id.startsWith('table-') && id.endsWith('-grouped')) {
-      return res.status(400).json({
-        success: false,
-        message: 'Grouped order ids are virtual. Delete individual orders instead.'
+      const tableToken = id.replace('table-', '').replace('-grouped', '');
+      const { restaurantId } = req.query;
+      let targetRestaurantId = restaurantId;
+
+      if (!targetRestaurantId) {
+        const subdomain = req.headers['x-subdomain'] || req.headers['x-forwarded-host']?.split('.')[0];
+        if (subdomain) {
+          const restaurant = await Restaurant.findOne({ where: { username: subdomain } });
+          targetRestaurantId = restaurant?.id;
+        }
+      }
+
+      if (!targetRestaurantId) {
+        return res.status(400).json({
+          success: false,
+          message: 'restaurantId is required to delete grouped orders'
+        });
+      }
+
+      const where = { restaurantId: targetRestaurantId };
+      if (tableToken === 'null') {
+        where.tableNumber = null;
+      } else {
+        where.tableNumber = Number(tableToken);
+      }
+
+      const orders = await Order.findAll({ where });
+      const orderIds = orders.map(order => order.id);
+
+      if (orderIds.length === 0) {
+        return res.json({ success: true, message: 'No grouped orders found', deletedCount: 0 });
+      }
+
+      await OrderItem.destroy({ where: { orderId: orderIds } });
+      const deletedOrders = await Order.destroy({ where });
+
+      return res.json({
+        success: true,
+        message: 'Grouped orders deleted successfully',
+        deletedCount: deletedOrders
       });
     }
+
     const order = await Order.findByPk(id);
 
     if (!order) {
