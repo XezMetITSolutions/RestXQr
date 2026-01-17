@@ -83,26 +83,36 @@ export default function DebugQRTokenPage() {
         return;
       }
       
-      const res = await fetch(`${API_URL}/qr/verify/${tokenToVerify}`);
-      const data = await safeJson(res);
+      console.log(`Verifying token: ${tokenToVerify}`);
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
       
-      if (res.ok && data.success) {
-        const tokenData = data.data;
-        setTokenInfo({
-          id: tokenData.id || '',
-          token: tokenToVerify,
-          tableNumber: tokenData.tableNumber || tableNumber,
-          restaurantId: tokenData.restaurantId || restaurantId,
-          createdAt: tokenData.createdAt || new Date().toISOString(),
-          status: tokenData.status || 'active',
-          isActive: tokenData.isActive || true,
-          renewed: tokenData.renewed || false
-        });
-        
-        setAccessDenied(!tokenData.isActive);
-        
-        // Update token history
-        if (tokenData.isActive) {
+      const res = await fetch(`${API_URL}/qr/verify/${tokenToVerify}`, {
+        headers: { 
+          'X-Subdomain': subdomain || 'hazal'
+        }
+      });
+      
+      const data = await safeJson(res);
+      console.log('Token verification response:', data);
+      
+      if (res.ok) {
+        if (data.success && data.data?.isActive) {
+          // Token is valid and active
+          const tokenData = data.data;
+          setTokenInfo({
+            id: tokenData.id || '',
+            token: tokenToVerify,
+            tableNumber: tokenData.tableNumber || tableNumber,
+            restaurantId: tokenData.restaurantId || restaurantId,
+            createdAt: tokenData.createdAt || new Date().toISOString(),
+            status: tokenData.status || 'active',
+            isActive: true,
+            renewed: tokenData.renewed || false
+          });
+          
+          setAccessDenied(false);
+          
+          // Update token history
           setTokenHistory(prev => {
             // Check if token already exists in history
             const exists = prev.some(t => t.token === tokenToVerify);
@@ -114,19 +124,53 @@ export default function DebugQRTokenPage() {
                 restaurantId: tokenData.restaurantId || restaurantId,
                 createdAt: tokenData.createdAt || new Date().toISOString(),
                 status: tokenData.status || 'active',
-                isActive: tokenData.isActive || true,
+                isActive: true,
                 renewed: tokenData.renewed || false
               }];
             }
             return prev;
           });
+        } else {
+          // Token exists but is not active (completed or expired)
+          const tokenData = data.data || {};
+          const status = tokenData.status || 'expired';
+          
+          setTokenInfo({
+            id: tokenData.id || '',
+            token: tokenToVerify,
+            tableNumber: tokenData.tableNumber || tableNumber,
+            restaurantId: tokenData.restaurantId || restaurantId,
+            createdAt: tokenData.createdAt || new Date().toISOString(),
+            status: status,
+            isActive: false,
+            renewed: tokenData.renewed || false
+          });
+          
+          setAccessDenied(true);
+          setError(`Bu token artık geçerli değil. Durum: ${status === 'completed' ? 'Tamamlandı' : 'Süresi doldu'}`);
+          
+          // Update token history if it exists
+          setTokenHistory(prev => {
+            return prev.map(t => {
+              if (t.token === tokenToVerify) {
+                return {
+                  ...t,
+                  status: status,
+                  isActive: false
+                };
+              }
+              return t;
+            });
+          });
         }
       } else {
+        // API error
         setError(data.message || 'Token doğrulanamadı');
         setAccessDenied(true);
         setTokenInfo(null);
       }
     } catch (e: any) {
+      console.error('Token verification error:', e);
       setError(e?.message || 'Token doğrulama hatası');
       setAccessDenied(true);
       setTokenInfo(null);
@@ -207,7 +251,7 @@ export default function DebugQRTokenPage() {
     });
   };
 
-  // Simulate completing an order (payment)
+  // Complete an order and deactivate the token
   const completeOrder = async () => {
     if (!tokenInfo) {
       setError('Token bilgisi bulunamadı');
@@ -223,21 +267,50 @@ export default function DebugQRTokenPage() {
     setError(null);
     
     try {
-      // In a real implementation, you would call an API to mark the token as completed
-      // For this demo, we'll simulate it
+      // Call the API to deactivate the token
+      console.log(`Deactivating token: ${token}`);
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
       
-      // Update token info
+      // First, deactivate the token on the backend
+      const deactivateResponse = await fetch(`${API_URL}/qr/deactivate/${token}`, {
+        method: 'DELETE',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Subdomain': subdomain || 'hazal'
+        }
+      });
+      
+      const deactivateData = await safeJson(deactivateResponse);
+      console.log('Token deactivation response:', deactivateData);
+      
+      if (!deactivateResponse.ok) {
+        throw new Error(`Token deaktif edilemedi: ${deactivateData.message || 'API hatası'}`);
+      }
+      
+      // Verify the token is now invalid
+      const verifyResponse = await fetch(`${API_URL}/qr/verify/${token}`);
+      const verifyData = await safeJson(verifyResponse);
+      console.log('Token verification after deactivation:', verifyData);
+      
+      // Update token info based on verification response
+      const isStillActive = verifyData.success && verifyData.data?.isActive;
+      
       setTokenInfo(prev => {
         if (!prev) return null;
         return {
           ...prev,
           status: 'completed',
-          isActive: false
+          isActive: isStillActive // Should be false if deactivation worked
         };
       });
       
       setOrderCompleted(true);
-      setAccessDenied(true);
+      setAccessDenied(!isStillActive);
+      
+      if (isStillActive) {
+        console.warn('Token is still active after deactivation attempt!');
+        setError('Token deaktif edildi ancak hala aktif görünüyor. Lütfen tekrar deneyin.');
+      }
       
       // Update token history
       setTokenHistory(prev => {
@@ -246,7 +319,7 @@ export default function DebugQRTokenPage() {
             return {
               ...t,
               status: 'completed',
-              isActive: false
+              isActive: isStillActive
             };
           }
           return t;
