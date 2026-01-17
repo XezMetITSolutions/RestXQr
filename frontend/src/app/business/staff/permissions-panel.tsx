@@ -469,6 +469,8 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
         return;
       }
       
+      console.log('Staff token found:', staffToken.substring(0, 10) + '...');
+      
       // Make direct API call to ensure it works
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
       
@@ -573,6 +575,8 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
         setSaveMessage(`${role} yetkileri kaydedilemedi: Oturum bilgisi eksik`);
         return;
       }
+      
+      console.log('Using staff token for save:', staffToken.substring(0, 10) + '...');
 
       // Make direct API call to ensure it works
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';

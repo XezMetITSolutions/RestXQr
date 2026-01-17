@@ -28,15 +28,24 @@ class ApiService {
       const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
 
       // Subdomain'i ve token'i her zaman gönder
-      const headers = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'X-Subdomain': subdomain || 'kroren', // Fallback olarak kroren kullan
-        ...options.headers,
       };
+      
+      // Copy any existing headers from options
+      if (options.headers) {
+        const optHeaders = options.headers as Record<string, string>;
+        Object.keys(optHeaders).forEach(key => {
+          headers[key] = optHeaders[key];
+        });
+      }
       
       // Staff token varsa Authorization header'a ekle
       if (staffToken) {
-        headers['Authorization'] = `Bearer ${staffToken}`;
+        // Make sure the token is properly formatted
+        const token = staffToken.startsWith('Bearer ') ? staffToken : `Bearer ${staffToken}`;
+        headers['Authorization'] = token;
       }
 
       console.log('🌐 API Request:', {
@@ -234,7 +243,54 @@ class ApiService {
 
   // Staff endpoints
   async getStaff(restaurantId: string) {
-    return this.request<any>(`/staff/restaurant/${restaurantId}`);
+    try {
+      console.log('Getting staff for restaurant:', restaurantId);
+      
+      // Get staff token directly to ensure it's available
+      const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
+      if (!staffToken) {
+        console.error('Staff token is missing for getStaff request');
+        throw new Error('Authentication token is missing');
+      }
+      
+      // Get subdomain directly
+      const subdomain = typeof window !== 'undefined' 
+        ? window.location.hostname.split('.')[0] 
+        : 'kroren';
+      
+      // Make direct fetch request to debug the issue
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+      const url = `${API_URL}/staff/restaurant/${restaurantId}`;
+      
+      console.log('Making direct fetch request to:', url);
+      console.log('With headers:', {
+        'Authorization': 'Bearer [HIDDEN]',
+        'Content-Type': 'application/json',
+        'X-Subdomain': subdomain
+      });
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${staffToken}`,
+          'Content-Type': 'application/json',
+          'X-Subdomain': subdomain
+        }
+      });
+      
+      const data = await response.json();
+      console.log('Staff API direct response status:', response.status);
+      
+      if (!response.ok) {
+        console.error('Staff API error:', data);
+        throw new Error(data.message || `API error: ${response.status}`);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error in getStaff:', error);
+      throw error;
+    }
   }
 
   async createStaff(restaurantId: string, staffData: any) {
