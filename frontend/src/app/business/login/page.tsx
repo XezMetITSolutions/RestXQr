@@ -94,6 +94,10 @@ export default function LoginPage() {
       // 1) Önce restaurant (business) login dene
       const response = await apiService.login({ username, password });
 
+      console.log('🔍 LOGIN DEBUG: Full API response:', response);
+      console.log('🔍 LOGIN DEBUG: response.data:', response.data);
+      console.log('🔍 LOGIN DEBUG: response.data.token:', response.data?.token);
+
       if (response.success && response.data) {
         loginRestaurant(response.data);
 
@@ -102,7 +106,19 @@ export default function LoginPage() {
           const token = response.data.token.startsWith('Bearer ') 
             ? response.data.token 
             : `Bearer ${response.data.token}`;
+          console.log('✅ Saving business_token to localStorage:', token.substring(0, 30) + '...');
           localStorage.setItem('business_token', token);
+        } else {
+          console.warn('⚠️ No token in response.data, checking response.token...');
+          if ((response as any).token) {
+            const token = (response as any).token.startsWith('Bearer ') 
+              ? (response as any).token 
+              : `Bearer ${(response as any).token}`;
+            console.log('✅ Saving business_token from response.token:', token.substring(0, 30) + '...');
+            localStorage.setItem('business_token', token);
+          } else {
+            console.error('❌ No token found in API response!');
+          }
         }
 
         if (rememberMe) {
