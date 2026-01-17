@@ -369,7 +369,7 @@ export default function StaffPage() {
     alert(t('Personel bilgileri başarıyla güncellendi!'));
   };
 
-  const handleGoToPanel = (staffMember: any) => {
+  const handleGoToPanel = async (staffMember: any) => {
     if (!authenticatedRestaurant) return;
 
     const loginData = {
@@ -381,13 +381,43 @@ export default function StaffPage() {
       restaurantUsername: authenticatedRestaurant.username
     };
 
-    // Staff session bilgilerini hazırla
-    localStorage.setItem('staff_user', JSON.stringify(loginData));
-    
-    // Create a proper JWT-like token format with Bearer prefix
-    // This is a simulated token for admin access that will be accepted by the backend
-    const simulatedToken = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({id: staffMember.id, role: staffMember.role, restaurantId: staffMember.restaurantId}))}.simulated`;
-    localStorage.setItem('staff_token', simulatedToken); // Admin tarafından giriş yapıldığı için token simüle ediliyor
+    const creds = settings?.staffCredentials?.[staffMember.id];
+    if (!creds?.username || !creds?.password) {
+      alert(t('Bu personel için panel kullanıcı adı/şifre bilgisi bulunamadı. Önce panel bilgilerini oluşturun.'));
+      return;
+    }
+
+    try {
+      const response = await apiService.staffLogin({
+        username: String(creds.username).trim(),
+        password: String(creds.password)
+      });
+
+      if (response?.success && response?.data?.token) {
+        const token = response.data.token.startsWith('Bearer ')
+          ? response.data.token
+          : `Bearer ${response.data.token}`;
+
+        localStorage.setItem('staff_token', token);
+        localStorage.setItem(
+          'staff_user',
+          JSON.stringify({
+            ...response.data,
+            restaurantName: authenticatedRestaurant.name,
+            restaurantUsername: authenticatedRestaurant.username
+          })
+        );
+      } else {
+        localStorage.setItem('staff_user', JSON.stringify(loginData));
+        alert(t('Personel girişi başarısız. Kullanıcı adı/şifre veya backend token hatası.'));
+        return;
+      }
+    } catch (error) {
+      console.error('Staff panel login failed:', error);
+      localStorage.setItem('staff_user', JSON.stringify(loginData));
+      alert(t('Personel girişi sırasında hata oluştu.'));
+      return;
+    }
 
     // Role göre ilgili panele yönlendir
     let panelUrl = '/garson';
