@@ -52,6 +52,7 @@ function MenuPageContent() {
   const [clientId, setClientId] = useState<string | null>(null);
   const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
   const [imageCacheVersion, setImageCacheVersion] = useState<number>(Date.now());
+  const [orderingAllowed, setOrderingAllowed] = useState<boolean>(false);
   const primary = settings.branding.primaryColor;
   const secondary = settings.branding.secondaryColor || settings.branding.primaryColor;
 
@@ -103,7 +104,14 @@ function MenuPageContent() {
             if (response.data?.tableNumber) {
               setTableNumber(response.data.tableNumber);
               localStorage.setItem('tableNumber', response.data.tableNumber.toString());
+              // Masa numarası varsa sipariş vermeye izin ver
+              setOrderingAllowed(true);
               console.log('✅ Masa numarası token\'dan alındı ve localStorage\'a kaydedildi:', response.data.tableNumber);
+              console.log('✅ Sipariş verme modu aktif edildi');
+            } else {
+              // Masa numarası yoksa sipariş vermeye izin verme
+              setOrderingAllowed(false);
+              console.log('⚠️ Masa numarası bulunamadı, sipariş verme modu devre dışı');
             }
 
             // Token'ı sessionStorage'a kaydet
@@ -325,7 +333,10 @@ function MenuPageContent() {
           // Masa numarasını her durumda set et
           setTableNumber(tableNum);
           localStorage.setItem('tableNumber', tableNum.toString());
+          // Masa numarası varsa sipariş vermeye izin ver
+          setOrderingAllowed(true);
           console.log('✅ Masa numarası URL parametresinden ayarlandı ve localStorage\'a kaydedildi:', tableNum);
+          console.log('✅ Sipariş verme modu aktif edildi');
 
           // Token yoksa yeni QR token oluştur (eski sistem için)
           if (!tokenParam) {
@@ -730,12 +741,22 @@ function MenuPageContent() {
       <Toast message="Ürün sepete eklendi!" visible={toastVisible} onClose={() => setToastVisible(false)} />
       <main className="min-h-screen pb-20 overflow-x-hidden">
         {/* Notice Banner */}
-        <div className="bg-yellow-100 border-b border-yellow-200 py-2 px-4 text-center fixed top-0 left-0 right-0 z-30">
-          <p className="text-yellow-800 text-sm font-medium">
-            <span className="mr-1">⚠️</span>
-            <TranslatedText>Sadece menü görüntüleme modu aktif. Sipariş verme kapalıdır.</TranslatedText>
-          </p>
-        </div>
+        {!orderingAllowed && (
+          <div className="bg-yellow-100 border-b border-yellow-200 py-2 px-4 text-center fixed top-0 left-0 right-0 z-30">
+            <p className="text-yellow-800 text-sm font-medium">
+              <span className="mr-1">⚠️</span>
+              <TranslatedText>Sadece menü görüntüleme modu aktif. Sipariş vermek için masa QR kodunu okutun.</TranslatedText>
+            </p>
+          </div>
+        )}
+        {orderingAllowed && (
+          <div className="bg-green-100 border-b border-green-200 py-2 px-4 text-center fixed top-0 left-0 right-0 z-30">
+            <p className="text-green-800 text-sm font-medium">
+              <span className="mr-1">✅</span>
+              <span>Sipariş verme modu aktif. Masa {tableNumber}</span>
+            </p>
+          </div>
+        )}
         
         {/* Header */}
         <header className="bg-white shadow-sm fixed top-0 mt-9 left-0 right-0 z-20">
@@ -760,14 +781,25 @@ function MenuPageContent() {
             </div>
             <div className="flex items-center gap-2">
               <LanguageSelector enabledLanguages={settings.menuSettings.language} />
-              <div className="relative p-2 rounded-lg cursor-not-allowed">
-                <FaShoppingCart className="text-xl text-gray-400" />
-                <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                  </svg>
-                </span>
-              </div>
+              {orderingAllowed ? (
+                <Link href="/cart" className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                  <FaShoppingCart className="text-xl" style={{ color: primary }} />
+                  {cartItems.length > 0 && (
+                    <span className="absolute -top-1 -right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" style={{ backgroundColor: primary }}>
+                      {cartItems.length}
+                    </span>
+                  )}
+                </Link>
+              ) : (
+                <div className="relative p-2 rounded-lg cursor-not-allowed">
+                  <FaShoppingCart className="text-xl text-gray-400" />
+                  <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                    </svg>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -916,14 +948,24 @@ function MenuPageContent() {
                       <FaInfo className="mr-1" size={10} />
                       <TranslatedText>Detayları Gör</TranslatedText>
                     </button>
-                    <button
-                      className="btn py-1 px-3 text-xs rounded flex items-center bg-gray-300 text-gray-600 cursor-not-allowed"
-                      disabled
-                      title="Sipariş verme yetkisi bulunmamaktadır"
-                    >
-                      <FaPlus className="mr-1" size={10} />
-                      <TranslatedText>Sipariş Kapalı</TranslatedText>
-                    </button>
+                    {orderingAllowed ? (
+                      <button
+                        className="btn btn-secondary py-1 px-3 text-xs rounded flex items-center"
+                        onClick={() => addToCart(item)}
+                      >
+                        <FaPlus className="mr-1" size={10} />
+                        <TranslatedText>Sepete Ekle</TranslatedText>
+                      </button>
+                    ) : (
+                      <button
+                        className="btn py-1 px-3 text-xs rounded flex items-center bg-gray-300 text-gray-600 cursor-not-allowed"
+                        disabled
+                        title="Sipariş vermek için masa QR kodunu okutun"
+                      >
+                        <FaPlus className="mr-1" size={10} />
+                        <TranslatedText>Sipariş Kapalı</TranslatedText>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1014,17 +1056,31 @@ function MenuPageContent() {
               <FaUtensils className="mb-0.5" size={16} />
               <span className="text-[10px]"><TranslatedText>Menü</TranslatedText></span>
             </Link>
-            <div className="flex flex-col items-center text-gray-400 cursor-not-allowed">
-              <div className="relative">
-                <FaShoppingCart className="mb-0.5" size={16} />
-                <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                  </svg>
-                </span>
+            {orderingAllowed ? (
+              <Link href="/cart" className="flex flex-col items-center" style={{ color: primary }}>
+                <div className="relative">
+                  <FaShoppingCart className="mb-0.5" size={16} />
+                  {isClient && cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 text-white text-[8px] rounded-full w-3 h-3 flex items-center justify-center" style={{ backgroundColor: primary }}>
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px]"><TranslatedText>Sepet</TranslatedText></span>
+              </Link>
+            ) : (
+              <div className="flex flex-col items-center text-gray-400 cursor-not-allowed">
+                <div className="relative">
+                  <FaShoppingCart className="mb-0.5" size={16} />
+                  <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                    </svg>
+                  </span>
+                </div>
+                <span className="text-[10px]"><TranslatedText>Kapalı</TranslatedText></span>
               </div>
-              <span className="text-[10px]"><TranslatedText>Kapalı</TranslatedText></span>
-            </div>
+            )}
             <Link href="/garson-cagir" className="flex flex-col items-center" style={{ color: primary }}>
               <FaBell className="mb-0.5" size={16} />
               <span className="text-[10px]"><TranslatedText>Garson Çağır</TranslatedText></span>
