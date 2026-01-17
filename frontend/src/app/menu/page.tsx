@@ -753,7 +753,7 @@ function MenuPageContent() {
           <div className="bg-green-100 border-b border-green-200 py-2 px-4 text-center fixed top-0 left-0 right-0 z-30">
             <p className="text-green-800 text-sm font-medium">
               <span className="mr-1">✅</span>
-              <span>Sipariş verme modu aktif. Masa {tableNumber}</span>
+              <span>Sipariş verme modu aktif</span>
             </p>
           </div>
         )}
