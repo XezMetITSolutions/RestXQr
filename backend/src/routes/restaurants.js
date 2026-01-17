@@ -74,12 +74,32 @@ router.get('/username/:username', async (req, res) => {
   } catch (error) {
     console.error('Get restaurant by username error:', error);
 
-    // No fallback data - return actual database results only
+    try {
+      const { username } = req.params;
+      const restaurant = await Restaurant.findOne({
+        where: { username },
+        attributes: { exclude: ['password'] }
+      });
 
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
+      if (!restaurant) {
+        return res.status(404).json({
+          success: false,
+          message: 'Restaurant not found'
+        });
+      }
+
+      return res.json({
+        success: true,
+        data: restaurant,
+        warning: 'Partial data returned (menu includes unavailable)'
+      });
+    } catch (fallbackError) {
+      console.error('Get restaurant by username fallback error:', fallbackError);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
   }
 });
 
