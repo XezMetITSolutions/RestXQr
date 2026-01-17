@@ -55,12 +55,14 @@ router.get('/', staffAuth, checkRestaurantAccess, async (req, res) => {
     // Role-specific filters
     switch (staffRole) {
       case 'kitchen':
-        // Kitchen only sees pending and preparing orders
+        // Kitchen only sees approved pending/preparing orders
+        where.approved = true;
         where.status = status || { [Op.in]: ['pending', 'preparing'] };
         break;
         
       case 'waiter':
-        // Waiters see all active orders
+        // Waiters see approved active orders
+        where.approved = true;
         if (status && status !== 'all') {
           where.status = status;
         } else {
@@ -74,8 +76,11 @@ router.get('/', staffAuth, checkRestaurantAccess, async (req, res) => {
         break;
         
       case 'cashier':
-        // Cashiers see all orders with emphasis on payment status
-        if (status && status !== 'all') {
+        // Cashiers see unapproved pending orders for approval tab
+        if (status === 'pending') {
+          where.status = 'pending';
+          where.approved = false;
+        } else if (status && status !== 'all') {
           where.status = status;
         }
         break;
@@ -154,6 +159,7 @@ router.post('/', staffAuth, roleAuth(['waiter', 'cashier']), async (req, res) =>
       restaurantId,
       tableNumber,
       status: 'pending',
+      approved: false,
       customerName: customerName || null,
       notes: notes || null,
       createdBy: req.staff.id,
