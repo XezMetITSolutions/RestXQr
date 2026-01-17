@@ -383,7 +383,11 @@ export default function StaffPage() {
 
     // Staff session bilgilerini hazırla
     localStorage.setItem('staff_user', JSON.stringify(loginData));
-    localStorage.setItem('staff_token', 'authenticated'); // Admin tarafından giriş yapıldığı için token simüle ediliyor
+    
+    // Create a proper JWT-like token format with Bearer prefix
+    // This is a simulated token for admin access that will be accepted by the backend
+    const simulatedToken = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({id: staffMember.id, role: staffMember.role, restaurantId: staffMember.restaurantId}))}.simulated`;
+    localStorage.setItem('staff_token', simulatedToken); // Admin tarafından giriş yapıldığı için token simüle ediliyor
 
     // Role göre ilgili panele yönlendir
     let panelUrl = '/garson';

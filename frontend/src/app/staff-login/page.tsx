@@ -27,7 +27,21 @@ export default function StaffLoginPage() {
       if (response.success && response.data) {
         // Staff bilgilerini localStorage'a kaydet
         localStorage.setItem('staff_user', JSON.stringify(response.data));
-        localStorage.setItem('staff_token', response.data.token || 'authenticated');
+        
+        // Make sure we have a proper token
+        if (response.data.token) {
+          // Store token with Bearer prefix if it doesn't have one
+          const token = response.data.token.startsWith('Bearer ') 
+            ? response.data.token 
+            : `Bearer ${response.data.token}`;
+          localStorage.setItem('staff_token', token);
+        } else {
+          // If no token is provided by the backend, show an error
+          console.error('Backend did not return a token');
+          setError('Authentication error: No token received from server');
+          setLoading(false);
+          return;
+        }
         
         // Role göre yönlendir
         const role = response.data.role;
