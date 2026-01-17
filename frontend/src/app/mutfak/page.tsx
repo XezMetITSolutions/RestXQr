@@ -209,25 +209,59 @@ export default function MutfakPanel() {
         // For grouped orders, we need to extract the table number and delete all orders for that table
         const tableMatch = orderId.match(/table-(\d+)-grouped/);
         if (tableMatch && tableMatch[1]) {
-          const tableNumber = tableMatch[1];
-          console.log(`Grouped order deletion for table ${tableNumber}`);
-          // This endpoint should be implemented on the backend to handle grouped order deletion
-          const response = await fetch(`${API_URL}/orders/table/${tableNumber}`, {
-            method: 'DELETE',
-            headers: {
-              'Accept': 'application/json'
+          const tableNumber = parseInt(tableMatch[1]);
+          console.log(`Gruplu sipariş silme işlemi - Masa ${tableNumber}`);
+          
+          // Find all orders for this table
+          const tableOrders = orders.filter(order => order.tableNumber === tableNumber);
+          
+          if (tableOrders.length === 0) {
+            console.error(`Masa ${tableNumber} için sipariş bulunamadı`);
+            alert(`Masa ${tableNumber} için sipariş bulunamadı`);
+            fetchOrders(false);
+            return;
+          }
+          
+          console.log(`Masa ${tableNumber} için ${tableOrders.length} adet sipariş siliniyor...`);
+          
+          // Delete each order individually
+          const deletePromises = tableOrders.map(async (order) => {
+            try {
+              const response = await fetch(`${API_URL}/orders/${order.id}`, {
+                method: 'DELETE',
+                headers: {
+                  'Accept': 'application/json'
+                }
+              });
+              
+              if (response.ok) {
+                console.log(`✅ Sipariş silindi: ${order.id}`);
+                return true;
+              } else {
+                console.error(`❌ Sipariş silinemedi: ${order.id}, Status: ${response.status}`);
+                return false;
+              }
+            } catch (error) {
+              console.error(`❌ Sipariş silme hatası: ${order.id}`, error);
+              return false;
             }
           });
           
-          if (response.ok) {
-            console.log(`✅ Masa ${tableNumber} siparişleri silindi`);
-            fetchOrders(false);
+          // Wait for all delete operations to complete
+          const results = await Promise.all(deletePromises);
+          
+          // Check if all deletions were successful
+          const allSuccessful = results.every(result => result === true);
+          
+          if (allSuccessful) {
+            console.log(`✅ Masa ${tableNumber} için tüm siparişler başarıyla silindi`);
+            alert(`Masa ${tableNumber} için tüm siparişler başarıyla silindi`);
           } else {
-            const errorText = await response.text();
-            console.error(`❌ Masa siparişleri silinemedi! Status: ${response.status}, Response:`, errorText);
-            alert(`Masa siparişleri silinemedi! (Hata Kodu: ${response.status})`);
-            fetchOrders(false);
+            console.error(`❌ Masa ${tableNumber} için bazı siparişler silinemedi`);
+            alert(`Masa ${tableNumber} için bazı siparişler silinemedi. Lütfen sayfayı yenileyip tekrar deneyin.`);
           }
+          
+          fetchOrders(false);
           return;
         }
       }
