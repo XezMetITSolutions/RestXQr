@@ -1081,10 +1081,24 @@ function MenuPageContent() {
                 <span className="text-[10px]"><TranslatedText>Kapalı</TranslatedText></span>
               </div>
             )}
-            <Link href="/garson-cagir" className="flex flex-col items-center" style={{ color: primary }}>
-              <FaBell className="mb-0.5" size={16} />
-              <span className="text-[10px]"><TranslatedText>Garson Çağır</TranslatedText></span>
-            </Link>
+            {orderingAllowed ? (
+              <Link href="/garson-cagir" className="flex flex-col items-center" style={{ color: primary }}>
+                <FaBell className="mb-0.5" size={16} />
+                <span className="text-[10px]"><TranslatedText>Garson Çağır</TranslatedText></span>
+              </Link>
+            ) : (
+              <div className="flex flex-col items-center text-gray-400 cursor-not-allowed">
+                <div className="relative">
+                  <FaBell className="mb-0.5" size={16} />
+                  <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                    </svg>
+                  </span>
+                </div>
+                <span className="text-[10px]"><TranslatedText>Kapalı</TranslatedText></span>
+              </div>
+            )}
           </div>
         </nav>
       </main>
