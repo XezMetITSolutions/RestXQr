@@ -449,9 +449,70 @@ export default function KasaPanel() {
                         <span className="text-2xl font-black text-green-600 font-mono tracking-tighter">{(Number(order.totalAmount || 0) - Number(order.paidAmount || 0) - Number(order.discountAmount || 0)).toFixed(2)}₺</span>
                       </div>
                     </div>
-                    <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="w-full mt-6 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
-                      ÖDEME AL
-                    </button>
+                    <div className="flex gap-3 mt-6">
+                      <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
+                        ÖDEME AL
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
+                            if (order.id.includes('grouped')) {
+                              const tableNumber = parseInt(order.id.split('-')[1]);
+                              const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
+                              
+                              if (tableOrders.length === 0) {
+                                alert(`Masa ${tableNumber} için sipariş bulunamadı`);
+                                fetchOrders();
+                                return;
+                              }
+                              
+                              // Delete each order individually
+                              Promise.all(tableOrders.map(async (tableOrder) => {
+                                try {
+                                  const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
+                                    method: 'DELETE',
+                                    headers: { 'Accept': 'application/json' }
+                                  });
+                                  return response.ok;
+                                } catch (error) {
+                                  console.error(`Sipariş silme hatası: ${tableOrder.id}`, error);
+                                  return false;
+                                }
+                              })).then(results => {
+                                const allSuccessful = results.every(result => result === true);
+                                if (allSuccessful) {
+                                  alert(`Masa ${tableNumber} için tüm siparişler başarıyla silindi`);
+                                } else {
+                                  alert(`Masa ${tableNumber} için bazı siparişler silinemedi. Lütfen sayfayı yenileyip tekrar deneyin.`);
+                                }
+                                fetchOrders();
+                              });
+                            } else {
+                              // Regular order deletion
+                              fetch(`${API_URL}/orders/${order.id}`, {
+                                method: 'DELETE',
+                                headers: { 'Accept': 'application/json' }
+                              }).then(response => {
+                                if (response.ok) {
+                                  alert('Sipariş başarıyla silindi');
+                                  fetchOrders();
+                                } else {
+                                  alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
+                                  fetchOrders();
+                                }
+                              }).catch(error => {
+                                console.error('Sipariş silme hatası:', error);
+                                alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
+                                fetchOrders();
+                              });
+                            }
+                          }
+                        }}
+                        className="py-4 px-3 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all shadow-lg active:scale-95"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -461,8 +522,8 @@ export default function KasaPanel() {
       </div>
 
       {showPaymentModal && selectedOrder && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4">
-          <div className="bg-white rounded-[32px] md:rounded-[40px] shadow-2xl w-full max-w-6xl max-h-[96vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4 overflow-y-auto">
+          <div className="bg-white rounded-[32px] md:rounded-[40px] shadow-2xl w-full max-w-6xl max-h-[96vh] md:max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300 my-auto">
             <div className="p-8 border-b flex justify-between items-center bg-gray-50/50">
               <div className="flex items-center gap-6">
                 <div className="w-20 h-20 bg-gray-900 text-white rounded-[30px] flex items-center justify-center text-3xl font-black shadow-2xl">
@@ -481,8 +542,8 @@ export default function KasaPanel() {
               </div>
             </div>
 
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-              <div className="flex-1 p-8 overflow-y-auto custom-scrollbar border-r">
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden overflow-y-auto">
+              <div className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar border-r">
                 <div className="flex bg-gray-100 p-2 rounded-3xl mb-8">
                   {(['full', 'selective', 'manual', 'split'] as const).map(t => (
                     <button key={t} onClick={() => { setPaymentTab(t); setSelectedItemIndexes([]); setCashAmount(''); setCardAmount(''); }} className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${paymentTab === t ? 'bg-white shadow-xl text-gray-900' : 'text-gray-400'}`}>
@@ -520,7 +581,7 @@ export default function KasaPanel() {
                 </div>
               </div>
 
-              <div className="w-full lg:w-[400px] bg-gray-50 p-8 flex flex-col justify-between">
+              <div className="w-full lg:w-[400px] bg-gray-50 p-4 md:p-8 flex flex-col justify-between overflow-y-auto">
                 <div className="space-y-6">
                   <div className="bg-white p-6 rounded-[32px] shadow-sm flex justify-between items-center">
                     <span className="font-black text-gray-400 text-xs text-left">TOPLAM<br />HESAP</span>
