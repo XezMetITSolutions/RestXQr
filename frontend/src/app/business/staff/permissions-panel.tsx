@@ -526,10 +526,6 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       const cachedPermissions = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null;
       const parsedCache = cachedPermissions ? JSON.parse(cachedPermissions) : null;
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(cacheKey, JSON.stringify(allPermissions));
-      }
-
       if (parsedCache && !permissionsEqual(parsedCache, allPermissions)) {
         console.warn('Permissions mismatch detected; preferring local cache and syncing backend.');
         if (parsedCache.kitchen) setKitchenPermissions(parsedCache.kitchen);
@@ -537,6 +533,10 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
         if (parsedCache.cashier) setCashierPermissions(parsedCache.cashier);
         await syncPermissionsToBackend(parsedCache, authenticatedRestaurant.id);
         return;
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(cacheKey, JSON.stringify(allPermissions));
       }
 
       // Update state with loaded permissions if available
