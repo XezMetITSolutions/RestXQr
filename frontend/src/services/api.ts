@@ -26,6 +26,11 @@ class ApiService {
         
       // Staff token'i al
       const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
+      
+      // Log if token is missing
+      if (!staffToken && !endpoint.includes('/login')) {
+        console.warn(`API request to ${endpoint} without authentication token`);
+      }
 
       // Subdomain'i ve token'i her zaman gönder
       const headers: Record<string, string> = {
@@ -46,6 +51,9 @@ class ApiService {
         // Make sure the token is properly formatted
         const token = staffToken.startsWith('Bearer ') ? staffToken : `Bearer ${staffToken}`;
         headers['Authorization'] = token;
+        
+        // Log token format for debugging
+        console.log(`Token format for ${endpoint}: ${token.substring(0, 10)}...`);
       }
 
       console.log('🌐 API Request:', {
@@ -246,47 +254,11 @@ class ApiService {
     try {
       console.log('Getting staff for restaurant:', restaurantId);
       
-      // Get staff token directly to ensure it's available
-      const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
-      if (!staffToken) {
-        console.error('Staff token is missing for getStaff request');
-        throw new Error('Authentication token is missing');
-      }
-      
-      // Get subdomain directly
-      const subdomain = typeof window !== 'undefined' 
-        ? window.location.hostname.split('.')[0] 
-        : 'kroren';
-      
-      // Make direct fetch request to debug the issue
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
-      const url = `${API_URL}/staff/restaurant/${restaurantId}`;
-      
-      console.log('Making direct fetch request to:', url);
-      console.log('With headers:', {
-        'Authorization': 'Bearer [HIDDEN]',
-        'Content-Type': 'application/json',
-        'X-Subdomain': subdomain
-      });
-      
-      const response = await fetch(url, {
+      // Use the standard request method to ensure consistent header handling
+      return this.request<any>(`/staff/restaurant/${restaurantId}`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${staffToken}`,
-          'Content-Type': 'application/json',
-          'X-Subdomain': subdomain
-        }
+        // No need to specify headers here as they will be added by the request method
       });
-      
-      const data = await response.json();
-      console.log('Staff API direct response status:', response.status);
-      
-      if (!response.ok) {
-        console.error('Staff API error:', data);
-        throw new Error(data.message || `API error: ${response.status}`);
-      }
-      
-      return data;
     } catch (error) {
       console.error('Error in getStaff:', error);
       throw error;
