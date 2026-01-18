@@ -92,14 +92,14 @@ app.post('/api/debug/sync-db', async (req, res) => {
   try {
     const { sequelize } = require('./models');
     console.log('⚙️  Adding approved column to orders table...');
-    
+
     // Check if column exists first
     const [results] = await sequelize.query(`
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name='orders' AND column_name='approved';
     `);
-    
+
     if (results.length > 0) {
       console.log('✅ approved column already exists');
       return res.json({
@@ -109,20 +109,20 @@ app.post('/api/debug/sync-db', async (req, res) => {
         alreadyExists: true
       });
     }
-    
+
     // Add the column
     await sequelize.query(`
       ALTER TABLE orders 
       ADD COLUMN approved BOOLEAN DEFAULT false;
     `);
-    
+
     // Update existing orders
     await sequelize.query(`
       UPDATE orders 
       SET approved = false 
       WHERE approved IS NULL;
     `);
-    
+
     console.log('✅ approved column added successfully');
     res.json({
       success: true,
@@ -146,20 +146,19 @@ app.post('/api/debug/delete-all-orders', async (req, res) => {
   console.log('🗑️ Delete all orders endpoint called');
   try {
     const { Order, OrderItem } = require('./models');
-    
+
     // First delete all order items
-    const deletedItems = await OrderItem.destroy({ where: {}, truncate: true });
-    console.log(`🗑️ Deleted ${deletedItems} order items`);
-    
+    await OrderItem.destroy({ where: {}, truncate: false }); // Truncate can fail with FKs, use where: {}
+    console.log(`🗑️ Deleted order items`);
+
     // Then delete all orders
-    const deletedOrders = await Order.destroy({ where: {}, truncate: true });
+    const deletedOrders = await Order.destroy({ where: {}, truncate: false });
     console.log(`🗑️ Deleted ${deletedOrders} orders`);
-    
+
     res.json({
       success: true,
       message: 'Tüm siparişler başarıyla silindi',
       deletedOrders,
-      deletedItems,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -167,6 +166,62 @@ app.post('/api/debug/delete-all-orders', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Siparişler silinirken hata oluştu',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// AKTİF SİPARİŞLERİ SİL (Debug/Test için)
+app.post('/api/debug/delete-active-orders', async (req, res) => {
+  console.log('🗑️ Delete active orders endpoint called');
+  try {
+    const { Order, OrderItem, Restaurant } = require('./models');
+    const { Sequelize } = require('sequelize');
+    const { Op } = Sequelize;
+
+    const { restaurantUsername } = req.body;
+    let where = {
+      status: { [Op.in]: ['pending', 'preparing', 'ready'] }
+    };
+
+    if (restaurantUsername) {
+      const restaurant = await Restaurant.findOne({ where: { username: restaurantUsername } });
+      if (restaurant) {
+        where.restaurantId = restaurant.id;
+      }
+    }
+
+    // Find active orders first to get their IDs for OrderItem deletion
+    const activeOrders = await Order.findAll({ where });
+    const orderIds = activeOrders.map(o => o.id);
+
+    if (orderIds.length > 0) {
+      // Delete order items for these orders
+      await OrderItem.destroy({ where: { orderId: { [Op.in]: orderIds } } });
+
+      // Delete the orders
+      const deletedCount = await Order.destroy({ where: { id: { [Op.in]: orderIds } } });
+
+      res.json({
+        success: true,
+        message: `${deletedCount} aktif sipariş başarıyla silindi`,
+        deletedCount,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      res.json({
+        success: true,
+        message: 'Silinecek aktif sipariş bulunamadı',
+        deletedCount: 0,
+        timestamp: new Date().toISOString()
+      });
+    }
+  } catch (error) {
+    console.error('❌ Delete Active Orders Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Aktif siparişler silinirken hata oluştu',
       error: error.message,
       timestamp: new Date().toISOString()
     });

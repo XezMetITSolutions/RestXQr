@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle } from 'react-icons/fa';
+import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaBug } from 'react-icons/fa';
 
 interface OrderItem {
   id: string;
@@ -100,7 +100,7 @@ export default function KasaPanel() {
         const groupOrdersByTable = (orders: Order[]) => {
           // Use Map<number | 'null', Order[]> to handle null table numbers
           const grouped = new Map<number | 'null', Order[]>();
-          
+
           orders.forEach(order => {
             // Convert null/undefined table numbers to 'null' string key
             const tableNumber = order.tableNumber != null ? order.tableNumber : 'null';
@@ -109,7 +109,7 @@ export default function KasaPanel() {
             }
             grouped.get(tableNumber)!.push(order);
           });
-          
+
           return Array.from(grouped.values());
         };
 
@@ -118,16 +118,16 @@ export default function KasaPanel() {
           if (tableOrders.length === 1) {
             return tableOrders[0];
           }
-          
+
           const latestOrder = tableOrders.reduce((latest, current) => {
             return new Date(current.created_at) > new Date(latest.created_at) ? current : latest;
           });
-          
+
           const allItems: OrderItem[] = [];
           let totalAmount = 0;
           let totalPaidAmount = 0;
           let totalDiscountAmount = 0;
-          
+
           tableOrders.forEach(order => {
             order.items.forEach(item => {
               allItems.push(item);
@@ -136,15 +136,15 @@ export default function KasaPanel() {
             totalPaidAmount += Number(order.paidAmount) || 0;
             totalDiscountAmount += Number(order.discountAmount) || 0;
           });
-          
+
           const statusPriority = { 'pending': 1, 'preparing': 2, 'ready': 3, 'completed': 4, 'cancelled': 5 };
           const mostCriticalStatus = tableOrders.reduce((prev, current) => {
             return statusPriority[prev.status] > statusPriority[current.status] ? prev : current;
           }).status;
-          
+
           // Handle null/undefined table numbers
           const tableNumberForId = latestOrder.tableNumber != null ? latestOrder.tableNumber : 'null';
-          
+
           return {
             ...latestOrder,
             items: allItems,
@@ -164,14 +164,14 @@ export default function KasaPanel() {
             if (order.status === 'pending' || order.status === 'preparing' || order.status === 'ready' || order.status === 'completed') return true;
             return false;
           });
-          
+
           const grouped = groupOrdersByTable(filtered);
           const groupedOrders: Order[] = [];
-          
+
           grouped.forEach((tableOrders) => {
             groupedOrders.push(createGroupedOrder(tableOrders));
           });
-          
+
           return groupedOrders;
         })();
         setOrders(filteredOrders);
@@ -199,9 +199,9 @@ export default function KasaPanel() {
       if (orderId.includes('grouped')) {
         const tableNumber = parseInt(orderId.split('-')[1]);
         const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
-        
+
         console.log('📋 Gruplu ödeme tespit edildi:', { tableNumber, orderCount: tableOrders.length });
-        
+
         // Her bir gerçek siparişi güncelle
         const updatePromises = tableOrders.map(async (tableOrder) => {
           const payload: any = {
@@ -227,10 +227,10 @@ export default function KasaPanel() {
           });
           return response.json();
         });
-        
+
         await Promise.all(updatePromises);
         console.log('✅ Tüm masa ödemeleri güncellendi');
-        
+
         if (!isPartial) {
           setShowPaymentModal(false);
           setSelectedOrder(null);
@@ -261,11 +261,11 @@ export default function KasaPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       console.log('📡 Payment API Response status:', response.status);
       const data = await response.json();
       console.log('📦 Payment API Response data:', data);
-      
+
       if (data.success) {
         console.log('✅ Ödeme başarıyla tamamlandı');
         if (!isPartial || remaining <= 0) {
@@ -389,6 +389,15 @@ export default function KasaPanel() {
             <button onClick={fetchOrders} className="p-4 bg-white border-2 border-gray-100 rounded-2xl hover:border-green-500 hover:text-green-500 transition-all shadow-sm">
               <FaUtensils />
             </button>
+            {(staffRole === 'manager' || staffRole === 'admin') && (
+              <button
+                onClick={() => router.push('/kasa/debug-delete')}
+                className="p-4 bg-red-50 text-red-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                title="Siparişleri Temizle (Debug)"
+              >
+                <FaBug />
+              </button>
+            )}
             <button onClick={() => { localStorage.clear(); router.push('/staff-login'); }} className="p-4 bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
               <FaSignOutAlt />
             </button>
@@ -427,16 +436,15 @@ export default function KasaPanel() {
                         <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
                       </div>
                     </div>
-                    <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
-                      order.status === 'pending' ? 'text-yellow-600 bg-yellow-50' :
+                    <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${order.status === 'pending' ? 'text-yellow-600 bg-yellow-50' :
                       order.status === 'preparing' ? 'text-blue-600 bg-blue-50' :
-                      order.status === 'ready' ? 'text-green-600 bg-green-50' :
-                      'text-gray-600 bg-gray-50'
-                    }`}>
+                        order.status === 'ready' ? 'text-green-600 bg-green-50' :
+                          'text-gray-600 bg-gray-50'
+                      }`}>
                       {order.status === 'pending' ? 'BEKLEMEDE' :
-                       order.status === 'preparing' ? 'HAZIRLANIYOR' :
-                       order.status === 'ready' ? 'HAZIR' :
-                       order.status === 'completed' ? 'TAMAMLANDI' : order.status.toUpperCase()}
+                        order.status === 'preparing' ? 'HAZIRLANIYOR' :
+                          order.status === 'ready' ? 'HAZIR' :
+                            order.status === 'completed' ? 'TAMAMLANDI' : order.status.toUpperCase()}
                     </div>
                   </div>
                   <div className="p-6">
@@ -455,10 +463,10 @@ export default function KasaPanel() {
                         <span className="font-black text-green-700 text-xs uppercase">KALAN</span>
                         <span className="text-2xl font-black text-green-600 font-mono tracking-tighter">{(Number(order.totalAmount || 0) - Number(order.paidAmount || 0) - Number(order.discountAmount || 0)).toFixed(2)}₺</span>
                       </div>
-                      
+
                       {/* Special delete button for null table orders */}
                       {order.tableNumber == null && !order.id.includes('grouped') && (
-                        <button 
+                        <button
                           onClick={() => {
                             if (confirm('Bu masasız siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
                               fetch(`${API_URL}/orders/${order.id}`, {
@@ -490,7 +498,7 @@ export default function KasaPanel() {
                       <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
                         ÖDEME AL
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
                             if (order.id.includes('grouped')) {
@@ -502,13 +510,13 @@ export default function KasaPanel() {
                               }
                               const tableNumber = parseInt(tableNumberToken);
                               const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
-                              
+
                               if (tableOrders.length === 0) {
                                 alert(`Masa ${tableNumber} için sipariş bulunamadı`);
                                 fetchOrders();
                                 return;
                               }
-                              
+
                               // Delete each order individually
                               Promise.all(tableOrders.map(async (tableOrder) => {
                                 try {
@@ -674,8 +682,8 @@ export default function KasaPanel() {
                       {paymentTab === 'selective'
                         ? selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i]?.price || 0) * Number(selectedOrder.items[i]?.quantity || 0)), 0).toFixed(2)
                         : paymentTab === 'manual' ? (Number(manualAmount) || 0).toFixed(2)
-                        : paymentTab === 'split' ? ((Number(cashAmount) || 0) + (Number(cardAmount) || 0)).toFixed(2)
-                          : (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0)).toFixed(2)
+                          : paymentTab === 'split' ? ((Number(cashAmount) || 0) + (Number(cardAmount) || 0)).toFixed(2)
+                            : (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0)).toFixed(2)
                       }
                       <span className="text-xl opacity-40 ml-1">₺</span>
                     </div>
@@ -692,11 +700,11 @@ export default function KasaPanel() {
                           <FaMoneyBillWave className="text-green-500" />
                           NAKİT TUTAR
                         </label>
-                        <input 
-                          type="number" 
-                          placeholder="0.00" 
-                          value={cashAmount} 
-                          onChange={e => setCashAmount(e.target.value)} 
+                        <input
+                          type="number"
+                          placeholder="0.00"
+                          value={cashAmount}
+                          onChange={e => setCashAmount(e.target.value)}
                           className="w-full text-3xl font-black text-gray-900 bg-transparent outline-none text-center"
                         />
                       </div>
@@ -705,11 +713,11 @@ export default function KasaPanel() {
                           <FaCreditCard className="text-blue-500" />
                           KART TUTAR
                         </label>
-                        <input 
-                          type="number" 
-                          placeholder="0.00" 
-                          value={cardAmount} 
-                          onChange={e => setCardAmount(e.target.value)} 
+                        <input
+                          type="number"
+                          placeholder="0.00"
+                          value={cardAmount}
+                          onChange={e => setCardAmount(e.target.value)}
                           className="w-full text-3xl font-black text-gray-900 bg-transparent outline-none text-center"
                         />
                       </div>
