@@ -86,19 +86,49 @@ app.get('/api/debug/test', (req, res) => {
   });
 });
 
-// VERİTABANI ŞEMASINI GÜNCELLE (Sync Alter)
+// VERİTABANI ŞEMASINI GÜNCELLE (Add approved column)
 app.post('/api/debug/sync-db', async (req, res) => {
   console.log('🔧 Database sync endpoint called');
   try {
     const { sequelize } = require('./models');
-    console.log('⚙️  Starting database sync (alter: true)...');
-    await sequelize.sync({ alter: true });
-    console.log('✅ Database sync completed successfully');
+    console.log('⚙️  Adding approved column to orders table...');
+    
+    // Check if column exists first
+    const [results] = await sequelize.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name='orders' AND column_name='approved';
+    `);
+    
+    if (results.length > 0) {
+      console.log('✅ approved column already exists');
+      return res.json({
+        success: true,
+        message: 'approved kolonu zaten mevcut. Güncelleme gerekmedi.',
+        timestamp: new Date().toISOString(),
+        alreadyExists: true
+      });
+    }
+    
+    // Add the column
+    await sequelize.query(`
+      ALTER TABLE orders 
+      ADD COLUMN approved BOOLEAN DEFAULT false;
+    `);
+    
+    // Update existing orders
+    await sequelize.query(`
+      UPDATE orders 
+      SET approved = false 
+      WHERE approved IS NULL;
+    `);
+    
+    console.log('✅ approved column added successfully');
     res.json({
       success: true,
-      message: 'Veritabanı şeması başarıyla güncellendi. Tüm eksik sütunlar eklendi.',
+      message: 'approved kolonu başarıyla eklendi! Tüm mevcut siparişler approved=false olarak ayarlandı.',
       timestamp: new Date().toISOString(),
-      details: 'Sync mode: ALTER - Existing data preserved'
+      details: 'Column added with DEFAULT false'
     });
   } catch (error) {
     console.error('❌ DB Sync Error:', error);
