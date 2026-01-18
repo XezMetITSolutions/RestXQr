@@ -212,7 +212,8 @@ export default function MenuManagement() {
     name: '',
     emoji: '',
     color: '#3B82F6',
-    order: 0
+    order: 0,
+    ipAddress: ''
   });
   const [isTranslatingItem, setIsTranslatingItem] = useState(false);
   const [itemTranslationError, setItemTranslationError] = useState<string | null>(null);
@@ -248,19 +249,29 @@ export default function MenuManagement() {
 
   useEffect(() => {
     if (currentRestaurant && !isStationsInitialized) {
-      if (currentRestaurant.kitchenStations && Array.isArray(currentRestaurant.kitchenStations)) {
+      console.log('🔄 Initializing stations from currentRestaurant:', currentRestaurant.kitchenStations);
+
+      // kitchenStations undefined ise initialized yapma, gelmesini bekle
+      if (currentRestaurant.kitchenStations === undefined) {
+        console.log('⏳ kitchenStations is undefined, waiting for data...');
+        return;
+      }
+
+      if (Array.isArray(currentRestaurant.kitchenStations) && currentRestaurant.kitchenStations.length > 0) {
         setStations(currentRestaurant.kitchenStations);
         setIsStationsInitialized(true);
-      } else if (currentRestaurant.kitchenStations === null) {
+        console.log('✅ Stations set from existing data');
+      } else if (currentRestaurant.kitchenStations === null || (Array.isArray(currentRestaurant.kitchenStations) && currentRestaurant.kitchenStations.length === 0)) {
         // Eğer backend'de hiç yoksa varsayılanları koy
         const defaults = [
-          { id: '1', name: 'Izgara', emoji: '🔥', color: '#F59E0B', order: 1 },
-          { id: '2', name: 'Makarna', emoji: '🍝', color: '#3B82F6', order: 2 },
-          { id: '3', name: 'Soğuk', emoji: '🥗', color: '#10B981', order: 3 },
-          { id: '4', name: 'Tatlı', emoji: '🍰', color: '#EC4899', order: 4 }
+          { id: '1', name: 'Izgara', emoji: '🔥', color: '#F59E0B', order: 1, ipAddress: '' },
+          { id: '2', name: 'Makarna', emoji: '🍝', color: '#3B82F6', order: 2, ipAddress: '' },
+          { id: '3', name: 'Soğuk', emoji: '🥗', color: '#10B981', order: 3, ipAddress: '' },
+          { id: '4', name: 'Tatlı', emoji: '🍰', color: '#EC4899', order: 4, ipAddress: '' }
         ];
         setStations(defaults);
         setIsStationsInitialized(true);
+        console.log('✅ Stations set to defaults');
       }
     }
   }, [currentRestaurant, isStationsInitialized]);
@@ -721,7 +732,8 @@ export default function MenuManagement() {
       name: '',
       emoji: '',
       color: '#3B82F6',
-      order: stations.length + 1
+      order: stations.length + 1,
+      ipAddress: ''
     });
     setShowStationForm(true);
   };
@@ -732,7 +744,8 @@ export default function MenuManagement() {
       name: station.name || '',
       emoji: station.emoji || '',
       color: station.color || '#3B82F6',
-      order: station.order || 0
+      order: station.order || 0,
+      ipAddress: station.ipAddress || ''
     });
     setShowStationForm(true);
   };
@@ -778,7 +791,8 @@ export default function MenuManagement() {
       name: '',
       emoji: '',
       color: '#3B82F6',
-      order: 0
+      order: 0,
+      ipAddress: ''
     });
   };
 
@@ -2591,6 +2605,21 @@ export default function MenuManagement() {
                         min="0"
                       />
                       <p className="text-xs text-gray-500 mt-1">İstasyonların görüntülenme sırası</p>
+                    </div>
+
+                    {/* Printer IP Address */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Printer (Yazıcı) IP Adresi</TranslatedText>
+                      </label>
+                      <input
+                        type="text"
+                        value={stationFormData.ipAddress}
+                        onChange={(e) => setStationFormData({ ...stationFormData, ipAddress: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                        placeholder="Örn: 192.168.1.100"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Bu istasyona bağlı olan termal yazıcının IP adresini girin.</p>
                     </div>
                   </form>
 

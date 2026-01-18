@@ -49,7 +49,7 @@ export interface Restaurant {
   createdAt: Date;
   status: 'active' | 'inactive' | 'suspended' | 'pending';
   totalOrders?: number;
-  kitchenStations?: Array<{ id: string, name: string, emoji: string, color: string, order: number }>;
+  kitchenStations?: Array<{ id: string, name: string, emoji: string, color: string, order: number, ipAddress?: string }>;
 }
 
 export interface RestaurantSettings {
