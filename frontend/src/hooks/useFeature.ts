@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 
 const RESERVED_SUBDOMAINS = ['restxqr', 'www', 'localhost', '127', '127.0.0.1'];
 
-const detectDemoRoute = () => 
+const detectDemoRoute = () =>
   typeof window !== 'undefined' && window.location.pathname.includes('/demo-paneller/');
 
 const getActiveSubdomain = (): string | null => {
@@ -47,14 +47,14 @@ export function useFeature(featureId: string): boolean {
   const restaurants = Array.isArray(restaurantStore?.restaurants) ? restaurantStore.restaurants : [];
   const fetchRestaurantByUsername = restaurantStore?.fetchRestaurantByUsername;
   const [loading, setLoading] = useState(false);
-  
+
   // Demo panelde tüm özellikler aktif
   const isDemo = detectDemoRoute();
   if (isDemo) {
     console.log('📦 useFeature: Demo mode - all features enabled');
     return true;
   }
-  
+
   // Real-time data fetch için subdomain'i al ve backend'den çek
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -63,7 +63,7 @@ export function useFeature(featureId: string): boolean {
       console.log('📦 useFeature: Demo mode, skipping fetch');
       return;
     }
-    
+
     const subdomain = getActiveSubdomain();
     if (!subdomain) {
       console.log('ℹ️ useFeature: No subdomain detected, skipping fetch');
@@ -81,13 +81,13 @@ export function useFeature(featureId: string): boolean {
         console.log('✅ useFeature: Fetch completed for subdomain:', subdomain);
       });
   }, [fetchRestaurantByUsername]);
-  
+
   // Debug logging
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const subdomain = getActiveSubdomain();
-      const restaurant = subdomain && Array.isArray(restaurants) 
-        ? restaurants.find(r => r && r.username === subdomain) 
+      const restaurant = subdomain && Array.isArray(restaurants)
+        ? restaurants.find(r => r && r.username === subdomain)
         : null;
       console.log('🎯 useFeature Debug:', {
         featureId,
@@ -98,7 +98,7 @@ export function useFeature(featureId: string): boolean {
       });
     }
   }, [featureId, authenticatedRestaurant, restaurants?.length]);
-  
+
   // Plan bazlı özellik kontrolü - bazı özellikler plan'a göre otomatik aktif
   const checkFeatureByPlan = (plan: string | undefined, featureId: string): boolean => {
     // Premium, Corporate, Enterprise planlarında aktif olan özellikler
@@ -111,17 +111,24 @@ export function useFeature(featureId: string): boolean {
     if (premiumFeatures.includes(featureId)) {
       return plan === 'premium' || plan === 'corporate' || plan === 'enterprise';
     }
-    
+
+    // Tüm planlarda aktif olan özellikler
+    const basicFeatures = [
+      'delivery_integration'
+    ];
+    if (basicFeatures.includes(featureId)) {
+      return true; // Herkese açık
+    }
+
     // Corporate, Enterprise planlarında aktif olan özellikler
     const corporateFeatures = [
       'pos_integration',
-      'delivery_integration',
       'multi_branch'
     ];
     if (corporateFeatures.includes(featureId)) {
       return plan === 'corporate' || plan === 'enterprise';
     }
-    
+
     // Sadece Enterprise planında aktif olan özellikler
     const enterpriseFeatures = [
       'api_access'
@@ -129,7 +136,7 @@ export function useFeature(featureId: string): boolean {
     if (enterpriseFeatures.includes(featureId)) {
       return plan === 'enterprise';
     }
-    
+
     return false;
   };
 
@@ -145,12 +152,12 @@ export function useFeature(featureId: string): boolean {
     // Sonra features array'ini kontrol et
     return authenticatedRestaurant.features?.includes(featureId) ?? false;
   }
-  
+
   // Authenticated yoksa subdomain'e göre restaurant bul (backend'den çekilmiş)
   const detectedSubdomain = getActiveSubdomain();
   if (detectedSubdomain && Array.isArray(restaurants)) {
     const restaurant = restaurants.find(r => r && r.username === detectedSubdomain);
-    
+
     if (restaurant) {
       console.log('🏪 useFeature: Using restaurant from store:', restaurant.features);
       const plan = restaurant.subscriptionPlan || restaurant.subscription_plan;
@@ -163,7 +170,7 @@ export function useFeature(featureId: string): boolean {
       return restaurant.features?.includes(featureId) ?? false;
     }
   }
-  
+
   console.log('❌ useFeature: No features found, returning false');
   return false;
 }
@@ -224,7 +231,7 @@ export function useFeatures(featureIds: string[]): Record<string, boolean> {
       console.log('📦 useFeatures: Demo mode, skipping fetch');
       return;
     }
-    
+
     if (local) return;
     if (authenticatedRestaurant) return;
     if (typeof window === 'undefined') return;
@@ -238,7 +245,7 @@ export function useFeatures(featureIds: string[]): Record<string, boolean> {
         const data = await res.json();
         if (cancelled) return;
         setRemoteFeatures(Array.isArray(data?.features) ? data.features : []);
-      } catch {}
+      } catch { }
     })();
     return () => { cancelled = true; };
   }, [local, authenticatedRestaurant?.id, featureIds.join('|')]);
@@ -301,7 +308,7 @@ export function useActiveFeatures(): string[] {
       console.log('📦 useActiveFeatures: Demo mode, skipping fetch');
       return;
     }
-    
+
     if (local) return;
     if (authenticatedRestaurant) return;
     if (typeof window === 'undefined') return;
@@ -315,7 +322,7 @@ export function useActiveFeatures(): string[] {
         const data = await res.json();
         if (cancelled) return;
         setRemoteFeatures(Array.isArray(data?.features) ? data.features : []);
-      } catch {}
+      } catch { }
     })();
     return () => { cancelled = true; };
   }, [local, authenticatedRestaurant?.id]);
