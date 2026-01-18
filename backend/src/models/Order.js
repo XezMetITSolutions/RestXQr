@@ -29,12 +29,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('pending', 'preparing', 'ready', 'completed', 'cancelled'),
       defaultValue: 'pending'
     },
-    // TEMPORARILY DISABLED: Will be re-enabled after proper DB migration
-    // approved: {
-    //   type: DataTypes.BOOLEAN,
-    //   defaultValue: false,
-    //   comment: 'Cashier approval required before kitchen/waiter can see'
-    // },
+    approved: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: 'Cashier approval required before kitchen/waiter can see'
+    },
     totalAmount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,

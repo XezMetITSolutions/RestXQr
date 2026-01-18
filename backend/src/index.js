@@ -140,6 +140,39 @@ app.post('/api/debug/sync-db', async (req, res) => {
     });
   }
 });
+
+// TÜM SİPARİŞLERİ SİL (Debug/Test için)
+app.post('/api/debug/delete-all-orders', async (req, res) => {
+  console.log('🗑️ Delete all orders endpoint called');
+  try {
+    const { Order, OrderItem } = require('./models');
+    
+    // First delete all order items
+    const deletedItems = await OrderItem.destroy({ where: {}, truncate: true });
+    console.log(`🗑️ Deleted ${deletedItems} order items`);
+    
+    // Then delete all orders
+    const deletedOrders = await Order.destroy({ where: {}, truncate: true });
+    console.log(`🗑️ Deleted ${deletedOrders} orders`);
+    
+    res.json({
+      success: true,
+      message: 'Tüm siparişler başarıyla silindi',
+      deletedOrders,
+      deletedItems,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Delete All Orders Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Siparişler silinirken hata oluştu',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Cloudinary Test Sayfası
 app.get('/debug', (req, res) => {
   const html = `
