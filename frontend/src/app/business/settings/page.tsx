@@ -41,7 +41,8 @@ import {
   FaDownload,
   FaSync,
   FaPlus,
-  FaTrash
+  FaTrash,
+  FaPrint
 } from 'react-icons/fa';
 import AnnouncementQuickModal from '@/components/AnnouncementQuickModal';
 import BusinessSidebar from '@/components/BusinessSidebar';
@@ -142,6 +143,7 @@ function SettingsPageContent() {
     updateIntegrations,
     updateSecuritySettings,
     updateBackupSettings,
+    updatePrinterSettings,
     updateAccountInfo,
     setActiveTab,
     toggleSection,
@@ -439,7 +441,8 @@ function SettingsPageContent() {
   const tabs = [
     { id: 'general', name: getStatic('Genel Ayarlar'), icon: FaCog },
     { id: 'branding', name: getStatic('Görsel Kimlik'), icon: FaPalette },
-    { id: 'languages', name: getStatic('Diller'), icon: FaGlobe }
+    { id: 'languages', name: getStatic('Diller'), icon: FaGlobe },
+    { id: 'printer', name: getStatic('Yazıcı Ayarları'), icon: FaPrint }
     // Ödeme & Abonelik, Entegrasyonlar, Bildirimler - Kaldırıldı
   ];
 
@@ -812,13 +815,13 @@ function SettingsPageContent() {
                             { key: 'saturday', label: getStatic('Cumartesi'), day: 'saturday' },
                             { key: 'sunday', label: getStatic('Pazar'), day: 'sunday' }
                           ].map((dayInfo) => {
-                            const workingHours = settings.basicInfo.workingHours ? 
-                              (typeof settings.basicInfo.workingHours === 'string' 
+                            const workingHours = settings.basicInfo.workingHours ?
+                              (typeof settings.basicInfo.workingHours === 'string'
                                 ? JSON.parse(settings.basicInfo.workingHours || '{}')
                                 : settings.basicInfo.workingHours)
                               : {};
                             const dayData = workingHours[dayInfo.key] || { isOpen: true, openTime: '09:00', closeTime: '22:00' };
-                            
+
                             return (
                               <div key={dayInfo.key} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200">
                                 <div className="w-24 text-sm font-medium text-gray-700">{dayInfo.label}</div>
@@ -900,7 +903,7 @@ function SettingsPageContent() {
                             </p>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -917,7 +920,7 @@ function SettingsPageContent() {
                               <TranslatedText>Google Maps'teki işletmenizin değerlendirme sayfası URL'si</TranslatedText>
                             </p>
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
                             <input
                               type="checkbox"
@@ -1761,6 +1764,270 @@ function SettingsPageContent() {
                           <p className="text-sm text-yellow-700 mt-1">
                             SMS bildirimleri Premium plan ile kullanılabilir.
                           </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Yazıcı Ayarları */}
+              {activeTab === 'printer' && (
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+                      <div>
+                        <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                          <FaPrint className="text-purple-600" />
+                          <TranslatedText>Yazıcı & Fiş Ayarları</TranslatedText>
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          <TranslatedText>Müşteri fişlerini ve mutfak dökümlerini bu bölümden özelleştirin.</TranslatedText>
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleSave('printer')}
+                        disabled={isLoading}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
+                      >
+                        {isLoading ? <FaSpinner className="animate-spin" /> : <FaSave />}
+                        <TranslatedText>Kaydet</TranslatedText>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                      {/* Sol Kolon - Ayarlar */}
+                      <div className="space-y-8">
+                        {/* Fiş İçeriği */}
+                        <div className="space-y-4">
+                          <h4 className="font-bold text-gray-700 uppercase text-xs tracking-wider"><TranslatedText>Fiş İçeriği</TranslatedText></h4>
+
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Fiş Üst Bilgi (Header)</TranslatedText></label>
+                              <textarea
+                                value={settings.printerSettings?.receiptHeader || ''}
+                                onChange={(e) => updatePrinterSettings({ receiptHeader: e.target.value })}
+                                className="w-full px-3 py-2 border rounded-lg text-sm"
+                                placeholder={getStatic('Mağaza Adı, Vergi No vb.')}
+                                rows={2}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Fiş Alt Bilgi (Footer)</TranslatedText></label>
+                              <textarea
+                                value={settings.printerSettings?.receiptFooter || ''}
+                                onChange={(e) => updatePrinterSettings({ receiptFooter: e.target.value })}
+                                className="w-full px-3 py-2 border rounded-lg text-sm"
+                                placeholder={getStatic('Teşekkür ederiz, afiyet olsun vb.')}
+                                rows={2}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={settings.printerSettings?.showLogo}
+                                onChange={(e) => updatePrinterSettings({ showLogo: e.target.checked })}
+                                className="w-4 h-4 text-purple-600"
+                              />
+                              <span className="text-sm font-medium"><TranslatedText>Logo Göster</TranslatedText></span>
+                            </label>
+                            <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={settings.printerSettings?.showTableNumber}
+                                onChange={(e) => updatePrinterSettings({ showTableNumber: e.target.checked })}
+                                className="w-4 h-4 text-purple-600"
+                              />
+                              <span className="text-sm font-medium"><TranslatedText>Masa No Göster</TranslatedText></span>
+                            </label>
+                            <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={settings.printerSettings?.showDateTime}
+                                onChange={(e) => updatePrinterSettings({ showDateTime: e.target.checked })}
+                                className="w-4 h-4 text-purple-600"
+                              />
+                              <span className="text-sm font-medium"><TranslatedText>Tarih/Saat Göster</TranslatedText></span>
+                            </label>
+                            <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={settings.printerSettings?.showOrderNumber}
+                                onChange={(e) => updatePrinterSettings({ showOrderNumber: e.target.checked })}
+                                className="w-4 h-4 text-purple-600"
+                              />
+                              <span className="text-sm font-medium"><TranslatedText>Sipariş No Göster</TranslatedText></span>
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Teknik Ayarlar */}
+                        <div className="space-y-4 pt-4 border-t">
+                          <h4 className="font-bold text-gray-700 uppercase text-xs tracking-wider"><TranslatedText>Teknik Yapılandırma</TranslatedText></h4>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Kağıt Genişliği</TranslatedText></label>
+                              <select
+                                value={settings.printerSettings?.paperWidth || '80mm'}
+                                onChange={(e) => updatePrinterSettings({ paperWidth: e.target.value as any })}
+                                className="w-full px-3 py-2 border rounded-lg text-sm"
+                              >
+                                <option value="80mm">80mm (Standart)</option>
+                                <option value="58mm">58mm (Mobil/Küçük)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Kopya Sayısı</TranslatedText></label>
+                              <input
+                                type="number"
+                                min="1"
+                                max="5"
+                                value={settings.printerSettings?.copies || 1}
+                                onChange={(e) => updatePrinterSettings({ copies: parseInt(e.target.value) })}
+                                className="w-full px-3 py-2 border rounded-lg text-sm"
+                              />
+                            </div>
+                          </div>
+
+                          <label className="flex items-center gap-3 p-3 bg-purple-50 border border-purple-100 rounded-lg cursor-not-allowed opacity-75">
+                            <input
+                              type="checkbox"
+                              checked={settings.printerSettings?.autoPrintOrders}
+                              onChange={(e) => updatePrinterSettings({ autoPrintOrders: e.target.checked })}
+                              className="w-4 h-4 text-purple-600"
+                            />
+                            <div>
+                              <span className="text-sm font-bold text-purple-800"><TranslatedText>Sipariş Geldiğinde Otomatik Yazdır</TranslatedText></span>
+                              <p className="text-xs text-purple-600"><TranslatedText>Bu özellik Cloud Connector gerektirir.</TranslatedText></p>
+                            </div>
+                          </label>
+
+                          <div className="pt-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2"><TranslatedText>Test Çıktısı Adresi (Printer IP)</TranslatedText></label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={settings.printerSettings?.testIpAddress || ''}
+                                onChange={(e) => updatePrinterSettings({ testIpAddress: e.target.value })}
+                                className="flex-1 px-3 py-2 border rounded-lg text-sm font-mono"
+                                placeholder="Örn: 192.168.1.100"
+                              />
+                              <button
+                                onClick={(e) => { e.preventDefault(); alert(getStatic('Test dökümü gönderiliyor... IP: ') + settings.printerSettings?.testIpAddress); }}
+                                className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-bold hover:bg-black transition-colors"
+                              >
+                                <TranslatedText>Test Çıktısı Al</TranslatedText>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sağ Kolon - Canlı Fiş Önizleme */}
+                      <div className="bg-gray-100 p-8 rounded-2xl flex flex-col items-center">
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6"><TranslatedText>Dijital Fiş Önizleme</TranslatedText></div>
+
+                        {/* Termal Kağıt Görünümü */}
+                        <div className={`bg-white shadow-2xl p-6 min-h-[400px] transition-all duration-300 ${settings.printerSettings?.paperWidth === '58mm' ? 'w-[250px]' : 'w-[320px]'} relative overflow-hidden`}>
+                          {/* Kağıt Kesik Çizgisi */}
+                          <div className="absolute top-0 left-0 w-full h-1 bg-gray-200" style={{ backgroundImage: 'linear-gradient(to right, white 50%, #f3f4f6 50%)', backgroundSize: '10px 100%' }}></div>
+
+                          <div className="space-y-6 text-center text-gray-800 font-mono">
+                            {/* Logo */}
+                            {settings.printerSettings?.showLogo && (
+                              <div className="flex justify-center mb-2">
+                                <div className="w-16 h-16 border-2 border-gray-900 rounded-lg flex items-center justify-center">
+                                  <span className="text-2xl font-bold">LOGO</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Header */}
+                            {settings.printerSettings?.receiptHeader && (
+                              <div className="text-sm whitespace-pre-line border-b border-dashed border-gray-400 pb-2">
+                                {settings.printerSettings.receiptHeader}
+                              </div>
+                            )}
+
+                            {/* Info */}
+                            <div className="text-xs space-y-1 py-2">
+                              {settings.printerSettings?.showDateTime && (
+                                <div className="flex justify-between">
+                                  <span>TARİH/SAAT:</span>
+                                  <span>{new Date().toLocaleString()}</span>
+                                </div>
+                              )}
+                              {settings.printerSettings?.showOrderNumber && (
+                                <div className="flex justify-between">
+                                  <span>SİPARİŞ NO:</span>
+                                  <span className="font-bold">#10245</span>
+                                </div>
+                              )}
+                              {settings.printerSettings?.showTableNumber && (
+                                <div className="flex justify-between">
+                                  <span>MASA NO:</span>
+                                  <span className="font-bold">Masa 15</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Ürünler */}
+                            <div className="border-t border-b border-gray-900 border-dashed py-3 text-xs">
+                              <div className="flex justify-between mb-2 font-bold">
+                                <span>ÜRÜN ADI</span>
+                                <span>FİYAT</span>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex justify-between">
+                                  <span>1x Karışık Pizza</span>
+                                  <span>450.00 TL</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>2x Coca Cola</span>
+                                  <span>110.00 TL</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>1x Sufle</span>
+                                  <span>120.00 TL</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Toplam */}
+                            <div className="space-y-1 text-sm pt-2">
+                              <div className="flex justify-between">
+                                <span>ARA TOPLAM:</span>
+                                <span>680.00 TL</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>KDV (%10):</span>
+                                <span>68.00 TL</span>
+                              </div>
+                              <div className="flex justify-between font-black text-lg border-t pt-2 mt-2">
+                                <span>TOPLAM:</span>
+                                <span>748.00 TL</span>
+                              </div>
+                            </div>
+
+                            {/* Footer */}
+                            {settings.printerSettings?.receiptFooter && (
+                              <div className="text-xs border-t border-dashed border-gray-400 pt-4 mt-8 italic">
+                                {settings.printerSettings.receiptFooter}
+                              </div>
+                            )}
+
+                            <div className="text-[8px] opacity-50 mt-8">
+                              RestXQr Cloud Printing System
+                            </div>
+                          </div>
+
+                          {/* Kağıt Alt Kesik Çizgisi */}
+                          <div className="absolute bottom-0 left-0 w-full h-4 bg-white" style={{ clipPath: 'polygon(0 0, 5% 100%, 10% 0, 15% 100%, 20% 0, 25% 100%, 30% 0, 35% 100%, 40% 0, 45% 100%, 50% 0, 55% 100%, 60% 0, 65% 100%, 70% 0, 75% 100%, 80% 0, 85% 100%, 90% 0, 95% 100%, 100% 0)' }}></div>
                         </div>
                       </div>
                     </div>

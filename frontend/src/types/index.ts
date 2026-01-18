@@ -213,6 +213,7 @@ export interface BusinessSettings {
     dailySpecialDesc?: string;
     soupOfDayTitle?: string;
     soupOfDayDesc?: string;
+    menuSpecialContents?: Array<{ id: string; emoji: string; title: string; description: string }>;
     status: 'active' | 'inactive';
   };
 
@@ -353,6 +354,21 @@ export interface BusinessSettings {
     cloudBackup: boolean;
     localBackup: boolean;
     lastBackup?: Date;
+  };
+
+  // Yazıcı Ayarları
+  printerSettings?: {
+    receiptHeader?: string;
+    receiptFooter?: string;
+    showLogo: boolean;
+    showOrderNumber: boolean;
+    showTableNumber: boolean;
+    showCustomerName: boolean;
+    showDateTime: boolean;
+    autoPrintOrders: boolean;
+    paperWidth: '58mm' | '80mm';
+    copies: number;
+    testIpAddress?: string;
   };
 }
 

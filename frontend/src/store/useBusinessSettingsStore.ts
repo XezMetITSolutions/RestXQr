@@ -28,6 +28,7 @@ interface BusinessSettingsState {
   updateIntegrations: (updates: Partial<BusinessSettings['integrations']>) => void;
   updateSecuritySettings: (updates: Partial<BusinessSettings['securitySettings']>) => void;
   updateBackupSettings: (updates: Partial<BusinessSettings['backupSettings']>) => void;
+  updatePrinterSettings: (updates: Partial<BusinessSettings['printerSettings']>) => void;
   updateAccountInfo: (updates: Partial<AccountInfo>) => void;
 
   // UI Actions
@@ -60,6 +61,7 @@ const defaultSettings: BusinessSettings = {
     facebook: '',
     instagram: '',
     twitter: 'https://twitter.com',
+    menuSpecialContents: [],
     status: 'active'
   },
   branding: {
@@ -158,6 +160,19 @@ const defaultSettings: BusinessSettings = {
     backupRetention: 30,
     cloudBackup: true,
     localBackup: false
+  },
+  printerSettings: {
+    receiptHeader: '',
+    receiptFooter: 'Bizi tercih ettiğiniz için teşekkür ederiz.',
+    showLogo: true,
+    showOrderNumber: true,
+    showTableNumber: true,
+    showCustomerName: true,
+    showDateTime: true,
+    autoPrintOrders: true,
+    paperWidth: '80mm',
+    copies: 1,
+    testIpAddress: ''
   }
 };
 
@@ -330,6 +345,28 @@ export const useBusinessSettingsStore = create<BusinessSettingsState>()(
         settings: {
           ...state.settings,
           backupSettings: { ...state.settings.backupSettings, ...updates }
+        }
+      })),
+
+      updatePrinterSettings: (updates) => set((state) => ({
+        settings: {
+          ...state.settings,
+          printerSettings: {
+            ...(state.settings.printerSettings || {
+              receiptHeader: '',
+              receiptFooter: 'Bizi tercih ettiğiniz için teşekkür ederiz.',
+              showLogo: true,
+              showOrderNumber: true,
+              showTableNumber: true,
+              showCustomerName: true,
+              showDateTime: true,
+              autoPrintOrders: true,
+              paperWidth: '80mm',
+              copies: 1,
+              testIpAddress: ''
+            }),
+            ...updates
+          }
         }
       })),
 
