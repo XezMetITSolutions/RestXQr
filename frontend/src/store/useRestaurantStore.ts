@@ -20,6 +20,7 @@ interface RestaurantState {
   createRestaurant: (data: Partial<Restaurant>) => Promise<void>;
   updateRestaurant: (id: string, updates: Partial<Restaurant>) => Promise<void>;
   updateRestaurantFeatures: (id: string, features: string[]) => Promise<void>;
+  fetchCurrentRestaurant: (id: string) => Promise<void>;
 
   // Local Actions (for backward compatibility)
   setCurrentRestaurant: (restaurant: Restaurant) => void;
@@ -206,6 +207,20 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
       }
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to update features', loading: false });
+    }
+  },
+
+  fetchCurrentRestaurant: async (id: string) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await apiService.getRestaurantById(id);
+      if (response.success && response.data) {
+        set({ currentRestaurant: response.data, loading: false });
+      } else {
+        set({ loading: false });
+      }
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to fetch restaurant', loading: false });
     }
   },
 

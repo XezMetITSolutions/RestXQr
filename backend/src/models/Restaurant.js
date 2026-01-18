@@ -99,6 +99,12 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: false,
       field: 'is_branch',
       comment: 'Bu bir şube mi?'
+    },
+    kitchenStations: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'kitchen_stations',
+      comment: 'Kitchen stations configuration: [{id, name, emoji, color, order}]'
     }
   }, {
     tableName: 'restaurants',

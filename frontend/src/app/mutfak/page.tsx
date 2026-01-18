@@ -51,6 +51,7 @@ export default function MutfakPanel() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [stationFilter, setStationFilter] = useState<string>('all');
+  const [stations, setStations] = useState<any[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
@@ -85,6 +86,24 @@ export default function MutfakPanel() {
 
     checkAuth();
   }, [router]);
+
+  // Restoran istasyonlarını çek
+  useEffect(() => {
+    const fetchStations = async () => {
+      if (!restaurantId) return;
+      try {
+        const response = await fetch(`${API_URL}/restaurants/${restaurantId}`);
+        const data = await response.json();
+        if (data.success && data.data.kitchenStations) {
+          setStations(data.data.kitchenStations);
+        }
+      } catch (error) {
+        console.error('İstasyonlar alınamadı:', error);
+      }
+    };
+
+    fetchStations();
+  }, [restaurantId, API_URL]);
 
   // Siparişleri çek
   const fetchOrders = async (showLoading = true) => {
@@ -598,10 +617,11 @@ export default function MutfakPanel() {
               className="w-full md:w-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="all">🏪 Tüm İstasyonlar</option>
-              <option value="izgara">🔥 Izgara</option>
-              <option value="makarna">🍝 Makarna</option>
-              <option value="soguk">🥗 Soğuk</option>
-              <option value="tatli">🍰 Tatlı</option>
+              {stations.sort((a, b) => a.order - b.order).map(station => (
+                <option key={station.id} value={station.name.toLowerCase()}>
+                  {station.emoji} {station.name}
+                </option>
+              ))}
             </select>
           </div>
 

@@ -372,7 +372,7 @@ router.get('/:id/users', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, phone, address, features, subscriptionPlan } = req.body;
+    const { name, email, phone, address, features, subscriptionPlan, kitchenStations } = req.body;
 
     const restaurant = await Restaurant.findByPk(id);
 
@@ -427,7 +427,8 @@ router.put('/:id', async (req, res) => {
       phone: phone || restaurant.phone,
       address: address || restaurant.address,
       features: updatedFeatures,
-      subscriptionPlan: newPlan || restaurant.subscriptionPlan
+      subscriptionPlan: newPlan || restaurant.subscriptionPlan,
+      kitchenStations: kitchenStations !== undefined ? kitchenStations : restaurant.kitchenStations
     });
 
     // Remove password from response

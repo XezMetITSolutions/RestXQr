@@ -66,6 +66,8 @@ export default function MenuManagement() {
     deleteMenuCategory,
     updateMenuItem,
     deleteMenuItem,
+    updateRestaurant,
+    fetchCurrentRestaurant,
     fetchRestaurantMenu,
     loading,
     error
@@ -242,13 +244,20 @@ export default function MenuManagement() {
     if (currentRestaurantId) {
       console.log('📥 Fetching menu for restaurant:', currentRestaurantId);
       fetchRestaurantMenu(currentRestaurantId);
+      fetchCurrentRestaurant(currentRestaurantId);
     } else {
       console.warn('⚠️ No restaurant ID found!');
     }
   }, [currentRestaurantId, fetchRestaurantMenu]);
 
   useEffect(() => {
-    // Eğer subdomain varsa authentication olmadan da çalışsın (test için)
+    if (currentRestaurant?.kitchenStations && Array.isArray(currentRestaurant.kitchenStations)) {
+      setStations(currentRestaurant.kitchenStations);
+    }
+  }, [currentRestaurant]);
+
+  useEffect(() => {
+    // Eğer subdomain varsa authenticated olmadan da çalışsın (test için)
     const hasSubdomain = typeof window !== 'undefined' &&
       !['localhost', 'www', 'guzellestir'].includes(window.location.hostname.split('.')[0]) &&
       window.location.hostname.includes('.');
@@ -719,26 +728,39 @@ export default function MenuManagement() {
     setShowStationForm(true);
   };
 
-  const handleSaveStation = () => {
+  const handleSaveStation = async () => {
     if (!stationFormData.name.trim()) {
       alert('İstasyon adı gereklidir!');
       return;
     }
 
+    let nextStations = [...stations];
     if (editingStation) {
       // Güncelleme
-      setStations(stations.map(s =>
+      nextStations = stations.map(s =>
         s.id === editingStation.id
           ? { ...s, ...stationFormData }
           : s
-      ));
+      );
     } else {
       // Yeni ekleme
       const newStation = {
         id: Date.now().toString(),
         ...stationFormData
       };
-      setStations([...stations, newStation]);
+      nextStations = [...stations, newStation];
+    }
+
+    setStations(nextStations);
+
+    // Backend'e kaydet
+    if (currentRestaurantId) {
+      try {
+        await updateRestaurant(currentRestaurantId, { kitchenStations: nextStations });
+        console.log('✅ İstasyonlar backend\'e kaydedildi');
+      } catch (error) {
+        console.error('❌ İstasyonlar kaydedilirken hata:', error);
+      }
     }
 
     setShowStationForm(false);
@@ -751,9 +773,20 @@ export default function MenuManagement() {
     });
   };
 
-  const handleDeleteStation = (stationId: string) => {
+  const handleDeleteStation = async (stationId: string) => {
     if (confirm('Bu istasyonu silmek istediğinizden emin misiniz?')) {
-      setStations(stations.filter(s => s.id !== stationId));
+      const nextStations = stations.filter(s => s.id !== stationId);
+      setStations(nextStations);
+
+      // Backend'e kaydet
+      if (currentRestaurantId) {
+        try {
+          await updateRestaurant(currentRestaurantId, { kitchenStations: nextStations });
+          console.log('✅ İstasyon silindi ve backend güncellendi');
+        } catch (error) {
+          console.error('❌ İstasyon silinirken hata:', error);
+        }
+      }
     }
   };
 
