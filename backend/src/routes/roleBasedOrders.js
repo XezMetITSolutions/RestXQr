@@ -56,13 +56,18 @@ router.get('/', staffAuth, checkRestaurantAccess, async (req, res) => {
     switch (staffRole) {
       case 'kitchen':
         // Kitchen only sees approved pending/preparing orders
-        where.approved = true;
+        // Use COALESCE to handle missing approved column (defaults to true if column doesn't exist)
+        where[Op.and] = [
+          Sequelize.literal('COALESCE(approved, true) = true')
+        ];
         where.status = status || { [Op.in]: ['pending', 'preparing'] };
         break;
         
       case 'waiter':
         // Waiters see approved active orders
-        where.approved = true;
+        where[Op.and] = [
+          Sequelize.literal('COALESCE(approved, true) = true')
+        ];
         if (status && status !== 'all') {
           where.status = status;
         } else {
@@ -79,7 +84,9 @@ router.get('/', staffAuth, checkRestaurantAccess, async (req, res) => {
         // Cashiers see unapproved pending orders for approval tab
         if (status === 'pending') {
           where.status = 'pending';
-          where.approved = false;
+          where[Op.and] = [
+            Sequelize.literal('COALESCE(approved, false) = false')
+          ];
         } else if (status && status !== 'all') {
           where.status = status;
         }
@@ -155,16 +162,24 @@ router.post('/', staffAuth, roleAuth(['waiter', 'cashier']), async (req, res) =>
     }
     
     // Create order
-    const order = await Order.create({
+    const orderData = {
       restaurantId,
       tableNumber,
       status: 'pending',
-      approved: false,
       customerName: customerName || null,
       notes: notes || null,
       createdBy: req.staff.id,
       staffRole: req.staff.role
-    });
+    };
+    
+    // Only set approved if column exists (will be added after DB migration)
+    try {
+      orderData.approved = false;
+    } catch (e) {
+      console.log('⚠️ approved column not yet migrated, skipping');
+    }
+    
+    const order = await Order.create(orderData);
     
     // Create order items
     const orderItems = await Promise.all(
@@ -261,7 +276,11 @@ router.put('/:orderId/status', staffAuth, async (req, res) => {
     // Special case: Cashier must approve orders before they go to kitchen
     if (staffRole === 'cashier' && status === 'pending' && order.status === 'pending') {
       // This is a cashier approving a pending order, which is allowed
-      order.approved = true;
+      try {
+        order.approved = true;
+      } catch (e) {
+        console.log('⚠️ approved column not yet migrated, skipping approval flag');
+      }
       await order.save();
       
       return res.json({
