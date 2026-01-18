@@ -260,7 +260,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaGlobe,
       label: <TranslatedText>Online Siparişler</TranslatedText>,
       active: pathname === `${basePath}/online-orders`,
-      visible: isDemo ? true : hasDeliveryIntegration,
+      visible: true,
       badge: 'Özel'
     }
   ];
