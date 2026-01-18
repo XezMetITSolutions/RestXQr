@@ -101,7 +101,7 @@ function CartPageContent() {
         try {
           const base = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
           const API = base.endsWith('/api') ? base : `${base.replace(/\/$/, '')}/api`;
-          const response = await fetch(`${API}/orders?restaurantId=${rId}&tableNumber=${tableNumber}`);
+          const response = await fetch(`${API}/orders?restaurantId=${rId}&tableNumber=${tableNumber}&status=pending,preparing,ready`);
           const data = await response.json();
 
           if (data.success && data.data && data.data.length > 0) {
@@ -523,14 +523,14 @@ function CartPageContent() {
                   </p>
                 </div>
               </div>
-              
+
               <div className="space-y-3">
                 <div className="bg-blue-50 border-blue-200 border-2 rounded-xl p-4 shadow-sm">
                   <p className="text-sm font-medium text-blue-800">
                     <TranslatedText>👨‍🍳 Siparişiniz mutfağa iletildi. Afiyet olsun!</TranslatedText>
                   </p>
                 </div>
-                
+
                 {pendingOrderItems.map((item) => (
                   <div key={item.itemId || item.id} className="bg-white rounded-xl shadow-md border-2 border-gray-100 p-4 flex opacity-90 transition-all hover:opacity-100">
                     <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
