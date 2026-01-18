@@ -24,6 +24,7 @@ interface Order {
   orderType: string;
   created_at: string;
   items: OrderItem[];
+  approved?: boolean;
 }
 
 interface MenuItem {
@@ -93,13 +94,13 @@ export default function MutfakPanel() {
       if (showLoading) {
         setLoading(true);
       }
-      const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}`);
+      const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}&approved=true`);
       const data = await response.json();
 
       if (data.success) {
         // Ödeme tamamlanan siparişleri ve masasız siparişleri filtrele
-        const activeOrders = (data.data || []).filter((order: Order) => 
-          order.status !== 'completed' && 
+        const activeOrders = (data.data || []).filter((order: Order) =>
+          order.status !== 'completed' &&
           order.tableNumber != null // Masasız siparişleri filtrele
         );
         setOrders(activeOrders);
@@ -131,9 +132,9 @@ export default function MutfakPanel() {
       if (orderId.includes('grouped')) {
         const tableNumber = parseInt(orderId.split('-')[1]);
         const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
-        
+
         console.log('📋 Gruplu sipariş tespit edildi:', { tableNumber, orderCount: tableOrders.length });
-        
+
         // Her bir gerçek siparişi güncelle
         const updatePromises = tableOrders.map(async (tableOrder) => {
           console.log('🔄 Gerçek sipariş güncelleniyor:', tableOrder.id);
@@ -146,17 +147,17 @@ export default function MutfakPanel() {
           });
           return response.json();
         });
-        
+
         await Promise.all(updatePromises);
         console.log('✅ Tüm masa siparişleri güncellendi');
-        
+
         // UI'ı güncelle
         setOrders(prevOrders =>
           prevOrders.map(order =>
             order.tableNumber === tableNumber ? { ...order, status: newStatus as any } : order
           )
         );
-        
+
         fetchOrders(false);
         return;
       }
@@ -214,19 +215,19 @@ export default function MutfakPanel() {
         if (tableMatch && tableMatch[1]) {
           const tableNumber = parseInt(tableMatch[1]);
           console.log(`Gruplu sipariş silme işlemi - Masa ${tableNumber}`);
-          
+
           // Find all orders for this table
           const tableOrders = orders.filter(order => order.tableNumber === tableNumber);
-          
+
           if (tableOrders.length === 0) {
             console.error(`Masa ${tableNumber} için sipariş bulunamadı`);
             alert(`Masa ${tableNumber} için sipariş bulunamadı`);
             fetchOrders(false);
             return;
           }
-          
+
           console.log(`Masa ${tableNumber} için ${tableOrders.length} adet sipariş siliniyor...`);
-          
+
           // Delete each order individually
           const deletePromises = tableOrders.map(async (order) => {
             try {
@@ -236,7 +237,7 @@ export default function MutfakPanel() {
                   'Accept': 'application/json'
                 }
               });
-              
+
               if (response.ok) {
                 console.log(`✅ Sipariş silindi: ${order.id}`);
                 return true;
@@ -249,13 +250,13 @@ export default function MutfakPanel() {
               return false;
             }
           });
-          
+
           // Wait for all delete operations to complete
           const results = await Promise.all(deletePromises);
-          
+
           // Check if all deletions were successful
           const allSuccessful = results.every(result => result === true);
-          
+
           if (allSuccessful) {
             console.log(`✅ Masa ${tableNumber} için tüm siparişler başarıyla silindi`);
             alert(`Masa ${tableNumber} için tüm siparişler başarıyla silindi`);
@@ -263,7 +264,7 @@ export default function MutfakPanel() {
             console.error(`❌ Masa ${tableNumber} için bazı siparişler silinemedi`);
             alert(`Masa ${tableNumber} için bazı siparişler silinemedi. Lütfen sayfayı yenileyip tekrar deneyin.`);
           }
-          
+
           fetchOrders(false);
           return;
         }
@@ -322,20 +323,20 @@ export default function MutfakPanel() {
       'tatli': 10,  // Tatlı istasyonu için ortalama 10 dakika
       'default': 10 // Varsayılan hazırlama süresi
     };
-    
+
     let totalPrepTime = 0;
     let totalQuantity = 0;
-    
+
     items.forEach(item => {
       const station = item.kitchenStation || 'default';
       const prepTime = prepTimePerItemType[station as keyof typeof prepTimePerItemType] || prepTimePerItemType.default;
       totalPrepTime += prepTime * item.quantity;
       totalQuantity += item.quantity;
     });
-    
+
     // Toplam ürün adeti 0 ise, varsayılan süre döndür
     if (totalQuantity === 0) return prepTimePerItemType.default;
-    
+
     // Toplam süreyi ürün adetine böl ve yuvarla
     return Math.round(totalPrepTime / totalQuantity);
   };
@@ -448,17 +449,17 @@ export default function MutfakPanel() {
   const groupOrdersByTable = (orders: Order[]) => {
     // Kullanılacak tip: number | 'null' (null değerleri için string olarak 'null' kullanıyoruz)
     const grouped = new Map<number | 'null', Order[]>();
-    
+
     orders.forEach(order => {
       // Null veya undefined table number'ları 'null' string olarak işle
       const tableNumber = order.tableNumber != null ? order.tableNumber : 'null';
-      
+
       if (!grouped.has(tableNumber)) {
         grouped.set(tableNumber, []);
       }
       grouped.get(tableNumber)!.push(order);
     });
-    
+
     return Array.from(grouped.values());
   };
 
@@ -467,29 +468,29 @@ export default function MutfakPanel() {
     if (tableOrders.length === 1) {
       return tableOrders[0];
     }
-    
+
     const latestOrder = tableOrders.reduce((latest, current) => {
       return new Date(current.created_at) > new Date(latest.created_at) ? current : latest;
     });
-    
+
     const allItems: OrderItem[] = [];
     let totalAmount = 0;
-    
+
     tableOrders.forEach(order => {
       order.items.forEach(item => {
         allItems.push(item);
       });
       totalAmount += order.totalAmount;
     });
-    
+
     const statusPriority = { 'pending': 1, 'preparing': 2, 'ready': 3, 'completed': 4, 'cancelled': 5 };
     const mostCriticalStatus = tableOrders.reduce((prev, current) => {
       return statusPriority[prev.status] > statusPriority[current.status] ? prev : current;
     }).status;
-    
+
     // Masa numarası null veya undefined ise 'null' olarak işle
     const tableNumberForId = latestOrder.tableNumber != null ? latestOrder.tableNumber : 'null';
-    
+
     return {
       ...latestOrder,
       items: allItems,
@@ -509,7 +510,7 @@ export default function MutfakPanel() {
     completed: orders.filter(o => o.status === 'completed').length,
     cancelled: orders.filter(o => o.status === 'cancelled').length,
   };
-  
+
   // Filtrelenmiş ve gruplu siparişler
   const filteredOrders = (() => {
     const filtered = orders.filter((order: Order) => {
@@ -518,7 +519,7 @@ export default function MutfakPanel() {
 
       // İstasyon filtresi
       if (stationFilter !== 'all') {
-        const hasStationItem = order.items.some((item: OrderItem) => 
+        const hasStationItem = order.items.some((item: OrderItem) =>
           item.kitchenStation === stationFilter
         );
         if (!hasStationItem) return false;
@@ -538,7 +539,7 @@ export default function MutfakPanel() {
 
     // Masa numarasına göre grupla
     const groupedByTable = groupOrdersByTable(filtered);
-    
+
     // Her masa grubu için tek bir sipariş oluştur
     return groupedByTable.map(tableOrders => createGroupedOrder(tableOrders));
   })();
@@ -719,16 +720,16 @@ export default function MutfakPanel() {
                                     <span>{item.quantity}x {item.name}</span>
                                     {item.kitchenStation && (
                                       <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{
-                                        backgroundColor: 
+                                        backgroundColor:
                                           item.kitchenStation === 'izgara' ? '#FEF3C7' :
-                                          item.kitchenStation === 'makarna' ? '#DBEAFE' :
-                                          item.kitchenStation === 'soguk' ? '#D1FAE5' :
-                                          item.kitchenStation === 'tatli' ? '#FCE7F3' : '#F3F4F6',
+                                            item.kitchenStation === 'makarna' ? '#DBEAFE' :
+                                              item.kitchenStation === 'soguk' ? '#D1FAE5' :
+                                                item.kitchenStation === 'tatli' ? '#FCE7F3' : '#F3F4F6',
                                         color:
                                           item.kitchenStation === 'izgara' ? '#92400E' :
-                                          item.kitchenStation === 'makarna' ? '#1E40AF' :
-                                          item.kitchenStation === 'soguk' ? '#065F46' :
-                                          item.kitchenStation === 'tatli' ? '#9F1239' : '#374151'
+                                            item.kitchenStation === 'makarna' ? '#1E40AF' :
+                                              item.kitchenStation === 'soguk' ? '#065F46' :
+                                                item.kitchenStation === 'tatli' ? '#9F1239' : '#374151'
                                       }}>
                                         {item.kitchenStation === 'izgara' && '🔥 Izgara'}
                                         {item.kitchenStation === 'makarna' && '🍝 Makarna'}

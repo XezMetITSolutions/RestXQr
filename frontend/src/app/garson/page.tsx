@@ -23,6 +23,8 @@ interface Order {
   orderType: string;
   created_at: string;
   items: OrderItem[];
+  approved?: boolean;
+  paymentInfo?: string;
 }
 
 interface WaiterCall {
@@ -80,7 +82,7 @@ export default function GarsonPanel() {
         if (parsedUser.restaurantId) {
           // UUID formatında mı kontrol et
           const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(parsedUser.restaurantId);
-          
+
           if (isUUID) {
             setRestaurantId(parsedUser.restaurantId);
             console.log('✅ Restaurant ID (UUID):', parsedUser.restaurantId);
@@ -118,7 +120,7 @@ export default function GarsonPanel() {
             console.error('❌ Restaurant UUID fetch hatası:', error);
           }
         }
-        
+
         if (parsedUser.restaurantName) {
           setRestaurantName(parsedUser.restaurantName);
         }
@@ -157,12 +159,12 @@ export default function GarsonPanel() {
 
     try {
       if (!silent) setLoading(true);
-      const url = `${API_URL}/orders?restaurantId=${restaurantId}`;
+      const url = `${API_URL}/orders?restaurantId=${restaurantId}&approved=true`;
       console.log(`📡 Siparişler çekiliyor: ${url}`);
-      
+
       const response = await fetch(url);
       const data = await response.json();
-      
+
 
       if (data.success) {
         console.log(`✅ ${data.data?.length || 0} sipariş alındı`);
@@ -194,12 +196,12 @@ export default function GarsonPanel() {
     try {
       const url = `${API_URL}/waiter/calls?restaurantId=${restaurantId}`;
       console.log(`📞 Çağrılar çekiliyor: ${url}`);
-      
+
       const response = await fetch(url);
       const data = await response.json();
-      
+
       console.log('📞 Çağrılar response:', data);
-      
+
       if (data.success) {
         const activeCalls = (data.data || []).filter((call: WaiterCall) => call.status === 'active');
         console.log(`✅ ${activeCalls.length} aktif çağrı bulundu (toplam: ${data.data?.length || 0})`);
@@ -277,7 +279,7 @@ export default function GarsonPanel() {
       if (orderId.includes('grouped')) {
         const tableNumber = parseInt(orderId.split('-')[1]);
         const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
-        
+
         // Her bir gerçek siparişi güncelle
         const updatePromises = tableOrders.map(async (tableOrder) => {
           const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
@@ -289,9 +291,9 @@ export default function GarsonPanel() {
           });
           return response.json();
         });
-        
+
         await Promise.all(updatePromises);
-        
+
         // UI'ı güncelle
         if (newStatus === 'cancelled') {
           setOrders(prevOrders => prevOrders.filter(o => o.tableNumber !== tableNumber));
@@ -346,7 +348,7 @@ export default function GarsonPanel() {
   // Siparişleri masa numarasına göre grupla
   const groupOrdersByTable = (orders: Order[]) => {
     const grouped = new Map<number, Order[]>();
-    
+
     orders.forEach(order => {
       const tableNumber = order.tableNumber;
       if (!grouped.has(tableNumber)) {
@@ -354,34 +356,34 @@ export default function GarsonPanel() {
       }
       grouped.get(tableNumber)!.push(order);
     });
-    
+
     return grouped;
   };
 
   // Gruplu siparişleri tek sipariş formatına çevir
   const createGroupedOrder = (tableOrders: Order[]): Order => {
     if (tableOrders.length === 1) return tableOrders[0];
-    
+
     // En son siparişin bilgilerini temel al
     const latestOrder = tableOrders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-    
+
     // Tüm items'ları birleştir
     const allItems: OrderItem[] = [];
     let totalAmount = 0;
-    
+
     tableOrders.forEach(order => {
       order.items.forEach(item => {
         allItems.push(item);
       });
       totalAmount += Number(order.totalAmount);
     });
-    
+
     // En kritik durumu belirle (pending > preparing > ready > completed)
     const statusPriority = { 'pending': 4, 'preparing': 3, 'ready': 2, 'completed': 1, 'cancelled': 0 };
     const mostCriticalStatus = tableOrders.reduce((prev, current) => {
       return statusPriority[prev.status] > statusPriority[current.status] ? prev : current;
     }).status;
-    
+
     return {
       ...latestOrder,
       items: allItems,
@@ -399,14 +401,14 @@ export default function GarsonPanel() {
       if (activeFilter === 'all') return true;
       return order.status === activeFilter;
     });
-    
+
     const grouped = groupOrdersByTable(filtered);
     const groupedOrders: Order[] = [];
-    
+
     grouped.forEach((tableOrders) => {
       groupedOrders.push(createGroupedOrder(tableOrders));
     });
-    
+
     return groupedOrders;
   })();
 
@@ -447,7 +449,7 @@ export default function GarsonPanel() {
                     staffUser: staffUser?.username
                   };
                   console.log('🐛 GARSON PANEL DEBUG:', debugData);
-                  
+
                   // Fetch calls manually
                   try {
                     const url = `${API_URL}/waiter/calls?restaurantId=${restaurantId}`;

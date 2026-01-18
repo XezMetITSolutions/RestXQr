@@ -70,8 +70,8 @@ router.post('/debug/delete-active-orders', async (req, res) => {
 // GET /api/orders?restaurantId=...&status=...
 router.get('/', async (req, res) => {
   try {
-    const { restaurantId, status, tableNumber } = req.query;
-    console.log('🔍 GET /api/orders request:', { restaurantId, status, tableNumber });
+    const { restaurantId, status, tableNumber, approved } = req.query;
+    console.log('🔍 GET /api/orders request:', { restaurantId, status, tableNumber, approved });
 
     if (!restaurantId) {
       return res.status(400).json({ success: false, message: 'restaurantId is required' });
@@ -96,6 +96,12 @@ router.get('/', async (req, res) => {
       // Masa numarası ile sorgulanıyorsa ve status belirtilmemişse, sadece aktif siparişleri getir
       where.tableNumber = tableNumber;
       where.status = { [Op.notIn]: ['completed', 'cancelled'] };
+    }
+
+    if (approved === 'true') {
+      where.approved = true;
+    } else if (approved === 'false') {
+      where.approved = false;
     }
 
     console.log('🎯 Final SQL Where:', where);
@@ -235,29 +241,33 @@ router.post('/', async (req, res) => {
     const { publish } = require('../lib/realtime');
 
     // Sipariş oluşturulduğunda hemen panellere gönderme, 1 dakika bekle
-    // Sipariş oluşturulduğunda hemen panellere gönder
-    try {
-      publish('new_order', {
-        orderId: order.id,
-        restaurantId: order.restaurantId,
-        tableNumber: order.tableNumber,
-        items: items.map(item => ({
-          name: item.name,
-          quantity: item.quantity,
-          notes: item.notes || ''
-        })),
-        totalAmount: order.totalAmount,
-        timestamp: new Date().toISOString()
-      });
-      console.log(`✅ Sipariş ${order.id} anında panellere gönderildi`);
-    } catch (error) {
-      console.error('❌ Sipariş panellere gönderilirken hata:', error);
+    // Sipariş oluşturulduğunda hemen panellere gönder - SADECE ONAYLANMIŞSA
+    if (order.approved) {
+      try {
+        publish('new_order', {
+          orderId: order.id,
+          restaurantId: order.restaurantId,
+          tableNumber: order.tableNumber,
+          items: items.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            notes: item.notes || ''
+          })),
+          totalAmount: order.totalAmount,
+          timestamp: new Date().toISOString()
+        });
+        console.log(`✅ Sipariş ${order.id} anında panellere gönderildi`);
+      } catch (error) {
+        console.error('❌ Sipariş panellere gönderilirken hata:', error);
+      }
+    } else {
+      console.log(`ℹ️ Sipariş ${order.id} oluşturuldu ancak onaylanmadı, şimdilik panellere gönderilmiyor.`);
     }
 
     res.status(201).json({
       success: true,
       data: order,
-      message: 'Order created. Will be sent to panels in 1 minute.',
+      message: order.approved ? 'Order created and sent to panels.' : 'Order created. Waiting for cashier approval.',
       confirmationTime: 60 // Frontend'e 60 saniye bilgisi gönder
     });
   } catch (error) {
@@ -388,7 +398,7 @@ router.put('/:id', async (req, res) => {
         message: 'Grouped order ids are virtual. Update individual orders instead.'
       });
     }
-    const { status, items, totalAmount, tableNumber, paidAmount, discountAmount, discountReason, cashierNote } = req.body;
+    const { status, items, totalAmount, tableNumber, paidAmount, discountAmount, discountReason, cashierNote, approved } = req.body;
     const allowed = ['pending', 'preparing', 'ready', 'completed', 'cancelled'];
     if (status && !allowed.includes(status)) {
       return res.status(400).json({ success: false, message: 'invalid status' });
@@ -396,6 +406,8 @@ router.put('/:id', async (req, res) => {
 
     const order = await Order.findByPk(id);
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+
+    const oldApproved = order.approved;
 
     // Alanları güncelle
     const previousStatus = order.status;
@@ -405,12 +417,29 @@ router.put('/:id', async (req, res) => {
     if (discountAmount !== undefined) order.discountAmount = discountAmount;
     if (discountReason) order.discountReason = discountReason;
     if (cashierNote) order.cashierNote = cashierNote;
+    if (approved !== undefined) order.approved = approved;
 
     await order.save();
 
+    // Sipariş onaylandığında (false -> true) bildirim gönder
+    const { publish } = require('../lib/realtime');
+    if (approved === true && oldApproved === false) {
+      try {
+        publish('order_approved', {
+          orderId: order.id,
+          restaurantId: order.restaurantId,
+          tableNumber: order.tableNumber,
+          status: order.status,
+          timestamp: new Date().toISOString()
+        });
+        console.log(`✅ Sipariş ${id} onaylandı ve bildirim gönderildi.`);
+      } catch (err) {
+        console.error('❌ Onay bildirimi gönderilirken hata:', err);
+      }
+    }
+
     // Durum değişikliğini panellere bildir
     try {
-      const { publish } = require('../lib/realtime');
       publish('order_update', {
         orderId: order.id,
         restaurantId: order.restaurantId,

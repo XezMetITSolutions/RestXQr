@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaBug } from 'react-icons/fa';
+import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaBug, FaCheck } from 'react-icons/fa';
 
 interface OrderItem {
   id: string;
@@ -28,6 +28,7 @@ interface Order {
   created_at: string;
   updated_at: string;
   items: OrderItem[];
+  approved?: boolean;
 }
 
 export default function KasaPanel() {
@@ -496,6 +497,44 @@ export default function KasaPanel() {
                       <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
                         ÖDEME AL
                       </button>
+                      {order.approved === false && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              if (order.id.includes('grouped')) {
+                                const tableNumberToken = order.id.split('-')[1];
+                                if (tableNumberToken === 'null') {
+                                  alert('Masasız toplu sipariş onaylanamaz.');
+                                  return;
+                                }
+                                const tableNumber = parseInt(tableNumberToken);
+                                const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
+                                await Promise.all(tableOrders.map(to =>
+                                  fetch(`${API_URL}/orders/${to.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ approved: true })
+                                  })
+                                ));
+                              } else {
+                                await fetch(`${API_URL}/orders/${order.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ approved: true })
+                                });
+                              }
+                              fetchOrders();
+                            } catch (err) {
+                              console.error('Approve error:', err);
+                              alert('Onaylama sırasında hata oluştu.');
+                            }
+                          }}
+                          className="flex-1 py-4 bg-green-500 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          <FaCheck />
+                          <span className="text-xs">ONAYLA</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
