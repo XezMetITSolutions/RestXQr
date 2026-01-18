@@ -59,7 +59,7 @@ export default function KasaDebugPage() {
         setStatus({ type: 'idle', message: '' });
 
         try {
-            const response = await fetch(`${API_URL}/orders/debug/delete-active`, {
+            const response = await fetch(`${API_URL}/orders/debug/delete-active-orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

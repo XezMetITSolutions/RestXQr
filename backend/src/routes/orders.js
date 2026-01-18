@@ -20,7 +20,7 @@ router.get('/debug/all', async (req, res) => {
 });
 
 // DEBUG ROUTE: Delete active orders
-router.post('/debug/delete-active', async (req, res) => {
+router.post('/debug/delete-active-orders', async (req, res) => {
   console.log('🗑️ Delete active orders endpoint called via orders router');
   try {
     const { restaurantUsername } = req.body;
