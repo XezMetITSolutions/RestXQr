@@ -59,7 +59,7 @@ export default function KasaDebugPage() {
         setStatus({ type: 'idle', message: '' });
 
         try {
-            const response = await fetch(`${API_URL.replace('/api', '')}/api/debug/delete-active-orders`, {
+            const response = await fetch(`${API_URL}/debug/delete-active-orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -186,8 +186,8 @@ export default function KasaDebugPage() {
                             onClick={handleDeleteActiveOrders}
                             disabled={loading || confirmText !== 'SİL'}
                             className={`w-full py-6 rounded-3xl font-black text-xl transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] ${loading || confirmText !== 'SİL'
-                                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed grayscale'
-                                    : 'bg-gradient-to-r from-red-600 to-red-500 hover:shadow-red-500/20 active:from-red-700'
+                                ? 'bg-slate-800 text-slate-500 cursor-not-allowed grayscale'
+                                : 'bg-gradient-to-r from-red-600 to-red-500 hover:shadow-red-500/20 active:from-red-700'
                                 }`}
                         >
                             <FaTrash className={loading ? 'animate-bounce' : ''} />
