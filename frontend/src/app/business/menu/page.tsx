@@ -143,12 +143,8 @@ export default function MenuManagement() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editingStation, setEditingStation] = useState<any>(null);
-  const [stations, setStations] = useState<Array<{ id: string, name: string, emoji: string, color: string, order: number }>>([
-    { id: '1', name: 'Izgara', emoji: '🔥', color: '#F59E0B', order: 1 },
-    { id: '2', name: 'Makarna', emoji: '🍝', color: '#3B82F6', order: 2 },
-    { id: '3', name: 'Soğuk', emoji: '🥗', color: '#10B981', order: 3 },
-    { id: '4', name: 'Tatlı', emoji: '🍰', color: '#EC4899', order: 4 }
-  ]);
+  const [stations, setStations] = useState<Array<{ id: string, name: string, emoji: string, color: string, order: number }>>([]);
+  const [isStationsInitialized, setIsStationsInitialized] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'available' | 'out-of-stock'>('all');
   const [showOutOfStock, setShowOutOfStock] = useState(false);
   const [subcategories, setSubcategories] = useState<Array<{ id: string, name: { tr: string, en: string } }>>([]);
@@ -251,10 +247,23 @@ export default function MenuManagement() {
   }, [currentRestaurantId, fetchRestaurantMenu]);
 
   useEffect(() => {
-    if (currentRestaurant?.kitchenStations && Array.isArray(currentRestaurant.kitchenStations)) {
-      setStations(currentRestaurant.kitchenStations);
+    if (currentRestaurant && !isStationsInitialized) {
+      if (currentRestaurant.kitchenStations && Array.isArray(currentRestaurant.kitchenStations)) {
+        setStations(currentRestaurant.kitchenStations);
+        setIsStationsInitialized(true);
+      } else if (currentRestaurant.kitchenStations === null) {
+        // Eğer backend'de hiç yoksa varsayılanları koy
+        const defaults = [
+          { id: '1', name: 'Izgara', emoji: '🔥', color: '#F59E0B', order: 1 },
+          { id: '2', name: 'Makarna', emoji: '🍝', color: '#3B82F6', order: 2 },
+          { id: '3', name: 'Soğuk', emoji: '🥗', color: '#10B981', order: 3 },
+          { id: '4', name: 'Tatlı', emoji: '🍰', color: '#EC4899', order: 4 }
+        ];
+        setStations(defaults);
+        setIsStationsInitialized(true);
+      }
     }
-  }, [currentRestaurant]);
+  }, [currentRestaurant, isStationsInitialized]);
 
   useEffect(() => {
     // Eğer subdomain varsa authenticated olmadan da çalışsın (test için)

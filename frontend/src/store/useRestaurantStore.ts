@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { apiService } from '@/services/api';
 import { Restaurant, MenuCategory, MenuItem, Order, ServiceCall } from '@/types';
+import { useAuthStore } from './useAuthStore';
 
 interface RestaurantState {
   // Data
@@ -184,6 +185,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
             : state.currentRestaurant,
           loading: false
         }));
+        // Sync with useAuthStore
+        useAuthStore.getState().updateAuthenticatedRestaurant({ ...response.data });
       }
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to update restaurant', loading: false });
