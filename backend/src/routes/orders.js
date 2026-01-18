@@ -19,6 +19,54 @@ router.get('/debug/all', async (req, res) => {
   }
 });
 
+// DEBUG ROUTE: Delete active orders
+router.post('/debug/delete-active', async (req, res) => {
+  console.log('🗑️ Delete active orders endpoint called via orders router');
+  try {
+    const { restaurantUsername } = req.body;
+    let where = {
+      status: { [Op.in]: ['pending', 'preparing', 'ready'] }
+    };
+
+    if (restaurantUsername) {
+      const restaurant = await Restaurant.findOne({ where: { username: restaurantUsername } });
+      if (restaurant) {
+        where.restaurantId = restaurant.id;
+      }
+    }
+
+    const activeOrders = await Order.findAll({ where });
+    const orderIds = activeOrders.map(o => o.id);
+
+    if (orderIds.length > 0) {
+      await OrderItem.destroy({ where: { orderId: { [Op.in]: orderIds } } });
+      const deletedCount = await Order.destroy({ where: { id: { [Op.in]: orderIds } } });
+
+      res.json({
+        success: true,
+        message: `${deletedCount} aktif sipariş başarıyla silindi`,
+        deletedCount,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      res.json({
+        success: true,
+        message: 'Silinecek aktif sipariş bulunamadı',
+        deletedCount: 0,
+        timestamp: new Date().toISOString()
+      });
+    }
+  } catch (error) {
+    console.error('❌ Delete Active Orders Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Aktif siparişler silinirken hata oluştu',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // GET /api/orders?restaurantId=...&status=...
 router.get('/', async (req, res) => {
   try {

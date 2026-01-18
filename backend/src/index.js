@@ -172,62 +172,6 @@ app.post('/api/debug/delete-all-orders', async (req, res) => {
   }
 });
 
-// AKTİF SİPARİŞLERİ SİL (Debug/Test için)
-app.post('/api/debug/delete-active-orders', async (req, res) => {
-  console.log('🗑️ Delete active orders endpoint called');
-  try {
-    const { Order, OrderItem, Restaurant } = require('./models');
-    const { Sequelize } = require('sequelize');
-    const { Op } = Sequelize;
-
-    const { restaurantUsername } = req.body;
-    let where = {
-      status: { [Op.in]: ['pending', 'preparing', 'ready'] }
-    };
-
-    if (restaurantUsername) {
-      const restaurant = await Restaurant.findOne({ where: { username: restaurantUsername } });
-      if (restaurant) {
-        where.restaurantId = restaurant.id;
-      }
-    }
-
-    // Find active orders first to get their IDs for OrderItem deletion
-    const activeOrders = await Order.findAll({ where });
-    const orderIds = activeOrders.map(o => o.id);
-
-    if (orderIds.length > 0) {
-      // Delete order items for these orders
-      await OrderItem.destroy({ where: { orderId: { [Op.in]: orderIds } } });
-
-      // Delete the orders
-      const deletedCount = await Order.destroy({ where: { id: { [Op.in]: orderIds } } });
-
-      res.json({
-        success: true,
-        message: `${deletedCount} aktif sipariş başarıyla silindi`,
-        deletedCount,
-        timestamp: new Date().toISOString()
-      });
-    } else {
-      res.json({
-        success: true,
-        message: 'Silinecek aktif sipariş bulunamadı',
-        deletedCount: 0,
-        timestamp: new Date().toISOString()
-      });
-    }
-  } catch (error) {
-    console.error('❌ Delete Active Orders Error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Aktif siparişler silinirken hata oluştu',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
 // Cloudinary Test Sayfası
 app.get('/debug', (req, res) => {
   const html = `
