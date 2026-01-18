@@ -218,7 +218,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         name: typeof data.name === 'string' ? data.name : data.name?.tr || '',
         description: typeof data.description === 'string' ? data.description : data.description?.tr || '',
         displayOrder: data.order || data.displayOrder || 0,
-        isActive: data.isActive !== undefined ? data.isActive : true
+        isActive: data.isActive !== undefined ? data.isActive : true,
+        kitchenStation: data.kitchenStation || null
       };
 
       console.log('🚀 Creating category:', { restaurantId, backendData });
@@ -262,7 +263,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         preparationTime: data.preparationTime || null,
         calories: data.calories || null,
         allergens: data.allergens || [],
-        ingredients: data.ingredients || []
+        ingredients: data.ingredients || [],
+        kitchenStation: data.kitchenStation || null
       };
 
       console.log('🚀 Creating menu item:', { restaurantId, backendData });
@@ -298,7 +300,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         name: typeof data.name === 'string' ? data.name : data.name?.tr,
         description: typeof data.description === 'string' ? data.description : data.description?.tr,
         displayOrder: data.order || data.displayOrder,
-        isActive: data.isActive
+        isActive: data.isActive,
+        kitchenStation: data.kitchenStation
       };
 
       const response = await apiService.updateMenuCategory(restaurantId, categoryId, backendData);
@@ -356,7 +359,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         isAvailable: data.isAvailable,
         isPopular: data.isPopular,
         allergens: data.allergens,
-        ingredients: data.ingredients
+        ingredients: data.ingredients,
+        kitchenStation: data.kitchenStation
       };
 
       const response = await apiService.updateMenuItem(restaurantId, itemId, backendData);
@@ -429,7 +433,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
           name: cat.name,
           description: cat.description,
           order: cat.displayOrder || 0,
-          isActive: cat.isActive !== false
+          isActive: cat.isActive !== false,
+          kitchenStation: cat.kitchenStation
         }));
 
         const transformedItems = allItems.map((item: any) => ({
@@ -447,7 +452,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
           calories: item.calories,
           preparationTime: item.preparationTime,
           ingredients: Array.isArray(item.ingredients) ? item.ingredients : (typeof item.ingredients === 'string' ? item.ingredients.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
-          allergens: Array.isArray(item.allergens) ? item.allergens : (typeof item.allergens === 'string' ? item.allergens.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
+          allergens: Array.isArray(item.allergens) ? item.allergens : (typeof item.allergens === 'string' ? item.allergens.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+          kitchenStation: item.kitchenStation
         }));
 
         console.log('✅ Transformed categories:', transformedCategories.length);

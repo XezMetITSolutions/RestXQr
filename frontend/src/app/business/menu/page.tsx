@@ -206,6 +206,7 @@ export default function MenuManagement() {
     description: '',
     order: 0,
     isActive: true,
+    kitchenStation: '',
     translations: {}
   });
 
@@ -675,6 +676,7 @@ export default function MenuManagement() {
       description: '',
       order: categories.length,
       isActive: true,
+      kitchenStation: '',
       translations: {}
     });
     setSubcategories([]);
@@ -688,6 +690,7 @@ export default function MenuManagement() {
       description: category.description || '',
       order: category.order || 0,
       isActive: category.isActive !== false,
+      kitchenStation: category.kitchenStation || '',
       translations: category.translations || {}
     });
     setShowCategoryForm(true);
@@ -724,8 +727,8 @@ export default function MenuManagement() {
 
     if (editingStation) {
       // Güncelleme
-      setStations(stations.map(s => 
-        s.id === editingStation.id 
+      setStations(stations.map(s =>
+        s.id === editingStation.id
           ? { ...s, ...stationFormData }
           : s
       ));
@@ -1547,6 +1550,15 @@ export default function MenuManagement() {
                         </span>
                       </div>
 
+                      {category.kitchenStation && (
+                        <div className="mb-3">
+                          <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                            <FaFire className="mr-1" />
+                            {stations.find(s => s.name.toLowerCase() === category.kitchenStation?.toLowerCase())?.name || category.kitchenStation}
+                          </span>
+                        </div>
+                      )}
+
                       <div>
                         <p className="text-sm text-gray-500 mb-4">
                           {items.filter(i => i.categoryId === category.id).length} <TranslatedText>ürün</TranslatedText>
@@ -1617,7 +1629,7 @@ export default function MenuManagement() {
                             <p className="text-xs text-gray-500">Sıra: {station.order}</p>
                           </div>
                         </div>
-                        <div 
+                        <div
                           className="w-8 h-8 rounded-full border-2 border-gray-200"
                           style={{ backgroundColor: station.color }}
                         />
@@ -2303,6 +2315,7 @@ export default function MenuManagement() {
                           portion: '',
                           isAvailable: true,
                           isPopular: false,
+                          kitchenStation: '',
                           translations: {}
                         });
                       }}
@@ -2347,6 +2360,28 @@ export default function MenuManagement() {
                       />
                     </div>
 
+                    {/* Mutfak İstasyonu */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Varsayılan Mutfak İstasyonu</TranslatedText>
+                      </label>
+                      <select
+                        value={categoryFormData.kitchenStation}
+                        onChange={(e) => setCategoryFormData({ ...categoryFormData, kitchenStation: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="">{t('İstasyon Seçin')}</option>
+                        {stations.sort((a, b) => a.order - b.order).map(station => (
+                          <option key={station.id} value={station.name.toLowerCase()}>
+                            {station.emoji} {station.name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {t('Bu kategorideki ürünler varsayılan olarak hangi istasyona gidecek?')}
+                      </p>
+                    </div>
+
                     {/* Durum */}
                     <div className="flex items-center gap-4">
                       <label className="flex items-center">
@@ -2383,7 +2418,8 @@ export default function MenuManagement() {
                                 name: categoryFormData.name,
                                 description: categoryFormData.description,
                                 order: categoryFormData.order,
-                                isActive: categoryFormData.isActive
+                                isActive: categoryFormData.isActive,
+                                kitchenStation: categoryFormData.kitchenStation
                               });
                               console.log('Kategori güncellendi:', editingCategory);
                               // Menüyü yeniden yükle
@@ -2396,7 +2432,8 @@ export default function MenuManagement() {
                                 name: categoryFormData.name,
                                 description: categoryFormData.description,
                                 order: categories.length,
-                                isActive: categoryFormData.isActive
+                                isActive: categoryFormData.isActive,
+                                kitchenStation: categoryFormData.kitchenStation
                               });
                               console.log('Yeni kategori backend\'e kaydedildi');
                               // Menüyü yeniden yükle
@@ -2413,8 +2450,9 @@ export default function MenuManagement() {
                         setCategoryFormData({
                           name: '',
                           description: '',
-                          order: 0,
+                          order: categories.length,
                           isActive: true,
+                          kitchenStation: '',
                           translations: {}
                         });
                       }}

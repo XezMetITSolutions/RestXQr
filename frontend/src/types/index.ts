@@ -96,6 +96,7 @@ export interface MenuCategory {
   image?: string;
   order: number;
   isActive: boolean;
+  kitchenStation?: string;
 }
 
 export interface MenuItem {
@@ -118,6 +119,7 @@ export interface MenuItem {
   isAvailable: boolean;
   isPopular?: boolean;
   order: number;
+  kitchenStation?: string;
 }
 
 // Sipariş Tipleri

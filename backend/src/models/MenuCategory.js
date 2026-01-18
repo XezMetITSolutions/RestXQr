@@ -32,6 +32,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
       field: 'is_active'
+    },
+    kitchenStation: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'kitchen_station',
+      comment: 'Kitchen station: izgara, makarna, soguk, tatli'
     }
   }, {
     tableName: 'menu_categories',

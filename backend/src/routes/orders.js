@@ -115,12 +115,27 @@ router.get('/', async (req, res) => {
     const orderIds = orders.map(o => o.id);
     const items = await OrderItem.findAll({
       where: { orderId: orderIds },
-      include: [{ model: MenuItem, as: 'menuItem', attributes: ['id', 'name', 'price', 'imageUrl', 'categoryId'] }]
+      include: [
+        {
+          model: MenuItem,
+          as: 'menuItem',
+          attributes: ['id', 'name', 'price', 'imageUrl', 'categoryId', 'kitchenStation'],
+          include: [
+            {
+              model: MenuCategory,
+              as: 'category',
+              attributes: ['kitchenStation']
+            }
+          ]
+        }
+      ]
     });
 
     const orderIdToItems = new Map();
     for (const it of items) {
       const list = orderIdToItems.get(it.orderId) || [];
+      const itemStation = it.menuItem?.kitchenStation || it.menuItem?.category?.kitchenStation || 'default';
+
       list.push({
         id: it.menuItemId || it.id,
         name: it.menuItem?.name || 'Ürün',
@@ -128,10 +143,10 @@ router.get('/', async (req, res) => {
         price: Number(it.unitPrice || 0),
         notes: it.notes || '',
         image: it.menuItem?.imageUrl || null,
-        // Basit varsayım: tüm ürünler food; paneller kategoriye göre filtreliyor
         category: 'food',
         status: 'preparing',
-        prepTime: 10
+        prepTime: 10,
+        kitchenStation: itemStation
       });
       orderIdToItems.set(it.orderId, list);
     }
