@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaBug, FaCheck } from 'react-icons/fa';
+import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaBug, FaCheck, FaStore, FaGlobe } from 'react-icons/fa';
 
 interface OrderItem {
   id: string;
@@ -48,6 +48,7 @@ export default function KasaPanel() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [cashAmount, setCashAmount] = useState<string>('');
   const [cardAmount, setCardAmount] = useState<string>('');
+  const [activeSource, setActiveSource] = useState<'restoran' | 'online'>('restoran');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
@@ -403,208 +404,248 @@ export default function KasaPanel() {
           </div>
         </div>
 
+        {/* Tab System */}
+        <div className="flex gap-4 mb-8 bg-white/50 p-2 rounded-[28px] border border-gray-100 shadow-sm overflow-x-auto no-scrollbar">
+          <button
+            onClick={() => setActiveSource('restoran')}
+            className={`flex-1 min-w-[150px] py-4 rounded-2xl font-black transition-all flex items-center justify-center gap-3 ${activeSource === 'restoran'
+              ? 'bg-gray-900 text-white shadow-xl scale-[1.02]'
+              : 'text-gray-400 hover:bg-gray-100'
+              }`}
+          >
+            <FaStore />
+            <span>RESTORAN</span>
+            <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] ${activeSource === 'restoran' ? 'bg-white/20' : 'bg-gray-100'}`}>
+              {orders.filter(o => o.orderType === 'dine_in').length}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveSource('online')}
+            className={`flex-1 min-w-[150px] py-4 rounded-2xl font-black transition-all flex items-center justify-center gap-3 ${activeSource === 'online'
+              ? 'bg-orange-500 text-white shadow-xl scale-[1.02]'
+              : 'text-gray-400 hover:bg-gray-100'
+              }`}
+          >
+            <FaGlobe />
+            <span>ONLINE SİPARİŞ</span>
+            <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] ${activeSource === 'online' ? 'bg-white/20' : 'bg-gray-100'}`}>
+              {orders.filter(o => o.orderType !== 'dine_in').length}
+            </span>
+          </button>
+        </div>
+
         {loading && orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="font-black text-gray-400 animate-pulse">SİPARİŞLER ÇEKİLİYOR...</p>
           </div>
-        ) : orders.length === 0 ? (
+        ) : orders.filter(o => activeSource === 'restoran' ? o.orderType === 'dine_in' : o.orderType !== 'dine_in').length === 0 ? (
           <div className="bg-white/50 border-2 border-dashed border-gray-300 rounded-3xl p-20 text-center">
             <FaReceipt className="text-6xl text-gray-300 mx-auto mb-4" />
-            <h3 className="text-2xl font-black text-gray-400">AKTİF MASA BULUNMUYOR</h3>
+            <h3 className="text-2xl font-black text-gray-400 uppercase">
+              {activeSource === 'restoran' ? 'AKTİF MASA BULUNMUYOR' : 'AKTİF ONLİNE SİPARİŞ YOK'}
+            </h3>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {orders.map(order => {
-              const wait = getWaitInfo(order.updated_at || order.created_at);
-              const rem = (Number(order.totalAmount) || 0) - (Number(order.paidAmount) || 0) - (Number(order.discountAmount) || 0);
-              return (
-                <div
-                  key={order.id}
-                  className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-transparent hover:border-green-500 transition-all group"
-                >
-                  <div className="bg-gray-50 p-5 flex justify-between items-center border-b">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg ${order.tableNumber != null ? 'bg-green-500 shadow-green-100' : 'bg-purple-500 shadow-purple-100'}`}>
-                        {order.tableNumber != null ? order.tableNumber : '?'}
-                      </div>
-                      <div>
-                        <div className="font-black text-gray-800">
-                          {order.tableNumber != null ? `MASA ${order.tableNumber}` : 'MASASIZ SİPARİŞ'}
+            {orders
+              .filter(o => activeSource === 'restoran' ? o.orderType === 'dine_in' : o.orderType !== 'dine_in')
+              .map(order => {
+                const wait = getWaitInfo(order.updated_at || order.created_at);
+                const rem = (Number(order.totalAmount) || 0) - (Number(order.paidAmount) || 0) - (Number(order.discountAmount) || 0);
+                return (
+                  <div
+                    key={order.id}
+                    className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-transparent hover:border-green-500 transition-all group"
+                  >
+                    <div className="bg-gray-50 p-5 flex justify-between items-center border-b">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg ${order.tableNumber != null ? 'bg-green-500 shadow-green-100' : 'bg-purple-500 shadow-purple-100'}`}>
+                          {order.tableNumber != null ? order.tableNumber : (order.orderType === 'dine_in' ? '?' : 'WEB')}
                         </div>
-                        <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
-                      </div>
-                    </div>
-                    <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${order.status === 'pending' ? 'text-yellow-600 bg-yellow-50' :
-                      order.status === 'preparing' ? 'text-blue-600 bg-blue-50' :
-                        order.status === 'ready' ? 'text-green-600 bg-green-50' :
-                          'text-gray-600 bg-gray-50'
-                      }`}>
-                      {order.status === 'pending' ? 'BEKLEMEDE' :
-                        order.status === 'preparing' ? 'HAZIRLANIYOR' :
-                          order.status === 'ready' ? 'HAZIR' :
-                            order.status === 'completed' ? 'TAMAMLANDI' : order.status.toUpperCase()}
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="space-y-3 mb-6 max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
-                      {(order.items || []).map((it, i) => (
-                        <div key={i} className="flex justify-between text-sm font-bold text-gray-600">
-                          <span>{it.quantity}x {it.name}</span>
-                          <span>{(Number(it.price || 0) * Number(it.quantity || 1)).toFixed(2)}₺</span>
+                        <div>
+                          <div className="font-black text-gray-800">
+                            {order.tableNumber != null
+                              ? `MASA ${order.tableNumber}`
+                              : (order.orderType === 'dine_in' ? 'MASASIZ SİPARİŞ' : (
+                                order.notes?.toLowerCase().includes('getir') ? 'GETİR YEMEK' :
+                                  order.notes?.toLowerCase().includes('yemeksepeti') ? 'YEMEKSEPETİ' :
+                                    order.notes?.toLowerCase().includes('trendyol') ? 'TRENDYOL YEMEK' : 'DIŞ SİPARİŞ'
+                              ))}
+                          </div>
+                          <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
                         </div>
-                      ))}
-                    </div>
-                    <div className="space-y-2 border-t pt-4">
-                      {Number(order.paidAmount || 0) > 0 && <div className="flex justify-between text-xs font-bold text-blue-500"><span>ÖDENEN</span><span>{Number(order.paidAmount || 0).toFixed(2)}₺</span></div>}
-                      {Number(order.discountAmount || 0) > 0 && <div className="flex justify-between text-xs font-bold text-red-400"><span>İNDİRİM</span><span>-{Number(order.discountAmount || 0).toFixed(2)}₺</span></div>}
-                      <div className="flex justify-between items-center bg-green-50 p-4 rounded-2xl">
-                        <span className="font-black text-green-700 text-xs uppercase">KALAN</span>
-                        <span className="text-2xl font-black text-green-600 font-mono tracking-tighter">{(Number(order.totalAmount || 0) - Number(order.paidAmount || 0) - Number(order.discountAmount || 0)).toFixed(2)}₺</span>
                       </div>
+                      <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${order.status === 'pending' ? 'text-yellow-600 bg-yellow-50' :
+                        order.status === 'preparing' ? 'text-blue-600 bg-blue-50' :
+                          order.status === 'ready' ? 'text-green-600 bg-green-50' :
+                            'text-gray-600 bg-gray-50'
+                        }`}>
+                        {order.status === 'pending' ? 'BEKLEMEDE' :
+                          order.status === 'preparing' ? 'HAZIRLANIYOR' :
+                            order.status === 'ready' ? 'HAZIR' :
+                              order.status === 'completed' ? 'TAMAMLANDI' : order.status.toUpperCase()}
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <div className="space-y-3 mb-6 max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
+                        {(order.items || []).map((it, i) => (
+                          <div key={i} className="flex justify-between text-sm font-bold text-gray-600">
+                            <span>{it.quantity}x {it.name}</span>
+                            <span>{(Number(it.price || 0) * Number(it.quantity || 1)).toFixed(2)}₺</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="space-y-2 border-t pt-4">
+                        {Number(order.paidAmount || 0) > 0 && <div className="flex justify-between text-xs font-bold text-blue-500"><span>ÖDENEN</span><span>{Number(order.paidAmount || 0).toFixed(2)}₺</span></div>}
+                        {Number(order.discountAmount || 0) > 0 && <div className="flex justify-between text-xs font-bold text-red-400"><span>İNDİRİM</span><span>-{Number(order.discountAmount || 0).toFixed(2)}₺</span></div>}
+                        <div className="flex justify-between items-center bg-green-50 p-4 rounded-2xl">
+                          <span className="font-black text-green-700 text-xs uppercase">KALAN</span>
+                          <span className="text-2xl font-black text-green-600 font-mono tracking-tighter">{(Number(order.totalAmount || 0) - Number(order.paidAmount || 0) - Number(order.discountAmount || 0)).toFixed(2)}₺</span>
+                        </div>
 
-                      {/* Special delete button for null table orders */}
-                      {order.tableNumber == null && !order.id.includes('grouped') && (
+                        {/* Special delete button for null table orders */}
+                        {order.tableNumber == null && !order.id.includes('grouped') && (
+                          <button
+                            onClick={() => {
+                              if (confirm('Bu masasız siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
+                                fetch(`${API_URL}/orders/${order.id}`, {
+                                  method: 'DELETE',
+                                  headers: { 'Accept': 'application/json' }
+                                }).then(response => {
+                                  if (response.ok) {
+                                    alert('Masasız sipariş başarıyla silindi');
+                                    fetchOrders();
+                                  } else {
+                                    alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
+                                    fetchOrders();
+                                  }
+                                }).catch(error => {
+                                  console.error('Sipariş silme hatası:', error);
+                                  alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
+                                  fetchOrders();
+                                });
+                              }
+                            }}
+                            className="w-full mt-3 py-2 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <FaTrash size={14} />
+                            <span>MASASIZ SİPARİŞİ SİL</span>
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex gap-3 mt-6">
+                        <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
+                          ÖDEME AL
+                        </button>
+                        {order.approved === false && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                if (order.id.includes('grouped')) {
+                                  const tableNumberToken = order.id.split('-')[1];
+                                  if (tableNumberToken === 'null') {
+                                    alert('Masasız toplu sipariş onaylanamaz.');
+                                    return;
+                                  }
+                                  const tableNumber = parseInt(tableNumberToken);
+                                  const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
+                                  await Promise.all(tableOrders.map(to =>
+                                    fetch(`${API_URL}/orders/${to.id}`, {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ approved: true })
+                                    })
+                                  ));
+                                } else {
+                                  await fetch(`${API_URL}/orders/${order.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ approved: true })
+                                  });
+                                }
+                                fetchOrders();
+                              } catch (err) {
+                                console.error('Approve error:', err);
+                                alert('Onaylama sırasında hata oluştu.');
+                              }
+                            }}
+                            className="flex-1 py-4 bg-green-500 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                          >
+                            <FaCheck />
+                            <span className="text-xs">ONAYLA</span>
+                          </button>
+                        )}
                         <button
                           onClick={() => {
-                            if (confirm('Bu masasız siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
-                              fetch(`${API_URL}/orders/${order.id}`, {
-                                method: 'DELETE',
-                                headers: { 'Accept': 'application/json' }
-                              }).then(response => {
-                                if (response.ok) {
-                                  alert('Masasız sipariş başarıyla silindi');
-                                  fetchOrders();
-                                } else {
-                                  alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
-                                  fetchOrders();
-                                }
-                              }).catch(error => {
-                                console.error('Sipariş silme hatası:', error);
-                                alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
-                                fetchOrders();
-                              });
-                            }
-                          }}
-                          className="w-full mt-3 py-2 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
-                        >
-                          <FaTrash size={14} />
-                          <span>MASASIZ SİPARİŞİ SİL</span>
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex gap-3 mt-6">
-                      <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
-                        ÖDEME AL
-                      </button>
-                      {order.approved === false && (
-                        <button
-                          onClick={async () => {
-                            try {
+                            if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
                               if (order.id.includes('grouped')) {
                                 const tableNumberToken = order.id.split('-')[1];
                                 if (tableNumberToken === 'null') {
-                                  alert('Masasız toplu sipariş onaylanamaz.');
+                                  alert('Masasız toplu sipariş silinemez. Lütfen tekli masasız siparişi silin.');
+                                  fetchOrders();
                                   return;
                                 }
                                 const tableNumber = parseInt(tableNumberToken);
                                 const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
-                                await Promise.all(tableOrders.map(to =>
-                                  fetch(`${API_URL}/orders/${to.id}`, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ approved: true })
-                                  })
-                                ));
+
+                                if (tableOrders.length === 0) {
+                                  alert(`Masa ${tableNumber} için sipariş bulunamadı`);
+                                  fetchOrders();
+                                  return;
+                                }
+
+                                // Delete each order individually
+                                Promise.all(tableOrders.map(async (tableOrder) => {
+                                  try {
+                                    const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
+                                      method: 'DELETE',
+                                      headers: { 'Accept': 'application/json' }
+                                    });
+                                    return response.ok;
+                                  } catch (error) {
+                                    console.error(`Sipariş silme hatası: ${tableOrder.id}`, error);
+                                    return false;
+                                  }
+                                })).then(results => {
+                                  const allSuccessful = results.every(result => result === true);
+                                  if (allSuccessful) {
+                                    alert(`Masa ${tableNumber} için tüm siparişler başarıyla silindi`);
+                                  } else {
+                                    alert(`Masa ${tableNumber} için bazı siparişler silinemedi. Lütfen sayfayı yenileyip tekrar deneyin.`);
+                                  }
+                                  fetchOrders();
+                                });
                               } else {
-                                await fetch(`${API_URL}/orders/${order.id}`, {
-                                  method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ approved: true })
+                                // Regular order deletion
+                                fetch(`${API_URL}/orders/${order.id}`, {
+                                  method: 'DELETE',
+                                  headers: { 'Accept': 'application/json' }
+                                }).then(response => {
+                                  if (response.ok) {
+                                    alert('Sipariş başarıyla silindi');
+                                    fetchOrders();
+                                  } else {
+                                    alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
+                                    fetchOrders();
+                                  }
+                                }).catch(error => {
+                                  console.error('Sipariş silme hatası:', error);
+                                  alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
+                                  fetchOrders();
                                 });
                               }
-                              fetchOrders();
-                            } catch (err) {
-                              console.error('Approve error:', err);
-                              alert('Onaylama sırasında hata oluştu.');
                             }
                           }}
-                          className="flex-1 py-4 bg-green-500 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                          className="py-4 px-3 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all shadow-lg active:scale-95"
                         >
-                          <FaCheck />
-                          <span className="text-xs">ONAYLA</span>
+                          <FaTrash />
                         </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
-                            if (order.id.includes('grouped')) {
-                              const tableNumberToken = order.id.split('-')[1];
-                              if (tableNumberToken === 'null') {
-                                alert('Masasız toplu sipariş silinemez. Lütfen tekli masasız siparişi silin.');
-                                fetchOrders();
-                                return;
-                              }
-                              const tableNumber = parseInt(tableNumberToken);
-                              const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
-
-                              if (tableOrders.length === 0) {
-                                alert(`Masa ${tableNumber} için sipariş bulunamadı`);
-                                fetchOrders();
-                                return;
-                              }
-
-                              // Delete each order individually
-                              Promise.all(tableOrders.map(async (tableOrder) => {
-                                try {
-                                  const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
-                                    method: 'DELETE',
-                                    headers: { 'Accept': 'application/json' }
-                                  });
-                                  return response.ok;
-                                } catch (error) {
-                                  console.error(`Sipariş silme hatası: ${tableOrder.id}`, error);
-                                  return false;
-                                }
-                              })).then(results => {
-                                const allSuccessful = results.every(result => result === true);
-                                if (allSuccessful) {
-                                  alert(`Masa ${tableNumber} için tüm siparişler başarıyla silindi`);
-                                } else {
-                                  alert(`Masa ${tableNumber} için bazı siparişler silinemedi. Lütfen sayfayı yenileyip tekrar deneyin.`);
-                                }
-                                fetchOrders();
-                              });
-                            } else {
-                              // Regular order deletion
-                              fetch(`${API_URL}/orders/${order.id}`, {
-                                method: 'DELETE',
-                                headers: { 'Accept': 'application/json' }
-                              }).then(response => {
-                                if (response.ok) {
-                                  alert('Sipariş başarıyla silindi');
-                                  fetchOrders();
-                                } else {
-                                  alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
-                                  fetchOrders();
-                                }
-                              }).catch(error => {
-                                console.error('Sipariş silme hatası:', error);
-                                alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
-                                fetchOrders();
-                              });
-                            }
-                          }
-                        }}
-                        className="py-4 px-3 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all shadow-lg active:scale-95"
-                      >
-                        <FaTrash />
-                      </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         )}
       </div>
