@@ -23,7 +23,8 @@ import {
   FaPlus,
   FaEye,
   FaEdit,
-  FaRocket
+  FaRocket,
+  FaGlobe
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
@@ -93,6 +94,8 @@ function BusinessDashboardContent() {
   const [corporateBillingCycle, setCorporateBillingCycle] = useState<'monthly' | 'sixMonths' | 'yearly'>('monthly');
   const [showAnnModal, setShowAnnModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'premium' | 'corporate'>('premium');
+  const [activeSource, setActiveSource] = useState<'restoran' | 'online'>('restoran');
+  const hasDeliveryIntegration = useFeature('delivery_integration');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Restoranlar sayfasından alınan planlar ve fiyatlar
@@ -544,6 +547,12 @@ function BusinessDashboardContent() {
                       <FaEye className="text-2xl text-white" />
                     </div>
                     <span className="text-base font-black text-blue-800"><TranslatedText>Siparişleri Gör</TranslatedText></span>
+                  </Link>
+                  <Link href="/business/online-orders" className="group/btn p-8 bg-gradient-to-br from-orange-50/80 to-orange-100/80 rounded-2xl hover:from-orange-100 hover:to-orange-200 transition-all duration-300 flex flex-col items-center justify-center gap-4 border border-orange-200/50 hover:shadow-xl hover:scale-105 backdrop-blur-sm">
+                    <div className="h-16 w-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-xl group-hover/btn:shadow-2xl transition-all duration-300">
+                      <FaGlobe className="text-2xl text-white" />
+                    </div>
+                    <span className="text-base font-black text-orange-800"><TranslatedText>Online Ayarlar</TranslatedText></span>
                   </Link>
                   <Link href="/business/menu" className="group/btn p-8 bg-gradient-to-br from-green-50/80 to-green-100/80 rounded-2xl hover:from-green-100 hover:to-green-200 transition-all duration-300 flex flex-col items-center justify-center gap-4 border border-green-200/50 hover:shadow-xl hover:scale-105 backdrop-blur-sm">
                     <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-xl group-hover/btn:shadow-2xl transition-all duration-300">

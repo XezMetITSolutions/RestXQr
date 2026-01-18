@@ -254,11 +254,19 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       active: pathname === `${basePath}/events`,
       visible: isDemo ? true : hasEventManagement,
       badge: 'Özel'
+    },
+    {
+      href: `${basePath}/online-orders`,
+      icon: FaGlobe,
+      label: <TranslatedText>Online Siparişler</TranslatedText>,
+      active: pathname === `${basePath}/online-orders`,
+      visible: isDemo ? true : hasDeliveryIntegration,
+      badge: 'Özel'
     }
   ];
 
   // Sadece görünür menüleri filtrele
-  const menuItems = allMenuItems.filter(item => item.visible);
+  const menuItems = allMenuItems.filter(item => item.visible && item.href && item.icon);
 
   return (
     <>
