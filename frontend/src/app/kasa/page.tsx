@@ -288,7 +288,7 @@ export default function KasaPanel() {
           };
 
           const remaining = Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0);
-          if (remaining <= 0) {
+          if (remaining <= 0.05) {
             payload.status = 'completed';
           }
 
@@ -336,7 +336,7 @@ export default function KasaPanel() {
       };
 
       const remaining = Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0);
-      if (remaining <= 0) {
+      if (remaining <= 0.05) {
         payload.status = 'completed';
       }
 
@@ -352,7 +352,7 @@ export default function KasaPanel() {
 
       if (data.success) {
         console.log('✅ Ödeme başarıyla tamamlandı');
-        if (!isPartial || remaining <= 0) {
+        if (!isPartial || remaining <= 0.05) {
           // Deactivate QR Code
           if (updatedOrder?.tableNumber) {
             fetch(`${API_URL}/qr/deactivate-by-table`, {
