@@ -4,6 +4,8 @@ import { useState } from 'react';
 
 export default function BackendAPIDebugPage() {
     const [restaurantId, setRestaurantId] = useState('37b0322a-e11f-4ef1-b108-83be310aaf4d');
+    const [backendStatus, setBackendStatus] = useState<any>(null);
+    const [checkingBackend, setCheckingBackend] = useState(false);
     const [results, setResults] = useState<any>({});
     const [loading, setLoading] = useState<string | null>(null);
 
@@ -87,6 +89,40 @@ export default function BackendAPIDebugPage() {
         }
     ];
 
+    const checkBackendConnection = async () => {
+        setCheckingBackend(true);
+        const startTime = Date.now();
+
+        try {
+            // Try to reach backend root
+            const response = await fetch(API_URL.replace('/api', ''), {
+                method: 'GET',
+                mode: 'cors'
+            });
+
+            const responseTime = Date.now() - startTime;
+
+            setBackendStatus({
+                reachable: true,
+                status: response.status,
+                responseTime,
+                url: API_URL,
+                timestamp: new Date().toISOString()
+            });
+        } catch (error: any) {
+            const responseTime = Date.now() - startTime;
+            setBackendStatus({
+                reachable: false,
+                error: error.message,
+                responseTime,
+                url: API_URL,
+                timestamp: new Date().toISOString()
+            });
+        } finally {
+            setCheckingBackend(false);
+        }
+    };
+
     const runAllTests = async () => {
         for (const test of tests) {
             await testEndpoint(test.name, test.url, { method: test.method });
@@ -102,6 +138,51 @@ export default function BackendAPIDebugPage() {
                         🔧 Backend API Debug
                     </h1>
                     <p className="text-gray-600">Test backend API endpoints and see detailed responses</p>
+                </div>
+
+                {/* Backend Connection Status */}
+                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-bold text-gray-800">🌐 Backend Bağlantısı</h2>
+                        <button
+                            onClick={checkBackendConnection}
+                            disabled={checkingBackend}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:bg-gray-400"
+                        >
+                            {checkingBackend ? '⏳ Kontrol Ediliyor...' : '🔄 Bağlantıyı Test Et'}
+                        </button>
+                    </div>
+
+                    {backendStatus && (
+                        <div className={`rounded-lg p-4 ${backendStatus.reachable ? 'bg-green-50 border-2 border-green-200' : 'bg-red-50 border-2 border-red-200'}`}>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <p className="text-xs text-gray-600">Durum</p>
+                                    <p className="font-bold text-lg">
+                                        {backendStatus.reachable ? '✅ Bağlı' : '❌ Bağlantı Yok'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-600">Response Time</p>
+                                    <p className="font-semibold">{backendStatus.responseTime}ms</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-600">Status Code</p>
+                                    <p className="font-semibold">{backendStatus.status || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-600">URL</p>
+                                    <p className="font-mono text-xs truncate">{backendStatus.url}</p>
+                                </div>
+                            </div>
+                            {backendStatus.error && (
+                                <div className="mt-3 bg-red-100 rounded p-3">
+                                    <p className="text-red-800 text-sm font-semibold">Hata:</p>
+                                    <p className="text-red-700 text-sm">{backendStatus.error}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Restaurant ID Input */}
