@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { Restaurant } = require('../models');
-const { auth } = require('../middleware/auth'); // Assuming you have an auth middleware
+const staffAuth = require('../middleware/staffAuth');
 
 // Get settings for the authenticated restaurant
-router.get('/', auth, async (req, res) => {
+router.get('/', staffAuth, async (req, res) => {
     try {
         const restaurant = await Restaurant.findByPk(req.user.restaurantId);
         if (!restaurant) {
@@ -20,7 +20,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Update settings for the authenticated restaurant
-router.put('/', auth, async (req, res) => {
+router.put('/', staffAuth, async (req, res) => {
     try {
         const restaurant = await Restaurant.findByPk(req.user.restaurantId);
         if (!restaurant) {
