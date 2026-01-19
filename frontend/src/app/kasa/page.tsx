@@ -864,7 +864,14 @@ export default function KasaPanel() {
                             type="number"
                             placeholder="0.00"
                             value={cashAmount}
-                            onChange={e => setCashAmount(e.target.value)}
+                            onChange={e => {
+                              const val = e.target.value;
+                              setCashAmount(val);
+                              const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
+                              const numVal = Number(val);
+                              const other = Math.max(0, totalDebt - numVal).toFixed(2);
+                              setCardAmount(other);
+                            }}
                             className="w-full text-3xl font-black text-gray-900 bg-transparent outline-none text-center"
                           />
                         </div>
@@ -877,7 +884,14 @@ export default function KasaPanel() {
                             type="number"
                             placeholder="0.00"
                             value={cardAmount}
-                            onChange={e => setCardAmount(e.target.value)}
+                            onChange={e => {
+                              const val = e.target.value;
+                              setCardAmount(val);
+                              const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
+                              const numVal = Number(val);
+                              const other = Math.max(0, totalDebt - numVal).toFixed(2);
+                              setCashAmount(other);
+                            }}
                             className="w-full text-3xl font-black text-gray-900 bg-transparent outline-none text-center"
                           />
                         </div>
