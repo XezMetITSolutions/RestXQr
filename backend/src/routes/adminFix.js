@@ -82,4 +82,33 @@ router.post('/reset', async (req, res) => {
     }
 });
 
+
+// FIX DB SCHEMA
+router.post('/fix-db-schema', async (req, res) => {
+    try {
+        const { sequelize } = require('../models');
+
+        // Check and add kitchen_station to menu_categories
+        try {
+            await sequelize.query(`
+        DO $$ 
+        BEGIN 
+          BEGIN
+            ALTER TABLE menu_categories ADD COLUMN kitchen_station VARCHAR(50);
+          EXCEPTION
+            WHEN duplicate_column THEN RAISE NOTICE 'column kitchen_station already exists in menu_categories.';
+          END;
+        END $$;
+      `);
+            console.log('✅ Added kitchen_station to menu_categories');
+        } catch (e) {
+            console.error('Error adding kitchen_station:', e.message);
+        }
+
+        res.json({ success: true, message: 'Database schema fixed' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 module.exports = router;

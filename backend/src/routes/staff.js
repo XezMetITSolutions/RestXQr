@@ -86,7 +86,7 @@ router.get('/restaurant/:restaurantId', async (req, res) => {
 
     const staff = await Staff.findAll({
       where: { restaurantId },
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     res.json({

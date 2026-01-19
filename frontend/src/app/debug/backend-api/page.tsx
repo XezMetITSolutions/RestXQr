@@ -153,6 +153,24 @@ export default function BackendAPIDebugPage() {
                         </button>
                     </div>
 
+                    <div className="mb-4">
+                        <button
+                            onClick={async () => {
+                                if (!confirm('Veritabanı şemasını onarmak istiyor musunuz?')) return;
+                                try {
+                                    const res = await fetch(`${API_URL}/admin-fix/fix-db-schema`, { method: 'POST' });
+                                    const data = await res.json();
+                                    alert(JSON.stringify(data, null, 2));
+                                } catch (e: any) {
+                                    alert('Hata: ' + e.message);
+                                }
+                            }}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors mr-2"
+                        >
+                            🛠️ Fix Database Schema
+                        </button>
+                    </div>
+
                     {backendStatus && (
                         <div className={`rounded-lg p-4 ${backendStatus.reachable ? 'bg-green-50 border-2 border-green-200' : 'bg-red-50 border-2 border-red-200'}`}>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
