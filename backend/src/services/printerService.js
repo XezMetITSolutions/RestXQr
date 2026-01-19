@@ -1,5 +1,3 @@
-const escpos = require('escpos');
-const Network = require('escpos-network');
 const { ThermalPrinter, PrinterTypes, CharacterSet } = require('node-thermal-printer');
 const iconv = require('iconv-lite');
 
@@ -7,6 +5,7 @@ const iconv = require('iconv-lite');
  * Thermal Printer Service
  * Her istasyon için farklı yazıcı desteği
  * Türkçe ve Çince karakter desteği ile
+ * Sadece node-thermal-printer kullanılıyor (stable)
  */
 
 class PrinterService {
