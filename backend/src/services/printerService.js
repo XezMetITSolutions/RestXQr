@@ -20,36 +20,8 @@ class PrinterService {
             'ü': '\x81', 'Ü': '\x9A'
         };
 
-        // İstasyon yazıcı konfigürasyonları - ÖZEL İSTASYONLAR
-        this.stations = {
-            manti: {
-                name: 'Mantı İstasyonu',
-                ip: null,
-                port: 9100,
-                enabled: false,
-                type: PrinterTypes.EPSON,
-                codePage: 'CP857',
-                characterSet: CharacterSet.PC857_TURKISH
-            },
-            ramen: {
-                name: 'Ramen İstasyonu',
-                ip: null,
-                port: 9100,
-                enabled: false,
-                type: PrinterTypes.EPSON,
-                codePage: 'CP857',
-                characterSet: CharacterSet.PC857_TURKISH
-            },
-            kavurma: {
-                name: 'Kavurma İstasyonu',
-                ip: null,
-                port: 9100,
-                enabled: false,
-                type: PrinterTypes.EPSON,
-                codePage: 'CP857',
-                characterSet: CharacterSet.PC857_TURKISH
-            }
-        };
+        // İstasyon yazıcı konfigürasyonları - Kullanıcı ekleyecek
+        this.stations = {};
     }
 
     /**

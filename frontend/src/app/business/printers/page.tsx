@@ -55,11 +55,8 @@ function PrinterManagementContent() {
     };
 
     const setMockData = () => {
-        setStations([
-            { id: 'manti', name: 'Mantı İstasyonu', ip: null, port: 9100, enabled: false, type: 'epson' },
-            { id: 'ramen', name: 'Ramen İstasyonu', ip: null, port: 9100, enabled: false, type: 'epson' },
-            { id: 'kavurma', name: 'Kavurma İstasyonu', ip: null, port: 9100, enabled: false, type: 'epson' }
-        ]);
+        // Boş array - Kullanıcı kendi istasyonlarını ekleyecek
+        setStations([]);
     };
 
     const handleSaveStation = async (station: Station) => {
