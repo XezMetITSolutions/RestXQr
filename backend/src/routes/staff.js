@@ -98,8 +98,11 @@ router.get('/restaurant/:restaurantId', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
+    error: process.env.NODE_ENV === 'development' ? error.message : undefined
+  });
   }
 });
 
