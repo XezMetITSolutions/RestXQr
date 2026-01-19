@@ -24,11 +24,13 @@ class ApiService {
         ? window.location.hostname.split('.')[0]
         : null;
 
-      // Staff token'i al
+      // Staff token VEYA restaurant token al (business dashboard için)
       const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
+      const restaurantToken = typeof window !== 'undefined' ? localStorage.getItem('restaurant_token') : null;
+      const authToken = staffToken || restaurantToken;
 
       // Log if token is missing
-      if (!staffToken && !endpoint.includes('/login')) {
+      if (!authToken && !endpoint.includes('/login')) {
         console.warn(`API request to ${endpoint} without authentication token`);
       }
 
@@ -46,22 +48,23 @@ class ApiService {
         });
       }
 
-      // Staff token varsa Authorization header'a ekle
-      if (staffToken) {
+      // Auth token varsa Authorization header'a ekle (staff veya restaurant token)
+      if (authToken) {
         // Make sure the token is properly formatted
-        const token = staffToken.startsWith('Bearer ') ? staffToken : `Bearer ${staffToken}`;
+        const token = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
         headers['Authorization'] = token;
 
         // Log token format for debugging
-        console.log(`Token format for ${endpoint}: ${token.substring(0, 10)}...`);
+        console.log(`Token format for ${endpoint}: ${token.substring(0, 10)}... (${staffToken ? 'staff' : 'restaurant'})`);
       }
 
       console.log('🌐 API Request:', {
         url,
         subdomain,
-        hasToken: !!staffToken,
+        hasToken: !!authToken,
+        tokenType: staffToken ? 'staff_token' : (restaurantToken ? 'restaurant_token' : 'none'),
         hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
-        headers: { ...headers, Authorization: staffToken ? 'Bearer [HIDDEN]' : undefined }
+        headers: { ...headers, Authorization: authToken ? 'Bearer [HIDDEN]' : undefined }
       });
 
       const response = await fetch(url, {
