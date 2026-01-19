@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage Temizleme - RestXQr</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .storage-list {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .storage-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button.danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .success {
+            color: #10b981;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .warning {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 LocalStorage Temizleme Aracı</h1>
+        
+        <div class="info-box">
+            <p><strong>⚠️ Sorun:</strong> Printer settings sayfası eski verileri gösteriyor</p>
+            <p><strong>✅ Çözüm:</strong> Tarayıcı cache'ini ve localStorage'ı temizleyin</p>
+        </div>
+
+        <h3>📦 Mevcut LocalStorage Verileri:</h3>
+        <div id="storageList" class="storage-list">
+            <p class="warning">Yükleniyor...</p>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <button onclick="clearPrinterData()">
+                🖨️ Sadece Printer Verilerini Temizle
+            </button>
+            <button onclick="clearCartData()">
+                🛒 Sadece Cart Verilerini Temizle
+            </button>
+            <button onclick="clearBusinessSettings()">
+                ⚙️ Business Settings Temizle
+            </button>
+            <button class="danger" onclick="clearAllStorage()">
+                🗑️ TÜM LocalStorage'ı Temizle
+            </button>
+        </div>
+
+        <div id="result"></div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+            <h3>💡 Önerilen Adımlar:</h3>
+            <ol style="line-height: 1.8;">
+                <li>Önce <strong>"Sadece Printer Verilerini Temizle"</strong> butonuna tıklayın</li>
+                <li>Sayfayı yenileyin (F5)</li>
+                <li>Hala sorun varsa, <strong>"TÜM LocalStorage'ı Temizle"</strong> kullanın</li>
+                <li>Tarayıcı cache'ini de temizleyin: <code>Ctrl+Shift+Delete</code></li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // LocalStorage içeriğini göster
+        function showStorageContent() {
+            const storageList = document.getElementById('storageList');
+            storageList.innerHTML = '';
+            
+            if (localStorage.length === 0) {
+                storageList.innerHTML = '<p class="warning">LocalStorage boş</p>';
+                return;
+            }
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                
+                const item = document.createElement('div');
+                item.className = 'storage-item';
+                
+                let preview = value;
+                if (value.length > 100) {
+                    preview = value.substring(0, 100) + '...';
+                }
+                
+                item.innerHTML = `
+                    <strong>${key}</strong><br>
+                    <span style="color: #6b7280;">${preview}</span>
+                `;
+                
+                storageList.appendChild(item);
+            }
+        }
+
+        function showResult(message, isSuccess = true) {
+            const result = document.getElementById('result');
+            result.className = isSuccess ? 'success' : 'warning';
+            result.innerHTML = message;
+            
+            // 3 saniye sonra temizle
+            setTimeout(() => {
+                result.innerHTML = '';
+            }, 3000);
+        }
+
+        function clearPrinterData() {
+            const keys = ['printer-settings', 'printer-stations', 'printers'];
+            let cleared = 0;
+            
+            keys.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    localStorage.removeItem(key);
+                    cleared++;
+                }
+            });
+            
+            if (cleared > 0) {
+                showResult(`✅ ${cleared} printer verisi temizlendi!`);
+            } else {
+                showResult('⚠️ Temizlenecek printer verisi bulunamadı', false);
+            }
+            
+            showStorageContent();
+        }
+
+        function clearCartData() {
+            const keys = ['cart-storage', 'pending_order_id', 'pending_order_items'];
+            let cleared = 0;
+            
+            keys.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    localStorage.removeItem(key);
+                    cleared++;
+                }
+            });
+            
+            if (cleared > 0) {
+                showResult(`✅ ${cleared} cart verisi temizlendi!`);
+            } else {
+                showResult('⚠️ Temizlenecek cart verisi bulunamadı', false);
+            }
+            
+            showStorageContent();
+        }
+
+        function clearBusinessSettings() {
+            const keys = ['business-settings-storage', 'business-settings'];
+            let cleared = 0;
+            
+            keys.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    localStorage.removeItem(key);
+                    cleared++;
+                }
+            });
+            
+            if (cleared > 0) {
+                showResult(`✅ ${cleared} business settings verisi temizlendi!`);
+            } else {
+                showResult('⚠️ Temizlenecek business settings bulunamadı', false);
+            }
+            
+            showStorageContent();
+        }
+
+        function clearAllStorage() {
+            if (confirm('⚠️ TÜM localStorage verileri silinecek! Emin misiniz?')) {
+                const count = localStorage.length;
+                localStorage.clear();
+                showResult(`✅ ${count} veri silindi! Sayfa yenileniyor...`);
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }
+        }
+
+        // Sayfa yüklendiğinde göster
+        showStorageContent();
+    </script>
+</body>
+</html>
