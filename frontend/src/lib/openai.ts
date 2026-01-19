@@ -21,7 +21,18 @@ const customTranslations: { [key: string]: { [key: string]: string } } = {
     'Yeni İstasyon': 'Neue Station',
     'İstasyon Ekle': 'Station hinzufügen',
     'İstasyon Adı': 'Station Name',
-    'İstasyon Seçin': 'Station wählen'
+    'İstasyon Seçin': 'Station wählen',
+    'Panel Yönetimi ve Yetkilendirme': 'Panel-Verwaltung & Berechtigungen',
+    'Personel Yönetimi': 'Personalverwaltung',
+    'Yetkilendirme Ayarları': 'Berechtigungseinstellungen',
+    'Personel Listesi': 'Personalliste',
+    'Personel Ekle': 'Mitarbeiter hinzufügen',
+    'Yetki Ayarları': 'Berechtigungen',
+    'Garson Paneli': 'Kellner-Panel',
+    'Kasa Paneli': 'Kassen-Panel',
+    'Mutfak Paneli': 'Küchen-Panel',
+    'Yönetim Paneli': 'Management-Panel',
+    'Admin Paneli': 'Admin-Panel'
   }
 };
 
