@@ -29,6 +29,7 @@ interface Order {
   updated_at: string;
   items: OrderItem[];
   approved?: boolean;
+  originalOrders?: Order[];
 }
 
 interface WaiterCall {
@@ -188,7 +189,8 @@ export default function KasaPanel() {
             discountAmount: totalDiscountAmount,
             status: mostCriticalStatus,
             id: `table-${tableNumberForId}-grouped`,
-            notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).join(' | ') || latestOrder.notes
+            notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).join(' | ') || latestOrder.notes,
+            originalOrders: tableOrders
           };
         };
 
@@ -270,8 +272,9 @@ export default function KasaPanel() {
 
       // Gruplu sipariş ID'si ise gerçek siparişleri bul ve güncelle
       if (orderId.includes('grouped')) {
-        const tableNumber = parseInt(orderId.split('-')[1]);
-        const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
+        const groupedOrder = orders.find(o => o.id === orderId);
+        const tableOrders = groupedOrder?.originalOrders || [];
+        const tableNumber = groupedOrder?.tableNumber;
 
         console.log('📋 Gruplu ödeme tespit edildi:', { tableNumber, orderCount: tableOrders.length });
 
@@ -672,13 +675,11 @@ export default function KasaPanel() {
                             onClick={async () => {
                               try {
                                 if (order.id.includes('grouped')) {
-                                  const tableNumberToken = order.id.split('-')[1];
-                                  if (tableNumberToken === 'null') {
-                                    alert('Masasız toplu sipariş onaylanamaz.');
+                                  const tableOrders = order.originalOrders || [];
+                                  if (tableOrders.length === 0) {
+                                    console.error('Alt siparişler bulunamadı');
                                     return;
                                   }
-                                  const tableNumber = parseInt(tableNumberToken);
-                                  const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
                                   await Promise.all(tableOrders.map(to =>
                                     fetch(`${API_URL}/orders/${to.id}`, {
                                       method: 'PUT',
@@ -709,18 +710,10 @@ export default function KasaPanel() {
                           onClick={() => {
                             if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
                               if (order.id.includes('grouped')) {
-                                const tableNumberToken = order.id.split('-')[1];
-                                if (tableNumberToken === 'null') {
-                                  alert('Masasız toplu sipariş silinemez. Lütfen tekli masasız siparişi silin.');
-                                  fetchOrders();
-                                  return;
-                                }
-                                const tableNumber = parseInt(tableNumberToken);
-                                const tableOrders = orders.filter(o => o.tableNumber === tableNumber);
-
+                                const tableOrders = order.originalOrders || [];
+                                const tableNumber = order.tableNumber;
                                 if (tableOrders.length === 0) {
-                                  alert(`Masa ${tableNumber} için sipariş bulunamadı`);
-                                  fetchOrders();
+                                  alert('Alt siparişler bulunamadı');
                                   return;
                                 }
 
