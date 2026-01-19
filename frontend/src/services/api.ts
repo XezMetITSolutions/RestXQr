@@ -23,10 +23,10 @@ class ApiService {
       const subdomain = typeof window !== 'undefined'
         ? window.location.hostname.split('.')[0]
         : null;
-        
+
       // Staff token'i al
       const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
-      
+
       // Log if token is missing
       if (!staffToken && !endpoint.includes('/login')) {
         console.warn(`API request to ${endpoint} without authentication token`);
@@ -37,7 +37,7 @@ class ApiService {
         'Content-Type': 'application/json',
         'X-Subdomain': subdomain || 'kroren', // Fallback olarak kroren kullan
       };
-      
+
       // Copy any existing headers from options
       if (options.headers) {
         const optHeaders = options.headers as Record<string, string>;
@@ -45,13 +45,13 @@ class ApiService {
           headers[key] = optHeaders[key];
         });
       }
-      
+
       // Staff token varsa Authorization header'a ekle
       if (staffToken) {
         // Make sure the token is properly formatted
         const token = staffToken.startsWith('Bearer ') ? staffToken : `Bearer ${staffToken}`;
         headers['Authorization'] = token;
-        
+
         // Log token format for debugging
         console.log(`Token format for ${endpoint}: ${token.substring(0, 10)}...`);
       }
@@ -253,28 +253,33 @@ class ApiService {
   async getStaff(restaurantId: string) {
     try {
       console.log('Getting staff for restaurant:', restaurantId);
-      
-      // Get staff token directly to ensure it's available
+
+      // Get staff token OR restaurant token (for business dashboard)
       const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
-      if (!staffToken) {
-        console.error('Staff token is missing for getStaff request');
+      const restaurantToken = typeof window !== 'undefined' ? localStorage.getItem('restaurant_token') : null;
+      const authToken = staffToken || restaurantToken;
+
+      if (!authToken) {
+        console.error('No authentication token found (staff_token or restaurant_token)');
         throw new Error('Authentication token is missing');
       }
-      
+
+      console.log('Using token type:', staffToken ? 'staff_token' : 'restaurant_token');
+
       // Get subdomain directly
-      const subdomain = typeof window !== 'undefined' 
-        ? window.location.hostname.split('.')[0] 
+      const subdomain = typeof window !== 'undefined'
+        ? window.location.hostname.split('.')[0]
         : 'kroren';
-      
+
       // Make direct fetch request with error handling
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
       const url = `${API_URL}/staff/restaurant/${restaurantId}`;
-      
+
       console.log('Making staff API request to:', url);
-      
+
       // Ensure token is properly formatted
-      const token = staffToken.startsWith('Bearer ') ? staffToken : `Bearer ${staffToken}`;
-      
+      const token = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
+
       try {
         // First attempt with standard headers
         const response = await fetch(url, {
@@ -285,12 +290,12 @@ class ApiService {
             'X-Subdomain': subdomain
           }
         });
-        
+
         console.log('Staff API response status:', response.status);
-        
+
         if (response.ok) {
           const data = await response.json();
-          
+
           // Cache successful response in localStorage
           if (typeof window !== 'undefined' && data?.data) {
             try {
@@ -300,7 +305,7 @@ class ApiService {
               console.warn('Failed to cache staff data:', cacheError);
             }
           }
-          
+
           return data;
         } else {
           // If response is not OK, try to get error details
@@ -315,7 +320,7 @@ class ApiService {
         }
       } catch (fetchError) {
         console.error('Staff API fetch error:', fetchError);
-        
+
         // Try to load from localStorage as fallback
         if (typeof window !== 'undefined') {
           const savedStaff = localStorage.getItem('business_staff');
@@ -329,7 +334,7 @@ class ApiService {
             }
           }
         }
-        
+
         // If no cached data or parsing failed, rethrow the original error
         throw fetchError;
       }
