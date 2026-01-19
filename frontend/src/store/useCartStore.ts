@@ -123,7 +123,22 @@ const useCartStore = create<CartState>()(
       },
 
       setTableNumber: (tableNumber) => {
-        set({ tableNumber });
+        const currentTableNumber = get().tableNumber;
+        // Masa değiştiğinde sepeti temizle
+        if (currentTableNumber !== tableNumber) {
+          set({
+            items: [],
+            // preparingItems: [], // Hazırlananları temizlemeye gerek var mı? Genellikle evet, yeni oturum.
+            // Ancak preparingItems zaten sipariş edilmişse, veritabanından tekrar çekilecektir (component mount olduğunda).
+            // Burada client-side store'u temizlemek en doğrusu.
+            preparingItems: [],
+            couponCode: null,
+            tipPercentage: 10,
+            orderStatus: 'idle',
+            paid: false,
+            tableNumber
+          });
+        }
       },
 
       setOrderStatus: (status) => {
