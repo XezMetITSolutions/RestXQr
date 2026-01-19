@@ -323,7 +323,7 @@ export default function KasaPanel() {
           setSelectedOrder(null);
         }
         fetchOrders();
-        if (isPartial) alert('✅ Kısmi ödeme kaydedildi.');
+        // if (isPartial) alert('✅ Kısmi ödeme kaydedildi.');
         return;
       }
 
@@ -898,7 +898,7 @@ export default function KasaPanel() {
                     </div>
 
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         const received = Number(cashReceived);
                         if (received <= 0) return alert('Lütfen alınan tutarı giriniz.');
 
@@ -906,7 +906,7 @@ export default function KasaPanel() {
                           if (!confirm('Alınan tutar borçtan az! Kalanı borç olarak bırakmak istiyor musunuz?')) return;
                         }
 
-                        handlePayment(selectedOrder.id, {
+                        await handlePayment(selectedOrder.id, {
                           ...selectedOrder,
                           paidAmount: Number(selectedOrder.paidAmount || 0) + targetPaymentAmount,
                           cashierNote: (selectedOrder.cashierNote || '') + ` [NAKİT: ${received}₺ -> P.ÜSTÜ: ${(received - targetPaymentAmount).toFixed(2)}₺]`
@@ -914,8 +914,8 @@ export default function KasaPanel() {
 
                         setCashReceived('');
                         setShowCashPad(false);
-                        // setShowPaymentModal(false); // Opsiyonel, kullanıcı görsün diye kapatmayabiliriz ama genelde işlem biter.
-                        // handlePayment içindeki logic modalı kapatıyorsa sorun yok.
+                        setShowPaymentModal(false);
+                        setTimeout(() => alert('Tahsilat onaylandı'), 100);
                       }}
                       className="w-full py-5 bg-green-600 text-white rounded-[20px] font-black text-2xl shadow-xl hover:bg-green-700 transition-all flex justify-center items-center gap-3 active:scale-95">
                       <FaCheckCircle />
