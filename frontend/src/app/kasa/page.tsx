@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell } from 'react-icons/fa';
+import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft } from 'react-icons/fa';
 
 interface OrderItem {
   id: string;
@@ -60,7 +60,30 @@ export default function KasaPanel() {
   const [cardAmount, setCardAmount] = useState<string>('');
   const [activeSource, setActiveSource] = useState<'restoran' | 'online'>('restoran');
 
+  // Cash Pad States
+  const [showCashPad, setShowCashPad] = useState(false);
+  const [cashReceived, setCashReceived] = useState('');
+  const [targetPaymentAmount, setTargetPaymentAmount] = useState(0);
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+
+  const openCashPad = () => {
+    if (!selectedOrder) return;
+    let amount = 0;
+    if (paymentTab === 'selective') {
+      amount = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
+    } else if (paymentTab === 'manual') {
+      amount = Number(manualAmount);
+    } else {
+      amount = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
+    }
+
+    if (amount <= 0) return alert("Geçersiz Tutar");
+
+    setTargetPaymentAmount(amount);
+    setCashReceived('');
+    setShowCashPad(true);
+  };
 
   useEffect(() => {
     const checkAuth = () => {
@@ -800,172 +823,238 @@ export default function KasaPanel() {
               <div className="flex-1 bg-white flex flex-col h-full relative">
                 {/* Close Butonu */}
                 <div className="absolute top-4 right-4 z-10">
-                  <button onClick={() => { setShowPaymentModal(false); setSelectedOrder(null); }} className="p-2 bg-gray-100 text-gray-500 rounded hover:bg-red-100 hover:text-red-500 transition-colors">
+                  <button onClick={() => { setShowPaymentModal(false); setSelectedOrder(null); setShowCashPad(false); }} className="p-2 bg-gray-100 text-gray-500 rounded hover:bg-red-100 hover:text-red-500 transition-colors">
                     <FaTimesCircle size={24} />
                   </button>
                 </div>
 
-                <div className="p-6 h-full flex flex-col">
-                  {/* Tablar */}
-                  <div className="flex gap-2 p-1 bg-gray-100 rounded-lg mb-6 w-full max-w-lg">
-                    {(['full', 'selective', 'manual', 'split'] as const).map(t => (
-                      <button key={t} onClick={() => { setPaymentTab(t); setSelectedItemIndexes([]); setCashAmount(''); setCardAmount(''); }}
-                        className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${paymentTab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-                        {t === 'full' ? 'TAMAMI' : t === 'selective' ? 'PARÇALI' : t === 'manual' ? 'MANUEL' : 'HİBRİT'}
-                      </button>
-                    ))}
-                  </div>
+                {showCashPad ? (
+                  <div className="p-6 h-full flex flex-col animate-in slide-in-from-right duration-200">
+                    <div className="flex justify-between items-center mb-4">
+                      <button onClick={() => setShowCashPad(false)} className="flex items-center gap-2 text-gray-500 font-bold hover:text-gray-900 bg-gray-100 px-4 py-2 rounded-lg transition-colors"><FaArrowLeft /> GERİ DÖN</button>
+                      <h3 className="font-black text-xl text-gray-800">NAKİT TAHSİLAT</h3>
+                    </div>
 
-                  {/* Ana Tutar Göstergesi */}
-                  <div className="flex-1 flex flex-col justify-center items-center gap-4 min-h-0">
-                    <div className="text-center">
-                      <span className="text-gray-400 text-xs font-bold uppercase tracking-widest block mb-1">
-                        {paymentTab === 'selective' ? 'SEÇİLİ TUTAR' : paymentTab === 'manual' ? 'MANUEL TUTAR' : paymentTab === 'split' ? 'HİBRİT TOPLAM' : 'ÖDENECEK TUTAR'}
-                      </span>
-                      <div className="text-6xl font-black text-gray-900 tracking-tighter">
-                        {paymentTab === 'selective'
-                          ? selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i]?.price || 0) * Number(selectedOrder.items[i]?.quantity || 0)), 0).toFixed(2)
-                          : paymentTab === 'manual' ? (Number(manualAmount) || 0).toFixed(2)
-                            : paymentTab === 'split' ? ((Number(cashAmount) || 0) + (Number(cardAmount) || 0)).toFixed(2)
-                              : (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0)).toFixed(2)
-                        }<span className="text-3xl text-gray-400 font-medium ml-1">₺</span>
+                    <div className="bg-gray-50 p-6 rounded-2xl flex flex-col gap-4 mb-4 border border-gray-200">
+                      <div className="flex justify-between text-sm font-bold text-gray-500 uppercase">
+                        <span>Ödenecek Tutar</span>
+                        <span>{targetPaymentAmount.toFixed(2)}₺</span>
+                      </div>
+                      <div className="flex justify-between items-end border-b-2 border-gray-300 pb-2">
+                        <span className="text-gray-500 font-bold text-lg">ALINAN</span>
+                        <span className="text-5xl font-black text-gray-900 tracking-tighter">{cashReceived || '0'}₺</span>
+                      </div>
+                      <div className={`flex justify-between items-center pt-2 font-black text-2xl ${(Number(cashReceived) - targetPaymentAmount) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                        <span>PARA ÜSTÜ</span>
+                        <span>{((Number(cashReceived) || 0) - targetPaymentAmount).toFixed(2)}₺</span>
                       </div>
                     </div>
 
-                    {/* Hızlı İndirim */}
-                    {(staffRole === 'manager' || staffRole === 'admin') && (
-                      <div className="flex gap-2 mt-4">
-                        {[5, 10, 20].map(v => (
-                          <button key={v} onClick={() => applyGeneralDiscount(v, 'percent')} className="px-3 py-1 bg-gray-50 text-gray-600 text-xs font-bold border border-gray-200 rounded hover:bg-gray-100 flex items-center gap-1">
-                            <FaMinus size={8} /> %{v}
+                    <div className="flex-1 flex gap-4 min-h-0 mb-4">
+                      <div className="flex flex-col gap-2 w-1/4">
+                        {[50, 100, 200].map(val => (
+                          <button key={val} onClick={() => setCashReceived(val.toString())} className="flex-1 bg-green-50 text-green-700 font-bold rounded-xl hover:bg-green-100 border border-green-200 text-lg shadow-sm transition-all active:scale-95">
+                            {val}₺
                           </button>
                         ))}
-                      </div>
-                    )}
-
-                    {/* Manual/Split Input Alanları */}
-                    <div className="w-full max-w-md mt-6 space-y-4">
-                      {paymentTab === 'manual' && (
-                        <div className="flex flex-col gap-2">
-                          <label className="text-xs font-bold text-gray-400 uppercase">Tutar Giriniz</label>
-                          <input type="number" value={manualAmount} onChange={e => setManualAmount(e.target.value)} className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-xl text-2xl font-bold text-center focus:border-blue-500 outline-none" placeholder="0.00" />
-                          <div className="flex gap-2 justify-center">
-                            {[2, 3, 4].map(n => (
-                              <button key={n} onClick={() => {
-                                const rem = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
-                                setManualAmount((rem / n).toFixed(2));
-                              }} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100">1/{n}</button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {paymentTab === 'split' && (
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-xs font-bold text-gray-500 block mb-1">NAKİT</label>
-                            <input type="number" value={cashAmount}
-                              onChange={e => {
-                                const val = e.target.value;
-                                setCashAmount(val);
-                                const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
-                                const numVal = Number(val);
-                                const other = Math.max(0, totalDebt - numVal).toFixed(2);
-                                setCardAmount(other);
-                              }}
-                              className="w-full p-3 bg-green-50 border-2 border-green-200 rounded-xl text-xl font-bold text-center focus:border-green-500 outline-none text-green-900" placeholder="0.00" />
-                          </div>
-                          <div>
-                            <label className="text-xs font-bold text-gray-500 block mb-1">KART</label>
-                            <input type="number" value={cardAmount}
-                              onChange={e => {
-                                const val = e.target.value;
-                                setCardAmount(val);
-                                const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
-                                const numVal = Number(val);
-                                const other = Math.max(0, totalDebt - numVal).toFixed(2);
-                                setCashAmount(other);
-                              }}
-                              className="w-full p-3 bg-blue-50 border-2 border-blue-200 rounded-xl text-xl font-bold text-center focus:border-blue-500 outline-none text-blue-900" placeholder="0.00" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Alt Aksiyon Butonları */}
-                  <div className="mt-6 pt-6 border-t border-gray-100">
-                    <div className="flex flex-col gap-3">
-                      {paymentTab === 'split' ? (
-                        <button onClick={() => {
-                          const cash = Number(cashAmount) || 0;
-                          const card = Number(cardAmount) || 0;
-                          const total = cash + card;
-                          if (total <= 0) return alert('Geçersiz Tutar!');
-                          if (cash < 0 || card < 0) return alert('Negatif tutar girilemez!');
-
-                          const remaining = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
-                          // if (total > remaining + 0.1) return alert('Girilen tutar borçtan fazla!');
-
-                          let note = selectedOrder.cashierNote || '';
-                          if (cash > 0) note += ` [NAKİT: ${cash.toFixed(2)}₺]`;
-                          if (card > 0) note += ` [KART: ${card.toFixed(2)}₺]`;
-
-                          handlePayment(selectedOrder.id, {
-                            ...selectedOrder,
-                            paidAmount: Number(selectedOrder.paidAmount || 0) + total,
-                            cashierNote: note
-                          }, true);
-                          setCashAmount(''); setCardAmount('');
-                        }} className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-black transition-colors flex justify-center items-center gap-2 shadow-xl">
-                          <FaCheckCircle /> HİBRİT TAHSİL ET
+                        <button onClick={() => setCashReceived(targetPaymentAmount.toFixed(2))} className="flex-1 bg-blue-50 text-blue-700 font-bold rounded-xl hover:bg-blue-100 border border-blue-200 text-sm uppercase shadow-sm transition-all active:scale-95">
+                          TAM
                         </button>
-                      ) : (
-                        <div className="flex gap-3">
-                          <button onClick={() => {
-                            let val = 0;
-                            if (paymentTab === 'selective') val = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
-                            else if (paymentTab === 'manual') val = Number(manualAmount);
-                            else val = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
-                            if (val <= 0) return alert('Geçersiz Tutar');
+                      </div>
 
-                            handlePayment(selectedOrder.id, {
-                              ...selectedOrder,
-                              paidAmount: Number(selectedOrder.paidAmount || 0) + val,
-                              cashierNote: (selectedOrder.cashierNote || '') + ' [NAKİT]'
-                            }, true);
-                          }} className="flex-1 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
-                            <FaMoneyBillWave /> NAKİT
+                      <div className="flex-1 grid grid-cols-3 gap-2">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(k => (
+                          <button key={k} onClick={() => setCashReceived(p => {
+                            if (p.includes('.') && p.split('.')[1].length >= 2) return p;
+                            return p + k;
+                          })} className="bg-white border text-3xl font-black text-gray-800 rounded-xl hover:bg-gray-50 active:bg-gray-200 shadow-sm transition-color border-gray-200">
+                            {k}
                           </button>
+                        ))}
+                        <button onClick={() => setCashReceived(p => p.includes('.') ? p : p + '.')} className="bg-white border text-2xl font-black text-gray-800 rounded-xl hover:bg-gray-50 active:bg-gray-200 shadow-sm border-gray-200">.</button>
+                        <button onClick={() => setCashReceived(p => p + '0')} className="bg-white border text-2xl font-black text-gray-800 rounded-xl hover:bg-gray-50 active:bg-gray-200 shadow-sm border-gray-200">0</button>
+                        <button onClick={() => setCashReceived(p => p.slice(0, -1))} className="bg-red-50 border border-red-100 text-red-500 text-2xl rounded-xl hover:bg-red-100 flex items-center justify-center shadow-sm active:bg-red-200">
+                          <FaBackspace />
+                        </button>
+                      </div>
+                    </div>
 
-                          <button onClick={() => {
-                            let val = 0;
-                            if (paymentTab === 'selective') val = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
-                            else if (paymentTab === 'manual') val = Number(manualAmount);
-                            else val = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
-                            if (val <= 0) return alert('Geçersiz Tutar');
+                    <button
+                      onClick={() => {
+                        const received = Number(cashReceived);
+                        if (received <= 0) return alert('Lütfen alınan tutarı giriniz.');
 
-                            handlePayment(selectedOrder.id, {
-                              ...selectedOrder,
-                              paidAmount: Number(selectedOrder.paidAmount || 0) + val,
-                              cashierNote: (selectedOrder.cashierNote || '') + ' [KART]'
-                            }, true);
-                          }} className="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
-                            <FaCreditCard /> KART
-                          </button>
+                        if (received < targetPaymentAmount) {
+                          if (!confirm('Alınan tutar borçtan az! Kalanı borç olarak bırakmak istiyor musunuz?')) return;
+                        }
+
+                        handlePayment(selectedOrder.id, {
+                          ...selectedOrder,
+                          paidAmount: Number(selectedOrder.paidAmount || 0) + targetPaymentAmount,
+                          cashierNote: (selectedOrder.cashierNote || '') + ` [NAKİT: ${received}₺ -> P.ÜSTÜ: ${(received - targetPaymentAmount).toFixed(2)}₺]`
+                        }, true);
+
+                        setCashReceived('');
+                        setShowCashPad(false);
+                        // setShowPaymentModal(false); // Opsiyonel, kullanıcı görsün diye kapatmayabiliriz ama genelde işlem biter.
+                        // handlePayment içindeki logic modalı kapatıyorsa sorun yok.
+                      }}
+                      className="w-full py-5 bg-green-600 text-white rounded-[20px] font-black text-2xl shadow-xl hover:bg-green-700 transition-all flex justify-center items-center gap-3 active:scale-95">
+                      <FaCheckCircle />
+                      TAHSİLATI ONAYLA
+                    </button>
+                  </div>
+                ) : (
+                  <div className="p-6 h-full flex flex-col">
+                    {/* Tablar */}
+                    <div className="flex gap-2 p-1 bg-gray-100 rounded-lg mb-6 w-full max-w-lg">
+                      {(['full', 'selective', 'manual', 'split'] as const).map(t => (
+                        <button key={t} onClick={() => { setPaymentTab(t); setSelectedItemIndexes([]); setCashAmount(''); setCardAmount(''); }}
+                          className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${paymentTab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                          {t === 'full' ? 'TAMAMI' : t === 'selective' ? 'PARÇALI' : t === 'manual' ? 'MANUEL' : 'HİBRİT'}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Ana Tutar Göstergesi */}
+                    <div className="flex-1 flex flex-col justify-center items-center gap-4 min-h-0">
+                      <div className="text-center">
+                        <span className="text-gray-400 text-xs font-bold uppercase tracking-widest block mb-1">
+                          {paymentTab === 'selective' ? 'SEÇİLİ TUTAR' : paymentTab === 'manual' ? 'MANUEL TUTAR' : paymentTab === 'split' ? 'HİBRİT TOPLAM' : 'ÖDENECEK TUTAR'}
+                        </span>
+                        <div className="text-6xl font-black text-gray-900 tracking-tighter">
+                          {paymentTab === 'selective'
+                            ? selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i]?.price || 0) * Number(selectedOrder.items[i]?.quantity || 0)), 0).toFixed(2)
+                            : paymentTab === 'manual' ? (Number(manualAmount) || 0).toFixed(2)
+                              : paymentTab === 'split' ? ((Number(cashAmount) || 0) + (Number(cardAmount) || 0)).toFixed(2)
+                                : (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0)).toFixed(2)
+                          }<span className="text-3xl text-gray-400 font-medium ml-1">₺</span>
+                        </div>
+                      </div>
+
+                      {/* Hızlı İndirim */}
+                      {(staffRole === 'manager' || staffRole === 'admin') && (
+                        <div className="flex gap-2 mt-4">
+                          {[5, 10, 20].map(v => (
+                            <button key={v} onClick={() => applyGeneralDiscount(v, 'percent')} className="px-3 py-1 bg-gray-50 text-gray-600 text-xs font-bold border border-gray-200 rounded hover:bg-gray-100 flex items-center gap-1">
+                              <FaMinus size={8} /> %{v}
+                            </button>
+                          ))}
                         </div>
                       )}
 
-                      <textarea
-                        placeholder="Ödeme notu..."
-                        value={selectedOrder.cashierNote || ''}
-                        onChange={e => setSelectedOrder({ ...selectedOrder, cashierNote: e.target.value })}
-                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400"
-                        rows={1}
-                      />
+                      {/* Manual/Split Input Alanları */}
+                      <div className="w-full max-w-md mt-6 space-y-4">
+                        {paymentTab === 'manual' && (
+                          <div className="flex flex-col gap-2">
+                            <label className="text-xs font-bold text-gray-400 uppercase">Tutar Giriniz</label>
+                            <input type="number" value={manualAmount} onChange={e => setManualAmount(e.target.value)} className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-xl text-2xl font-bold text-center focus:border-blue-500 outline-none" placeholder="0.00" />
+                            <div className="flex gap-2 justify-center">
+                              {[2, 3, 4].map(n => (
+                                <button key={n} onClick={() => {
+                                  const rem = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
+                                  setManualAmount((rem / n).toFixed(2));
+                                }} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100">1/{n}</button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {paymentTab === 'split' && (
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-xs font-bold text-gray-500 block mb-1">NAKİT</label>
+                              <input type="number" value={cashAmount}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setCashAmount(val);
+                                  const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
+                                  const numVal = Number(val);
+                                  const other = Math.max(0, totalDebt - numVal).toFixed(2);
+                                  setCardAmount(other);
+                                }}
+                                className="w-full p-3 bg-green-50 border-2 border-green-200 rounded-xl text-xl font-bold text-center focus:border-green-500 outline-none text-green-900" placeholder="0.00" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-500 block mb-1">KART</label>
+                              <input type="number" value={cardAmount}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setCardAmount(val);
+                                  const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
+                                  const numVal = Number(val);
+                                  const other = Math.max(0, totalDebt - numVal).toFixed(2);
+                                  setCashAmount(other);
+                                }}
+                                className="w-full p-3 bg-blue-50 border-2 border-blue-200 rounded-xl text-xl font-bold text-center focus:border-blue-500 outline-none text-blue-900" placeholder="0.00" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Alt Aksiyon Butonları */}
+                    <div className="mt-6 pt-6 border-t border-gray-100">
+                      <div className="flex flex-col gap-3">
+                        {paymentTab === 'split' ? (
+                          <button onClick={() => {
+                            const cash = Number(cashAmount) || 0;
+                            const card = Number(cardAmount) || 0;
+                            const total = cash + card;
+                            if (total <= 0) return alert('Geçersiz Tutar!');
+                            if (cash < 0 || card < 0) return alert('Negatif tutar girilemez!');
+
+                            const remaining = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
+                            // if (total > remaining + 0.1) return alert('Girilen tutar borçtan fazla!');
+
+                            let note = selectedOrder.cashierNote || '';
+                            if (cash > 0) note += ` [NAKİT: ${cash.toFixed(2)}₺]`;
+                            if (card > 0) note += ` [KART: ${card.toFixed(2)}₺]`;
+
+                            handlePayment(selectedOrder.id, {
+                              ...selectedOrder,
+                              paidAmount: Number(selectedOrder.paidAmount || 0) + total,
+                              cashierNote: note
+                            }, true);
+                            setCashAmount(''); setCardAmount('');
+                          }} className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-black transition-colors flex justify-center items-center gap-2 shadow-xl">
+                            <FaCheckCircle /> HİBRİT TAHSİL ET
+                          </button>
+                        ) : (
+                          <div className="flex gap-3">
+                            <button onClick={openCashPad} className="flex-1 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
+                              <FaMoneyBillWave /> NAKİT
+                            </button>
+
+                            <button onClick={() => {
+                              let val = 0;
+                              if (paymentTab === 'selective') val = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
+                              else if (paymentTab === 'manual') val = Number(manualAmount);
+                              else val = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
+                              if (val <= 0) return alert('Geçersiz Tutar');
+
+                              handlePayment(selectedOrder.id, {
+                                ...selectedOrder,
+                                paidAmount: Number(selectedOrder.paidAmount || 0) + val,
+                                cashierNote: (selectedOrder.cashierNote || '') + ' [KART]'
+                              }, true);
+                            }} className="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
+                              <FaCreditCard /> KART
+                            </button>
+                          </div>
+                        )}
+
+                        <textarea
+                          placeholder="Ödeme notu..."
+                          value={selectedOrder.cashierNote || ''}
+                          onChange={e => setSelectedOrder({ ...selectedOrder, cashierNote: e.target.value })}
+                          className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400"
+                          rows={1}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
