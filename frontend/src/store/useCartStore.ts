@@ -170,10 +170,9 @@ const useCartStore = create<CartState>()(
         const qrToken = sessionStorage.getItem('qr_token');
         if (qrToken) {
           // Backend'e token geçersizleştirme isteği gönder
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr/deactivate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tokenId: qrToken })
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr/deactivate/${qrToken}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
           }).catch(error => {
             console.error('Token geçersizleştirme hatası:', error);
           });

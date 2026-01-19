@@ -232,9 +232,13 @@ export default function ReportsPage() {
       try {
         setLoading(true);
         const response = await apiService.getOrders(authenticatedRestaurant.id);
-        
+
         if (response.success && response.data) {
-          setOrders(response.data || []);
+          const normalized = (response.data || []).map((o: any) => ({
+            ...o,
+            items: typeof o.items === 'string' ? JSON.parse(o.items) : (Array.isArray(o.items) ? o.items : [])
+          }));
+          setOrders(normalized);
         }
       } catch (error) {
         console.error('Siparişler yüklenirken hata:', error);
@@ -302,8 +306,8 @@ export default function ReportsPage() {
   const currentDailyReport = {
     totalSales: todayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0),
     totalOrders: todayOrders.length,
-    averageOrderValue: todayOrders.length > 0 
-      ? todayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0) / todayOrders.length 
+    averageOrderValue: todayOrders.length > 0
+      ? todayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0) / todayOrders.length
       : 0,
     totalTables: new Set(todayOrders.map(order => order.tableNumber || order.table_id)).size,
     averageTableTime: 0 // Bu bilgi siparişlerde yok, backend'den gelmeli
@@ -318,20 +322,20 @@ export default function ReportsPage() {
   const lastMonthRevenue = lastMonthOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
 
   const revenueData = {
-    daily: { 
-      today: todayRevenue, 
-      yesterday: yesterdayRevenue, 
-      change: yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0 
+    daily: {
+      today: todayRevenue,
+      yesterday: yesterdayRevenue,
+      change: yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0
     },
-    weekly: { 
-      thisWeek: thisWeekRevenue, 
-      lastWeek: lastWeekRevenue, 
-      change: lastWeekRevenue > 0 ? ((thisWeekRevenue - lastWeekRevenue) / lastWeekRevenue) * 100 : 0 
+    weekly: {
+      thisWeek: thisWeekRevenue,
+      lastWeek: lastWeekRevenue,
+      change: lastWeekRevenue > 0 ? ((thisWeekRevenue - lastWeekRevenue) / lastWeekRevenue) * 100 : 0
     },
-    monthly: { 
-      thisMonth: thisMonthRevenue, 
-      lastMonth: lastMonthRevenue, 
-      change: lastMonthRevenue > 0 ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0 
+    monthly: {
+      thisMonth: thisMonthRevenue,
+      lastMonth: lastMonthRevenue,
+      change: lastMonthRevenue > 0 ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
     }
   };
 
@@ -424,7 +428,7 @@ export default function ReportsPage() {
 
   // En çok satan ürünler
   const productMap = new Map<string, { productName: string; totalQuantity: number; totalRevenue: number; orderCount: number }>();
-  
+
   orders.forEach(order => {
     if (order.items && Array.isArray(order.items)) {
       order.items.forEach((item: any) => {
@@ -659,11 +663,11 @@ export default function ReportsPage() {
                         {formatCurrency(currentDailyReport?.totalSales || 0)}
                       </p>
                       {revenueData.daily.change !== 0 && (
-                      <div className="flex items-center mt-1">
+                        <div className="flex items-center mt-1">
                           <span className={`text-xs ${revenueData.daily.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
                             {revenueData.daily.change > 0 ? '📈' : '📉'} {revenueData.daily.change > 0 ? '+' : ''}{revenueData.daily.change.toFixed(1)}% {t('dün')}
                           </span>
-                      </div>
+                        </div>
                       )}
                     </div>
                     <span className="text-green-600 text-2xl">💰</span>
@@ -678,10 +682,10 @@ export default function ReportsPage() {
                         {currentDailyReport?.totalOrders || 0}
                       </p>
                       {yesterdayOrders.length > 0 && (
-                      <div className="flex items-center mt-1">
+                        <div className="flex items-center mt-1">
                           {(() => {
-                            const orderChange = yesterdayOrders.length > 0 
-                              ? ((todayOrders.length - yesterdayOrders.length) / yesterdayOrders.length) * 100 
+                            const orderChange = yesterdayOrders.length > 0
+                              ? ((todayOrders.length - yesterdayOrders.length) / yesterdayOrders.length) * 100
                               : 0;
                             return (
                               <span className={`text-xs ${orderChange > 0 ? 'text-green-600' : orderChange < 0 ? 'text-red-600' : 'text-gray-600'}`}>
@@ -689,7 +693,7 @@ export default function ReportsPage() {
                               </span>
                             );
                           })()}
-                      </div>
+                        </div>
                       )}
                     </div>
                     <span className="text-blue-600 text-2xl">🛒</span>
@@ -704,10 +708,10 @@ export default function ReportsPage() {
                         {formatCurrency(currentDailyReport?.averageOrderValue || 0)}
                       </p>
                       {yesterdayOrders.length > 0 && todayOrders.length > 0 && (
-                      <div className="flex items-center mt-1">
+                        <div className="flex items-center mt-1">
                           {(() => {
-                            const yesterdayAvg = yesterdayOrders.length > 0 
-                              ? yesterdayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0) / yesterdayOrders.length 
+                            const yesterdayAvg = yesterdayOrders.length > 0
+                              ? yesterdayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0) / yesterdayOrders.length
                               : 0;
                             const todayAvg = currentDailyReport.averageOrderValue;
                             const avgChange = yesterdayAvg > 0 ? ((todayAvg - yesterdayAvg) / yesterdayAvg) * 100 : 0;
@@ -717,7 +721,7 @@ export default function ReportsPage() {
                               </span>
                             );
                           })()}
-                      </div>
+                        </div>
                       )}
                     </div>
                     <span className="text-purple-600 text-2xl">📊</span>
@@ -804,7 +808,7 @@ export default function ReportsPage() {
                   ) : (
                     <div className="space-y-4">
                       {topProducts.map((product, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-4">
                             <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
                               {index + 1}
@@ -999,10 +1003,10 @@ export default function ReportsPage() {
                 <div className="p-6">
                   {/* Özet analiz kartları */}
                   {orders.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-blue-800 mb-3"><TranslatedText>En Yoğun Saatler</TranslatedText></h4>
-                      <div className="space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-blue-800 mb-3"><TranslatedText>En Yoğun Saatler</TranslatedText></h4>
+                        <div className="space-y-2">
                           {topHoursByOrders.length > 0 ? (
                             topHoursByOrders.map((item, idx) => (
                               <div key={idx} className="flex justify-between items-center">
@@ -1013,11 +1017,11 @@ export default function ReportsPage() {
                           ) : (
                             <p className="text-sm text-gray-500"><TranslatedText>Veri bulunamadı</TranslatedText></p>
                           )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="bg-green-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-green-800 mb-3"><TranslatedText>En Karlı Saatler</TranslatedText></h4>
-                      <div className="space-y-2">
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-green-800 mb-3"><TranslatedText>En Karlı Saatler</TranslatedText></h4>
+                        <div className="space-y-2">
                           {topHoursByRevenue.length > 0 ? (
                             topHoursByRevenue.map((item, idx) => (
                               <div key={idx} className="flex justify-between items-center">
@@ -1028,23 +1032,23 @@ export default function ReportsPage() {
                           ) : (
                             <p className="text-sm text-gray-500"><TranslatedText>Veri bulunamadı</TranslatedText></p>
                           )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <div className="bg-purple-50 p-4 rounded-lg">
                         <h4 className="font-semibold text-purple-800 mb-3"><TranslatedText>Saatlik Özet</TranslatedText></h4>
-                      <div className="space-y-2">
+                        <div className="space-y-2">
                           <div className="flex justify-between items-center">
                             <span className="text-sm"><TranslatedText>Toplam Sipariş</TranslatedText></span>
                             <span className="text-sm font-bold text-purple-600">{orders.length}</span>
-                      </div>
+                          </div>
                           <div className="flex justify-between items-center">
                             <span className="text-sm"><TranslatedText>Toplam Ciro</TranslatedText></span>
                             <span className="text-sm font-bold text-purple-600">{formatCurrency(orders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0))}</span>
-                    </div>
+                          </div>
                           <div className="flex justify-between items-center">
                             <span className="text-sm"><TranslatedText>Ortalama Sipariş</TranslatedText></span>
                             <span className="text-sm font-bold text-purple-600">{formatCurrency(orders.length > 0 ? orders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0) / orders.length : 0)}</span>
-                  </div>
+                          </div>
                         </div>
                       </div>
                     </div>

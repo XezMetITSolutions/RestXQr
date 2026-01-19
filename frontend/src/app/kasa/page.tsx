@@ -130,7 +130,7 @@ export default function KasaPanel() {
             price: Number(item?.price) || 0,
             quantity: Number(item?.quantity) || 0
           }))
-        }));
+        })).filter((order: any) => order.status !== 'completed' && order.status !== 'cancelled');
 
         const groupOrdersByTable = (orders: Order[]) => {
           // Use Map<number | 'null', Order[]> to handle null table numbers
@@ -305,11 +305,22 @@ export default function KasaPanel() {
         console.log('✅ Tüm masa ödemeleri güncellendi');
 
         if (!isPartial) {
+          // Deactivate QR Code
+          if (updatedOrder?.tableNumber) {
+            fetch(`${API_URL}/qr/deactivate-by-table`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                restaurantId: restaurantId,
+                tableNumber: updatedOrder.tableNumber
+              })
+            }).catch(console.error);
+          }
           setShowPaymentModal(false);
           setSelectedOrder(null);
         }
         fetchOrders();
-        alert(isPartial ? '✅ Kısmi ödeme kaydedildi.' : '✅ Ödeme tamamlandı!');
+        if (isPartial) alert('✅ Kısmi ödeme kaydedildi.');
         return;
       }
 
@@ -342,11 +353,25 @@ export default function KasaPanel() {
       if (data.success) {
         console.log('✅ Ödeme başarıyla tamamlandı');
         if (!isPartial || remaining <= 0) {
+          // Deactivate QR Code
+          if (updatedOrder?.tableNumber) {
+            fetch(`${API_URL}/qr/deactivate-by-table`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                restaurantId: restaurantId,
+                tableNumber: updatedOrder.tableNumber
+              })
+            }).then(() => console.log('✅ QR Code deactivated for table')).catch(err => console.error('Failed to deactivate QR:', err));
+          }
+
           setShowPaymentModal(false);
           setSelectedOrder(null);
         }
         fetchOrders();
-        alert(isPartial && remaining > 0 ? '✅ Kısmi ödeme kaydedildi.' : '✅ Ödeme tamamlandı!');
+        if (isPartial && remaining > 0) {
+          alert('✅ Kısmi ödeme kaydedildi.');
+        }
       } else {
         console.error('❌ Payment API başarısız response:', data);
       }
