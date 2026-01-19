@@ -6,7 +6,12 @@ const staffAuth = require('../middleware/staffAuth');
 // Get settings for the authenticated restaurant
 router.get('/', staffAuth, async (req, res) => {
     try {
-        const restaurant = await Restaurant.findByPk(req.user.restaurantId);
+        const restaurantId = req.staff?.restaurantId || req.restaurant?.id;
+        if (!restaurantId) {
+            return res.status(401).json({ success: false, message: 'Restaurant ID not found' });
+        }
+
+        const restaurant = await Restaurant.findByPk(restaurantId);
         if (!restaurant) {
             return res.status(404).json({ success: false, message: 'Restaurant not found' });
         }
@@ -22,7 +27,12 @@ router.get('/', staffAuth, async (req, res) => {
 // Update settings for the authenticated restaurant
 router.put('/', staffAuth, async (req, res) => {
     try {
-        const restaurant = await Restaurant.findByPk(req.user.restaurantId);
+        const restaurantId = req.staff?.restaurantId || req.restaurant?.id;
+        if (!restaurantId) {
+            return res.status(401).json({ success: false, message: 'Restaurant ID not found' });
+        }
+
+        const restaurant = await Restaurant.findByPk(restaurantId);
         if (!restaurant) {
             return res.status(404).json({ success: false, message: 'Restaurant not found' });
         }
