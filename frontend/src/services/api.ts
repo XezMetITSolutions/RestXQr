@@ -194,6 +194,13 @@ class ApiService {
     });
   }
 
+  async staffLogin(username: string, password: string, subdomain: string) {
+    return this.request<any>('/staff/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password, subdomain }),
+    });
+  }
+
   async logout() {
     return this.request<any>('/auth/logout', {
       method: 'POST',

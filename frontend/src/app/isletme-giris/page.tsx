@@ -102,6 +102,12 @@ export default function IsletmeGirisPage() {
       const response = await apiService.login({ username, password });
 
       if (response.success && response.data) {
+        // Token'ı localStorage'a kaydet (API istekleri için)
+        if (typeof window !== 'undefined' && (response as any).token) {
+          localStorage.setItem('restaurant_token', (response as any).token);
+          console.log('✅ Restaurant token saved to localStorage');
+        }
+
         loginRestaurant(response.data);
 
         if (rememberMe) {
@@ -127,6 +133,12 @@ export default function IsletmeGirisPage() {
         const staffResp = await apiService.staffLogin(username, password, currentSubdomain);
 
         if (staffResp.success && staffResp.data) {
+          // Token'ı localStorage'a kaydet (API istekleri için)
+          if (typeof window !== 'undefined' && (staffResp as any).token) {
+            localStorage.setItem('staff_token', (staffResp as any).token);
+            console.log('✅ Staff token saved to localStorage');
+          }
+
           const staff = staffResp.data as any;
           const role = (staff.role || '').toLowerCase();
 
