@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printer API Debug - RestXQr</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .endpoint-box {
+            background: #f9fafb;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .response-container {
+            margin-top: 20px;
+        }
+
+        .response-box {
+            background: #1f2937;
+            color: #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .error {
+            color: #ef4444;
+        }
+
+        .info-card {
+            background: #eff6ff;
+            border: 2px solid #3b82f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .station-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .station-card.enabled {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f4f6;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🖨️ Printer API Debug</h1>
+        <p class="subtitle">API endpoint'lerini test edin ve gerçek zamanlı yanıtları görün</p>
+
+        <div class="endpoint-box">
+            <strong>Base URL:</strong> <span id="baseUrl">Yükleniyor...</span><br>
+            <strong>API Endpoint:</strong> <span id="apiUrl">Yükleniyor...</span>
+        </div>
+
+        <div class="button-group">
+            <button onclick="testGetStations()" id="btnGetStations">
+                📋 GET /api/printers
+            </button>
+            <button onclick="testGetStationsRaw()" class="success">
+                🔍 Raw API Response
+            </button>
+            <button onclick="testBackendHealth()">
+                💓 Backend Health Check
+            </button>
+            <button onclick="clearResults()" class="danger">
+                🗑️ Sonuçları Temizle
+            </button>
+        </div>
+
+        <div id="stationsList" style="display: none;">
+            <h3>📊 İstasyon Listesi</h3>
+            <div id="stationsContainer"></div>
+        </div>
+
+        <div class="response-container">
+            <h3>📤 API Yanıtı:</h3>
+            <div class="response-box" id="response">
+                <span style="color: #6b7280;">Henüz test yapılmadı. Yukarıdaki butonlardan birini tıklayın.</span>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h4>💡 Beklenen Sonuç:</h4>
+            <pre style="margin-top: 10px; color: #374151;">
+{
+  "success": true,
+  "data": []  // Boş array olmalı (istasyonlar manuel eklenecek)
+}</pre>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = 'https://masapp-backend.onrender.com';
+        const apiUrl = baseUrl + '/api';
+
+        document.getElementById('baseUrl').textContent = baseUrl;
+        document.getElementById('apiUrl').textContent = apiUrl;
+
+        function log(message, isError = false) {
+            const response = document.getElementById('response');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = isError ? '#ef4444' : '#10b981';
+
+            response.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            response.scrollTop = response.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('response').innerHTML =
+                '<span style="color: #6b7280;">Temizlendi. Yeni test yapabilirsiniz.</span>';
+            document.getElementById('stationsList').style.display = 'none';
+        }
+
+        async function testGetStations() {
+            clearResults();
+            log('🔄 İstasyonlar çekiliyor...');
+
+            const btn = document.getElementById('btnGetStations');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading"></div> Yükleniyor...';
+
+            try {
+                const response = await fetch(`${apiUrl}/printers`);
+                const data = await response.json();
+
+                log(`✅ HTTP ${response.status} - ${response.statusText}`);
+                log(`📦 Veri: ${JSON.stringify(data, null, 2)}`);
+
+                if (data.success) {
+                    if (data.data && data.data.length > 0) {
+                        renderStations(data.data);
+                        log(`✅ ${data.data.length} istasyon bulundu`);
+                    } else {
+                        log('⚠️ İstasyon listesi boş (beklenen durum)');
+                    }
+                } else {
+                    log('❌ API başarısız yanıt döndü', true);
+                }
+            } catch (error) {
+                log(`❌ Hata: ${error.message}`, true);
+                log(`Detay: ${error.stack}`, true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '📋 GET /api/printers';
+            }
+        }
+
+        async function testGetStationsRaw() {
+            clearResults();
+            log('🔍 Raw API response alınıyor...');
+
+            try {
+                const response = await fetch(`${apiUrl}/printers`);
+                const text = await response.text();
+
+                log(`HTTP Status: ${response.status}`);
+                log(`Headers: ${JSON.stringify([...response.headers], null, 2)}`);
+                log('Raw Response:');
+                log(text);
+
+                try {
+                    const json = JSON.parse(text);
+                    log('Parsed JSON:');
+                    log(JSON.stringify(json, null, 2));
+                } catch (e) {
+                    log('⚠️ JSON parse hatası - yanıt JSON değil!', true);
+                }
+            } catch (error) {
+                log(`❌ Hata: ${error.message}`, true);
+            }
+        }
+
+        async function testBackendHealth() {
+            clearResults();
+            log('💓 Backend sağlık kontrolü...');
+
+            try {
+                // Test 1: Root endpoint
+                log('Test 1: Root endpoint (/)');
+                const root = await fetch(baseUrl);
+                log(`✅ Root: ${root.status} ${root.statusText}`);
+
+                // Test 2: API endpoint
+                log('Test 2: API endpoint (/api)');
+                const api = await fetch(apiUrl);
+                log(`✅ API: ${api.status} ${api.statusText}`);
+
+                // Test 3: Printers endpoint
+                log('Test 3: Printers endpoint (/api/printers)');
+                const printers = await fetch(`${apiUrl}/printers`);
+                const data = await printers.json();
+                log(`✅ Printers: ${printers.status} ${printers.statusText}`);
+                log(`Data: ${JSON.stringify(data, null, 2)}`);
+
+                log('✅ Backend sağlıklı!');
+            } catch (error) {
+                log(`❌ Backend erişim hatası: ${error.message}`, true);
+            }
+        }
+
+        function renderStations(stations) {
+            const container = document.getElementById('stationsContainer');
+            const list = document.getElementById('stationsList');
+
+            container.innerHTML = '';
+
+            if (stations.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280;">Henüz istasyon eklenmemiş.</p>';
+            } else {
+                stations.forEach(station => {
+                    const card = document.createElement('div');
+                    card.className = 'station-card' + (station.enabled ? ' enabled' : '');
+
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${station.name}</strong>
+                                <span style="color: #6b7280; font-size: 12px; margin-left: 10px;">${station.id}</span>
+                            </div>
+                            <span class="status-badge ${station.enabled ? 'status-online' : 'status-offline'}">
+                                ${station.enabled ? '✅ Aktif' : '❌ Devre Dışı'}
+                            </span>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 13px; color: #6b7280;">
+                            <div>IP: ${station.ip || '(Tanımlı değil)'}</div>
+                            <div>Port: ${station.port}</div>
+                            <div>Type: ${station.type}</div>
+                        </div>
+                    `;
+
+                    container.appendChild(card);
+                });
+            }
+
+            list.style.display = 'block';
+        }
+
+        // Sayfa yüklendiğinde otomatik test
+        window.onload = () => {
+            log('🚀 Debug sayfası hazır');
+            log('ℹ️ API endpoint\'lerini test etmek için yukarıdaki butonları kullanın');
+        };
+    </script>
+</body>
+
+</html>
