@@ -106,6 +106,9 @@ const defaultSettings: BusinessSettings = {
     maxOrderAmount: 0,
     paymentMethods: ['cash', 'card', 'qr'],
     allowTips: true,
+    allowCashPayment: true,
+    allowCardPayment: true,
+    allowDonations: false,
     tipPercentage: [10, 15, 20],
     enableSplitBill: true,
     enableOnlinePayment: false

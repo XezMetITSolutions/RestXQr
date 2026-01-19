@@ -442,6 +442,7 @@ function SettingsPageContent() {
     { id: 'general', name: getStatic('Genel Ayarlar'), icon: FaCog },
     { id: 'branding', name: getStatic('Görsel Kimlik'), icon: FaPalette },
     { id: 'languages', name: getStatic('Diller'), icon: FaGlobe },
+    { id: 'payment', name: getStatic('Ödeme Yöntemleri'), icon: FaCreditCard },
     { id: 'printer', name: getStatic('Yazıcı Ayarları'), icon: FaPrint }
     // Ödeme & Abonelik, Entegrasyonlar, Bildirimler - Kaldırıldı
   ];
@@ -1621,16 +1622,129 @@ function SettingsPageContent() {
                 </div>
               )}
 
-              {/* Ödeme & Abonelik */}
+              {/* Ödeme Ayarları */}
               {activeTab === 'payment' && (
-                <div className="text-center py-12">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-4">Ödeme Bilgileri</h3>
-                  <p className="text-gray-600 mb-8">Ödeme bilgileriniz güvenli bir şekilde saklanmaktadır.</p>
-                  <div className="bg-gray-50 rounded-lg p-6 max-w-md mx-auto">
-                    <p className="text-gray-600">Ödeme bilgileri için lütfen bizimle iletişime geçin.</p>
-                    <a href="tel:+905393222797" className="inline-block mt-4 bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors">
-                      Hemen Arayın
-                    </a>
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-gray-800"><TranslatedText>Ödeme Yöntemleri</TranslatedText></h3>
+                      <button
+                        onClick={() => handleSave('paymentSettings')}
+                        disabled={isLoading}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
+                      >
+                        {isLoading ? <FaSpinner className="animate-spin" /> : <FaSave />}
+                        <TranslatedText>Kaydet</TranslatedText>
+                      </button>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 gap-4">
+                        {/* Nakit Ödeme */}
+                        <div className="border rounded-lg p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center text-xl">
+                              💵
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-800"><TranslatedText>Nakit Ödeme (POS)</TranslatedText></h4>
+                              <p className="text-sm text-gray-500"><TranslatedText>Müşterilerin kasada veya kapıda nakit ödeme yapmasına izin ver</TranslatedText></p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="allowCashPayment"
+                              checked={settings.paymentSettings.allowCashPayment}
+                              onChange={(e) => updatePaymentSettings({ allowCashPayment: e.target.checked })}
+                              className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            />
+                            <label htmlFor="allowCashPayment" className="text-sm font-medium text-gray-700 cursor-pointer">
+                              {settings.paymentSettings.allowCashPayment ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Kredi Kartı */}
+                        <div className="border rounded-lg p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-xl">
+                              💳
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-800"><TranslatedText>Kredi Kartı</TranslatedText></h4>
+                              <p className="text-sm text-gray-500"><TranslatedText>Kredi kartı ile ödeme seçeneğini göster</TranslatedText></p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="allowCardPayment"
+                              checked={settings.paymentSettings.allowCardPayment}
+                              onChange={(e) => updatePaymentSettings({ allowCardPayment: e.target.checked })}
+                              className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            />
+                            <label htmlFor="allowCardPayment" className="text-sm font-medium text-gray-700 cursor-pointer">
+                              {settings.paymentSettings.allowCardPayment ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Bahşiş */}
+                        <div className="border rounded-lg p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center text-xl">
+                              💰
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-800"><TranslatedText>Bahşiş (Tip)</TranslatedText></h4>
+                              <p className="text-sm text-gray-500"><TranslatedText>Müşterilerin bahşiş bırakmasına izin ver</TranslatedText></p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="allowTips"
+                              checked={settings.paymentSettings.allowTips}
+                              onChange={(e) => updatePaymentSettings({ allowTips: e.target.checked })}
+                              className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            />
+                            <label htmlFor="allowTips" className="text-sm font-medium text-gray-700 cursor-pointer">
+                              {settings.paymentSettings.allowTips ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Bağış */}
+                        <div className="border rounded-lg p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center text-xl">
+                              ❤️
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-800"><TranslatedText>Bağış (Donation)</TranslatedText></h4>
+                              <p className="text-sm text-gray-500"><TranslatedText>Bağış seçeneğini aktif et</TranslatedText></p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="allowDonations"
+                              checked={settings.paymentSettings.allowDonations}
+                              onChange={(e) => updatePaymentSettings({ allowDonations: e.target.checked })}
+                              className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            />
+                            <label htmlFor="allowDonations" className="text-sm font-medium text-gray-700 cursor-pointer">
+                              {settings.paymentSettings.allowDonations ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-700">
+                        <p>ℹ️ <TranslatedText>Eğer tüm ödeme yöntemlerini kapatırsanız, müşteri ödeme adımını atlayarak doğrudan sipariş onayı ekranına yönlendirilir (Ödeme kasada yapılır varsayılır).</TranslatedText></p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

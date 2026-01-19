@@ -105,6 +105,13 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       field: 'kitchen_stations',
       comment: 'Kitchen stations configuration: [{id, name, emoji, color, order}]'
+    },
+    settings: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: {},
+      field: 'settings',
+      comment: 'General restaurant settings (payment toggles, etc.)'
     }
   }, {
     tableName: 'restaurants',

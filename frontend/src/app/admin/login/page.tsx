@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaShieldAlt, FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function AdminLogin() {
   const [credentials, setCredentials] = useState({
@@ -17,6 +18,7 @@ export default function AdminLogin() {
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutTime, setLockoutTime] = useState<Date | null>(null);
   const router = useRouter();
+  const { login, isAuthenticated, user } = useAuthStore();
 
   // API URL'i normalize et
   const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
@@ -49,12 +51,10 @@ export default function AdminLogin() {
 
   // Zaten giriş yapmışsa admin paneline yönlendir
   useEffect(() => {
-    const adminUser = localStorage.getItem('admin_user');
-    const accessToken = localStorage.getItem('admin_access_token');
-    if (adminUser && accessToken) {
+    if (isAuthenticated() && user?.role === 'super_admin') {
       router.push('/admin/dashboard');
     }
-  }, [router]);
+  }, [router, isAuthenticated, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +64,7 @@ export default function AdminLogin() {
     try {
       if (!showTwoFactor) {
         // İlk adım: Kullanıcı adı ve şifre ile giriş
-        const response = await fetch('https://masapp-backend.onrender.com/api/admin/auth/login', {
+        const response = await fetch(`${API_URL}/api/admin/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -77,39 +77,46 @@ export default function AdminLogin() {
 
         const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.message || 'Giriş başarısız');
-        }
-
         if (data.success) {
-          // 2FA gerekli mi kontrol et
           if (data.requires2FA) {
+            // Show 2FA input
             setShowTwoFactor(true);
-            // userId'yi state'e kaydet (gerekirse)
             setCredentials(prev => ({ ...prev, userId: data.userId }));
             return;
           } else {
-            // 2FA yok, direkt giriş başarılı
-            // User bilgilerini localStorage'a kaydet
-            localStorage.setItem('admin_user', JSON.stringify(data.data.user));
-            
-            // Token'ları localStorage'a kaydet
-            if (data.data.accessToken) {
-              localStorage.setItem('admin_access_token', data.data.accessToken);
-            }
-            if (data.data.refreshToken) {
-              localStorage.setItem('admin_refresh_token', data.data.refreshToken);
-            }
-            
+            // No 2FA required, login successful
+            login({
+              id: data.data.user.id,
+              email: data.data.user.email,
+              name: data.data.user.name,
+              role: data.data.user.role,
+              status: 'active',
+              createdAt: new Date(),
+              twoFactorEnabled: data.data.user.twoFactorEnabled
+            });
+
+            // Store tokens
+            localStorage.setItem('admin_access_token', data.data.accessToken);
+            localStorage.setItem('admin_refresh_token', data.data.refreshToken);
+
             setLoginAttempts(0);
             localStorage.removeItem('admin_login_attempts');
             router.push('/admin/dashboard');
             return;
           }
+        } else {
+          // Handle login errors
+          if (data.locked) {
+            setIsLocked(true);
+            const lockoutUntil = new Date(data.locked_until);
+            setLockoutTime(lockoutUntil);
+            localStorage.setItem('admin_lockout', lockoutUntil.toISOString());
+          }
+          throw new Error(data.message || 'Giriş başarısız');
         }
       } else {
         // İkinci adım: 2FA doğrulama
-        const response = await fetch('https://masapp-backend.onrender.com/api/admin/auth/verify-2fa', {
+        const response = await fetch(`${API_URL}/api/admin/auth/verify-2fa`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -127,18 +134,21 @@ export default function AdminLogin() {
         }
 
         if (data.success) {
-          // Başarılı giriş
-          // User bilgilerini localStorage'a kaydet
-          localStorage.setItem('admin_user', JSON.stringify(data.data.user));
-          
-          // Token'ları localStorage'a kaydet
-          if (data.data.accessToken) {
-            localStorage.setItem('admin_access_token', data.data.accessToken);
-          }
-          if (data.data.refreshToken) {
-            localStorage.setItem('admin_refresh_token', data.data.refreshToken);
-          }
-          
+          // Successful login with 2FA
+          login({
+            id: data.data.user.id,
+            email: data.data.user.email,
+            name: data.data.user.name,
+            role: data.data.user.role,
+            status: 'active',
+            createdAt: new Date(),
+            twoFactorEnabled: data.data.user.twoFactorEnabled
+          });
+
+          // Store tokens
+          localStorage.setItem('admin_access_token', data.data.accessToken);
+          localStorage.setItem('admin_refresh_token', data.data.refreshToken);
+
           setLoginAttempts(0);
           localStorage.removeItem('admin_login_attempts');
           router.push('/admin/dashboard');
@@ -148,7 +158,7 @@ export default function AdminLogin() {
       const newAttempts = loginAttempts + 1;
       setLoginAttempts(newAttempts);
       localStorage.setItem('admin_login_attempts', newAttempts.toString());
-      
+
       // 5 başarısız denemeden sonra 30 dakika lockout
       if (newAttempts >= 5) {
         const lockoutEnd = new Date(Date.now() + 30 * 60 * 1000);
@@ -156,7 +166,7 @@ export default function AdminLogin() {
         setLockoutTime(lockoutEnd);
         localStorage.setItem('admin_lockout', lockoutEnd.toISOString());
       }
-      
+
       alert(error instanceof Error ? error.message : 'Giriş başarısız');
     }
   };

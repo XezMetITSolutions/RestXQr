@@ -59,6 +59,13 @@ function CartPageContent() {
         setClientId(storedClientId);
       }
 
+      // Initial payment method selection based on settings
+      if (settings.paymentSettings.allowCardPayment) {
+        setPaymentMethod('card');
+      } else if (settings.paymentSettings.allowCashPayment) {
+        setPaymentMethod('cash');
+      }
+
       // Sipariş sonrası durumu yükle (localStorage'dan)
       const storedOrderId = localStorage.getItem('pending_order_id');
       const storedOrderItems = localStorage.getItem('pending_order_items');
@@ -287,7 +294,9 @@ function CartPageContent() {
           price: item.price,
           notes: item.notes || ''
         })),
-        notes: `Ödeme yöntemi: ${paymentMethod === 'cash' ? 'nakit' : paymentMethod}, Bahşiş: ${tipAmount}₺, Bağış: ${donationAmount}₺`,
+        notes: `Ödeme yöntemi: ${(!settings.paymentSettings.allowCardPayment && !settings.paymentSettings.allowCashPayment) ? 'Kasada Ödeme' :
+            (paymentMethod === 'cash' ? 'nakit' : paymentMethod)
+          }, Bahşiş: ${tipAmount}₺, Bağış: ${donationAmount}₺`,
         orderType: 'dine_in'
       };
 
@@ -640,69 +649,83 @@ function CartPageContent() {
               </div>
 
               {/* Payment Options */}
-              <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-                <h3 className="font-semibold text-dynamic-sm mb-4">
-                  <TranslatedText>Ödeme Seçenekleri</TranslatedText>
-                </h3>
+              {(settings.paymentSettings.allowCardPayment || settings.paymentSettings.allowCashPayment || settings.paymentSettings.allowTips || settings.paymentSettings.allowDonations) && (
+                <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+                  <h3 className="font-semibold text-dynamic-sm mb-4">
+                    <TranslatedText>Ödeme Seçenekleri</TranslatedText>
+                  </h3>
 
-                {/* Payment Method Selection */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <button
-                    onClick={() => setPaymentMethod('card')}
-                    className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                      }`}
-                  >
-                    <FaCreditCard className={paymentMethod === 'card' ? 'text-blue-500' : 'text-gray-500'} />
-                    <span className="text-sm font-medium">
-                      <TranslatedText>Kart</TranslatedText>
-                    </span>
-                  </button>
+                  {/* Payment Method Selection */}
+                  {(settings.paymentSettings.allowCardPayment || settings.paymentSettings.allowCashPayment) && (
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      {settings.paymentSettings.allowCardPayment && (
+                        <button
+                          onClick={() => setPaymentMethod('card')}
+                          className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                            }`}
+                        >
+                          <FaCreditCard className={paymentMethod === 'card' ? 'text-blue-500' : 'text-gray-500'} />
+                          <span className="text-sm font-medium">
+                            <TranslatedText>Kart</TranslatedText>
+                          </span>
+                        </button>
+                      )}
 
-                  <button
-                    onClick={() => setPaymentMethod('cash')}
-                    className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${paymentMethod === 'cash' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                      }`}
-                  >
-                    <FaUser className={paymentMethod === 'cash' ? 'text-blue-500' : 'text-gray-500'} />
-                    <span className="text-sm font-medium">
-                      <TranslatedText>Nakit</TranslatedText>
-                    </span>
-                  </button>
-                </div>
-
-                {/* Additional Options */}
-                <div className="space-y-3">
-                  <button
-                    onClick={handleTip}
-                    className="w-full p-3 rounded-lg border border-gray-200 flex items-center justify-between hover:bg-gray-50"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FaHeart className="text-pink-500" />
-                      <span className="text-sm font-medium">
-                        <TranslatedText>Garsona Bahşiş</TranslatedText>
-                      </span>
+                      {settings.paymentSettings.allowCashPayment && (
+                        <button
+                          onClick={() => setPaymentMethod('cash')}
+                          className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${paymentMethod === 'cash' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                            }`}
+                        >
+                          <FaUser className={paymentMethod === 'cash' ? 'text-blue-500' : 'text-gray-500'} />
+                          <span className="text-sm font-medium">
+                            <TranslatedText>Nakit</TranslatedText>
+                          </span>
+                        </button>
+                      )}
                     </div>
-                    <span className="text-sm text-gray-600">
-                      <TranslatedText>{`₺${tipAmount.toFixed(2)}`}</TranslatedText>
-                    </span>
-                  </button>
+                  )}
 
-                  <button
-                    onClick={handleDonation}
-                    className="w-full p-3 rounded-lg border border-gray-200 flex items-center justify-between hover:bg-gray-50"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FaGift className="text-green-500" />
-                      <span className="text-sm font-medium">
-                        <TranslatedText>Bağış Yap</TranslatedText>
-                      </span>
+                  {/* Additional Options */}
+                  {(settings.paymentSettings.allowTips || settings.paymentSettings.allowDonations) && (
+                    <div className="space-y-3">
+                      {settings.paymentSettings.allowTips && (
+                        <button
+                          onClick={handleTip}
+                          className="w-full p-3 rounded-lg border border-gray-200 flex items-center justify-between hover:bg-gray-50"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FaHeart className="text-pink-500" />
+                            <span className="text-sm font-medium">
+                              <TranslatedText>Garsona Bahşiş</TranslatedText>
+                            </span>
+                          </div>
+                          <span className="text-sm text-gray-600">
+                            <TranslatedText>{`₺${tipAmount.toFixed(2)}`}</TranslatedText>
+                          </span>
+                        </button>
+                      )}
+
+                      {settings.paymentSettings.allowDonations && (
+                        <button
+                          onClick={handleDonation}
+                          className="w-full p-3 rounded-lg border border-gray-200 flex items-center justify-between hover:bg-gray-50"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FaGift className="text-green-500" />
+                            <span className="text-sm font-medium">
+                              <TranslatedText>Bağış Yap</TranslatedText>
+                            </span>
+                          </div>
+                          <span className="text-sm text-gray-600">
+                            <TranslatedText>{`₺${donationAmount.toFixed(2)}`}</TranslatedText>
+                          </span>
+                        </button>
+                      )}
                     </div>
-                    <span className="text-sm text-gray-600">
-                      <TranslatedText>{`₺${donationAmount.toFixed(2)}`}</TranslatedText>
-                    </span>
-                  </button>
+                  )}
                 </div>
-              </div>
+              )}
 
               {/* Order Summary */}
               <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">

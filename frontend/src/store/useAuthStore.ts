@@ -1,9 +1,11 @@
 import { create } from 'zustand';
-import { Restaurant, Staff } from '@/types';
+import { Restaurant, Staff, User } from '@/types';
 
 interface AuthState {
+  user: User | null;
   authenticatedRestaurant: Restaurant | null;
   authenticatedStaff: Staff | null;
+  login: (user: User) => void;
   loginRestaurant: (restaurant: Restaurant) => void;
   loginStaff: (staff: Staff) => void;
   logout: () => void;
@@ -16,37 +18,46 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
+  user: null,
   authenticatedRestaurant: null,
   authenticatedStaff: null,
+  login: (user) => {
+    set({ user, authenticatedRestaurant: null, authenticatedStaff: null });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    }
+  },
   loginRestaurant: (restaurant) => {
-    set({ authenticatedRestaurant: restaurant, authenticatedStaff: null });
+    set({ authenticatedRestaurant: restaurant, authenticatedStaff: null, user: null });
     // localStorage'a kaydet
     if (typeof window !== 'undefined') {
       localStorage.setItem('currentRestaurant', JSON.stringify(restaurant));
     }
   },
   loginStaff: (staff) => {
-    set({ authenticatedStaff: staff, authenticatedRestaurant: null });
+    set({ authenticatedStaff: staff, authenticatedRestaurant: null, user: null });
     // localStorage'a kaydet
     if (typeof window !== 'undefined') {
       localStorage.setItem('currentStaff', JSON.stringify(staff));
     }
   },
   logout: () => {
-    set({ authenticatedRestaurant: null, authenticatedStaff: null });
+    set({ user: null, authenticatedRestaurant: null, authenticatedStaff: null });
     // Cookie'yi temizle
     if (typeof window !== 'undefined') {
       document.cookie = 'accessToken=; path=/; max-age=0';
+      localStorage.removeItem('currentUser');
       localStorage.removeItem('currentRestaurant');
       localStorage.removeItem('currentStaff');
     }
   },
   isAuthenticated: () => {
     const state = get();
-    return state.authenticatedRestaurant !== null || state.authenticatedStaff !== null;
+    return state.user !== null || state.authenticatedRestaurant !== null || state.authenticatedStaff !== null;
   },
   getRole: () => {
     const state = get();
+    if (state.user) return state.user.role;
     if (state.authenticatedStaff) return state.authenticatedStaff.role;
     if (state.authenticatedRestaurant) return 'restaurant_owner';
     return null;
@@ -54,15 +65,19 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   initializeAuth: () => {
     if (typeof window !== 'undefined') {
       try {
+        const savedUser = localStorage.getItem('currentUser');
         const savedRestaurant = localStorage.getItem('currentRestaurant');
         const savedStaff = localStorage.getItem('currentStaff');
 
-        if (savedRestaurant) {
+        if (savedUser) {
+          const user = JSON.parse(savedUser);
+          set({ user, authenticatedRestaurant: null, authenticatedStaff: null });
+        } else if (savedRestaurant) {
           const restaurant = JSON.parse(savedRestaurant);
-          set({ authenticatedRestaurant: restaurant, authenticatedStaff: null });
+          set({ authenticatedRestaurant: restaurant, authenticatedStaff: null, user: null });
         } else if (savedStaff) {
           const staff = JSON.parse(savedStaff);
-          set({ authenticatedStaff: staff, authenticatedRestaurant: null });
+          set({ authenticatedStaff: staff, authenticatedRestaurant: null, user: null });
         } else {
           // Eğer localStorage'da kayıt yoksa, subdomain'den restaurant bilgisini al
           get().getRestaurantFromSubdomain();
@@ -96,7 +111,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         const data = await response.json();
         if (data.success && data.data) {
           const restaurant = data.data;
-          set({ authenticatedRestaurant: restaurant, authenticatedStaff: null });
+          set({ authenticatedRestaurant: restaurant, authenticatedStaff: null, user: null });
 
           // localStorage'a kaydet
           if (typeof window !== 'undefined') {

@@ -58,6 +58,9 @@ export interface RestaurantSettings {
   taxRate: number;
   serviceChargeRate?: number;
   allowTips: boolean;
+  allowCashPayment: boolean;
+  allowCardPayment: boolean;
+  allowDonations: boolean;
   allowOnlinePayment: boolean;
   autoAcceptOrders: boolean;
   workingHours: WorkingHours[];
@@ -275,6 +278,9 @@ export interface BusinessSettings {
     maxOrderAmount: number;
     paymentMethods: ('cash' | 'card' | 'qr' | 'online')[];
     allowTips: boolean;
+    allowCashPayment: boolean;
+    allowCardPayment: boolean;
+    allowDonations: boolean;
     tipPercentage: number[];
     enableSplitBill: boolean;
     enableOnlinePayment: boolean;
