@@ -38,14 +38,30 @@ function PrinterManagementContent() {
             const response = await fetch(`${apiUrl}/printers`);
             const data = await response.json();
 
-            if (data.success) {
+            if (data.success && data.data && data.data.length > 0) {
                 setStations(data.data);
+            } else {
+                // Fallback: Mock data
+                console.warn('⚠️ API\'den veri gelmedi, mock data kullanılıyor');
+                setMockData();
             }
         } catch (error) {
-            console.error('Stations load error:', error);
+            console.error('❌ Stations load error:', error);
+            // Hata durumunda mock data göster
+            setMockData();
         } finally {
             setLoading(false);
         }
+    };
+
+    const setMockData = () => {
+        setStations([
+            { id: 'kitchen', name: 'Mutfak', ip: null, port: 9100, enabled: false, type: 'epson' },
+            { id: 'bar', name: 'Bar', ip: null, port: 9100, enabled: false, type: 'epson' },
+            { id: 'cashier', name: 'Kasa', ip: null, port: 9100, enabled: false, type: 'epson' },
+            { id: 'grill', name: 'Izgara', ip: null, port: 9100, enabled: false, type: 'epson' },
+            { id: 'dessert', name: 'Tatlı', ip: null, port: 9100, enabled: false, type: 'epson' }
+        ]);
     };
 
     const handleSaveStation = async (station: Station) => {
@@ -175,8 +191,8 @@ function PrinterManagementContent() {
                                     <div
                                         key={station.id}
                                         className={`bg-white rounded-lg shadow-lg p-6 border-2 transition-all ${station.enabled && station.ip
-                                                ? 'border-green-500'
-                                                : 'border-gray-300'
+                                            ? 'border-green-500'
+                                            : 'border-gray-300'
                                             }`}
                                     >
                                         {/* Station Header */}
