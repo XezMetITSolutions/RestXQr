@@ -457,6 +457,35 @@ export default function StaffPage() {
             <div className="flex items-center gap-2 sm:gap-4">
               <LanguageSelector />
               <button
+                onClick={async () => {
+                  try {
+                    if (authenticatedRestaurant?.id) {
+                      console.log('🐞 Debugging staff for restaurant:', authenticatedRestaurant.id);
+                      const response = await apiService.getStaff(authenticatedRestaurant.id);
+                      console.log('🐞 Raw Staff Data:', response);
+                      alert(`🐞 DEBUG INFO:\nRestaurant ID: ${authenticatedRestaurant.id}\nTotal Staff: ${response?.data?.length || 0}\n\nDetaylar konsola yazıldı (F12 > Console).`);
+
+                      const debugDiv = document.getElementById('staff-debug-area');
+                      if (debugDiv) {
+                        debugDiv.classList.remove('hidden');
+                        debugDiv.style.display = 'block';
+                        debugDiv.innerHTML = `<h3 class="font-bold mb-2">Debug Sonucu:</h3><pre class="bg-gray-800 text-green-400 p-4 rounded text-xs overflow-auto max-h-96">${JSON.stringify(response, null, 2)}</pre>`;
+                        debugDiv.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    } else {
+                      alert('🐞 Restaurant ID bulunamadı!');
+                    }
+                  } catch (e) {
+                    console.error(e);
+                    alert('🐞 Hata: ' + (e as Error).message);
+                  }
+                }}
+                className="px-2 sm:px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+              >
+                <FaCog className="text-xs sm:text-sm" />
+                <span className="hidden sm:inline">Debug</span>
+              </button>
+              <button
                 onClick={() => setShowAddModal(true)}
                 className="px-2 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
               >
@@ -467,6 +496,9 @@ export default function StaffPage() {
             </div>
           </div>
         </header>
+
+        {/* Debug Area */}
+        <div id="staff-debug-area" className="p-4 hidden empty:hidden"></div>
 
         <div className="p-3 sm:p-6 lg:p-8">
           {/* Panel Yönetimi Bölümü - Rol bazlı yetkilendirme */}
