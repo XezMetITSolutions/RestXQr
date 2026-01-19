@@ -23,7 +23,8 @@ import {
   FaGlobe,
   FaCreditCard,
   FaBuilding,
-  FaCode
+  FaCode,
+  FaPrint
 } from 'react-icons/fa';
 import { useFeature } from '@/hooks/useFeature';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -171,6 +172,13 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaCog,
       label: <TranslatedText>Ayarlar</TranslatedText>,
       active: pathname === `${basePath}/settings`,
+      visible: true
+    },
+    {
+      href: `${basePath}/printers`,
+      icon: FaPrint,
+      label: <TranslatedText>Yazıcı Yönetimi</TranslatedText>,
+      active: pathname === `${basePath}/printers`,
       visible: true
     },
     {
