@@ -97,6 +97,13 @@ function MenuPageContent() {
           const response = await apiService.verifyQRToken(tokenParam);
 
           if (response.success && response.data?.isActive) {
+            // Yeni QR okutulduysa sepeti temizle
+            const storedToken = sessionStorage.getItem('qr_token');
+            if (storedToken !== tokenParam) {
+              console.log('🧹 Yeni QR oturumu başlatılıyor, sepet temizleniyor.');
+              clearCart();
+            }
+
             setTokenValid(true);
             setTokenMessage('QR kod geçerli. Menüye erişebilirsiniz.');
 
@@ -128,11 +135,11 @@ function MenuPageContent() {
                 if (existingClientId) {
                   // Eski clientId ile session'a geri katıl (yeni session oluşturma)
                   console.log('🔄 Aynı cihaz aynı masaya tekrar geldi, eski clientId kullanılıyor:', existingClientId);
-                  
+
                   // Önce session bilgilerini al
                   const sessionKey = `${currentRestaurant.id}-${response.data.tableNumber}-${tokenParam}`;
                   const sessionInfo = await apiService.getSession(sessionKey, existingClientId);
-                  
+
                   if (sessionInfo.success && sessionInfo.data) {
                     // Session hala aktif, eski clientId'yi kullan
                     setSessionKey(sessionKey);
@@ -140,7 +147,7 @@ function MenuPageContent() {
                     setActiveUsersCount(sessionInfo.data.activeUsersCount || 1);
                     sessionStorage.setItem('session_key', sessionKey);
                     sessionStorage.setItem('client_id', existingClientId);
-                    
+
                     // Session'dan sepeti yükle
                     if (sessionInfo.data.cart && sessionInfo.data.cart.length > 0) {
                       sessionInfo.data.cart.forEach((item: any) => {
@@ -156,7 +163,7 @@ function MenuPageContent() {
                       });
                       console.log('✅ Sepet session\'dan yüklendi:', sessionInfo.data.cart.length, 'ürün');
                     }
-                    
+
                     console.log('✅ Eski session\'a geri katıldı:', {
                       sessionKey,
                       clientId: existingClientId,
@@ -170,7 +177,7 @@ function MenuPageContent() {
                       tokenParam,
                       existingClientId // Eski clientId'yi gönder
                     );
-                    
+
                     if (sessionRes && sessionRes.success && sessionRes.data) {
                       setSessionKey(sessionRes.data.sessionKey);
                       setClientId(sessionRes.data.clientId);
@@ -178,7 +185,7 @@ function MenuPageContent() {
                       sessionStorage.setItem('session_key', sessionRes.data.sessionKey);
                       sessionStorage.setItem('client_id', sessionRes.data.clientId);
                       sessionStorage.setItem(sessionStorageKey, sessionRes.data.clientId);
-                      
+
                       if (sessionRes.data.cart && sessionRes.data.cart.length > 0) {
                         sessionRes.data.cart.forEach((item: any) => {
                           addItem({
@@ -202,19 +209,19 @@ function MenuPageContent() {
                     tokenParam
                   );
                 }
-                
+
                 // Yeni session oluşturulduysa bilgileri kaydet
                 if (sessionRes && sessionRes.success && sessionRes.data) {
                   setSessionKey(sessionRes.data.sessionKey);
                   setClientId(sessionRes.data.clientId);
                   setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
-                  
+
                   // Session bilgilerini sessionStorage'a kaydet (kalıcı)
                   sessionStorage.setItem('session_key', sessionRes.data.sessionKey);
                   sessionStorage.setItem('client_id', sessionRes.data.clientId);
                   // Bu masa + token için clientId'yi kaydet (tekrar geldiğinde kullanmak için)
                   sessionStorage.setItem(sessionStorageKey, sessionRes.data.clientId);
-                  
+
                   console.log('✅ Yeni session\'a katıldı:', {
                     sessionKey: sessionRes.data.sessionKey,
                     clientId: sessionRes.data.clientId,
@@ -757,7 +764,7 @@ function MenuPageContent() {
             </p>
           </div>
         )}
-        
+
         {/* Header */}
         <header className="bg-white shadow-sm fixed top-0 mt-9 left-0 right-0 z-20">
           <div className="container mx-auto px-3 py-3 flex justify-between items-center">
@@ -891,13 +898,13 @@ function MenuPageContent() {
                       (item.imageUrl.startsWith('http') ?
                         `${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}` :
                         (() => {
-                            // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
-                            if (item.imageUrl.startsWith('/uploads/')) {
-                              const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
-                              return `${baseUrl}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
-                            }
-                            return `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
-                          })())
+                          // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
+                          if (item.imageUrl.startsWith('/uploads/')) {
+                            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                            return `${baseUrl}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
+                          }
+                          return `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
+                        })())
                       : '/placeholder-food.jpg'}
                     alt={typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Menu item')}
                     width={80}
