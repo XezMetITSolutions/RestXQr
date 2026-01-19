@@ -295,7 +295,7 @@ function CartPageContent() {
           notes: item.notes || ''
         })),
         notes: `Ödeme yöntemi: ${(!settings.paymentSettings.allowCardPayment && !settings.paymentSettings.allowCashPayment) ? 'Kasada Ödeme' :
-            (paymentMethod === 'cash' ? 'nakit' : paymentMethod)
+          (paymentMethod === 'cash' ? 'nakit' : paymentMethod)
           }, Bahşiş: ${tipAmount}₺, Bağış: ${donationAmount}₺`,
         orderType: 'dine_in'
       };
@@ -649,7 +649,7 @@ function CartPageContent() {
               </div>
 
               {/* Payment Options */}
-              {(settings.paymentSettings.allowCardPayment || settings.paymentSettings.allowCashPayment || settings.paymentSettings.allowTips || settings.paymentSettings.allowDonations) && (
+              {(settings.paymentSettings.allowCardPayment || settings.paymentSettings.allowCashPayment || settings.paymentSettings.allowTips || settings.paymentSettings.allowDonations) ? (
                 <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
                   <h3 className="font-semibold text-dynamic-sm mb-4">
                     <TranslatedText>Ödeme Seçenekleri</TranslatedText>
@@ -724,6 +724,20 @@ function CartPageContent() {
                       )}
                     </div>
                   )}
+                </div>
+              ) : (
+                <div className="bg-blue-50 rounded-lg border-2 border-blue-200 p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <div className="text-2xl">💳</div>
+                    <div>
+                      <h3 className="font-semibold text-blue-900 mb-1">
+                        <TranslatedText>Kasada Ödeme</TranslatedText>
+                      </h3>
+                      <p className="text-sm text-blue-700">
+                        <TranslatedText>Siparişiniz alınacak ve ödemeyi kasada yapabilirsiniz.</TranslatedText>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
