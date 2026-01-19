@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaBug, FaCheck, FaStore, FaGlobe } from 'react-icons/fa';
+import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe } from 'react-icons/fa';
 
 interface OrderItem {
   id: string;
@@ -390,13 +390,6 @@ export default function KasaPanel() {
             </div>
             <button onClick={fetchOrders} className="p-4 bg-white border-2 border-gray-100 rounded-2xl hover:border-green-500 hover:text-green-500 transition-all shadow-sm">
               <FaUtensils />
-            </button>
-            <button
-              onClick={() => router.push('/kasa/debug-delete')}
-              className="p-4 bg-red-50 text-red-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
-              title="Siparişleri Temizle (Debug)"
-            >
-              <FaBug />
             </button>
             <button onClick={() => { localStorage.clear(); router.push('/staff-login'); }} className="p-4 bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
               <FaSignOutAlt />
