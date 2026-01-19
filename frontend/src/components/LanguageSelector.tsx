@@ -7,19 +7,24 @@ const languageList = [
   { code: 'Turkish', label: 'TR' },
   { code: 'English', label: 'EN' },
   { code: 'German', label: 'DE' },
-  { code: 'Arabic', label: 'AR' },
+  { code: 'French', label: 'FR' },
+  { code: 'Spanish', label: 'ES' },
+  { code: 'Italian', label: 'IT' },
   { code: 'Russian', label: 'RU' },
+  { code: 'Arabic', label: 'AR' },
+  { code: 'Chinese', label: 'ZH' },
 ];
 
 const languageMap: { [key: string]: string } = {
   'tr': 'Turkish',
   'en': 'English',
   'de': 'German',
-  'ar': 'Arabic',
-  'ru': 'Russian',
   'fr': 'French',
   'es': 'Spanish',
-  'it': 'Italian'
+  'it': 'Italian',
+  'ru': 'Russian',
+  'ar': 'Arabic',
+  'zh': 'Chinese'
 };
 
 interface LanguageSelectorProps {

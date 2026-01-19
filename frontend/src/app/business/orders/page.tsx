@@ -23,6 +23,7 @@ import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
+import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
 import BusinessSidebar from '@/components/BusinessSidebar';
 import LanguageSelector from '@/components/LanguageSelector';
 import apiService from '@/services/api';
@@ -55,6 +56,7 @@ export default function OrdersPage() {
   const { currentLanguage } = useLanguage();
   const { authenticatedRestaurant, logout } = useAuthStore();
   const { currentRestaurant: restaurant } = useRestaurantStore();
+  const { settings } = useRestaurantSettings(authenticatedRestaurant?.id);
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +94,7 @@ export default function OrdersPage() {
       try {
         setLoading(true);
         const response = await apiService.getOrders(authenticatedRestaurant.id);
-        
+
         if (response.success && response.data) {
           // Backend'den gelen verileri frontend formatına dönüştür
           const formattedOrders: Order[] = response.data.map((order: any) => ({
@@ -115,7 +117,7 @@ export default function OrdersPage() {
             note: order.note || order.notes,
             waiterCalls: order.waiterCalls || order.service_calls || []
           }));
-          
+
           setOrders(formattedOrders);
         } else {
           // API'den veri gelmezse boş array
@@ -130,7 +132,7 @@ export default function OrdersPage() {
     };
 
     fetchOrders();
-    
+
     // Her 30 saniyede bir siparişleri yenile
     const interval = setInterval(fetchOrders, 30000);
     return () => clearInterval(interval);
@@ -219,7 +221,7 @@ export default function OrdersPage() {
               <p className="text-sm text-gray-500"><TranslatedText>Gelen siparişleri takip edin ve yönetin</TranslatedText></p>
             </div>
             <div className="flex items-center gap-3">
-              <LanguageSelector />
+              <LanguageSelector enabledLanguages={settings?.menuSettings?.language} />
             </div>
           </div>
           {/* Header Stats */}
@@ -522,13 +524,13 @@ export default function OrdersPage() {
                             const nextStatus = selectedOrder.status === 'pending' ? 'preparing' :
                               selectedOrder.status === 'preparing' ? 'ready' :
                                 selectedOrder.status === 'ready' ? 'delivered' : 'completed';
-                            
+
                             try {
                               await apiService.updateOrderStatus(selectedOrder.id, nextStatus);
                               // Sipariş listesini güncelle
-                              setOrders(prevOrders => 
-                                prevOrders.map(order => 
-                                  order.id === selectedOrder.id 
+                              setOrders(prevOrders =>
+                                prevOrders.map(order =>
+                                  order.id === selectedOrder.id
                                     ? { ...order, status: nextStatus as any }
                                     : order
                                 )

@@ -511,7 +511,7 @@ function SettingsPageContent() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <LanguageSelector />
+              <LanguageSelector enabledLanguages={settings?.menuSettings?.language} />
               <button
                 onClick={() => setShowAnnModal(true)}
                 className="flex items-center gap-2 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"

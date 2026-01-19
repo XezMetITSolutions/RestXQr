@@ -24,11 +24,13 @@ import apiService from '@/services/api';
 import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
 import { useLanguage } from '@/context/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
+import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
 
 export default function QRCodesPage() {
   const router = useRouter();
   const { translate: t, currentLanguage } = useLanguage();
   const { authenticatedRestaurant, isAuthenticated, logout, initializeAuth } = useAuthStore();
+  const { settings } = useRestaurantSettings(authenticatedRestaurant?.id);
   const { qrCodes, setQRCodes, clearQRCodes } = useQRStore();
 
   const getStatic = (text: string) => {
@@ -93,17 +95,17 @@ export default function QRCodesPage() {
           // Backend'den gelen qrUrl'i MUTLAKA kullan (backend doğru subdomain ile oluşturuyor)
           // Eğer backend'den qrUrl gelmiyorsa, frontend'de doğru subdomain ile oluştur
           const restaurantSlug = authenticatedRestaurant.username;
-          
+
           console.log('🔍 Processing QR token:', {
             tableNumber: t.tableNumber,
             backendQrUrl: t.qrUrl,
             restaurantSlug: restaurantSlug,
             token: t.token?.substring(0, 20) + '...'
           });
-          
+
           // Backend'den gelen qrUrl'i öncelikli kullan
           let backendQrUrl = t.qrUrl;
-          
+
           // Eğer backend'den qrUrl gelmemişse veya yanlış subdomain içeriyorsa, düzelt
           if (!backendQrUrl) {
             if (!restaurantSlug) {
@@ -433,7 +435,7 @@ export default function QRCodesPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <LanguageSelector />
+                <LanguageSelector enabledLanguages={settings?.menuSettings?.language} />
                 <button
                   onClick={() => setShowCreateModal(true)}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"

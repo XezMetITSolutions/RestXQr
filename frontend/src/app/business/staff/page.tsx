@@ -481,7 +481,7 @@ export default function StaffPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
-              <LanguageSelector />
+              <LanguageSelector enabledLanguages={settings?.menuSettings?.language} />
               <button
                 onClick={() => setShowAddModal(true)}
                 className="px-2 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
