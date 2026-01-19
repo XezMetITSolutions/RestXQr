@@ -472,6 +472,14 @@ export default function StaffPage() {
                         debugDiv.innerHTML = `<h3 class="font-bold mb-2">Debug Sonucu:</h3><pre class="bg-gray-800 text-green-400 p-4 rounded text-xs overflow-auto max-h-96">${JSON.stringify(response, null, 2)}</pre>`;
                         debugDiv.scrollIntoView({ behavior: 'smooth' });
                       }
+
+                      // LİSTEYİ ZORLA GÜNCELLE
+                      if (response?.data && Array.isArray(response.data)) {
+                        console.log('🔄 Manually updating staff list from debug button');
+                        setStaff(response.data);
+                        setFilteredStaff(response.data);
+                        alert(`✅ ${response.data.length} personel listeye yüklendi!`);
+                      }
                     } else {
                       alert('🐞 Restaurant ID bulunamadı!');
                     }
