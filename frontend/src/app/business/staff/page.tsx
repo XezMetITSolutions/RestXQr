@@ -99,35 +99,61 @@ export default function StaffPage() {
     }
   }, [isAuthenticated, router, initializeAuth]);
 
-  // Personel listesini backend'den yükle
+  // Personel listesini yükle (Optimistic Loading)
   useEffect(() => {
-    const loadStaffFromBackend = async () => {
-      if (authenticatedRestaurant?.id) {
-        try {
-          console.log('📡 Loading staff from backend for restaurant:', authenticatedRestaurant.id);
-          const response = await apiService.getStaff(authenticatedRestaurant.id);
-          if (response?.data) {
-            console.log('✅ Staff loaded from backend:', response.data.length, 'members');
-            setStaff(response.data);
-            setFilteredStaff(response.data);
-          }
-        } catch (error) {
-          console.error('❌ Error loading staff from backend:', error);
-          // Fallback: localStorage'dan yükle
-          if (typeof window !== 'undefined') {
-            const savedStaff = localStorage.getItem('business_staff');
-            if (savedStaff) {
-              const parsedStaff = JSON.parse(savedStaff);
+    const loadStaffData = async () => {
+      // 1. Önce localStorage'daki veriyi göster (Hızlı açılış)
+      if (typeof window !== 'undefined') {
+        const savedStaff = localStorage.getItem('business_staff');
+        if (savedStaff) {
+          try {
+            const parsedStaff = JSON.parse(savedStaff);
+            if (Array.isArray(parsedStaff) && parsedStaff.length > 0) {
+              console.log('⚡ Using cached staff data initially:', parsedStaff.length);
               setStaff(parsedStaff);
               setFilteredStaff(parsedStaff);
             }
+          } catch (e) {
+            console.error('Error parsing cached staff:', e);
           }
         }
       }
+
+      // 2. Restaurant ID'yi bul (State'den veya localStorage'dan)
+      let restaurantId = authenticatedRestaurant?.id;
+      if (!restaurantId && typeof window !== 'undefined') {
+        const savedRest = localStorage.getItem('currentRestaurant');
+        if (savedRest) {
+          try {
+            const parsedRest = JSON.parse(savedRest);
+            restaurantId = parsedRest.id;
+          } catch (e) { }
+        }
+      }
+
+      // 3. API'den güncel veriyi çek
+      if (restaurantId) {
+        try {
+          console.log('📡 Fetching fresh staff data for:', restaurantId);
+          const response = await apiService.getStaff(restaurantId);
+          if (response?.data && Array.isArray(response.data)) {
+            console.log('✅ Fresh staff data loaded:', response.data.length);
+            setStaff(response.data);
+            setFilteredStaff(response.data);
+            // Cache'i güncelle
+            localStorage.setItem('business_staff', JSON.stringify(response.data));
+          }
+        } catch (error) {
+          console.error('❌ Error loading staff from backend:', error);
+          // Hata durumunda zaten cache gösterildiği için kullanıcı boş sayfa görmez
+        }
+      } else {
+        console.warn('⚠️ Restaurant ID not found, cannot fetch staff');
+      }
     };
 
-    loadStaffFromBackend();
-  }, [authenticatedRestaurant?.id]);
+    loadStaffData();
+  }, [authenticatedRestaurant?.id]); // id değişince tekrar çalışsın
 
   // Filtreleme ve arama
   useEffect(() => {
@@ -478,7 +504,11 @@ export default function StaffPage() {
                         console.log('🔄 Manually updating staff list from debug button');
                         setStaff(response.data);
                         setFilteredStaff(response.data);
-                        alert(`✅ ${response.data.length} personel listeye yüklendi!`);
+                        // Cache'i elle güncelle
+                        if (typeof window !== 'undefined') {
+                          localStorage.setItem('business_staff', JSON.stringify(response.data));
+                        }
+                        alert(`✅ ${response.data.length} personel listeye yüklendi ve kaydedildi!`);
                       }
                     } else {
                       alert('🐞 Restaurant ID bulunamadı!');
