@@ -460,6 +460,7 @@ export default function KasaPanel() {
               {calls.map((call) => (
                 <div key={call.id} className={`bg-white border-l-4 ${call.type === 'bill' ? 'border-red-600 bg-red-50' : 'border-orange-500'} rounded-2xl p-4 shadow-lg flex items-center justify-between`}>
                   <div>
+                    <div className="text-lg font-black text-gray-900 mb-1">MASA {call.tableNumber}</div>
                     <div className={`text-sm font-bold flex items-center gap-1 ${call.type === 'bill' ? 'text-red-600' : 'text-orange-600'}`}>
                       {call.type === 'water' && '💧 SU İSTEĞİ'}
                       {call.type === 'bill' && '💰 HESAP İSTEĞİ'}
