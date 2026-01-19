@@ -101,8 +101,6 @@ router.get('/restaurant/:restaurantId', async (req, res) => {
       error: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
-    error: process.env.NODE_ENV === 'development' ? error.message : undefined
-  });
   }
 });
 
