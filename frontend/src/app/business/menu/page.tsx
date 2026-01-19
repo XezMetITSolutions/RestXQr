@@ -263,12 +263,7 @@ export default function MenuManagement() {
         console.log('✅ Stations set from existing data');
       } else if (currentRestaurant.kitchenStations === null || (Array.isArray(currentRestaurant.kitchenStations) && currentRestaurant.kitchenStations.length === 0)) {
         // Eğer backend'de hiç yoksa varsayılanları koy
-        const defaults = [
-          { id: '1', name: 'Izgara', emoji: '🔥', color: '#F59E0B', order: 1, ipAddress: '' },
-          { id: '2', name: 'Makarna', emoji: '🍝', color: '#3B82F6', order: 2, ipAddress: '' },
-          { id: '3', name: 'Soğuk', emoji: '🥗', color: '#10B981', order: 3, ipAddress: '' },
-          { id: '4', name: 'Tatlı', emoji: '🍰', color: '#EC4899', order: 4, ipAddress: '' }
-        ];
+        const defaults: any[] = [];
         setStations(defaults);
         setIsStationsInitialized(true);
         console.log('✅ Stations set to defaults');
