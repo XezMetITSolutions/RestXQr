@@ -285,7 +285,7 @@ export default function BackendAPIDebugPage() {
                         <li>• <strong>401 Error</strong> = Authentication required or invalid token</li>
                         <li>• <strong>403 Error</strong> = Forbidden (token valid but no permission)</li>
                         <li>• <strong>404 Error</strong> = Resource not found</li>
-                        <li>• Token Type: {localStorage.getItem('staff_token') ? 'staff_token' : (localStorage.getItem('restaurant_token') ? 'restaurant_token' : 'none')}</li>
+                        <li>• Token Type: {typeof window !== 'undefined' ? (localStorage.getItem('staff_token') ? 'staff_token' : (localStorage.getItem('restaurant_token') ? 'restaurant_token' : 'none')) : 'server-side'}</li>
                     </ul>
                 </div>
             </div>
