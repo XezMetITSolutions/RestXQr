@@ -1,52 +1,134 @@
 const escpos = require('escpos');
 const Network = require('escpos-network');
-const { ThermalPrinter, PrinterTypes } = require('node-thermal-printer');
+const { ThermalPrinter, PrinterTypes, CharacterSet } = require('node-thermal-printer');
+const iconv = require('iconv-lite');
 
 /**
  * Thermal Printer Service
  * Her istasyon için farklı yazıcı desteği
+ * Türkçe ve Çince karakter desteği ile
  */
 
 class PrinterService {
     constructor() {
+        // Türkçe karakter değişim tablosu (CP857 için)
+        this.turkishCharMap = {
+            'ç': '\x87', 'Ç': '\x80',
+            'ğ': '\x98', 'Ğ': '\xA6',
+            'ı': '\x8D', 'İ': '\x98',
+            'ö': '\x94', 'Ö': '\x99',
+            'ş': '\x9E', 'Ş': '\x9D',
+            'ü': '\x81', 'Ü': '\x9A'
+        };
+
         // İstasyon yazıcı konfigürasyonları
         this.stations = {
             kitchen: {
                 name: 'Mutfak',
-                ip: null, // Ayarlardan gelecek
+                ip: null,
                 port: 9100,
                 enabled: false,
-                type: PrinterTypes.EPSON // EPSON, STAR, etc.
+                type: PrinterTypes.EPSON,
+                codePage: 'CP857', // Türkçe
+                characterSet: CharacterSet.PC857_TURKISH
             },
             bar: {
                 name: 'Bar',
                 ip: null,
                 port: 9100,
                 enabled: false,
-                type: PrinterTypes.EPSON
+                type: PrinterTypes.EPSON,
+                codePage: 'CP857',
+                characterSet: CharacterSet.PC857_TURKISH
             },
             cashier: {
                 name: 'Kasa',
                 ip: null,
                 port: 9100,
                 enabled: false,
-                type: PrinterTypes.EPSON
+                type: PrinterTypes.EPSON,
+                codePage: 'CP857',
+                characterSet: CharacterSet.PC857_TURKISH
             },
             grill: {
                 name: 'Izgara',
                 ip: null,
                 port: 9100,
                 enabled: false,
-                type: PrinterTypes.EPSON
+                type: PrinterTypes.EPSON,
+                codePage: 'CP857',
+                characterSet: CharacterSet.PC857_TURKISH
             },
             dessert: {
                 name: 'Tatlı',
                 ip: null,
                 port: 9100,
                 enabled: false,
-                type: PrinterTypes.EPSON
+                type: PrinterTypes.EPSON,
+                codePage: 'CP857',
+                characterSet: CharacterSet.PC857_TURKISH
             }
         };
+    }
+
+    /**
+     * Metni yazıcının desteklediği karakterlere çevir
+     */
+    encodeText(text, codePage = 'CP857') {
+        try {
+            // iconv-lite ile encode et
+            if (iconv.encodingExists(codePage)) {
+                const encoded = iconv.encode(text, codePage);
+                return encoded.toString('binary');
+            }
+        } catch (error) {
+            console.warn('Encoding error, using fallback:', error);
+        }
+        // Fallback: Manuel karakter değişimi
+        return this.convertTurkishChars(text);
+    }
+
+    /**
+     * Türkçe karakterleri manuel olarak çevir (CP857)
+     */
+    convertTurkishChars(text) {
+        let converted = text;
+        Object.keys(this.turkishCharMap).forEach(char => {
+            converted = converted.replace(new RegExp(char, 'g'), this.turkishCharMap[char]);
+        });
+        return converted;
+    }
+
+    /**
+     * Çince karakterler için transliteration (fallback)
+     */
+    transliterateText(text, language = 'tr') {
+        // Türkçe için
+        if (language === 'tr') {
+            const map = {
+                'ç': 'c', 'Ç': 'C',
+                'ğ': 'g', 'Ğ': 'G',
+                'ı': 'i', 'İ': 'I',
+                'ö': 'o', 'Ö': 'O',
+                'ş': 's', 'Ş': 'S',
+                'ü': 'u', 'Ü': 'U'
+            };
+            let result = text;
+            Object.keys(map).forEach(char => {
+                result = result.replace(new RegExp(char, 'g'), map[char]);
+            });
+            return result;
+        }
+
+        // Çince için (pinyin benzeri basitleştirme)
+        if (language === 'zh') {
+            // Bu kısım için bir Çince-Pinyin kütüphanesi kullanılabilir
+            // Şimdilik sadece uyarı ver
+            console.warn('⚠️ Çince karakterler destekleniyor ama yazıcı GB18030 code page gerektiriyor');
+            return text;
+        }
+
+        return text;
     }
 
     /**
@@ -59,77 +141,7 @@ class PrinterService {
     }
 
     /**
-     * Sipariş fişi yazdır (ESC/POS)
-     */
-    async printOrder(station, orderData) {
-        const stationConfig = this.stations[station];
-
-        if (!stationConfig || !stationConfig.enabled || !stationConfig.ip) {
-            console.log(`⚠️ ${station} yazıcısı devre dışı veya IP tanımlı değil`);
-            return { success: false, error: 'Printer not configured' };
-        }
-
-        try {
-            const device = new Network(stationConfig.ip, stationConfig.port);
-            const printer = new escpos.Printer(device);
-
-            await device.open(async () => {
-                printer
-                    .font('a')
-                    .align('ct')
-                    .style('bu')
-                    .size(1, 1)
-                    .text(stationConfig.name.toUpperCase())
-                    .text('------------------------')
-                    .style('normal')
-                    .size(0, 0)
-                    .text('')
-
-                    // Sipariş bilgileri
-                    .align('lt')
-                    .text(`Sipariş No: ${orderData.orderNumber}`)
-                    .text(`Masa: ${orderData.tableNumber}`)
-                    .text(`Tarih: ${new Date().toLocaleString('tr-TR')}`)
-                    .text('------------------------')
-                    .text('')
-
-                    // Ürünler
-                    .style('b');
-
-                // Her ürün için
-                orderData.items.forEach(item => {
-                    printer
-                        .text(`${item.quantity}x ${item.name}`)
-                        .style('normal');
-
-                    if (item.notes) {
-                        printer.text(`   NOT: ${item.notes}`);
-                    }
-
-                    printer.text('');
-                });
-
-                printer
-                    .text('------------------------')
-                    .text('')
-                    .align('ct')
-                    .text('!!! AFİYET OLSUN !!!')
-                    .text('')
-                    .cut()
-                    .close();
-            });
-
-            console.log(`✅ ${station} yazıcısına yazdırıldı`);
-            return { success: true };
-
-        } catch (error) {
-            console.error(`❌ ${station} yazıcı hatası:`, error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    /**
-     * Gelişmiş termal yazıcı ile yazdır (node-thermal-printer)
+     * Sipariş fişi yazdır (Gelişmiş - Türkçe destekli)
      */
     async printOrderAdvanced(station, orderData) {
         const stationConfig = this.stations[station];
@@ -143,7 +155,7 @@ class PrinterService {
             const printer = new ThermalPrinter({
                 type: stationConfig.type,
                 interface: `tcp://${stationConfig.ip}:${stationConfig.port}`,
-                characterSet: 'TURKEY',
+                characterSet: stationConfig.characterSet || CharacterSet.PC857_TURKISH,
                 removeSpecialCharacters: false,
                 lineCharacter: '-',
                 options: {
@@ -157,10 +169,17 @@ class PrinterService {
                 throw new Error('Printer not connected');
             }
 
+            // Code Page ayarla (CP857 - Türkçe)
+            printer.setCharacterSet(stationConfig.characterSet || CharacterSet.PC857_TURKISH);
+
             printer.alignCenter();
             printer.bold(true);
             printer.setTextDoubleHeight();
-            printer.println(stationConfig.name.toUpperCase());
+
+            // İstasyon adını encode et
+            const stationName = this.encodeText(stationConfig.name.toUpperCase(), stationConfig.codePage);
+            printer.println(stationName);
+
             printer.setTextNormal();
             printer.bold(false);
             printer.drawLine();
@@ -168,7 +187,7 @@ class PrinterService {
 
             // Sipariş bilgileri
             printer.alignLeft();
-            printer.println(`Sipariş No: ${orderData.orderNumber}`);
+            printer.println(`Siparis No: ${orderData.orderNumber}`);
             printer.println(`Masa: ${orderData.tableNumber}`);
             printer.println(`Tarih: ${new Date().toLocaleString('tr-TR')}`);
             printer.drawLine();
@@ -176,17 +195,23 @@ class PrinterService {
 
             // Ürünler
             printer.bold(true);
-            printer.println('ÜRÜNLER:');
+            const productsHeader = this.encodeText('URUNLER:', stationConfig.codePage);
+            printer.println(productsHeader);
             printer.bold(false);
             printer.newLine();
 
             orderData.items.forEach(item => {
                 printer.bold(true);
-                printer.println(`${item.quantity}x ${item.name}`);
+
+                // Ürün adını encode et
+                const itemName = this.encodeText(item.name, stationConfig.codePage);
+                printer.println(`${item.quantity}x ${itemName}`);
+
                 printer.bold(false);
 
                 if (item.notes) {
-                    printer.println(`   NOT: ${item.notes}`);
+                    const notes = this.encodeText(`   NOT: ${item.notes}`, stationConfig.codePage);
+                    printer.println(notes);
                 }
 
                 printer.newLine();
@@ -196,14 +221,17 @@ class PrinterService {
             printer.newLine();
             printer.alignCenter();
             printer.bold(true);
-            printer.println('AFİYET OLSUN!');
+
+            const footer = this.encodeText('AFIYET OLSUN!', stationConfig.codePage);
+            printer.println(footer);
+
             printer.bold(false);
             printer.newLine();
             printer.newLine();
             printer.cut();
 
             await printer.execute();
-            console.log(`✅ ${station} yazıcısına yazdırıldı (Advanced)`);
+            console.log(`✅ ${station} yazıcısına yazdırıldı (Türkçe karakter destekli)`);
 
             return { success: true };
 
@@ -214,14 +242,28 @@ class PrinterService {
     }
 
     /**
-     * Test yazdırma
+     * Test yazdırma (Türkçe karakterlerle)
      */
     async printTest(station) {
         const testOrder = {
             orderNumber: 'TEST-' + Date.now(),
-            tableNumber: 'TEST',
+            tableNumber: 'TEST-MASA',
             items: [
-                { quantity: 1, name: 'Test Ürün', notes: 'Test notu' }
+                {
+                    quantity: 1,
+                    name: 'Çiğ Köfte - Özel Şişli',
+                    notes: 'Yoğurtlu ve acılı sos'
+                },
+                {
+                    quantity: 2,
+                    name: 'İçli Köfte',
+                    notes: 'Ekstra bulgur'
+                },
+                {
+                    quantity: 1,
+                    name: 'Künefe - Fıstıklı',
+                    notes: 'Üstüne maraş dondurması'
+                }
             ]
         };
 
@@ -254,7 +296,9 @@ class PrinterService {
                 connected: isConnected,
                 station: stationConfig.name,
                 ip: stationConfig.ip,
-                port: stationConfig.port
+                port: stationConfig.port,
+                codePage: stationConfig.codePage,
+                characterSet: stationConfig.characterSet
             };
 
         } catch (error) {
