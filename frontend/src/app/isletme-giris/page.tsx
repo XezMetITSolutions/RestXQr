@@ -103,9 +103,12 @@ export default function IsletmeGirisPage() {
 
       if (response.success && response.data) {
         // Token'ı localStorage'a kaydet (API istekleri için)
-        if (typeof window !== 'undefined' && (response as any).token) {
-          localStorage.setItem('restaurant_token', (response as any).token);
-          console.log('✅ Restaurant token saved to localStorage');
+        // Backend token'ı data objesinin içinde gönderiyor!
+        const token = (response.data as any).token || (response as any).token;
+
+        if (typeof window !== 'undefined' && token) {
+          localStorage.setItem('restaurant_token', token);
+          console.log('✅ Restaurant token saved to localStorage:', token.substring(0, 10) + '...');
         }
 
         loginRestaurant(response.data);
@@ -134,9 +137,11 @@ export default function IsletmeGirisPage() {
 
         if (staffResp.success && staffResp.data) {
           // Token'ı localStorage'a kaydet (API istekleri için)
-          if (typeof window !== 'undefined' && (staffResp as any).token) {
-            localStorage.setItem('staff_token', (staffResp as any).token);
-            console.log('✅ Staff token saved to localStorage');
+          const token = (staffResp.data as any).token || (staffResp as any).token;
+
+          if (typeof window !== 'undefined' && token) {
+            localStorage.setItem('staff_token', token);
+            console.log('✅ Staff token saved to localStorage:', token.substring(0, 10) + '...');
           }
 
           const staff = staffResp.data as any;
