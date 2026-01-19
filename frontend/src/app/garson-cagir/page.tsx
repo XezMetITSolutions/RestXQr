@@ -25,22 +25,28 @@ function GarsonCagirContent() {
 
   useEffect(() => {
     setIsClient(true);
-    
+
     // Get data from localStorage
     if (typeof window !== 'undefined') {
       const storedTable = localStorage.getItem('tableNumber');
+      const storedRestaurant = localStorage.getItem('currentRestaurant');
+
+      let currentTable: number | null = null;
+      let currentRestaurantId: string = '';
+
       if (storedTable) {
-        setTableNumber(parseInt(storedTable));
+        currentTable = parseInt(storedTable);
+        setTableNumber(currentTable);
         console.log('✅ Masa numarası yüklendi:', storedTable);
       } else {
         console.warn('⚠️ Masa numarası bulunamadı');
       }
-      
-      const storedRestaurant = localStorage.getItem('currentRestaurant');
+
       if (storedRestaurant) {
         try {
           const parsed = JSON.parse(storedRestaurant);
-          setRestaurantId(parsed.id || '');
+          currentRestaurantId = parsed.id || '';
+          setRestaurantId(currentRestaurantId);
           console.log('✅ Restaurant ID yüklendi:', parsed.id);
         } catch (e) {
           console.error('❌ Restaurant data parse hatası');
@@ -48,7 +54,39 @@ function GarsonCagirContent() {
       } else {
         console.warn('⚠️ Restaurant bilgisi bulunamadı');
       }
-      
+
+      // Canlı Veri Çekme (Polling)
+      const fetchLiveCalls = async () => {
+        if (!currentRestaurantId || !currentTable) return;
+
+        try {
+          const response = await fetch(`${API_URL}/waiter/calls?restaurantId=${currentRestaurantId}`);
+          const data = await response.json();
+
+          if (data.success && Array.isArray(data.data)) {
+            // Sadece bu masaya ait aktif çağrıları filtrele
+            const myCalls = data.data.filter((call: any) =>
+              call.tableNumber === currentTable && call.status === 'active'
+            ).map((call: any) => ({
+              ...call,
+              timestamp: call.createdAt // Frontend'deki timestamp alanıyla eşle
+            }));
+
+            // State'i güncelle
+            setActiveRequests(myCalls);
+          }
+        } catch (error) {
+          console.error('Polling error:', error);
+        }
+      };
+
+      // İlk yükleme ve periyodik kontrol
+      if (currentRestaurantId && currentTable) {
+        fetchLiveCalls();
+        const interval = setInterval(fetchLiveCalls, 5000); // 5 saniyede bir kontrol et
+        return () => clearInterval(interval);
+      }
+
       const storedCart = localStorage.getItem('cart-storage');
       if (storedCart) {
         try {
@@ -58,7 +96,7 @@ function GarsonCagirContent() {
           console.error('❌ Cart data parse hatası');
         }
       }
-      
+
       const storedSettings = localStorage.getItem('business-settings-storage');
       if (storedSettings) {
         try {
@@ -69,7 +107,7 @@ function GarsonCagirContent() {
         }
       }
     }
-  }, []);
+  }, [API_URL]);
 
   const handleQuickRequest = async (type: string) => {
     if (!restaurantId || !tableNumber) {
