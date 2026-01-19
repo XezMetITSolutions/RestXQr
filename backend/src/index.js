@@ -458,6 +458,7 @@ app.use('/api/restaurants', require('./routes/menu')); // Menu routes nested und
 app.use('/api/qr', require('./routes/qr')); // QR code management
 app.use('/api/staff', require('./routes/staff')); // Staff management
 app.use('/api/waiter', require('./routes/waiter')); // Waiter calls
+app.use('/api/printers', require('./routes/printers')); // Thermal printer management
 app.use('/api/admin/setup', require('./routes/adminSetup')); // Admin setup
 app.use('/api/admin/auth', require('./routes/adminAuth')); // Admin authentication
 app.use('/api/admin/2fa', require('./routes/admin2fa')); // Admin 2FA
