@@ -733,195 +733,179 @@ export default function KasaPanel() {
 
       {
         showPaymentModal && selectedOrder && (
-          <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4 overflow-y-auto">
-            <div className="bg-white rounded-[32px] md:rounded-[40px] shadow-2xl w-full max-w-6xl max-h-[96vh] md:max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300 my-auto">
-              <div className="p-8 border-b flex justify-between items-center bg-gray-50/50">
-                <div className="flex items-center gap-6">
-                  <div className="w-20 h-20 bg-gray-900 text-white rounded-[30px] flex items-center justify-center text-3xl font-black shadow-2xl">
-                    {selectedOrder.tableNumber}
-                  </div>
+          <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-[1400px] h-[90vh] rounded-xl shadow-none flex overflow-hidden relative">
+
+              {/* SOL PANEL: ÜRÜNLER (Scrollable) */}
+              <div className="w-[40%] bg-gray-50 border-r border-gray-200 flex flex-col h-full">
+                {/* Header */}
+                <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center shrink-0">
                   <div>
-                    <h2 className="text-3xl font-black text-gray-800 italic uppercase">MASA HESABI</h2>
-                    <p className="text-gray-400 font-bold tracking-tighter">İşlem ID: {selectedOrder.id.substring(0, 12).toUpperCase()}</p>
+                    <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                      <span className="bg-gray-800 text-white px-2 py-1 rounded text-sm">MASA {selectedOrder.tableNumber}</span>
+                      <span className="text-gray-400 text-sm font-normal">#{selectedOrder.id.substring(0, 8)}</span>
+                    </h2>
                   </div>
+                  {undoStack.length > 0 && (
+                    <button onClick={handleUndo} className="text-xs font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded hover:bg-orange-200">GERİ AL</button>
+                  )}
                 </div>
-                <div className="flex gap-4">
-                  {undoStack.length > 0 && <button onClick={handleUndo} className="px-6 py-3 bg-orange-100 text-orange-600 rounded-2xl font-black hover:bg-orange-600 hover:text-white transition-all">GERİ AL</button>}
-                  <button onClick={() => { setShowPaymentModal(false); setSelectedOrder(null); }} className="p-4 bg-white border border-gray-200 rounded-full hover:bg-red-500 hover:text-white transition-all shadow-sm">
-                    <FaTimesCircle size={24} />
-                  </button>
+
+                {/* Liste */}
+                <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
+                  {selectedOrder.items.map((item, idx) => {
+                    const sel = selectedItemIndexes.includes(idx);
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => paymentTab === 'selective' && setSelectedItemIndexes(p => p.includes(idx) ? p.filter(i => i !== idx) : [...p, idx])}
+                        className={`p-3 bg-white border border-gray-200 rounded-lg flex flex-col gap-2 cursor-pointer transition-all ${sel ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:border-gray-300'}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <span className="font-bold text-gray-800 text-sm line-clamp-2 w-3/4">{item.name}</span>
+                          <span className="font-bold text-gray-900 text-sm">{item.price}₺</span>
+                        </div>
+
+                        <div className="flex justify-between items-center mt-1">
+                          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                            <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(idx, item.quantity - 1); }} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded"><FaMinus size={10} /></button>
+                            <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
+                            <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(idx, item.quantity + 1); }} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded"><FaPlus size={10} /></button>
+                          </div>
+
+                          <div className="flex gap-1">
+                            {paymentTab === 'full' && (staffRole === 'manager' || staffRole === 'admin') &&
+                              <button onClick={(e) => { e.stopPropagation(); applyTreat(idx); }} className="p-1.5 bg-orange-100 text-orange-600 rounded hover:bg-orange-200"><FaUtensils size={12} /></button>
+                            }
+                            {paymentTab === 'full' &&
+                              <button onClick={(e) => { e.stopPropagation(); removeItem(idx); }} className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200"><FaTrash size={12} /></button>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Sol Alt Toplam */}
+                <div className="p-4 bg-white border-t border-gray-200 shrink-0">
+                  <div className="flex justify-between items-center text-sm mb-1">
+                    <span className="text-gray-500 text-xs font-bold uppercase">Toplam Tutar</span>
+                    <span className="text-gray-900 font-bold">{Number(selectedOrder.totalAmount).toFixed(2)}₺</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex-1 flex flex-col lg:flex-row overflow-hidden overflow-y-auto">
-                <div className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar border-r">
-                  <div className="flex bg-gray-100 p-2 rounded-3xl mb-8">
+              {/* SAĞ PANEL: ÖDEME (Fixed layout) */}
+              <div className="flex-1 bg-white flex flex-col h-full relative">
+                {/* Close Butonu */}
+                <div className="absolute top-4 right-4 z-10">
+                  <button onClick={() => { setShowPaymentModal(false); setSelectedOrder(null); }} className="p-2 bg-gray-100 text-gray-500 rounded hover:bg-red-100 hover:text-red-500 transition-colors">
+                    <FaTimesCircle size={24} />
+                  </button>
+                </div>
+
+                <div className="p-6 h-full flex flex-col">
+                  {/* Tablar */}
+                  <div className="flex gap-2 p-1 bg-gray-100 rounded-lg mb-6 w-full max-w-lg">
                     {(['full', 'selective', 'manual', 'split'] as const).map(t => (
-                      <button key={t} onClick={() => { setPaymentTab(t); setSelectedItemIndexes([]); setCashAmount(''); setCardAmount(''); }} className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${paymentTab === t ? 'bg-white shadow-xl text-gray-900' : 'text-gray-400'}`}>
+                      <button key={t} onClick={() => { setPaymentTab(t); setSelectedItemIndexes([]); setCashAmount(''); setCardAmount(''); }}
+                        className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${paymentTab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
                         {t === 'full' ? 'TAMAMI' : t === 'selective' ? 'PARÇALI' : t === 'manual' ? 'MANUEL' : 'HİBRİT'}
                       </button>
                     ))}
                   </div>
 
-                  <div className="space-y-4">
-                    {selectedOrder.items.map((item, idx) => {
-                      const sel = selectedItemIndexes.includes(idx);
-                      return (
-                        <div key={idx} onClick={() => paymentTab === 'selective' && setSelectedItemIndexes(p => p.includes(idx) ? p.filter(i => i !== idx) : [...p, idx])} className={`p-6 rounded-[32px] border-4 transition-all cursor-pointer ${sel ? 'border-green-500 bg-green-50 shadow-lg scale-[1.02]' : 'border-gray-50 bg-gray-50/50 hover:border-gray-200'}`}>
-                          <div className="flex justify-between items-center mb-4">
-                            <h4 className="font-black text-gray-800 uppercase italic">{item.name}</h4>
-                            <div className="flex gap-2">
-                              {paymentTab === 'full' && (staffRole === 'manager' || staffRole === 'admin') && <button onClick={(e) => { e.stopPropagation(); applyTreat(idx); }} className="p-2 bg-white rounded-xl text-orange-500 shadow-sm"><FaUtensils size={14} /></button>}
-                              {paymentTab === 'full' && <button onClick={(e) => { e.stopPropagation(); removeItem(idx); }} className="p-2 bg-white rounded-xl text-red-500 shadow-sm"><FaTrash size={14} /></button>}
-                            </div>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border shadow-inner">
-                              <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(idx, item.quantity - 1); }} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900"><FaMinus /></button>
-                              <span className="w-10 text-center font-black text-xl">{item.quantity}</span>
-                              <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(idx, item.quantity + 1); }} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900"><FaPlus /></button>
-                            </div>
-                            <div className="text-right">
-                              <input type="number" value={item.price} onClick={e => e.stopPropagation()} onChange={e => updateItemPrice(idx, Number(e.target.value))} className="w-24 text-right font-black text-2xl text-gray-800 bg-transparent outline-none border-b-2 border-transparent focus:border-green-500" />
-                              <span className="font-black text-gray-400 ml-1">₺</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="w-full lg:w-[400px] bg-gray-50 p-4 md:p-8 flex flex-col justify-between overflow-y-auto">
-                  <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-[32px] shadow-sm flex justify-between items-center">
-                      <span className="font-black text-gray-400 text-xs text-left">TOPLAM<br />HESAP</span>
-                      <span className="text-2xl font-black text-gray-800 tracking-tighter">{Number(selectedOrder.totalAmount || 0).toFixed(2)}₺</span>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-[32px] shadow-sm">
-                      <span className="font-black text-xs text-gray-400 block mb-3 uppercase tracking-widest">Hesabı Böl</span>
-                      <div className="flex gap-2">
-                        {[2, 3, 4, 5].map(nu => (
-                          <button
-                            key={nu}
-                            onClick={() => {
-                              const remaining = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
-                              setManualAmount((remaining / nu).toFixed(2));
-                              setPaymentTab('manual');
-                            }}
-                            className="flex-1 py-3 bg-blue-50 text-blue-600 rounded-xl font-black border border-blue-100 hover:bg-blue-600 hover:text-white transition-all text-sm"
-                          >
-                            {nu}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {(staffRole === 'manager' || staffRole === 'admin') && (
-                      <div className="bg-white p-6 rounded-[32px] shadow-sm">
-                        <div className="flex justify-between items-center mb-4">
-                          <span className="font-black text-xs text-gray-400">HIZLI İNDİRİM</span>
-                          <div className="flex bg-gray-100 p-1 rounded-xl">
-                            <button onClick={() => setDiscountType('percent')} className={`px-2 py-1 rounded-lg text-[10px] font-black ${discountType === 'percent' ? 'bg-white shadow' : ''}`}>%</button>
-                            <button onClick={() => setDiscountType('amount')} className={`px-2 py-1 rounded-lg text-[10px] font-black ${discountType === 'amount' ? 'bg-white shadow' : ''}`}>₺</button>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-4 gap-2">
-                          {[5, 10, 25, 50].map(v => <button key={v} onClick={() => applyGeneralDiscount(v, discountType)} className="py-2 bg-red-50 text-red-500 rounded-xl text-xs font-black border border-red-100 hover:bg-red-500 hover:text-white transition-all">{discountType === 'percent' ? `%${v}` : `${v}₺`}</button>)}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="p-8 bg-gray-900 text-white rounded-[40px] shadow-2xl relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/20 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-green-500/40 transition-all"></div>
-                      <p className="text-[10px] font-black text-green-500 uppercase tracking-[0.2em] mb-2">
-                        {paymentTab === 'selective' ? 'SEÇİLİ TUTAR' : paymentTab === 'manual' ? 'GİRİLEN TUTAR' : paymentTab === 'split' ? 'HİBRİT ÖDEME' : 'ÖDENECEK KALAN'}
-                      </p>
-                      <div className="text-5xl font-black tracking-tighter flex items-end gap-1">
+                  {/* Ana Tutar Göstergesi */}
+                  <div className="flex-1 flex flex-col justify-center items-center gap-4 min-h-0">
+                    <div className="text-center">
+                      <span className="text-gray-400 text-xs font-bold uppercase tracking-widest block mb-1">
+                        {paymentTab === 'selective' ? 'SEÇİLİ TUTAR' : paymentTab === 'manual' ? 'MANUEL TUTAR' : paymentTab === 'split' ? 'HİBRİT TOPLAM' : 'ÖDENECEK TUTAR'}
+                      </span>
+                      <div className="text-6xl font-black text-gray-900 tracking-tighter">
                         {paymentTab === 'selective'
                           ? selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i]?.price || 0) * Number(selectedOrder.items[i]?.quantity || 0)), 0).toFixed(2)
                           : paymentTab === 'manual' ? (Number(manualAmount) || 0).toFixed(2)
                             : paymentTab === 'split' ? ((Number(cashAmount) || 0) + (Number(cardAmount) || 0)).toFixed(2)
                               : (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0)).toFixed(2)
-                        }
-                        <span className="text-xl opacity-40 ml-1">₺</span>
+                        }<span className="text-3xl text-gray-400 font-medium ml-1">₺</span>
                       </div>
                     </div>
 
-                    {paymentTab === 'manual' && (
-                      <input type="number" placeholder="TUTAR GIRINIZ" value={manualAmount} onChange={e => setManualAmount(e.target.value)} className="w-full p-6 bg-white border-4 border-green-500 rounded-[32px] font-black text-3xl text-center outline-none shadow-xl" />
-                    )}
-
-                    {paymentTab === 'split' && (
-                      <div className="space-y-4">
-                        <div className="bg-white p-6 rounded-[32px] shadow-xl border-4 border-green-500">
-                          <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <FaMoneyBillWave className="text-green-500" />
-                            NAKİT TUTAR
-                          </label>
-                          <input
-                            type="number"
-                            placeholder="0.00"
-                            value={cashAmount}
-                            onChange={e => {
-                              const val = e.target.value;
-                              setCashAmount(val);
-                              const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
-                              const numVal = Number(val);
-                              const other = Math.max(0, totalDebt - numVal).toFixed(2);
-                              setCardAmount(other);
-                            }}
-                            className="w-full text-3xl font-black text-gray-900 bg-transparent outline-none text-center"
-                          />
-                        </div>
-                        <div className="bg-white p-6 rounded-[32px] shadow-xl border-4 border-blue-500">
-                          <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <FaCreditCard className="text-blue-500" />
-                            KART TUTAR
-                          </label>
-                          <input
-                            type="number"
-                            placeholder="0.00"
-                            value={cardAmount}
-                            onChange={e => {
-                              const val = e.target.value;
-                              setCardAmount(val);
-                              const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
-                              const numVal = Number(val);
-                              const other = Math.max(0, totalDebt - numVal).toFixed(2);
-                              setCashAmount(other);
-                            }}
-                            className="w-full text-3xl font-black text-gray-900 bg-transparent outline-none text-center"
-                          />
-                        </div>
-                        <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-4 rounded-2xl border-2 border-orange-200">
-                          <div className="flex justify-between items-center text-sm font-black">
-                            <span className="text-gray-600">KALAN:</span>
-                            <span className="text-orange-600">
-                              {((Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0)) - (Number(cashAmount) || 0) - (Number(cardAmount) || 0)).toFixed(2)}₺
-                            </span>
-                          </div>
-                        </div>
+                    {/* Hızlı İndirim */}
+                    {(staffRole === 'manager' || staffRole === 'admin') && (
+                      <div className="flex gap-2 mt-4">
+                        {[5, 10, 20].map(v => (
+                          <button key={v} onClick={() => applyGeneralDiscount(v, 'percent')} className="px-3 py-1 bg-gray-50 text-gray-600 text-xs font-bold border border-gray-200 rounded hover:bg-gray-100 flex items-center gap-1">
+                            <FaMinus size={8} /> %{v}
+                          </button>
+                        ))}
                       </div>
                     )}
 
-                    <textarea placeholder="NOT EKLE..." value={selectedOrder.cashierNote || ''} onChange={e => setSelectedOrder({ ...selectedOrder, cashierNote: e.target.value })} className="w-full p-6 bg-white border border-gray-200 rounded-[32px] text-xs font-bold outline-none focus:border-green-500" rows={2} />
+                    {/* Manual/Split Input Alanları */}
+                    <div className="w-full max-w-md mt-6 space-y-4">
+                      {paymentTab === 'manual' && (
+                        <div className="flex flex-col gap-2">
+                          <label className="text-xs font-bold text-gray-400 uppercase">Tutar Giriniz</label>
+                          <input type="number" value={manualAmount} onChange={e => setManualAmount(e.target.value)} className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-xl text-2xl font-bold text-center focus:border-blue-500 outline-none" placeholder="0.00" />
+                          <div className="flex gap-2 justify-center">
+                            {[2, 3, 4].map(n => (
+                              <button key={n} onClick={() => {
+                                const rem = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
+                                setManualAmount((rem / n).toFixed(2));
+                              }} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100">1/{n}</button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {paymentTab === 'split' && (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 block mb-1">NAKİT</label>
+                            <input type="number" value={cashAmount}
+                              onChange={e => {
+                                const val = e.target.value;
+                                setCashAmount(val);
+                                const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
+                                const numVal = Number(val);
+                                const other = Math.max(0, totalDebt - numVal).toFixed(2);
+                                setCardAmount(other);
+                              }}
+                              className="w-full p-3 bg-green-50 border-2 border-green-200 rounded-xl text-xl font-bold text-center focus:border-green-500 outline-none text-green-900" placeholder="0.00" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 block mb-1">KART</label>
+                            <input type="number" value={cardAmount}
+                              onChange={e => {
+                                const val = e.target.value;
+                                setCardAmount(val);
+                                const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
+                                const numVal = Number(val);
+                                const other = Math.max(0, totalDebt - numVal).toFixed(2);
+                                setCashAmount(other);
+                              }}
+                              className="w-full p-3 bg-blue-50 border-2 border-blue-200 rounded-xl text-xl font-bold text-center focus:border-blue-500 outline-none text-blue-900" placeholder="0.00" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="space-y-4 pt-6 mt-auto">
-                    {paymentTab === 'split' ? (
-                      <button
-                        onClick={() => {
+                  {/* Alt Aksiyon Butonları */}
+                  <div className="mt-6 pt-6 border-t border-gray-100">
+                    <div className="flex flex-col gap-3">
+                      {paymentTab === 'split' ? (
+                        <button onClick={() => {
                           const cash = Number(cashAmount) || 0;
                           const card = Number(cardAmount) || 0;
                           const total = cash + card;
-
-                          if (total <= 0) return alert('Geçersiz Tutar! Nakit veya kart tutarı giriniz.');
+                          if (total <= 0) return alert('Geçersiz Tutar!');
                           if (cash < 0 || card < 0) return alert('Negatif tutar girilemez!');
 
                           const remaining = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
-                          if (total > remaining) return alert('Girilen tutar kalan tutardan fazla olamaz!');
+                          // if (total > remaining + 0.1) return alert('Girilen tutar borçtan fazla!');
 
                           let note = selectedOrder.cashierNote || '';
                           if (cash > 0) note += ` [NAKİT: ${cash.toFixed(2)}₺]`;
@@ -932,26 +916,17 @@ export default function KasaPanel() {
                             paidAmount: Number(selectedOrder.paidAmount || 0) + total,
                             cashierNote: note
                           }, true);
-
-                          setCashAmount('');
-                          setCardAmount('');
-                        }}
-                        className="w-full py-5 bg-gradient-to-r from-green-600 via-orange-500 to-blue-600 text-white rounded-[28px] font-black text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
-                      >
-                        <FaMoneyBillWave size={20} />
-                        <span>+</span>
-                        <FaCreditCard size={20} />
-                        HİBRİT ÖDEME TAHSİL ET
-                      </button>
-                    ) : (
-                      <div className="grid grid-cols-1 gap-3">
-                        <button
-                          onClick={() => {
+                          setCashAmount(''); setCardAmount('');
+                        }} className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-black transition-colors flex justify-center items-center gap-2 shadow-xl">
+                          <FaCheckCircle /> HİBRİT TAHSİL ET
+                        </button>
+                      ) : (
+                        <div className="flex gap-3">
+                          <button onClick={() => {
                             let val = 0;
                             if (paymentTab === 'selective') val = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
                             else if (paymentTab === 'manual') val = Number(manualAmount);
                             else val = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
-
                             if (val <= 0) return alert('Geçersiz Tutar');
 
                             handlePayment(selectedOrder.id, {
@@ -959,20 +934,15 @@ export default function KasaPanel() {
                               paidAmount: Number(selectedOrder.paidAmount || 0) + val,
                               cashierNote: (selectedOrder.cashierNote || '') + ' [NAKİT]'
                             }, true);
-                          }}
-                          className="w-full py-5 bg-green-600 text-white rounded-[28px] font-black text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
-                        >
-                          <FaMoneyBillWave size={24} />
-                          NAKİT TAHSİL ET
-                        </button>
+                          }} className="flex-1 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
+                            <FaMoneyBillWave /> NAKİT
+                          </button>
 
-                        <button
-                          onClick={() => {
+                          <button onClick={() => {
                             let val = 0;
                             if (paymentTab === 'selective') val = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
                             else if (paymentTab === 'manual') val = Number(manualAmount);
                             else val = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
-
                             if (val <= 0) return alert('Geçersiz Tutar');
 
                             handlePayment(selectedOrder.id, {
@@ -980,28 +950,26 @@ export default function KasaPanel() {
                               paidAmount: Number(selectedOrder.paidAmount || 0) + val,
                               cashierNote: (selectedOrder.cashierNote || '') + ' [KART]'
                             }, true);
-                          }}
-                          className="w-full py-5 bg-blue-600 text-white rounded-[28px] font-black text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
-                        >
-                          <FaCreditCard size={24} />
-                          KARTLA TAHSİL ET
-                        </button>
-                      </div>
-                    )}
+                          }} className="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
+                            <FaCreditCard /> KART
+                          </button>
+                        </div>
+                      )}
 
-                    <button
-                      onClick={() => { setShowPaymentModal(false); setSelectedOrder(null); fetchOrders(); }}
-                      className="w-full py-3 bg-gray-100 text-gray-400 rounded-2xl font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-all uppercase tracking-tighter"
-                    >
-                      Vazgeç ve Kapat
-                    </button>
+                      <textarea
+                        placeholder="Ödeme notu..."
+                        value={selectedOrder.cashierNote || ''}
+                        onChange={e => setSelectedOrder({ ...selectedOrder, cashierNote: e.target.value })}
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400"
+                        rows={1}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        )
-      }
-    </div >
+        )}
+    </div>
   );
 }
