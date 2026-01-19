@@ -497,44 +497,7 @@ export default function KasaPanel() {
         </div>
 
         {/* Müşteri İstekleri Section */}
-        {calls.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-2 h-6 bg-red-500 rounded-full animate-pulse"></div>
-              <h2 className="text-xl font-black text-gray-800 flex items-center gap-2">
-                <FaBell className="text-red-500 animate-bounce" />
-                MÜŞTERİ İSTEKLERİ
-                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{calls.length}</span>
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {calls.map((call) => (
-                <div key={call.id} className={`bg-white border-l-4 ${call.type === 'bill' ? 'border-red-600 bg-red-50' : 'border-orange-500'} rounded-2xl p-4 shadow-lg flex items-center justify-between`}>
-                  <div>
-                    <div className="text-lg font-black text-gray-900 mb-1">MASA {call.tableNumber}</div>
-                    <div className={`text-sm font-bold flex items-center gap-1 ${call.type === 'bill' ? 'text-red-600' : 'text-orange-600'}`}>
-                      {call.type === 'water' && '💧 SU İSTEĞİ'}
-                      {call.type === 'bill' && '💰 HESAP İSTEĞİ'}
-                      {call.type === 'clean' && '🧹 TEMİZLİK'}
-                      {call.type === 'help' && '🤝 YARDIM'}
-                      {call.type === 'custom' && `📝 ${call.message.toUpperCase()}`}
-                    </div>
-                    <div className="text-[10px] text-gray-400 mt-1 font-bold">
-                      {new Date(call.createdAt).toLocaleTimeString('tr-TR')}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => resolveCall(call.id)}
-                    className="bg-green-100 text-green-700 hover:bg-green-200 p-3 rounded-xl transition-colors shadow-sm"
-                    title="İsteği Tamamla"
-                  >
-                    <FaCheckCircle size={24} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Müşteri İstekleri Masa kartlarına taşındı */}
 
         {/* Tab System */}
         <div className="flex gap-4 mb-8 bg-white/50 p-2 rounded-[28px] border border-gray-100 shadow-sm overflow-x-auto no-scrollbar">
@@ -582,21 +545,32 @@ export default function KasaPanel() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {orders
               .filter(o => activeSource === 'restoran' ? o.orderType === 'dine_in' : o.orderType !== 'dine_in')
+              .sort((a, b) => {
+                const callA = a.tableNumber ? calls.find(c => c.tableNumber === a.tableNumber) : null;
+                const callB = b.tableNumber ? calls.find(c => c.tableNumber === b.tableNumber) : null;
+                if (callA && !callB) return -1;
+                if (!callA && callB) return 1;
+                return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+              })
               .map(order => {
                 const wait = getWaitInfo(order.updated_at || order.created_at);
                 const rem = (Number(order.totalAmount) || 0) - (Number(order.paidAmount) || 0) - (Number(order.discountAmount) || 0);
+                const tableCall = order.tableNumber ? calls.find(c => c.tableNumber === order.tableNumber) : null;
                 return (
                   <div
                     key={order.id}
-                    className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-transparent hover:border-green-500 transition-all group"
+                    className={`bg-white rounded-3xl shadow-xl overflow-hidden border-2 transition-all group ${tableCall
+                      ? (tableCall.type === 'bill' ? 'border-red-500 shadow-red-100 ring-2 ring-red-100' : 'border-orange-500 shadow-orange-100 ring-2 ring-orange-100')
+                      : 'border-transparent hover:border-green-500'
+                      }`}
                   >
-                    <div className="bg-gray-50 p-5 flex justify-between items-center border-b">
+                    <div className={`p-5 flex justify-between items-center border-b ${tableCall ? (tableCall.type === 'bill' ? 'bg-red-50' : 'bg-orange-50') : 'bg-gray-50'}`}>
                       <div className="flex items-center gap-3">
                         <div className={`w-12 h-12 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg ${order.tableNumber != null ? 'bg-green-500 shadow-green-100' : 'bg-purple-500 shadow-purple-100'}`}>
                           {order.tableNumber != null ? order.tableNumber : (order.orderType === 'dine_in' ? '?' : 'WEB')}
                         </div>
                         <div>
-                          <div className="font-black text-gray-800">
+                          <div className="font-black text-gray-800 flex items-center gap-2">
                             {order.tableNumber != null
                               ? `MASA ${order.tableNumber}`
                               : (order.orderType === 'dine_in' ? 'MASASIZ SİPARİŞ' : (
@@ -605,7 +579,22 @@ export default function KasaPanel() {
                                     order.notes?.toLowerCase().includes('trendyol') ? 'TRENDYOL YEMEK' : 'DIŞ SİPARİŞ'
                               ))}
                           </div>
-                          <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
+                          {tableCall ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                resolveCall(tableCall.id);
+                              }}
+                              className={`mt-1 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 animate-pulse transition-transform hover:scale-105 ${tableCall.type === 'bill' ? 'bg-red-500 text-white shadow-md shadow-red-200' : 'bg-orange-500 text-white shadow-md shadow-orange-200'
+                                }`}
+                            >
+                              <FaBell className="animate-bounce" />
+                              {tableCall.type === 'bill' ? 'HESAP İSTİYOR' : tableCall.type === 'water' ? 'SU İSTİYOR' : tableCall.type === 'clean' ? 'TEMİZLİK' : 'GARSON'}
+                              <FaCheckCircle className="ml-1" />
+                            </button>
+                          ) : (
+                            <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
+                          )}
                         </div>
                       </div>
                       <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${order.status === 'pending' ? 'text-yellow-600 bg-yellow-50' :
