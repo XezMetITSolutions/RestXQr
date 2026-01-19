@@ -1,6 +1,30 @@
 const DEEPL_API_KEY = process.env.NEXT_PUBLIC_DEEPL_API_KEY || '';
 const DEEPL_API_URL = 'https://api-free.deepl.com/v2/translate';
 
+// Özel çeviriler - DeepL'in döndürdüğü çevirileri override eder
+const customTranslations: { [key: string]: { [key: string]: string } } = {
+  'DE': { // Almanca için özel çeviriler
+    'İstasyon': 'Station',
+    'İstasyonu': 'Station',
+    'İstasyonlar': 'Stationen',
+    'İstasyonları': 'Stationen',
+    'Mutfak İstasyonu': 'Küchen-Station',
+    'Mutfak İstasyonları': 'Küchen-Stationen',
+    'Tatlı İstasyonu': 'Dessert-Station',
+    'Soğuk İstasyon': 'Kalte Station',
+    'Makarna İstasyonu': 'Pasta-Station',
+    'Izgara İstasyonu': 'Grill-Station',
+    'Mantı İstasyonu': 'Manti-Station',
+    'Ramen İstasyonu': 'Ramen-Station',
+    'Kavurma İstasyonu': 'Kavurma-Station',
+    'Tüm İstasyonlar': 'Alle Stationen',
+    'Yeni İstasyon': 'Neue Station',
+    'İstasyon Ekle': 'Station hinzufügen',
+    'İstasyon Adı': 'Station Name',
+    'İstasyon Seçin': 'Station wählen'
+  }
+};
+
 export async function translateText(text: string, targetLanguage: string): Promise<string> {
   // Map language names to DeepL language codes
   const langMap: { [key: string]: string } = {
@@ -18,6 +42,12 @@ export async function translateText(text: string, targetLanguage: string): Promi
   if (!targetLangCode) {
     console.warn(`Unsupported language for DeepL: ${targetLanguage}`);
     return text;
+  }
+
+  // Önce custom translations sözlüğüne bak
+  if (customTranslations[targetLangCode] && customTranslations[targetLangCode][text]) {
+    console.log(`✅ Custom translation used for "${text}": ${customTranslations[targetLangCode][text]}`);
+    return customTranslations[targetLangCode][text];
   }
 
   try {
