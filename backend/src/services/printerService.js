@@ -20,19 +20,10 @@ class PrinterService {
             'ü': '\x81', 'Ü': '\x9A'
         };
 
-        // İstasyon yazıcı konfigürasyonları
+        // İstasyon yazıcı konfigürasyonları - ÖZEL İSTASYONLAR
         this.stations = {
-            kitchen: {
-                name: 'Mutfak',
-                ip: null,
-                port: 9100,
-                enabled: false,
-                type: PrinterTypes.EPSON,
-                codePage: 'CP857', // Türkçe
-                characterSet: CharacterSet.PC857_TURKISH
-            },
-            bar: {
-                name: 'Bar',
+            manti: {
+                name: 'Mantı İstasyonu',
                 ip: null,
                 port: 9100,
                 enabled: false,
@@ -40,8 +31,8 @@ class PrinterService {
                 codePage: 'CP857',
                 characterSet: CharacterSet.PC857_TURKISH
             },
-            cashier: {
-                name: 'Kasa',
+            ramen: {
+                name: 'Ramen İstasyonu',
                 ip: null,
                 port: 9100,
                 enabled: false,
@@ -49,17 +40,8 @@ class PrinterService {
                 codePage: 'CP857',
                 characterSet: CharacterSet.PC857_TURKISH
             },
-            grill: {
-                name: 'Izgara',
-                ip: null,
-                port: 9100,
-                enabled: false,
-                type: PrinterTypes.EPSON,
-                codePage: 'CP857',
-                characterSet: CharacterSet.PC857_TURKISH
-            },
-            dessert: {
-                name: 'Tatlı',
+            kavurma: {
+                name: 'Kavurma İstasyonu',
                 ip: null,
                 port: 9100,
                 enabled: false,
@@ -249,17 +231,17 @@ class PrinterService {
             tableNumber: 'TEST-MASA',
             items: [
                 {
-                    quantity: 1,
+                    quantity: 2,
                     name: 'Çiğ Köfte - Özel Şişli',
                     notes: 'Yoğurtlu ve acılı sos'
                 },
                 {
-                    quantity: 2,
+                    quantity: 1,
                     name: 'İçli Köfte',
                     notes: 'Ekstra bulgur'
                 },
                 {
-                    quantity: 1,
+                    quantity: 3,
                     name: 'Künefe - Fıstıklı',
                     notes: 'Üstüne maraş dondurması'
                 }

@@ -56,11 +56,9 @@ function PrinterManagementContent() {
 
     const setMockData = () => {
         setStations([
-            { id: 'kitchen', name: 'Mutfak', ip: null, port: 9100, enabled: false, type: 'epson' },
-            { id: 'bar', name: 'Bar', ip: null, port: 9100, enabled: false, type: 'epson' },
-            { id: 'cashier', name: 'Kasa', ip: null, port: 9100, enabled: false, type: 'epson' },
-            { id: 'grill', name: 'Izgara', ip: null, port: 9100, enabled: false, type: 'epson' },
-            { id: 'dessert', name: 'Tatlı', ip: null, port: 9100, enabled: false, type: 'epson' }
+            { id: 'manti', name: 'Mantı İstasyonu', ip: null, port: 9100, enabled: false, type: 'epson' },
+            { id: 'ramen', name: 'Ramen İstasyonu', ip: null, port: 9100, enabled: false, type: 'epson' },
+            { id: 'kavurma', name: 'Kavurma İstasyonu', ip: null, port: 9100, enabled: false, type: 'epson' }
         ]);
     };
 
