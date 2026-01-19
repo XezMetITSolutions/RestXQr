@@ -186,6 +186,19 @@
             </button>
         </div>
 
+        <div class="button-group" style="border-top: 2px solid #e5e7eb; padding-top: 15px; margin-top: 25px;">
+            <h3 style="width: 100%; color: #374151; font-size: 18px; margin-bottom: 10px;">🧹 Cache Temizleme</h3>
+            <button onclick="clearPrinterCache()" class="danger">
+                🖨️ Printer Cache Temizle
+            </button>
+            <button onclick="clearAllCache()" class="danger">
+                🗑️ TÜM LocalStorage Temizle
+            </button>
+            <button onclick="showLocalStorage()" class="success">
+                👁️ LocalStorage İçeriğini Göster
+            </button>
+        </div>
+
         <div id="stationsList" style="display: none;">
             <h3>📊 İstasyon Listesi</h3>
             <div id="stationsContainer"></div>
@@ -352,6 +365,78 @@
             }
 
             list.style.display = 'block';
+        }
+
+        // Cache temizleme fonksiyonları
+        function clearPrinterCache() {
+            clearResults();
+            log('🧹 Printer cache temizleniyor...');
+
+            let cleared = 0;
+            const keys = ['printer-settings', 'printer-stations', 'printers', 'business-settings-storage'];
+
+            keys.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    localStorage.removeItem(key);
+                    cleared++;
+                    log(`✅ Silindi: ${key}`);
+                }
+            });
+
+            sessionStorage.clear();
+            log('✅ SessionStorage temizlendi');
+
+            if (cleared > 0) {
+                log(`✅ Toplam ${cleared} veri temizlendi!`);
+                log('🔄 Sayfa 2 saniye içinde yenilenecek...');
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                log('⚠️ Temizlenecek veri bulunamadı', true);
+            }
+        }
+
+        function clearAllCache() {
+            if (!confirm('⚠️ TÜM localStorage verileri silinecek! Emin misiniz?')) {
+                return;
+            }
+
+            clearResults();
+            log('🗑️ TÜM localStorage temizleniyor...');
+
+            const count = localStorage.length;
+            localStorage.clear();
+            sessionStorage.clear();
+
+            log(`✅ ${count} veri silindi!`);
+            log('🔄 Sayfa yenileniyor...');
+            setTimeout(() => window.location.reload(true), 1500);
+        }
+
+        function showLocalStorage() {
+            clearResults();
+            log('👁️ LocalStorage içeriği:');
+            log('=====================================');
+
+            if (localStorage.length === 0) {
+                log('⚠️ LocalStorage boş');
+                return;
+            }
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+
+                log(`\nKey: ${key}`);
+                try {
+                    const parsed = JSON.parse(value);
+                    log(`Value: ${JSON.stringify(parsed, null, 2)}`);
+                } catch (e) {
+                    log(`Value: ${value.substring(0, 100)}${value.length > 100 ? '...' : ''}`);
+                }
+                log('-------------------------------------');
+            }
+
+            log(`\n✅ Toplam ${localStorage.length} veri bulundu`);
         }
 
         // Sayfa yüklendiğinde otomatik test
