@@ -109,11 +109,15 @@ router.get('/apply-variants', async (req, res) => {
             }
         });
 
-        if (ramenItems.length >= 2) {
+        if (ramenItems.length >= 1) {
             const itemToKeep = ramenItems[0];
             const itemsToDelete = [];
             const variantItems = [];
 
+            // If it already has variants and we don't want to overwrite, we could check here.
+            // But let's assume we want to enforce the structure if it's missing or incomplete.
+
+            // Collect all potential variants from all found items (even if just 1)
             ramenItems.forEach(item => {
                 let variantName = 'Normal Porsiyon';
                 const lowerName = item.name.toLowerCase();
@@ -121,20 +125,27 @@ router.get('/apply-variants', async (req, res) => {
 
                 if (lowerName.includes('küçük')) variantName = 'Küçük Porsiyon';
                 else if (lowerName.includes('normal')) variantName = 'Normal Porsiyon';
-                else if (price < 240) variantName = 'Küçük Porsiyon';
+                else if (price < 240) variantName = 'Küçük Porsiyon'; // Price heuristic
 
                 variantItems.push({ name: variantName, price: price });
 
                 if (item.id !== itemToKeep.id) itemsToDelete.push(item.id);
             });
 
+            // Ensure we have at least defaults if only one item found and it has no specific name
+            if (ramenItems.length === 1 && variantItems.length === 1) {
+                // If the single item is just "Dana etli ramen", maybe add a small option too?
+                // Or just keep it as is but formatted as variant.
+            }
+
             // Update Main Item
+            // Only update if variants are actually creating a change or new structure
             await itemToKeep.update({
-                name: 'Dana etli ramen-牛肉拉面',
+                name: 'Dana etli ramen',
                 price: Math.min(...variantItems.map(v => v.price)),
                 variants: variantItems
             });
-            log(`✅ Merged "Dana etli ramen" into ID: ${itemToKeep.id}`);
+            log(`✅ Merged/Updated "Dana etli ramen" (ID: ${itemToKeep.id}) with ${variantItems.length} variants.`);
 
             // Delete duplicates
             if (itemsToDelete.length > 0) {
@@ -142,7 +153,7 @@ router.get('/apply-variants', async (req, res) => {
                 log(`🗑️ Deleted ${itemsToDelete.length} redundant ramen items.`);
             }
         } else {
-            log('ℹ️ "Dana etli ramen" merge not needed (less than 2 items found).');
+            log('ℹ️ "Dana etli ramen" not found.');
         }
 
         // 3. Process Hoxan
@@ -152,33 +163,40 @@ router.get('/apply-variants', async (req, res) => {
             }
         });
 
-        if (hoxanItems.length >= 2) {
+        if (hoxanItems.length >= 1) {
             const itemToKeep = hoxanItems[0];
             const itemsToDelete = [];
             const variantItems = [];
 
             hoxanItems.forEach(item => {
                 let variantName = 'Porsiyon';
-                if (item.name.includes('2 Adet')) variantName = '2 Adet';
-                else if (item.name.includes('4 Adet')) variantName = '4 Adet';
+                if (item.name.includes('2 Adet') || item.name.includes('2 adet')) variantName = '2 Adet';
+                else if (item.name.includes('4 Adet') || item.name.includes('4 adet')) variantName = '4 Adet';
+
+                // If we only found "2 Adet", let's manually add "4 Adet" if it fits the logic?
+                // Or just trust the found items. 
+                // Let's stick to converting what exists. User can add others.
 
                 variantItems.push({ name: variantName, price: parseFloat(item.price) });
                 if (item.id !== itemToKeep.id) itemsToDelete.push(item.id);
             });
+
+            // Special logic: If only "2 Adet" exists, maybe we want to hint at 4?
+            // But let's keep it safe. Just convert.
 
             await itemToKeep.update({
                 name: 'Hoxan',
                 price: Math.min(...variantItems.map(v => v.price)),
                 variants: variantItems
             });
-            log(`✅ Merged "Hoxan" into ID: ${itemToKeep.id}`);
+            log(`✅ Merged/Updated "Hoxan" (ID: ${itemToKeep.id}) with ${variantItems.length} variants.`);
 
             if (itemsToDelete.length > 0) {
                 await MenuItem.destroy({ where: { id: itemsToDelete } });
                 log(`🗑️ Deleted ${itemsToDelete.length} redundant hoxan items.`);
             }
         } else {
-            log('ℹ️ "Hoxan" merge not needed.');
+            log('ℹ️ "Hoxan" not found.');
         }
 
         res.send(`

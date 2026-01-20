@@ -101,6 +101,41 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
             {currentPrice} ₺
           </div>
 
+          {/* Variants */}
+          {item.variants && item.variants.length > 0 && (
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">Seçenekler</h3>
+              <div className="flex flex-col gap-2">
+                {item.variants.map((v, i) => (
+                  <label
+                    key={i}
+                    className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${selectedVariant?.name === v.name
+                        ? 'border-[var(--brand-strong)] bg-opacity-5'
+                        : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    style={{
+                      backgroundColor: selectedVariant?.name === v.name ? 'rgba(211, 84, 0, 0.05)' : 'transparent'
+                    }}
+                    onClick={() => setSelectedVariant(v)}
+                  >
+                    <div className="flex items-center">
+                      <div className={`w-4 h-4 rounded-full border mr-3 flex items-center justify-center ${selectedVariant?.name === v.name
+                          ? 'border-[var(--brand-strong)]'
+                          : 'border-gray-400'
+                        }`}>
+                        {selectedVariant?.name === v.name && (
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--brand-strong)' }} />
+                        )}
+                      </div>
+                      <span className={selectedVariant?.name === v.name ? 'font-medium' : ''}>{v.name}</span>
+                    </div>
+                    <span className="font-semibold">{v.price} ₺</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Allergens */}
           {item.allergens && Array.isArray(item.allergens) && item.allergens.length > 0 && (
             <div className="mb-4">
