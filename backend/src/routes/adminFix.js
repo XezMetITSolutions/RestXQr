@@ -83,7 +83,120 @@ router.post('/reset', async (req, res) => {
 });
 
 
-// FIX DB SCHEMA
+// GET /api/admin-fix/apply-variants - Apply Database Migration for Variants
+router.get('/apply-variants', async (req, res) => {
+    let logs = [];
+    const log = (msg) => logs.push(msg);
+
+    try {
+        const { sequelize, MenuItem } = require('../models');
+        const { Op } = require('sequelize');
+
+        log('🚀 Starting Variants Migration...');
+
+        // 1. Add variants column
+        try {
+            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS variants JSONB DEFAULT '[]'::jsonb;`);
+            log('✅ Column "variants" added or already exists.');
+        } catch (e) {
+            log(`❌ Error adding column: ${e.message}`);
+        }
+
+        // 2. Process Dana Etli Ramen
+        const ramenItems = await MenuItem.findAll({
+            where: {
+                name: { [Op.iLike]: '%Dana etli ramen%' }
+            }
+        });
+
+        if (ramenItems.length >= 2) {
+            const itemToKeep = ramenItems[0];
+            const itemsToDelete = [];
+            const variantItems = [];
+
+            ramenItems.forEach(item => {
+                let variantName = 'Normal Porsiyon';
+                const lowerName = item.name.toLowerCase();
+                const price = parseFloat(item.price);
+
+                if (lowerName.includes('küçük')) variantName = 'Küçük Porsiyon';
+                else if (lowerName.includes('normal')) variantName = 'Normal Porsiyon';
+                else if (price < 240) variantName = 'Küçük Porsiyon';
+
+                variantItems.push({ name: variantName, price: price });
+
+                if (item.id !== itemToKeep.id) itemsToDelete.push(item.id);
+            });
+
+            // Update Main Item
+            await itemToKeep.update({
+                name: 'Dana etli ramen-牛肉拉面',
+                price: Math.min(...variantItems.map(v => v.price)),
+                variants: variantItems
+            });
+            log(`✅ Merged "Dana etli ramen" into ID: ${itemToKeep.id}`);
+
+            // Delete duplicates
+            if (itemsToDelete.length > 0) {
+                await MenuItem.destroy({ where: { id: itemsToDelete } });
+                log(`🗑️ Deleted ${itemsToDelete.length} redundant ramen items.`);
+            }
+        } else {
+            log('ℹ️ "Dana etli ramen" merge not needed (less than 2 items found).');
+        }
+
+        // 3. Process Hoxan
+        const hoxanItems = await MenuItem.findAll({
+            where: {
+                name: { [Op.iLike]: '%Hoxan%' }
+            }
+        });
+
+        if (hoxanItems.length >= 2) {
+            const itemToKeep = hoxanItems[0];
+            const itemsToDelete = [];
+            const variantItems = [];
+
+            hoxanItems.forEach(item => {
+                let variantName = 'Porsiyon';
+                if (item.name.includes('2 Adet')) variantName = '2 Adet';
+                else if (item.name.includes('4 Adet')) variantName = '4 Adet';
+
+                variantItems.push({ name: variantName, price: parseFloat(item.price) });
+                if (item.id !== itemToKeep.id) itemsToDelete.push(item.id);
+            });
+
+            await itemToKeep.update({
+                name: 'Hoxan',
+                price: Math.min(...variantItems.map(v => v.price)),
+                variants: variantItems
+            });
+            log(`✅ Merged "Hoxan" into ID: ${itemToKeep.id}`);
+
+            if (itemsToDelete.length > 0) {
+                await MenuItem.destroy({ where: { id: itemsToDelete } });
+                log(`🗑️ Deleted ${itemsToDelete.length} redundant hoxan items.`);
+            }
+        } else {
+            log('ℹ️ "Hoxan" merge not needed.');
+        }
+
+        res.send(`
+            <div style="font-family: monospace; padding: 20px; background: #222; color: #0f0;">
+                <h1>Migration Log</h1>
+                <ul>
+                    ${logs.map(l => `<li>${l}</li>`).join('')}
+                </ul>
+                <h2 style="color: white">Migration Completed! 🚀</h2>
+                <a href="/" style="color: #3498db">Go Home</a>
+            </div>
+        `);
+
+    } catch (error) {
+        res.status(500).send(`<pre style="color:red">${error.stack}</pre>`);
+    }
+});
+
 router.post('/fix-db-schema', async (req, res) => {
     try {
         const { sequelize } = require('../models');
