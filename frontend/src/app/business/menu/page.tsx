@@ -196,7 +196,8 @@ export default function MenuManagement() {
     isAvailable: true,
     isPopular: false,
     kitchenStation: '',
-    translations: {}
+    translations: {},
+    variants: [] as any[]
   });
 
   const [categoryFormData, setCategoryFormData] = useState({
@@ -402,7 +403,9 @@ export default function MenuManagement() {
       isAvailable: item.isAvailable !== false,
       isPopular: item.isPopular || false,
       kitchenStation: item.kitchenStation || '',
-      translations: item.translations || {}
+      kitchenStation: item.kitchenStation || '',
+      translations: item.translations || {},
+      variants: item.variants || []
     });
 
     console.log('📝 handleEditItem - Original Item:', {
