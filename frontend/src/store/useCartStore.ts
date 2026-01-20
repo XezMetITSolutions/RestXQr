@@ -16,6 +16,7 @@ export interface CartItem {
   image?: string;
   notes?: string; // müşteri özel istek notu
   preparationTime?: number; // hazırlık süresi (dakika)
+  variant?: { name: string; price: number };
 }
 
 interface CartState {
@@ -68,7 +69,11 @@ const useCartStore = create<CartState>()(
       addItem: (item) => {
         const state = get();
         const items = [...state.items];
-        const existingItemIndex = items.findIndex(i => i.itemId === item.itemId);
+        const existingItemIndex = items.findIndex(i =>
+          i.itemId === item.itemId &&
+          // Check if variants match or both are null/undefined
+          ((!i.variant && !item.variant) || (i.variant && item.variant && i.variant.name === item.variant.name))
+        );
 
         // Yeni ürün eklenirken sipariş durumunu idle'a çevir (hazırlanan ürünleri etkilemez)
         if (existingItemIndex >= 0) {

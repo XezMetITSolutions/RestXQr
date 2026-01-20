@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { FaPlus, FaTrash, FaTimes, FaVideo, FaLock, FaGlobe, FaMagic } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaTimes, FaVideo, FaLock, FaGlobe, FaMagic, FaList } from 'react-icons/fa';
 import ImageUpload from './ImageUpload';
 import { useFeature } from '@/hooks/useFeature';
 import { translateWithDeepL } from '@/lib/deepl';
@@ -27,6 +27,8 @@ export default function MenuItemForm({
   const [newAllergen, setNewAllergen] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
   const [translationError, setTranslationError] = useState<string | null>(null);
+  const [newVariantName, setNewVariantName] = useState('');
+  const [newVariantPrice, setNewVariantPrice] = useState('');
   const hasVideoMenu = useFeature('video_menu');
   const activeLanguages = useMemo(() => (languages?.length ? languages : ['tr']), [languages]);
   console.log('📝 MenuItemForm Rendered', {
@@ -71,6 +73,27 @@ export default function MenuItemForm({
     setFormData({
       ...formData,
       allergens: formData.allergens.filter((_: any, i: number) => i !== index)
+    });
+  };
+
+  const addVariant = () => {
+    if (newVariantName.trim() && newVariantPrice) {
+      setFormData({
+        ...formData,
+        variants: [...(formData.variants || []), {
+          name: newVariantName.trim(),
+          price: parseFloat(newVariantPrice)
+        }]
+      });
+      setNewVariantName('');
+      setNewVariantPrice('');
+    }
+  };
+
+  const removeVariant = (index: number) => {
+    setFormData({
+      ...formData,
+      variants: (formData.variants || []).filter((_: any, i: number) => i !== index)
     });
   };
 
@@ -245,6 +268,57 @@ export default function MenuItemForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               required
             />
+          </div>
+
+          <div className="md:col-span-2">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <FaList className="text-purple-600" />
+              Seçenekler / Varyasyonlar
+            </h4>
+            <div className="space-y-4 bg-white p-4 rounded-lg border border-gray-200">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newVariantName}
+                  onChange={(e) => setNewVariantName(e.target.value)}
+                  placeholder="Seçenek adı (örn: Büyük Boy, 1.5 Porsiyon)"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <input
+                  type="number"
+                  value={newVariantPrice}
+                  onChange={(e) => setNewVariantPrice(e.target.value)}
+                  placeholder="Fiyat"
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <button
+                  onClick={addVariant}
+                  type="button"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                >
+                  <FaPlus />
+                  Ekle
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {formData.variants?.map((variant: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-200">
+                    <span className="font-medium text-gray-700">{variant.name}</span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-purple-600 font-semibold">{variant.price} ₺</span>
+                      <button
+                        onClick={() => removeVariant(index)}
+                        type="button"
+                        className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded"
+                      >
+                        <FaTrash size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div>

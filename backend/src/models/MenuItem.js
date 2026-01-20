@@ -123,6 +123,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       field: 'kitchen_station',
       comment: 'Kitchen station: izgara, makarna, soguk, tatli'
+    },
+    variants: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: [],
+      comment: 'Array of variants: [{name: "Small", price: 100}, {name: "Large", price: 150}]'
     }
   }, {
     tableName: 'menu_items',

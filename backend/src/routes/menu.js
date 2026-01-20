@@ -315,7 +315,9 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       calories,
       subcategory,
       portion,
-      kitchenStation
+      portion,
+      kitchenStation,
+      variants
     } = req.body;
 
     console.log('Backend - imageUrl uzunluğu:', imageUrl?.length || 0);
@@ -398,7 +400,8 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       allergens: allergens || [],
       portion: portion || null,
       portionSize: portion || null,
-      kitchenStation: kitchenStation || null
+      kitchenStation: kitchenStation || null,
+      variants: variants || []
     });
 
     console.log('Backend - Oluşturulan item:', {

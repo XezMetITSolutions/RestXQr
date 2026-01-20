@@ -31,6 +31,7 @@ export interface MenuItem {
   isActive?: boolean;
   displayOrder?: number;
   nutritionInfo?: any;
+  variants?: { name: string; price: number }[];
 }
 
 export interface MenuSubcategory {
@@ -145,7 +146,8 @@ const useMenuStore = create<MenuState>()((set, get) => ({
             isAvailable: item.isAvailable,
             allergens: Array.isArray(item.allergens) ? item.allergens : (typeof item.allergens === 'string' ? item.allergens.split(',') : []),
             ingredients: item.ingredients || [],
-            nutritionInfo: item.nutritionInfo || {}
+            nutritionInfo: item.nutritionInfo || {},
+            variants: item.variants || []
           })) || []
         );
 
