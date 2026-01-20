@@ -37,7 +37,6 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
       quantity,
       image: item.image,
       notes: notes.trim() || undefined
-      notes: notes.trim() || undefined
     });
     onClose();
   }, [addItem, item, quantity, notes, onClose, currentPrice, selectedVariant]);
