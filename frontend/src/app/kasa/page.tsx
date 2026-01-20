@@ -44,7 +44,7 @@ interface WaiterCall {
 export default function KasaPanel() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [calls, setCalls] = useState<WaiterCall[]>([]); // New calls state
+  const [calls, setCalls] = useState<WaiterCall[]>([]);
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string>('');
   const [restaurantName, setRestaurantName] = useState<string>('');
@@ -52,7 +52,9 @@ export default function KasaPanel() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [undoStack, setUndoStack] = useState<Order[]>([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentTab, setPaymentTab] = useState<'full' | 'selective' | 'manual' | 'split'>('full');
+
+  // Refactored State
+  const [paymentTab, setPaymentTab] = useState<'full' | 'partial' | 'hybrid'>('full');
   const [selectedItemIndexes, setSelectedItemIndexes] = useState<number[]>([]);
   const [manualAmount, setManualAmount] = useState<string>('');
   const [discountType, setDiscountType] = useState<'percent' | 'amount'>('percent');
@@ -71,10 +73,16 @@ export default function KasaPanel() {
   const openCashPad = () => {
     if (!selectedOrder) return;
     let amount = 0;
-    if (paymentTab === 'selective') {
-      amount = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
-    } else if (paymentTab === 'manual') {
-      amount = Number(manualAmount);
+    if (paymentTab === 'partial') {
+      // Priority: 1. Manual Entry, 2. Selected Items
+      if (manualAmount && Number(manualAmount) > 0) {
+        amount = Number(manualAmount);
+      } else if (selectedItemIndexes.length > 0) {
+        amount = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
+      } else {
+        alert('Lütfen ürün seçin veya tutar girin.');
+        return;
+      }
     } else {
       amount = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
     }
@@ -134,11 +142,9 @@ export default function KasaPanel() {
         })).filter((order: any) => order.status !== 'completed' && order.status !== 'cancelled');
 
         const groupOrdersByTable = (orders: Order[]) => {
-          // Use Map<number | 'null', Order[]> to handle null table numbers
           const grouped = new Map<number | 'null', Order[]>();
 
           orders.forEach(order => {
-            // Convert null/undefined table numbers to 'null' string key
             const tableNumber = order.tableNumber != null ? order.tableNumber : 'null';
             if (!grouped.has(tableNumber)) {
               grouped.set(tableNumber, []);
@@ -149,7 +155,6 @@ export default function KasaPanel() {
           return Array.from(grouped.values());
         };
 
-        // Gruplu siparişi tek sipariş olarak birleştir
         const createGroupedOrder = (tableOrders: Order[]): Order => {
           if (tableOrders.length === 1) {
             return tableOrders[0];
@@ -178,7 +183,6 @@ export default function KasaPanel() {
             return statusPriority[prev.status] > statusPriority[current.status] ? prev : current;
           }).status;
 
-          // Handle null/undefined table numbers
           const tableNumberForId = latestOrder.tableNumber != null ? latestOrder.tableNumber : 'null';
 
           return {
@@ -194,10 +198,8 @@ export default function KasaPanel() {
           };
         };
 
-        // Filtrelenmiş ve gruplu siparişler
         const filteredOrders = (() => {
           const filtered = normalizedOrders.filter(order => {
-            // Durum filtresi
             if (order.status === 'pending' || order.status === 'preparing' || order.status === 'ready' || order.status === 'completed') return true;
             return false;
           });
@@ -220,7 +222,6 @@ export default function KasaPanel() {
     }
   };
 
-  // Müşteri çağrılarını çek
   const fetchCalls = async () => {
     if (!restaurantId) return;
     try {
@@ -237,7 +238,6 @@ export default function KasaPanel() {
     }
   };
 
-  // Çağrıyı çöz
   const resolveCall = async (callId: string) => {
     try {
       const response = await fetch(`${API_URL}/waiter/calls/${callId}/resolve`, {
@@ -246,7 +246,6 @@ export default function KasaPanel() {
       const data = await response.json();
       if (data.success) {
         setCalls(prev => prev.filter(c => c.id !== callId));
-        // Reset calls alarm logic if needed
       }
     } catch (error) {
       console.error('Çağrı çözülemedi:', error);
@@ -260,8 +259,8 @@ export default function KasaPanel() {
         fetchCalls();
       };
 
-      loadData(); // İlk yükleme
-      const interval = setInterval(loadData, 5000); // 5 saniyede bir yenile
+      loadData();
+      const interval = setInterval(loadData, 5000);
       return () => clearInterval(interval);
     }
   }, [restaurantId]);
@@ -270,7 +269,6 @@ export default function KasaPanel() {
     try {
       console.log('💰 Kasa: Ödeme işlemi başlatılıyor:', { orderId, isPartial });
 
-      // Gruplu sipariş ID'si ise gerçek siparişleri bul ve güncelle
       if (orderId.includes('grouped')) {
         const groupedOrder = orders.find(o => o.id === orderId);
         const tableOrders = groupedOrder?.originalOrders || [];
@@ -278,7 +276,6 @@ export default function KasaPanel() {
 
         console.log('📋 Gruplu ödeme tespit edildi:', { tableNumber, orderCount: tableOrders.length });
 
-        // Her bir gerçek siparişi güncelle
         const updatePromises = tableOrders.map(async (tableOrder) => {
           const payload: any = {
             status: isPartial ? 'ready' : 'completed',
@@ -307,8 +304,25 @@ export default function KasaPanel() {
         await Promise.all(updatePromises);
         console.log('✅ Tüm masa ödemeleri güncellendi');
 
-        if (!isPartial) {
-          // Deactivate QR Code
+        fetchOrders(); // Refresh to get improved data
+
+        const remaining = (Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0));
+
+        if (isPartial && remaining > 0.05) {
+          alert('✅ Kısmi ödeme alındı. Kalan tutar güncellendi.');
+          setSelectedItemIndexes([]);
+          setManualAmount('');
+          setCashAmount('');
+          setCardAmount('');
+
+          if (selectedOrder) {
+            setSelectedOrder({
+              ...selectedOrder,
+              paidAmount: updatedOrder.paidAmount,
+              cashierNote: updatedOrder.cashierNote
+            });
+          }
+        } else {
           if (updatedOrder?.tableNumber) {
             fetch(`${API_URL}/qr/deactivate-by-table`, {
               method: 'POST',
@@ -321,13 +335,12 @@ export default function KasaPanel() {
           }
           setShowPaymentModal(false);
           setSelectedOrder(null);
+          setShowCashPad(false);
         }
-        fetchOrders();
-        // if (isPartial) alert('✅ Kısmi ödeme kaydedildi.');
         return;
       }
 
-      // Normal sipariş için standart ödeme
+      // Normal order
       const payload: any = {
         status: isPartial ? 'ready' : 'completed',
         items: updatedOrder?.items,
@@ -349,14 +362,26 @@ export default function KasaPanel() {
         body: JSON.stringify(payload)
       });
 
-      console.log('📡 Payment API Response status:', response.status);
       const data = await response.json();
-      console.log('📦 Payment API Response data:', data);
 
       if (data.success) {
         console.log('✅ Ödeme başarıyla tamamlandı');
-        if (!isPartial || remaining <= 0.05) {
-          // Deactivate QR Code
+        fetchOrders();
+
+        if (isPartial && remaining > 0.05) {
+          alert('✅ Kısmi ödeme alındı. Kalan tutar güncellendi.');
+          setSelectedItemIndexes([]);
+          setManualAmount('');
+          setCashAmount('');
+          setCardAmount('');
+          if (selectedOrder) {
+            setSelectedOrder({
+              ...selectedOrder,
+              paidAmount: updatedOrder.paidAmount,
+              cashierNote: updatedOrder.cashierNote
+            });
+          }
+        } else {
           if (updatedOrder?.tableNumber) {
             fetch(`${API_URL}/qr/deactivate-by-table`, {
               method: 'POST',
@@ -367,13 +392,9 @@ export default function KasaPanel() {
               })
             }).then(() => console.log('✅ QR Code deactivated for table')).catch(err => console.error('Failed to deactivate QR:', err));
           }
-
           setShowPaymentModal(false);
           setSelectedOrder(null);
-        }
-        fetchOrders();
-        if (isPartial && remaining > 0) {
-          alert('✅ Kısmi ödeme kaydedildi.');
+          setShowCashPad(false);
         }
       } else {
         console.error('❌ Payment API başarısız response:', data);
@@ -434,15 +455,6 @@ export default function KasaPanel() {
     setSelectedOrder({ ...selectedOrder, items: updatedItems, totalAmount: newTotal });
   };
 
-  const updateItemPrice = (index: number, newPrice: number) => {
-    if (!selectedOrder || newPrice < 0) return;
-    saveToUndo(selectedOrder);
-    const updatedItems = [...selectedOrder.items];
-    updatedItems[index] = { ...updatedItems[index], price: newPrice };
-    const newTotal = updatedItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
-    setSelectedOrder({ ...selectedOrder, items: updatedItems, totalAmount: newTotal });
-  };
-
   const removeItem = (index: number) => {
     if (!selectedOrder || selectedOrder.items.length <= 1) return;
     saveToUndo(selectedOrder);
@@ -495,9 +507,6 @@ export default function KasaPanel() {
             </button>
           </div>
         </div>
-
-        {/* Müşteri İstekleri Section */}
-        {/* Müşteri İstekleri Masa kartlarına taşındı */}
 
         {/* Tab System */}
         <div className="flex gap-4 mb-8 bg-white/50 p-2 rounded-[28px] border border-gray-100 shadow-sm overflow-x-auto no-scrollbar">
@@ -554,7 +563,6 @@ export default function KasaPanel() {
               })
               .map(order => {
                 const wait = getWaitInfo(order.updated_at || order.created_at);
-                const rem = (Number(order.totalAmount) || 0) - (Number(order.paidAmount) || 0) - (Number(order.discountAmount) || 0);
                 const tableCall = order.tableNumber ? calls.find(c => c.tableNumber === order.tableNumber) : null;
                 return (
                   <div
@@ -625,7 +633,6 @@ export default function KasaPanel() {
                           <span className="text-2xl font-black text-green-600 font-mono tracking-tighter">{(Number(order.totalAmount || 0) - Number(order.paidAmount || 0) - Number(order.discountAmount || 0)).toFixed(2)}₺</span>
                         </div>
 
-                        {/* Special delete button for null table orders */}
                         {order.tableNumber == null && !order.id.includes('grouped') && (
                           <button
                             onClick={() => {
@@ -706,7 +713,6 @@ export default function KasaPanel() {
                                   return;
                                 }
 
-                                // Delete each order individually
                                 Promise.all(tableOrders.map(async (tableOrder) => {
                                   try {
                                     const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
@@ -728,7 +734,6 @@ export default function KasaPanel() {
                                   fetchOrders();
                                 });
                               } else {
-                                // Regular order deletion
                                 fetch(`${API_URL}/orders/${order.id}`, {
                                   method: 'DELETE',
                                   headers: { 'Accept': 'application/json' }
@@ -788,7 +793,12 @@ export default function KasaPanel() {
                     return (
                       <div
                         key={idx}
-                        onClick={() => paymentTab === 'selective' && setSelectedItemIndexes(p => p.includes(idx) ? p.filter(i => i !== idx) : [...p, idx])}
+                        onClick={() => {
+                          if (paymentTab === 'partial') {
+                            setSelectedItemIndexes(p => p.includes(idx) ? p.filter(i => i !== idx) : [...p, idx]);
+                            setManualAmount(''); // Clear manual if selecting items
+                          }
+                        }}
                         className={`p-3 bg-white border border-gray-200 rounded-lg flex flex-col gap-2 cursor-pointer transition-all ${sel ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:border-gray-300'}`}
                       >
                         <div className="flex justify-between items-start">
@@ -903,7 +913,7 @@ export default function KasaPanel() {
 
                         setCashReceived('');
                         setShowCashPad(false);
-                        setShowPaymentModal(false);
+                        // setShowPaymentModal(false); // Do not close modal here, let handlePayment decide
                         setTimeout(() => alert('Tahsilat onaylandı'), 100);
                       }}
                       className="w-full py-5 bg-green-600 text-white rounded-[20px] font-black text-2xl shadow-xl hover:bg-green-700 transition-all flex justify-center items-center gap-3 active:scale-95">
@@ -915,10 +925,10 @@ export default function KasaPanel() {
                   <div className="p-6 h-full flex flex-col">
                     {/* Tablar */}
                     <div className="flex gap-2 p-1 bg-gray-100 rounded-lg mb-6 w-full max-w-lg">
-                      {(['full', 'selective', 'manual', 'split'] as const).map(t => (
-                        <button key={t} onClick={() => { setPaymentTab(t); setSelectedItemIndexes([]); setCashAmount(''); setCardAmount(''); }}
+                      {(['full', 'partial', 'hybrid'] as const).map(t => (
+                        <button key={t} onClick={() => { setPaymentTab(t); setSelectedItemIndexes([]); setManualAmount(''); setCashAmount(''); setCardAmount(''); }}
                           className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${paymentTab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-                          {t === 'full' ? 'TAMAMI' : t === 'selective' ? 'PARÇALI' : t === 'manual' ? 'MANUEL' : 'HİBRİT'}
+                          {t === 'full' ? 'TAMAMI' : t === 'partial' ? 'PARÇALI' : 'HİBRİT'}
                         </button>
                       ))}
                     </div>
@@ -927,20 +937,23 @@ export default function KasaPanel() {
                     <div className="flex-1 flex flex-col justify-center items-center gap-4 min-h-0">
                       <div className="text-center">
                         <span className="text-gray-400 text-xs font-bold uppercase tracking-widest block mb-1">
-                          {paymentTab === 'selective' ? 'SEÇİLİ TUTAR' : paymentTab === 'manual' ? 'MANUEL TUTAR' : paymentTab === 'split' ? 'HİBRİT TOPLAM' : 'ÖDENECEK TUTAR'}
+                          {paymentTab === 'partial'
+                            ? 'PARÇALI ÖDEME TUTARI'
+                            : paymentTab === 'hybrid' ? 'HİBRİT TOPLAM' : 'ÖDENECEK TUTAR'}
                         </span>
                         <div className="text-6xl font-black text-gray-900 tracking-tighter">
-                          {paymentTab === 'selective'
-                            ? selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i]?.price || 0) * Number(selectedOrder.items[i]?.quantity || 0)), 0).toFixed(2)
-                            : paymentTab === 'manual' ? (Number(manualAmount) || 0).toFixed(2)
-                              : paymentTab === 'split' ? ((Number(cashAmount) || 0) + (Number(cardAmount) || 0)).toFixed(2)
-                                : (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0)).toFixed(2)
+                          {paymentTab === 'partial'
+                            ? (Number(manualAmount) > 0
+                              ? Number(manualAmount).toFixed(2)
+                              : selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i]?.price || 0) * Number(selectedOrder.items[i]?.quantity || 0)), 0).toFixed(2))
+                            : paymentTab === 'hybrid' ? ((Number(cashAmount) || 0) + (Number(cardAmount) || 0)).toFixed(2)
+                              : (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0)).toFixed(2)
                           }<span className="text-3xl text-gray-400 font-medium ml-1">₺</span>
                         </div>
                       </div>
 
-                      {/* Hızlı İndirim */}
-                      {(staffRole === 'manager' || staffRole === 'admin') && (
+                      {/* Hızlı İndirim - Sadece TAMAMI modunda */}
+                      {(staffRole === 'manager' || staffRole === 'admin') && paymentTab === 'full' && (
                         <div className="flex gap-2 mt-4">
                           {[5, 10, 20].map(v => (
                             <button key={v} onClick={() => applyGeneralDiscount(v, 'percent')} className="px-3 py-1 bg-gray-50 text-gray-600 text-xs font-bold border border-gray-200 rounded hover:bg-gray-100 flex items-center gap-1">
@@ -950,69 +963,80 @@ export default function KasaPanel() {
                         </div>
                       )}
 
-                      {/* Manual/Split Input Alanları */}
-                      <div className="w-full max-w-md mt-6 space-y-4">
-                        {paymentTab === 'manual' && (
-                          <div className="flex flex-col gap-2">
-                            <label className="text-xs font-bold text-gray-400 uppercase">Tutar Giriniz</label>
-                            <input type="number" value={manualAmount} onChange={e => setManualAmount(e.target.value)} className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-xl text-2xl font-bold text-center focus:border-blue-500 outline-none" placeholder="0.00" />
-                            <div className="flex gap-2 justify-center">
-                              {[2, 3, 4].map(n => (
-                                <button key={n} onClick={() => {
-                                  const rem = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
-                                  setManualAmount((rem / n).toFixed(2));
-                                }} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100">1/{n}</button>
-                              ))}
-                            </div>
+                      {/* PARTIAL INPUTS */}
+                      {paymentTab === 'partial' && (
+                        <div className="w-full max-w-md mt-6 space-y-4">
+                          <div className="flex gap-2 justify-center mb-4">
+                            {[2, 3, 4, 5].map(n => (
+                              <button key={n} onClick={() => {
+                                const rem = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
+                                setManualAmount((rem / n).toFixed(2));
+                                setSelectedItemIndexes([]); // Clear items if splitting
+                              }} className="flex-1 py-3 bg-indigo-50 text-indigo-600 rounded-xl text-sm font-bold hover:bg-indigo-100 border border-indigo-200">
+                                1/{n}
+                              </button>
+                            ))}
                           </div>
-                        )}
 
-                        {paymentTab === 'split' && (
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="text-xs font-bold text-gray-500 block mb-1">NAKİT</label>
-                              <input type="number" value={cashAmount}
-                                onChange={e => {
-                                  const val = e.target.value;
-                                  setCashAmount(val);
-                                  const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
-                                  const numVal = Number(val);
-                                  const other = Math.max(0, totalDebt - numVal).toFixed(2);
-                                  setCardAmount(other);
-                                }}
-                                className="w-full p-3 bg-green-50 border-2 border-green-200 rounded-xl text-xl font-bold text-center focus:border-green-500 outline-none text-green-900" placeholder="0.00" />
-                            </div>
-                            <div>
-                              <label className="text-xs font-bold text-gray-500 block mb-1">KART</label>
-                              <input type="number" value={cardAmount}
-                                onChange={e => {
-                                  const val = e.target.value;
-                                  setCardAmount(val);
-                                  const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
-                                  const numVal = Number(val);
-                                  const other = Math.max(0, totalDebt - numVal).toFixed(2);
-                                  setCashAmount(other);
-                                }}
-                                className="w-full p-3 bg-blue-50 border-2 border-blue-200 rounded-xl text-xl font-bold text-center focus:border-blue-500 outline-none text-blue-900" placeholder="0.00" />
-                            </div>
+                          <div className="relative">
+                            <label className="text-xs font-bold text-gray-400 uppercase absolute top-2 left-4">TUTAR GİRİNİZ</label>
+                            <input type="number"
+                              value={manualAmount}
+                              onChange={e => { setManualAmount(e.target.value); setSelectedItemIndexes([]); }}
+                              className="w-full p-4 pt-8 bg-gray-50 border-2 border-gray-200 rounded-xl text-2xl font-bold text-center focus:border-blue-500 outline-none"
+                              placeholder="0.00"
+                            />
                           </div>
-                        )}
-                      </div>
+
+                          <div className="text-center text-xs text-gray-400 font-bold">
+                            YA DA SOLDAN ÜRÜN SEÇİNİZ
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Hybrid Input Alanları */}
+                      {paymentTab === 'hybrid' && (
+                        <div className="grid grid-cols-2 gap-4 mt-6 w-full max-w-md">
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 block mb-1">NAKİT</label>
+                            <input type="number" value={cashAmount}
+                              onChange={e => {
+                                const val = e.target.value;
+                                setCashAmount(val);
+                                const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
+                                const numVal = Number(val);
+                                const other = Math.max(0, totalDebt - numVal).toFixed(2);
+                                setCardAmount(other);
+                              }}
+                              className="w-full p-3 bg-green-50 border-2 border-green-200 rounded-xl text-xl font-bold text-center focus:border-green-500 outline-none text-green-900" placeholder="0.00" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 block mb-1">KART</label>
+                            <input type="number" value={cardAmount}
+                              onChange={e => {
+                                const val = e.target.value;
+                                setCardAmount(val);
+                                const totalDebt = (Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0));
+                                const numVal = Number(val);
+                                const other = Math.max(0, totalDebt - numVal).toFixed(2);
+                                setCashAmount(other);
+                              }}
+                              className="w-full p-3 bg-blue-50 border-2 border-blue-200 rounded-xl text-xl font-bold text-center focus:border-blue-500 outline-none text-blue-900" placeholder="0.00" />
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Alt Aksiyon Butonları */}
                     <div className="mt-6 pt-6 border-t border-gray-100">
                       <div className="flex flex-col gap-3">
-                        {paymentTab === 'split' ? (
+                        {paymentTab === 'hybrid' ? (
                           <button onClick={() => {
                             const cash = Number(cashAmount) || 0;
                             const card = Number(cardAmount) || 0;
                             const total = cash + card;
                             if (total <= 0) return alert('Geçersiz Tutar!');
                             if (cash < 0 || card < 0) return alert('Negatif tutar girilemez!');
-
-                            const remaining = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
-                            // if (total > remaining + 0.1) return alert('Girilen tutar borçtan fazla!');
 
                             let note = selectedOrder.cashierNote || '';
                             if (cash > 0) note += ` [NAKİT: ${cash.toFixed(2)}₺]`;
@@ -1035,9 +1059,19 @@ export default function KasaPanel() {
 
                             <button onClick={() => {
                               let val = 0;
-                              if (paymentTab === 'selective') val = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
-                              else if (paymentTab === 'manual') val = Number(manualAmount);
-                              else val = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
+                              if (paymentTab === 'partial') {
+                                // Priority: 1. Manual Entry, 2. Selected Items
+                                if (manualAmount && Number(manualAmount) > 0) {
+                                  val = Number(manualAmount);
+                                } else if (selectedItemIndexes.length > 0) {
+                                  val = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
+                                } else {
+                                  return alert('Lütfen ürün seçin veya tutar girin.');
+                                }
+                              } else {
+                                val = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
+                              }
+
                               if (val <= 0) return alert('Geçersiz Tutar');
 
                               handlePayment(selectedOrder.id, {
