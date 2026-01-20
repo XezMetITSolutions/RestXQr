@@ -315,7 +315,6 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       calories,
       subcategory,
       portion,
-      portion,
       kitchenStation,
       variants
     } = req.body;
