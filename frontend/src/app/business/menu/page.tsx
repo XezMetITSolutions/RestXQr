@@ -2740,744 +2740,742 @@ export default function MenuManagement() {
                           type: activeTab === 'combos' ? 'bundle' : 'single',
                           bundleItems: []
                         });
-                        kitchenStation: '',
-                          translations: { }
-                        });
+
                       }}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
-                    {editingItem ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
-                  </button>
+                      {editingItem ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
             </div>
           )}
 
-        {showCategoryForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-            <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
-              <div className="p-6 border-b flex justify-between items-center">
-                <h2 className="text-2xl font-bold">
-                  {editingCategory ? <TranslatedText>Kategoriyi Düzenle</TranslatedText> : <TranslatedText>Yeni Kategori Ekle</TranslatedText>}
-                </h2>
-                <button
-                  onClick={() => setShowCategoryForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FaTimes size={24} />
-                </button>
-              </div>
-              <div className="p-6">
-                <form className="space-y-4">
-                  {/* Kategori Adı */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Kategori Adı *</TranslatedText>
-                    </label>
-                    <input
-                      type="text"
-                      value={categoryFormData.name}
-                      onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder={t('Örn: Başlangıçlar, Ana Yemekler, Tatlılar')}
-                      required
-                    />
-                  </div>
-
-                  {/* Mutfak İstasyonu */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Varsayılan Mutfak İstasyonu</TranslatedText>
-                    </label>
-                    <select
-                      value={categoryFormData.kitchenStation}
-                      onChange={(e) => setCategoryFormData({ ...categoryFormData, kitchenStation: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="">{t('İstasyon Seçin')}</option>
-                      {stations.sort((a, b) => a.order - b.order).map(station => (
-                        <option key={station.id} value={station.name.toLowerCase()}>
-                          {station.emoji} {station.name}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {t('Bu kategorideki ürünler varsayılan olarak hangi istasyona gidecek?')}
-                    </p>
-                  </div>
-
-                  {/* Durum */}
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={categoryFormData.isActive}
-                        onChange={(e) => setCategoryFormData({ ...categoryFormData, isActive: e.target.checked })}
-                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700"><TranslatedText>Aktif</TranslatedText></span>
-                    </label>
-                  </div>
-                </form>
-
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
+          {showCategoryForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">
+                    {editingCategory ? <TranslatedText>Kategoriyi Düzenle</TranslatedText> : <TranslatedText>Yeni Kategori Ekle</TranslatedText>}
+                  </h2>
                   <button
                     onClick={() => setShowCategoryForm(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={24} />
+                  </button>
+                </div>
+                <div className="p-6">
+                  <form className="space-y-4">
+                    {/* Kategori Adı */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Kategori Adı *</TranslatedText>
+                      </label>
+                      <input
+                        type="text"
+                        value={categoryFormData.name}
+                        onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder={t('Örn: Başlangıçlar, Ana Yemekler, Tatlılar')}
+                        required
+                      />
+                    </div>
+
+                    {/* Mutfak İstasyonu */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Varsayılan Mutfak İstasyonu</TranslatedText>
+                      </label>
+                      <select
+                        value={categoryFormData.kitchenStation}
+                        onChange={(e) => setCategoryFormData({ ...categoryFormData, kitchenStation: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="">{t('İstasyon Seçin')}</option>
+                        {stations.sort((a, b) => a.order - b.order).map(station => (
+                          <option key={station.id} value={station.name.toLowerCase()}>
+                            {station.emoji} {station.name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {t('Bu kategorideki ürünler varsayılan olarak hangi istasyona gidecek?')}
+                      </p>
+                    </div>
+
+                    {/* Durum */}
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={categoryFormData.isActive}
+                          onChange={(e) => setCategoryFormData({ ...categoryFormData, isActive: e.target.checked })}
+                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700"><TranslatedText>Aktif</TranslatedText></span>
+                      </label>
+                    </div>
+                  </form>
+
+                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
+                    <button
+                      onClick={() => setShowCategoryForm(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      <TranslatedText>İptal</TranslatedText>
+                    </button>
+                    <button
+                      onClick={async () => {
+                        // Gerçek kategori güncelleme işlemi
+                        if (!categoryFormData.name) {
+                          alert(t('Lütfen kategori adını girin!'));
+                          return;
+                        }
+
+                        try {
+                          if (editingCategory) {
+                            if (currentRestaurantId) {
+                              await updateMenuCategory(currentRestaurantId, editingCategory.id, {
+                                name: categoryFormData.name,
+                                description: categoryFormData.description,
+                                order: categoryFormData.order,
+                                isActive: categoryFormData.isActive,
+                                kitchenStation: categoryFormData.kitchenStation
+                              });
+                              console.log('Kategori güncellendi:', editingCategory);
+                              // Menüyü yeniden yükle
+                              await fetchRestaurantMenu(currentRestaurantId);
+                            }
+                          } else {
+                            // Backend API'sine kaydet
+                            if (currentRestaurantId) {
+                              await createMenuCategory(currentRestaurantId, {
+                                name: categoryFormData.name,
+                                description: categoryFormData.description,
+                                order: categories.length,
+                                isActive: categoryFormData.isActive,
+                                kitchenStation: categoryFormData.kitchenStation
+                              });
+                              console.log('Yeni kategori backend\'e kaydedildi');
+                              // Menüyü yeniden yükle
+                              await fetchRestaurantMenu(currentRestaurantId);
+                            }
+                          }
+                        } catch (error) {
+                          console.error('Kategori işlemi sırasında hata:', error);
+                          alert(t('Kategori işlemi sırasında bir hata oluştu: ') + (error as any).message);
+                        }
+                        setShowCategoryForm(false);
+                        setEditingCategory(null);
+                        setSubcategories([]); // Formu temizle
+                        setCategoryFormData({
+                          name: '',
+                          description: '',
+                          order: categories.length,
+                          isActive: true,
+                          kitchenStation: '',
+                          translations: {}
+                        });
+                      }}
+                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      {editingCategory ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* İstasyon Form Modal */}
+          {showStationForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">
+                    {editingStation ? <TranslatedText>İstasyonu Düzenle</TranslatedText> : <TranslatedText>Yeni İstasyon Ekle</TranslatedText>}
+                  </h2>
+                  <button
+                    onClick={() => setShowStationForm(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={24} />
+                  </button>
+                </div>
+                <div className="p-6">
+                  <form className="space-y-4">
+                    {/* İstasyon Adı */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>İstasyon Adı *</TranslatedText>
+                      </label>
+                      <input
+                        type="text"
+                        value={stationFormData.name}
+                        onChange={(e) => setStationFormData({ ...stationFormData, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Örn: Izgara, Pizza, Sushi"
+                        required
+                      />
+                    </div>
+
+                    {/* Emoji */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Emoji</TranslatedText>
+                      </label>
+                      <input
+                        type="text"
+                        value={stationFormData.emoji}
+                        onChange={(e) => setStationFormData({ ...stationFormData, emoji: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-2xl"
+                        placeholder="🔥"
+                        maxLength={2}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">İstasyon için emoji seçin (opsiyonel)</p>
+                    </div>
+
+                    {/* Renk */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Renk</TranslatedText>
+                      </label>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="color"
+                          value={stationFormData.color}
+                          onChange={(e) => setStationFormData({ ...stationFormData, color: e.target.value })}
+                          className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={stationFormData.color}
+                          onChange={(e) => setStationFormData({ ...stationFormData, color: e.target.value })}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="#3B82F6"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Sıra */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Sıra</TranslatedText>
+                      </label>
+                      <input
+                        type="number"
+                        value={stationFormData.order}
+                        onChange={(e) => setStationFormData({ ...stationFormData, order: parseInt(e.target.value) || 0 })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        min="0"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">İstasyonların görüntülenme sırası</p>
+                    </div>
+
+                    {/* Printer IP Address */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Printer (Yazıcı) IP Adresi</TranslatedText>
+                      </label>
+                      <input
+                        type="text"
+                        value={stationFormData.ipAddress}
+                        onChange={(e) => setStationFormData({ ...stationFormData, ipAddress: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                        placeholder="Örn: 192.168.1.100"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Bu istasyona bağlı olan termal yazıcının IP adresini girin.</p>
+                    </div>
+                  </form>
+
+                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
+                    <button
+                      onClick={() => setShowStationForm(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      <TranslatedText>İptal</TranslatedText>
+                    </button>
+                    <button
+                      onClick={handleSaveStation}
+                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      {editingStation ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Kamera Modal */}
+          {showCameraModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <h2 className="text-xl font-bold"><TranslatedText>Fotoğraf Çek</TranslatedText></h2>
+                  <button
+                    onClick={stopCamera}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={24} />
+                  </button>
+                </div>
+                <div className="p-6">
+                  <div className="relative bg-black rounded-lg overflow-hidden mb-4">
+                    <video
+                      id="camera-video"
+                      autoPlay
+                      playsInline
+                      className="w-full h-64 object-cover"
+                      ref={(video) => {
+                        if (video && cameraStream) {
+                          video.srcObject = cameraStream;
+                        }
+                      }}
+                    />
+                    <div className="absolute inset-0 border-2 border-white rounded-lg pointer-events-none">
+                      <div className="absolute top-2 left-2 right-2 h-8 bg-black bg-opacity-50 rounded flex items-center justify-center">
+                        <span className="text-white text-sm"><TranslatedText>Ürünü çerçeve içine alın</TranslatedText></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={stopCamera}
+                      className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                    >
+                      <TranslatedText>İptal</TranslatedText>
+                    </button>
+                    <button
+                      onClick={capturePhoto}
+                      className="flex-1 py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    >
+                      <TranslatedText>Fotoğraf Çek</TranslatedText>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bulk Import Modal */}
+          {showBulkImport && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+              <div className="bg-white rounded-xl max-w-2xl w-full relative z-[9999] lg:ml-72">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <TranslatedText>Toplu Ürün İçe Aktar</TranslatedText>
+                  </h2>
+                  <button
+                    onClick={() => setShowBulkImport(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                </div>
+                <div className="p-6 space-y-6">
+                  {/* Info Box */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <div>
+                        <h4 className="font-semibold text-blue-900 mb-1"><TranslatedText>CSV Formatı</TranslatedText></h4>
+                        <p className="text-sm text-blue-800">
+                          <TranslatedText>CSV dosyanız şu sütunları içermelidir:</TranslatedText> <strong><TranslatedText>Ürün Adı, Açıklama, Fiyat, Kategori</TranslatedText></strong>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Upload Area */}
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors">
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          console.log('CSV dosyası seçildi:', file.name);
+                          // CSV işleme mantığı buraya eklenecek
+                          alert(t('CSV yükleme özelliği yakında aktif olacak! 🚀'));
+                        }
+                      }}
+                      className="hidden"
+                      id="csv-upload"
+                    />
+                    <label htmlFor="csv-upload" className="cursor-pointer">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                      </div>
+                      <p className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>CSV Dosyası Yükle</TranslatedText></p>
+                      <p className="text-sm text-gray-500"><TranslatedText>Tıklayın veya dosyayı sürükleyin</TranslatedText></p>
+                      <p className="text-xs text-gray-400 mt-2"><TranslatedText>Maksimum dosya boyutu: 5MB</TranslatedText></p>
+                    </label>
+                  </div>
+
+                  {/* Example Template */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-700"><TranslatedText>Örnek Şablon</TranslatedText></h4>
+                      <button
+                        onClick={() => {
+                          // CSV şablonu oluştur
+                          const csvContent = "Ürün Adı,Açıklama,Fiyat,Kategori\nMargherita Pizza,Domates sosu ve mozzarella,89.90,Ana Yemek\nCaesar Salad,Marul ve parmesan peyniri,45.00,Salata\nTiramisu,İtalyan tatlısı,35.00,Tatlı";
+                          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                          const link = document.createElement('a');
+                          link.href = URL.createObjectURL(blob);
+                          link.download = 'ornek_menu_sablonu.csv';
+                          link.click();
+                        }}
+                        className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <TranslatedText>Şablonu İndir</TranslatedText>
+                      </button>
+                    </div>
+                    <div className="bg-white rounded border border-gray-200 p-3 text-xs font-mono overflow-x-auto">
+                      <div className="text-gray-600">Ürün Adı,Açıklama,Fiyat,Kategori</div>
+                      <div className="text-gray-500">Margherita Pizza,Domates sosu...,89.90,Ana Yemek</div>
+                      <div className="text-gray-500">Caesar Salad,Marul ve parmesan...,45.00,Salata</div>
+                    </div>
+                  </div>
+
+                  {/* Features */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-start gap-2">
+                      <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700"><TranslatedText>Hızlı İçe Aktar</TranslatedText></p>
+                        <p className="text-xs text-gray-500"><TranslatedText>Yüzlerce ürünü tek seferde ekleyin</TranslatedText></p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700"><TranslatedText>Otomatik Doğrulama</TranslatedText></p>
+                        <p className="text-xs text-gray-500"><TranslatedText>Hatalı veriler otomatik tespit edilir</TranslatedText></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6 border-t flex justify-end gap-3 bg-gray-50">
+                  <button
+                    onClick={() => setShowBulkImport(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 font-medium"
                   >
                     <TranslatedText>İptal</TranslatedText>
-                  </button>
-                  <button
-                    onClick={async () => {
-                      // Gerçek kategori güncelleme işlemi
-                      if (!categoryFormData.name) {
-                        alert(t('Lütfen kategori adını girin!'));
-                        return;
-                      }
-
-                      try {
-                        if (editingCategory) {
-                          if (currentRestaurantId) {
-                            await updateMenuCategory(currentRestaurantId, editingCategory.id, {
-                              name: categoryFormData.name,
-                              description: categoryFormData.description,
-                              order: categoryFormData.order,
-                              isActive: categoryFormData.isActive,
-                              kitchenStation: categoryFormData.kitchenStation
-                            });
-                            console.log('Kategori güncellendi:', editingCategory);
-                            // Menüyü yeniden yükle
-                            await fetchRestaurantMenu(currentRestaurantId);
-                          }
-                        } else {
-                          // Backend API'sine kaydet
-                          if (currentRestaurantId) {
-                            await createMenuCategory(currentRestaurantId, {
-                              name: categoryFormData.name,
-                              description: categoryFormData.description,
-                              order: categories.length,
-                              isActive: categoryFormData.isActive,
-                              kitchenStation: categoryFormData.kitchenStation
-                            });
-                            console.log('Yeni kategori backend\'e kaydedildi');
-                            // Menüyü yeniden yükle
-                            await fetchRestaurantMenu(currentRestaurantId);
-                          }
-                        }
-                      } catch (error) {
-                        console.error('Kategori işlemi sırasında hata:', error);
-                        alert(t('Kategori işlemi sırasında bir hata oluştu: ') + (error as any).message);
-                      }
-                      setShowCategoryForm(false);
-                      setEditingCategory(null);
-                      setSubcategories([]); // Formu temizle
-                      setCategoryFormData({
-                        name: '',
-                        description: '',
-                        order: categories.length,
-                        isActive: true,
-                        kitchenStation: '',
-                        translations: {}
-                      });
-                    }}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    {editingCategory ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* İstasyon Form Modal */}
-        {showStationForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-            <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
-              <div className="p-6 border-b flex justify-between items-center">
-                <h2 className="text-2xl font-bold">
-                  {editingStation ? <TranslatedText>İstasyonu Düzenle</TranslatedText> : <TranslatedText>Yeni İstasyon Ekle</TranslatedText>}
-                </h2>
-                <button
-                  onClick={() => setShowStationForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FaTimes size={24} />
-                </button>
+          {/* Translations Modal */}
+          {showTranslationsModal && selectedItemForTranslation && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+              <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999]">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                      <FaLanguage className="text-blue-600" />
+                      <TranslatedText>Ürün Çevirileri</TranslatedText>
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">{selectedItemForTranslation.name}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowTranslationsModal(false);
+                      setSelectedItemForTranslation(null);
+                      setTranslations({});
+                    }}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={24} />
+                  </button>
+                </div>
+                <div className="p-6 overflow-y-auto max-h-[70vh]">
+                  {loadingTranslations ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                      <span className="ml-3 text-gray-600"><TranslatedText>Çeviriler yükleniyor...</TranslatedText></span>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {Object.entries(translations).length > 0 ? (
+                        Object.entries(translations).map(([lang, translation]) => {
+                          const languageNames: { [key: string]: string } = {
+                            'tr': 'Türkçe',
+                            'en': 'English',
+                            'ar': 'العربية',
+                            'de': 'Deutsch',
+                            'fr': 'Français',
+                            'es': 'Español',
+                            'it': 'Italiano',
+                            'ru': 'Русский'
+                          };
+
+                          return (
+                            <div key={lang} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                  {lang.toUpperCase()}
+                                </div>
+                                <h3 className="font-semibold text-lg">{languageNames[lang] || lang}</h3>
+                              </div>
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide"><TranslatedText>Ürün Adı</TranslatedText></label>
+                                  <p className="text-gray-900 font-medium mt-1">{translation.name}</p>
+                                </div>
+                                {translation.description && (
+                                  <div>
+                                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide"><TranslatedText>Açıklama</TranslatedText></label>
+                                    <p className="text-gray-700 mt-1">{translation.description}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-12">
+                          <FaLanguage className="mx-auto text-5xl text-gray-300 mb-4" />
+                          <p className="text-gray-600"><TranslatedText>Çeviriler yüklenemedi</TranslatedText></p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="p-6 border-t bg-gray-50 flex justify-end">
+                  <button
+                    onClick={() => {
+                      setShowTranslationsModal(false);
+                      setSelectedItemForTranslation(null);
+                      setTranslations({});
+                    }}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <TranslatedText>Kapat</TranslatedText>
+                  </button>
+                </div>
               </div>
-              <div className="p-6">
-                <form className="space-y-4">
-                  {/* İstasyon Adı */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>İstasyon Adı *</TranslatedText>
-                    </label>
-                    <input
-                      type="text"
-                      value={stationFormData.name}
-                      onChange={(e) => setStationFormData({ ...stationFormData, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Örn: Izgara, Pizza, Sushi"
-                      required
-                    />
-                  </div>
+            </div>
+          )}
 
-                  {/* Emoji */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Emoji</TranslatedText>
-                    </label>
-                    <input
-                      type="text"
-                      value={stationFormData.emoji}
-                      onChange={(e) => setStationFormData({ ...stationFormData, emoji: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-2xl"
-                      placeholder="🔥"
-                      maxLength={2}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">İstasyon için emoji seçin (opsiyonel)</p>
-                  </div>
+          {/* Bulk Translate Modal */}
+          {showBulkTranslateModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+              <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <h2 className="text-xl font-bold"><TranslatedText>Toplu Çeviri Ayarları</TranslatedText></h2>
+                  <button
+                    onClick={() => setShowBulkTranslateModal(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <p className="text-sm text-gray-600">
+                    {selectedItems.length > 0 ? `${selectedItems.length} ürün` : `${items.length} ürün`} <TranslatedText>seçilen dillere çevrilecek.</TranslatedText>
+                  </p>
 
-                  {/* Renk */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Renk</TranslatedText>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      <TranslatedText>Hedef Diller</TranslatedText>
                     </label>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="color"
-                        value={stationFormData.color}
-                        onChange={(e) => setStationFormData({ ...stationFormData, color: e.target.value })}
-                        className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={stationFormData.color}
-                        onChange={(e) => setStationFormData({ ...stationFormData, color: e.target.value })}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="#3B82F6"
-                      />
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { id: 'en', name: 'English', flag: '🇺🇸' },
+                        { id: 'de', name: 'German', flag: '🇩🇪' },
+                        { id: 'ar', name: 'Arabic', flag: '🇸🇦' },
+                        { id: 'ru', name: 'Russian', flag: '🇷🇺' },
+                        { id: 'fr', name: 'French', flag: '🇫🇷' },
+                        { id: 'es', name: 'Spanish', flag: '🇪🇸' },
+                        { id: 'it', name: 'Italian', flag: '🇮🇹' }
+                      ].map((lang) => (
+                        <button
+                          key={lang.id}
+                          onClick={() => {
+                            if (selectedBulkLanguages.includes(lang.id)) {
+                              setSelectedBulkLanguages(selectedBulkLanguages.filter(l => l !== lang.id));
+                            } else {
+                              setSelectedBulkLanguages([...selectedBulkLanguages, lang.id]);
+                            }
+                          }}
+                          className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedBulkLanguages.includes(lang.id)
+                            ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-sm'
+                            : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
+                            }`}
+                        >
+                          <span className="text-xl">{lang.flag}</span>
+                          <span className="text-sm font-semibold">{lang.name}</span>
+                          {selectedBulkLanguages.includes(lang.id) && (
+                            <FaCheck className="ml-auto text-purple-500 text-xs" />
+                          )}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Sıra */}
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-3">
+                    <FaExclamationTriangle className="text-blue-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-blue-700 leading-relaxed">
+                      <TranslatedText>Sadece seçtiğiniz diller için çeviriler güncellenecektir. Mevcut çevirilerinizin üzerine yazılabilir.</TranslatedText>
+                    </p>
+                  </div>
+                </div>
+                <div className="p-6 border-t flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowBulkTranslateModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-semibold"
+                  >
+                    <TranslatedText>İptal</TranslatedText>
+                  </button>
+                  <button
+                    onClick={startBulkTranslation}
+                    disabled={selectedBulkLanguages.length === 0}
+                    className="flex-1 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                  >
+                    <TranslatedText>Çeviriyi Başlat</TranslatedText>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bulk Price Update Modal */}
+          {showBulkPriceModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+              <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <h2 className="text-xl font-bold"><TranslatedText>Toplu Fiyat Düzenle</TranslatedText></h2>
+                  <button
+                    onClick={() => setShowBulkPriceModal(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <p className="text-sm text-gray-600">
+                    {selectedItems.length} <TranslatedText>ürünün fiyatını güncelleyeceksiniz.</TranslatedText>
+                  </p>
+
+                  {/* Operation Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Sıra</TranslatedText>
+                      <TranslatedText>İşlem Türü</TranslatedText>
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setBulkPriceOperation('increase')}
+                        className={`p-2 text-sm rounded-lg border ${bulkPriceOperation === 'increase'
+                          ? 'bg-green-50 border-green-300 text-green-700'
+                          : 'border-gray-300 text-gray-700'
+                          }`}
+                      >
+                        <TranslatedText>Arttır</TranslatedText>
+                      </button>
+                      <button
+                        onClick={() => setBulkPriceOperation('decrease')}
+                        className={`p-2 text-sm rounded-lg border ${bulkPriceOperation === 'decrease'
+                          ? 'bg-red-50 border-red-300 text-red-700'
+                          : 'border-gray-300 text-gray-700'
+                          }`}
+                      >
+                        <TranslatedText>Azalt</TranslatedText>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Price Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Değer Türü</TranslatedText>
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setBulkPriceType('percentage')}
+                        className={`p-2 text-sm rounded-lg border ${bulkPriceType === 'percentage'
+                          ? 'bg-blue-50 border-blue-300 text-blue-700'
+                          : 'border-gray-300 text-gray-700'
+                          }`}
+                      >
+                        <FaPercent className="inline mr-1" />
+                        <TranslatedText>Yüzde</TranslatedText>
+                      </button>
+                      <button
+                        onClick={() => setBulkPriceType('fixed')}
+                        className={`p-2 text-sm rounded-lg border ${bulkPriceType === 'fixed'
+                          ? 'bg-blue-50 border-blue-300 text-blue-700'
+                          : 'border-gray-300 text-gray-700'
+                          }`}
+                      >
+                        <TranslatedText>₺ Sabit</TranslatedText>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Value Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Değer</TranslatedText>
                     </label>
                     <input
                       type="number"
-                      value={stationFormData.order}
-                      onChange={(e) => setStationFormData({ ...stationFormData, order: parseInt(e.target.value) || 0 })}
+                      value={bulkPriceValue}
+                      onChange={(e) => setBulkPriceValue(e.target.value)}
+                      placeholder={bulkPriceType === 'percentage' ? '10' : '5.00'}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      min="0"
                     />
-                    <p className="text-xs text-gray-500 mt-1">İstasyonların görüntülenme sırası</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {bulkPriceType === 'percentage'
+                        ? <><TranslatedText>Fiyatları %</TranslatedText>{bulkPriceValue || '0'} <TranslatedText>{bulkPriceOperation === 'increase' ? 'arttır' : 'azalt'}</TranslatedText></>
+                        : <><TranslatedText>Fiyatlara ₺</TranslatedText>{bulkPriceValue || '0'} <TranslatedText>{bulkPriceOperation === 'increase' ? 'ekle' : 'çıkar'}</TranslatedText></>
+                      }
+                    </p>
                   </div>
-
-                  {/* Printer IP Address */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Printer (Yazıcı) IP Adresi</TranslatedText>
-                    </label>
-                    <input
-                      type="text"
-                      value={stationFormData.ipAddress}
-                      onChange={(e) => setStationFormData({ ...stationFormData, ipAddress: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
-                      placeholder="Örn: 192.168.1.100"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Bu istasyona bağlı olan termal yazıcının IP adresini girin.</p>
-                  </div>
-                </form>
-
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
+                </div>
+                <div className="p-6 border-t flex justify-end gap-3">
                   <button
-                    onClick={() => setShowStationForm(false)}
+                    onClick={() => setShowBulkPriceModal(false)}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
                     <TranslatedText>İptal</TranslatedText>
                   </button>
                   <button
-                    onClick={handleSaveStation}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    onClick={handleBulkPriceUpdate}
+                    disabled={!bulkPriceValue}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {editingStation ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
+                    <TranslatedText>Güncelle</TranslatedText>
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Kamera Modal */}
-        {showCameraModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-            <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
-              <div className="p-6 border-b flex justify-between items-center">
-                <h2 className="text-xl font-bold"><TranslatedText>Fotoğraf Çek</TranslatedText></h2>
-                <button
-                  onClick={stopCamera}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FaTimes size={24} />
-                </button>
-              </div>
-              <div className="p-6">
-                <div className="relative bg-black rounded-lg overflow-hidden mb-4">
-                  <video
-                    id="camera-video"
-                    autoPlay
-                    playsInline
-                    className="w-full h-64 object-cover"
-                    ref={(video) => {
-                      if (video && cameraStream) {
-                        video.srcObject = cameraStream;
-                      }
-                    }}
-                  />
-                  <div className="absolute inset-0 border-2 border-white rounded-lg pointer-events-none">
-                    <div className="absolute top-2 left-2 right-2 h-8 bg-black bg-opacity-50 rounded flex items-center justify-center">
-                      <span className="text-white text-sm"><TranslatedText>Ürünü çerçeve içine alın</TranslatedText></span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={stopCamera}
-                    className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                  >
-                    <TranslatedText>İptal</TranslatedText>
-                  </button>
-                  <button
-                    onClick={capturePhoto}
-                    className="flex-1 py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                  >
-                    <TranslatedText>Fotoğraf Çek</TranslatedText>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Bulk Import Modal */}
-        {showBulkImport && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-            <div className="bg-white rounded-xl max-w-2xl w-full relative z-[9999] lg:ml-72">
-              <div className="p-6 border-b flex justify-between items-center">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <TranslatedText>Toplu Ürün İçe Aktar</TranslatedText>
-                </h2>
-                <button
-                  onClick={() => setShowBulkImport(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FaTimes size={20} />
-                </button>
-              </div>
-              <div className="p-6 space-y-6">
-                {/* Info Box */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                    <div>
-                      <h4 className="font-semibold text-blue-900 mb-1"><TranslatedText>CSV Formatı</TranslatedText></h4>
-                      <p className="text-sm text-blue-800">
-                        <TranslatedText>CSV dosyanız şu sütunları içermelidir:</TranslatedText> <strong><TranslatedText>Ürün Adı, Açıklama, Fiyat, Kategori</TranslatedText></strong>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Upload Area */}
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors">
-                  <input
-                    type="file"
-                    accept=".csv"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        console.log('CSV dosyası seçildi:', file.name);
-                        // CSV işleme mantığı buraya eklenecek
-                        alert(t('CSV yükleme özelliği yakında aktif olacak! 🚀'));
-                      }
-                    }}
-                    className="hidden"
-                    id="csv-upload"
-                  />
-                  <label htmlFor="csv-upload" className="cursor-pointer">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
-                      <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>CSV Dosyası Yükle</TranslatedText></p>
-                    <p className="text-sm text-gray-500"><TranslatedText>Tıklayın veya dosyayı sürükleyin</TranslatedText></p>
-                    <p className="text-xs text-gray-400 mt-2"><TranslatedText>Maksimum dosya boyutu: 5MB</TranslatedText></p>
-                  </label>
-                </div>
-
-                {/* Example Template */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-gray-700"><TranslatedText>Örnek Şablon</TranslatedText></h4>
-                    <button
-                      onClick={() => {
-                        // CSV şablonu oluştur
-                        const csvContent = "Ürün Adı,Açıklama,Fiyat,Kategori\nMargherita Pizza,Domates sosu ve mozzarella,89.90,Ana Yemek\nCaesar Salad,Marul ve parmesan peyniri,45.00,Salata\nTiramisu,İtalyan tatlısı,35.00,Tatlı";
-                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = 'ornek_menu_sablonu.csv';
-                        link.click();
-                      }}
-                      className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      <TranslatedText>Şablonu İndir</TranslatedText>
-                    </button>
-                  </div>
-                  <div className="bg-white rounded border border-gray-200 p-3 text-xs font-mono overflow-x-auto">
-                    <div className="text-gray-600">Ürün Adı,Açıklama,Fiyat,Kategori</div>
-                    <div className="text-gray-500">Margherita Pizza,Domates sosu...,89.90,Ana Yemek</div>
-                    <div className="text-gray-500">Caesar Salad,Marul ve parmesan...,45.00,Salata</div>
-                  </div>
-                </div>
-
-                {/* Features */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-start gap-2">
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700"><TranslatedText>Hızlı İçe Aktar</TranslatedText></p>
-                      <p className="text-xs text-gray-500"><TranslatedText>Yüzlerce ürünü tek seferde ekleyin</TranslatedText></p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700"><TranslatedText>Otomatik Doğrulama</TranslatedText></p>
-                      <p className="text-xs text-gray-500"><TranslatedText>Hatalı veriler otomatik tespit edilir</TranslatedText></p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="p-6 border-t flex justify-end gap-3 bg-gray-50">
-                <button
-                  onClick={() => setShowBulkImport(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 font-medium"
-                >
-                  <TranslatedText>İptal</TranslatedText>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Translations Modal */}
-        {showTranslationsModal && selectedItemForTranslation && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999]">
-              <div className="p-6 border-b flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold flex items-center gap-2">
-                    <FaLanguage className="text-blue-600" />
-                    <TranslatedText>Ürün Çevirileri</TranslatedText>
-                  </h2>
-                  <p className="text-sm text-gray-600 mt-1">{selectedItemForTranslation.name}</p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowTranslationsModal(false);
-                    setSelectedItemForTranslation(null);
-                    setTranslations({});
-                  }}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FaTimes size={24} />
-                </button>
-              </div>
-              <div className="p-6 overflow-y-auto max-h-[70vh]">
-                {loadingTranslations ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                    <span className="ml-3 text-gray-600"><TranslatedText>Çeviriler yükleniyor...</TranslatedText></span>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {Object.entries(translations).length > 0 ? (
-                      Object.entries(translations).map(([lang, translation]) => {
-                        const languageNames: { [key: string]: string } = {
-                          'tr': 'Türkçe',
-                          'en': 'English',
-                          'ar': 'العربية',
-                          'de': 'Deutsch',
-                          'fr': 'Français',
-                          'es': 'Español',
-                          'it': 'Italiano',
-                          'ru': 'Русский'
-                        };
-
-                        return (
-                          <div key={lang} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                                {lang.toUpperCase()}
-                              </div>
-                              <h3 className="font-semibold text-lg">{languageNames[lang] || lang}</h3>
-                            </div>
-                            <div className="space-y-3">
-                              <div>
-                                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide"><TranslatedText>Ürün Adı</TranslatedText></label>
-                                <p className="text-gray-900 font-medium mt-1">{translation.name}</p>
-                              </div>
-                              {translation.description && (
-                                <div>
-                                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide"><TranslatedText>Açıklama</TranslatedText></label>
-                                  <p className="text-gray-700 mt-1">{translation.description}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="text-center py-12">
-                        <FaLanguage className="mx-auto text-5xl text-gray-300 mb-4" />
-                        <p className="text-gray-600"><TranslatedText>Çeviriler yüklenemedi</TranslatedText></p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="p-6 border-t bg-gray-50 flex justify-end">
-                <button
-                  onClick={() => {
-                    setShowTranslationsModal(false);
-                    setSelectedItemForTranslation(null);
-                    setTranslations({});
-                  }}
-                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  <TranslatedText>Kapat</TranslatedText>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Bulk Translate Modal */}
-        {showBulkTranslateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-            <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
-              <div className="p-6 border-b flex justify-between items-center">
-                <h2 className="text-xl font-bold"><TranslatedText>Toplu Çeviri Ayarları</TranslatedText></h2>
-                <button
-                  onClick={() => setShowBulkTranslateModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FaTimes size={20} />
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                <p className="text-sm text-gray-600">
-                  {selectedItems.length > 0 ? `${selectedItems.length} ürün` : `${items.length} ürün`} <TranslatedText>seçilen dillere çevrilecek.</TranslatedText>
-                </p>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    <TranslatedText>Hedef Diller</TranslatedText>
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { id: 'en', name: 'English', flag: '🇺🇸' },
-                      { id: 'de', name: 'German', flag: '🇩🇪' },
-                      { id: 'ar', name: 'Arabic', flag: '🇸🇦' },
-                      { id: 'ru', name: 'Russian', flag: '🇷🇺' },
-                      { id: 'fr', name: 'French', flag: '🇫🇷' },
-                      { id: 'es', name: 'Spanish', flag: '🇪🇸' },
-                      { id: 'it', name: 'Italian', flag: '🇮🇹' }
-                    ].map((lang) => (
-                      <button
-                        key={lang.id}
-                        onClick={() => {
-                          if (selectedBulkLanguages.includes(lang.id)) {
-                            setSelectedBulkLanguages(selectedBulkLanguages.filter(l => l !== lang.id));
-                          } else {
-                            setSelectedBulkLanguages([...selectedBulkLanguages, lang.id]);
-                          }
-                        }}
-                        className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedBulkLanguages.includes(lang.id)
-                          ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-sm'
-                          : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
-                          }`}
-                      >
-                        <span className="text-xl">{lang.flag}</span>
-                        <span className="text-sm font-semibold">{lang.name}</span>
-                        {selectedBulkLanguages.includes(lang.id) && (
-                          <FaCheck className="ml-auto text-purple-500 text-xs" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-3">
-                  <FaExclamationTriangle className="text-blue-500 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-blue-700 leading-relaxed">
-                    <TranslatedText>Sadece seçtiğiniz diller için çeviriler güncellenecektir. Mevcut çevirilerinizin üzerine yazılabilir.</TranslatedText>
-                  </p>
-                </div>
-              </div>
-              <div className="p-6 border-t flex justify-end gap-3">
-                <button
-                  onClick={() => setShowBulkTranslateModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-semibold"
-                >
-                  <TranslatedText>İptal</TranslatedText>
-                </button>
-                <button
-                  onClick={startBulkTranslation}
-                  disabled={selectedBulkLanguages.length === 0}
-                  className="flex-1 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
-                >
-                  <TranslatedText>Çeviriyi Başlat</TranslatedText>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Bulk Price Update Modal */}
-        {showBulkPriceModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-            <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
-              <div className="p-6 border-b flex justify-between items-center">
-                <h2 className="text-xl font-bold"><TranslatedText>Toplu Fiyat Düzenle</TranslatedText></h2>
-                <button
-                  onClick={() => setShowBulkPriceModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FaTimes size={20} />
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                <p className="text-sm text-gray-600">
-                  {selectedItems.length} <TranslatedText>ürünün fiyatını güncelleyeceksiniz.</TranslatedText>
-                </p>
-
-                {/* Operation Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <TranslatedText>İşlem Türü</TranslatedText>
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setBulkPriceOperation('increase')}
-                      className={`p-2 text-sm rounded-lg border ${bulkPriceOperation === 'increase'
-                        ? 'bg-green-50 border-green-300 text-green-700'
-                        : 'border-gray-300 text-gray-700'
-                        }`}
-                    >
-                      <TranslatedText>Arttır</TranslatedText>
-                    </button>
-                    <button
-                      onClick={() => setBulkPriceOperation('decrease')}
-                      className={`p-2 text-sm rounded-lg border ${bulkPriceOperation === 'decrease'
-                        ? 'bg-red-50 border-red-300 text-red-700'
-                        : 'border-gray-300 text-gray-700'
-                        }`}
-                    >
-                      <TranslatedText>Azalt</TranslatedText>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Price Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <TranslatedText>Değer Türü</TranslatedText>
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setBulkPriceType('percentage')}
-                      className={`p-2 text-sm rounded-lg border ${bulkPriceType === 'percentage'
-                        ? 'bg-blue-50 border-blue-300 text-blue-700'
-                        : 'border-gray-300 text-gray-700'
-                        }`}
-                    >
-                      <FaPercent className="inline mr-1" />
-                      <TranslatedText>Yüzde</TranslatedText>
-                    </button>
-                    <button
-                      onClick={() => setBulkPriceType('fixed')}
-                      className={`p-2 text-sm rounded-lg border ${bulkPriceType === 'fixed'
-                        ? 'bg-blue-50 border-blue-300 text-blue-700'
-                        : 'border-gray-300 text-gray-700'
-                        }`}
-                    >
-                      <TranslatedText>₺ Sabit</TranslatedText>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Value Input */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <TranslatedText>Değer</TranslatedText>
-                  </label>
-                  <input
-                    type="number"
-                    value={bulkPriceValue}
-                    onChange={(e) => setBulkPriceValue(e.target.value)}
-                    placeholder={bulkPriceType === 'percentage' ? '10' : '5.00'}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {bulkPriceType === 'percentage'
-                      ? <><TranslatedText>Fiyatları %</TranslatedText>{bulkPriceValue || '0'} <TranslatedText>{bulkPriceOperation === 'increase' ? 'arttır' : 'azalt'}</TranslatedText></>
-                      : <><TranslatedText>Fiyatlara ₺</TranslatedText>{bulkPriceValue || '0'} <TranslatedText>{bulkPriceOperation === 'increase' ? 'ekle' : 'çıkar'}</TranslatedText></>
-                    }
-                  </p>
-                </div>
-              </div>
-              <div className="p-6 border-t flex justify-end gap-3">
-                <button
-                  onClick={() => setShowBulkPriceModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  <TranslatedText>İptal</TranslatedText>
-                </button>
-                <button
-                  onClick={handleBulkPriceUpdate}
-                  disabled={!bulkPriceValue}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <TranslatedText>Güncelle</TranslatedText>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div >
+          )}
+        </div>
+      </div >
     </div >
   );
 }
