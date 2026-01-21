@@ -313,7 +313,7 @@ router.post('/debug-add-variations/:itemId', async (req, res) => {
     }
 });
 
-router.post('/fix-db-schema', async (req, res) => {
+router.get('/fix-db-schema', async (req, res) => {
     try {
         const { sequelize } = require('../models');
 
