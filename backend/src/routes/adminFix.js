@@ -236,7 +236,41 @@ router.post('/fix-db-schema', async (req, res) => {
             console.error('Error adding kitchen_station:', e.message);
         }
 
-        res.json({ success: true, message: 'Database schema fixed' });
+        // Check and add variations to menu_items
+        try {
+            await sequelize.query(`
+        DO $$ 
+        BEGIN 
+          BEGIN
+            ALTER TABLE menu_items ADD COLUMN variations JSONB DEFAULT '[]'::jsonb;
+          EXCEPTION
+            WHEN duplicate_column THEN RAISE NOTICE 'column variations already exists in menu_items.';
+          END;
+        END $$;
+      `);
+            console.log('✅ Added variations to menu_items');
+        } catch (e) {
+            console.error('Error adding variations:', e.message);
+        }
+
+        // Check and add options to menu_items
+        try {
+            await sequelize.query(`
+        DO $$ 
+        BEGIN 
+          BEGIN
+            ALTER TABLE menu_items ADD COLUMN options JSONB DEFAULT '[]'::jsonb;
+          EXCEPTION
+            WHEN duplicate_column THEN RAISE NOTICE 'column options already exists in menu_items.';
+          END;
+        END $$;
+      `);
+            console.log('✅ Added options to menu_items');
+        } catch (e) {
+            console.error('Error adding options:', e.message);
+        }
+
+        res.json({ success: true, message: 'Database schema fixed (kitchen_station, variations, options)' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

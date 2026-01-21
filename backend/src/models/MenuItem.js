@@ -124,11 +124,25 @@ module.exports = (sequelize, DataTypes) => {
       field: 'kitchen_station',
       comment: 'Kitchen station: izgara, makarna, soguk, tatli'
     },
+<<<<<<< HEAD
     variants: {
       type: DataTypes.JSONB,
       allowNull: true,
       defaultValue: [],
       comment: 'Array of variants: [{name: "Small", price: 100}, {name: "Large", price: 150}]'
+=======
+    variations: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: [],
+      comment: 'Array of variations (e.g., small, large) with prices'
+    },
+    options: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: [],
+      comment: 'Array of option groups (e.g., spiciness) with choices'
+>>>>>>> bd8ef48 (feat: Add product variations and options support (frontend + backend))
     }
   }, {
     tableName: 'menu_items',

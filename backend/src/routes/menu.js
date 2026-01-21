@@ -392,7 +392,6 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       displayOrder: order || 0,
       isAvailable: isAvailable !== undefined ? isAvailable : true,
       isPopular: isPopular || false,
-      preparationTime: preparationTime || null,
       calories: calories || null,
       subcategory: subcategory || null,
       ingredients: ingredients || null,
@@ -400,7 +399,8 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       portion: portion || null,
       portionSize: portion || null,
       kitchenStation: kitchenStation || null,
-      variants: variants || []
+      variations: req.body.variations || [],
+      options: req.body.options || []
     });
 
     console.log('Backend - Oluşturulan item:', {

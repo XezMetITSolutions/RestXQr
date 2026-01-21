@@ -197,7 +197,12 @@ export default function MenuManagement() {
     isPopular: false,
     kitchenStation: '',
     translations: {},
+<<<<<<< HEAD
     variants: [] as any[]
+=======
+    variations: [] as Array<{ name: string, price: number }>,
+    options: [] as Array<{ name: string, values: string[] }>
+>>>>>>> bd8ef48 (feat: Add product variations and options support (frontend + backend))
   });
 
   const [categoryFormData, setCategoryFormData] = useState({
@@ -374,7 +379,9 @@ export default function MenuManagement() {
       isAvailable: true,
       isPopular: false,
       kitchenStation: '',
-      translations: {}
+      translations: {},
+      variations: [],
+      options: []
     });
     setShowItemForm(true);
   };
@@ -403,9 +410,15 @@ export default function MenuManagement() {
       isAvailable: item.isAvailable !== false,
       isPopular: item.isPopular || false,
       kitchenStation: item.kitchenStation || '',
+<<<<<<< HEAD
       kitchenStation: item.kitchenStation || '',
       translations: item.translations || {},
       variants: item.variants || []
+=======
+      translations: item.translations || {},
+      variations: item.variations || [],
+      options: item.options || []
+>>>>>>> bd8ef48 (feat: Add product variations and options support (frontend + backend))
     });
 
     console.log('📝 handleEditItem - Original Item:', {
@@ -1912,6 +1925,143 @@ export default function MenuManagement() {
                       </div>
                     </div>
 
+
+                    {/* VARYASYONLAR (Variations) */}
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                          <FaTag className="text-blue-500" />
+                          {t('Varyasyonlar')}
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              variations: [...(prev.variations || []), { name: '', price: 0 }]
+                            }));
+                          }}
+                          className="text-sm text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1"
+                        >
+                          <FaPlus size={12} /> {t('Varyasyon Ekle')}
+                        </button>
+                      </div>
+
+                      {formData.variations && formData.variations.length > 0 ? (
+                        <div className="space-y-2">
+                          {formData.variations.map((v, idx) => (
+                            <div key={idx} className="flex gap-2 items-center">
+                              <input
+                                type="text"
+                                placeholder={t('Örn: 2 Adet, Büyük Boy')}
+                                value={v.name}
+                                onChange={e => {
+                                  const newVars = [...formData.variations];
+                                  newVars[idx].name = e.target.value;
+                                  setFormData({ ...formData, variations: newVars });
+                                }}
+                                className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                              />
+                              <input
+                                type="number"
+                                placeholder={t('Fiyat')}
+                                value={v.price}
+                                onChange={e => {
+                                  const newVars = [...formData.variations];
+                                  newVars[idx].price = parseFloat(e.target.value);
+                                  setFormData({ ...formData, variations: newVars });
+                                }}
+                                className="w-24 px-3 py-2 border rounded-lg text-sm"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newVars = formData.variations.filter((_, i) => i !== idx);
+                                  setFormData({ ...formData, variations: newVars });
+                                }}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded"
+                              >
+                                <FaTrash size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-400 text-sm text-center italic">{t('Varyasyon eklenmemiş (Örn: Porsiyon büyüklüğü, Adet)')}</p>
+                      )}
+                    </div>
+
+                    {/* ÖZELLİKLER (Options) */}
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                          <FaClipboardList className="text-orange-500" />
+                          {t('Özellik Seçenekleri')}
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              options: [...(prev.options || []), { name: '', values: [] }]
+                            }));
+                          }}
+                          className="text-sm text-orange-600 hover:text-orange-800 font-bold flex items-center gap-1"
+                        >
+                          <FaPlus size={12} /> {t('Grup Ekle')}
+                        </button>
+                      </div>
+
+                      {formData.options && formData.options.length > 0 ? (
+                        <div className="space-y-4">
+                          {formData.options.map((opt, idx) => (
+                            <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200">
+                              <div className="flex justify-between items-center mb-2">
+                                <input
+                                  type="text"
+                                  placeholder={t('Grup Adı (Örn: Acı Durumu, Soslar)')}
+                                  value={opt.name}
+                                  onChange={e => {
+                                    const newOpts = [...formData.options];
+                                    newOpts[idx].name = e.target.value;
+                                    setFormData({ ...formData, options: newOpts });
+                                  }}
+                                  className="flex-1 px-3 py-2 border rounded-lg text-sm font-bold mr-2"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newOpts = formData.options.filter((_, i) => i !== idx);
+                                    setFormData({ ...formData, options: newOpts });
+                                  }}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <FaTrash size={14} />
+                                </button>
+                              </div>
+
+                              <div>
+                                <label className="text-xs text-gray-500 mb-1 block">{t('Seçenekler (Virgülle ayırın)')}</label>
+                                <input
+                                  type="text"
+                                  placeholder={t('Örn: Az Acılı, Çok Acılı, Acısız')}
+                                  value={opt.values.join(', ')}
+                                  onChange={e => {
+                                    const newOpts = [...formData.options];
+                                    newOpts[idx].values = e.target.value.split(',').map(s => s.trim()); // removed filter(Boolean) to allows typing comma
+                                    setFormData({ ...formData, options: newOpts });
+                                  }}
+                                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-400 text-sm text-center italic">{t('Seçenek grubu eklenmemiş (Örn: Acı tercihi, Pişme derecesi)')}</p>
+                      )}
+                    </div>
+
                     {/* Kalori ve Hazırlık Süresi */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -3106,7 +3256,7 @@ export default function MenuManagement() {
             </div>
           )}
         </div>
-      </div>
+      </div >
     </div >
   );
 }
