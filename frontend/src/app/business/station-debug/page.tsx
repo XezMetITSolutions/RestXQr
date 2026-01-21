@@ -8,21 +8,27 @@ export default function StationDebugPage() {
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [selectedStation, setSelectedStation] = useState('kavurma');
     const [result, setResult] = useState<any>(null);
-    const [restaurantId, setRestaurantId] = useState<string>('');
+    const [restaurantId, setRestaurantId] = useState<string>('37b0322a-e11f-4ef1-b108-83be310aaf4d'); // Kroren ID
 
     useEffect(() => {
-        // Get restaurant ID from localStorage or URL
+        // Try to get restaurant ID from localStorage, fallback to Kroren
         const storedAuth = localStorage.getItem('auth-storage');
         if (storedAuth) {
             try {
                 const auth = JSON.parse(storedAuth);
                 const restId = auth.state?.authenticatedRestaurant?.id;
                 if (restId) {
+                    console.log('Found restaurant ID in localStorage:', restId);
                     setRestaurantId(restId);
+                } else {
+                    console.log('Using hardcoded Kroren ID');
                 }
             } catch (e) {
                 console.error('Error parsing auth:', e);
+                console.log('Using hardcoded Kroren ID');
             }
+        } else {
+            console.log('No auth in localStorage, using hardcoded Kroren ID');
         }
     }, []);
 
