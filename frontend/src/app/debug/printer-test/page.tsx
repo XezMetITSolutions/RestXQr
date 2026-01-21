@@ -33,9 +33,9 @@ export default function PrinterTestPage() {
     const [messages, setMessages] = useState<Record<string, { type: 'success' | 'error' | 'info'; text: string }>>({});
 
     const defaultStations = [
-        { id: 'station1', name: 'Station 1 - Grill', ip: '192.168.1.13', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
-        { id: 'station2', name: 'Station 2 - Cold Kitchen', ip: '192.168.1.14', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
-        { id: 'station3', name: 'Station 3 - Bar', ip: '192.168.1.15', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
+        { id: 'station1', name: 'Station 1 - Grill (XPrinter XP-80)', ip: '192.168.1.13', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
+        { id: 'station2', name: 'Station 2 - Cold Kitchen (XPrinter XP-80)', ip: '192.168.1.14', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
+        { id: 'station3', name: 'Station 3 - Bar (XPrinter XP-80)', ip: '192.168.1.15', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
     ];
 
     useEffect(() => {
@@ -304,8 +304,8 @@ export default function PrinterTestPage() {
                                 {/* Message Display */}
                                 {messages[station.id] && (
                                     <div className={`p-3 rounded-lg border ${messages[station.id].type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
-                                            messages[station.id].type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
-                                                'bg-blue-50 border-blue-200 text-blue-800'
+                                        messages[station.id].type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
+                                            'bg-blue-50 border-blue-200 text-blue-800'
                                         }`}>
                                         <p className="text-sm font-medium">{messages[station.id].text}</p>
                                     </div>
