@@ -215,7 +215,7 @@ router.get('/apply-kroren-demo', async (req, res) => {
         // 2. Find a Product (e.g., Any Product)
         const item = await MenuItem.findOne({
             where: { restaurantId: restaurant.id },
-            order: [['createdAt', 'DESC']] // Pickup latest
+            order: [['created_at', 'DESC']] // Pickup latest
         });
 
         if (!item) {
