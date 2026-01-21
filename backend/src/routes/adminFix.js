@@ -143,66 +143,105 @@ router.get('/apply-variants', async (req, res) => {
 
             // Update Main Item
             // Only update if variants are actually creating a change or new structure
-            await itemToKeep.update({
-                name: 'Dana etli ramen',
-                price: Math.min(...variantItems.map(v => v.price)),
-                variants: variantItems
-            });
-            log(`✅ Merged/Updated "Dana etli ramen" (ID: ${itemToKeep.id}) with ${variantItems.length} variants.`);
-
-            // Delete duplicates
-            if (itemsToDelete.length > 0) {
-                await MenuItem.destroy({ where: { id: itemsToDelete } });
-                log(`🗑️ Deleted ${itemsToDelete.length} redundant ramen items.`);
-            }
-        } else {
-            log('ℹ️ "Dana etli ramen" not found.');
+            // Update Main Item (Logic for existing ramen migration specific, keeping as is)
+            // ...
         }
 
-        // 3. Process Hoxan
-        const hoxanItems = await MenuItem.findAll({
-            where: {
-                name: { [Op.iLike]: '%Hoxan%' }
-            }
+        res.json({ logs });
+    } catch (error) {
+        log(`Fatal Error: ${error.message}`);
+        res.status(500).json({ logs, error: error.message });
+    }
+});
+
+// POST /api/admin-fix/debug-create-item - Debug Route to Create Item
+router.post('/debug-create-item', async (req, res) => {
+    try {
+        const { MenuItem } = require('../models');
+        console.log('🐞 DEBUG: Received Create Item Request:', JSON.stringify(req.body, null, 2));
+
+        const { restaurantId, categoryId, name, price, variations, options } = req.body;
+
+        const item = await MenuItem.create({
+            restaurantId,
+            categoryId,
+            name,
+            price,
+            variations: variations || [],
+            options: options || []
         });
 
-        if (hoxanItems.length >= 1) {
-            const itemToKeep = hoxanItems[0];
-            const itemsToDelete = [];
-            const variantItems = [];
+        console.log('🐞 DEBUG: Item Created:', JSON.stringify(item.toJSON(), null, 2));
 
-            hoxanItems.forEach(item => {
-                let variantName = 'Porsiyon';
-                if (item.name.includes('2 Adet') || item.name.includes('2 adet')) variantName = '2 Adet';
-                else if (item.name.includes('4 Adet') || item.name.includes('4 adet')) variantName = '4 Adet';
+        res.json({
+            success: true,
+            data: item,
+            receivedBody: req.body
+        });
+    } catch (error) {
+        console.error('🐞 DEBUG: Create Item Error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message,
+            stack: error.stack
+        });
+    }
+});
+log(`✅ Merged/Updated "Dana etli ramen" (ID: ${itemToKeep.id}) with ${variantItems.length} variants.`);
 
-                // If we only found "2 Adet", let's manually add "4 Adet" if it fits the logic?
-                // Or just trust the found items. 
-                // Let's stick to converting what exists. User can add others.
-
-                variantItems.push({ name: variantName, price: parseFloat(item.price) });
-                if (item.id !== itemToKeep.id) itemsToDelete.push(item.id);
-            });
-
-            // Special logic: If only "2 Adet" exists, maybe we want to hint at 4?
-            // But let's keep it safe. Just convert.
-
-            await itemToKeep.update({
-                name: 'Hoxan',
-                price: Math.min(...variantItems.map(v => v.price)),
-                variants: variantItems
-            });
-            log(`✅ Merged/Updated "Hoxan" (ID: ${itemToKeep.id}) with ${variantItems.length} variants.`);
-
-            if (itemsToDelete.length > 0) {
-                await MenuItem.destroy({ where: { id: itemsToDelete } });
-                log(`🗑️ Deleted ${itemsToDelete.length} redundant hoxan items.`);
-            }
+// Delete duplicates
+if (itemsToDelete.length > 0) {
+    await MenuItem.destroy({ where: { id: itemsToDelete } });
+    log(`🗑️ Deleted ${itemsToDelete.length} redundant ramen items.`);
+}
         } else {
-            log('ℹ️ "Hoxan" not found.');
-        }
+    log('ℹ️ "Dana etli ramen" not found.');
+}
 
-        res.send(`
+// 3. Process Hoxan
+const hoxanItems = await MenuItem.findAll({
+    where: {
+        name: { [Op.iLike]: '%Hoxan%' }
+    }
+});
+
+if (hoxanItems.length >= 1) {
+    const itemToKeep = hoxanItems[0];
+    const itemsToDelete = [];
+    const variantItems = [];
+
+    hoxanItems.forEach(item => {
+        let variantName = 'Porsiyon';
+        if (item.name.includes('2 Adet') || item.name.includes('2 adet')) variantName = '2 Adet';
+        else if (item.name.includes('4 Adet') || item.name.includes('4 adet')) variantName = '4 Adet';
+
+        // If we only found "2 Adet", let's manually add "4 Adet" if it fits the logic?
+        // Or just trust the found items. 
+        // Let's stick to converting what exists. User can add others.
+
+        variantItems.push({ name: variantName, price: parseFloat(item.price) });
+        if (item.id !== itemToKeep.id) itemsToDelete.push(item.id);
+    });
+
+    // Special logic: If only "2 Adet" exists, maybe we want to hint at 4?
+    // But let's keep it safe. Just convert.
+
+    await itemToKeep.update({
+        name: 'Hoxan',
+        price: Math.min(...variantItems.map(v => v.price)),
+        variants: variantItems
+    });
+    log(`✅ Merged/Updated "Hoxan" (ID: ${itemToKeep.id}) with ${variantItems.length} variants.`);
+
+    if (itemsToDelete.length > 0) {
+        await MenuItem.destroy({ where: { id: itemsToDelete } });
+        log(`🗑️ Deleted ${itemsToDelete.length} redundant hoxan items.`);
+    }
+} else {
+    log('ℹ️ "Hoxan" not found.');
+}
+
+res.send(`
             <div style="font-family: monospace; padding: 20px; background: #222; color: #0f0;">
                 <h1>Migration Log</h1>
                 <ul>
@@ -214,8 +253,8 @@ router.get('/apply-variants', async (req, res) => {
         `);
 
     } catch (error) {
-        res.status(500).send(`<pre style="color:red">${error.stack}</pre>`);
-    }
+    res.status(500).send(`<pre style="color:red">${error.stack}</pre>`);
+}
 });
 
 router.post('/fix-db-schema', async (req, res) => {
