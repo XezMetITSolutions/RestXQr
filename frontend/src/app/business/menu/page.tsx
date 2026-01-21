@@ -197,12 +197,8 @@ export default function MenuManagement() {
     isPopular: false,
     kitchenStation: '',
     translations: {},
-<<<<<<< HEAD
-    variants: [] as any[]
-=======
     variations: [] as Array<{ name: string, price: number }>,
     options: [] as Array<{ name: string, values: string[] }>
->>>>>>> bd8ef48 (feat: Add product variations and options support (frontend + backend))
   });
 
   const [categoryFormData, setCategoryFormData] = useState({
