@@ -9,6 +9,7 @@ interface MenuItemModalProps {
   item: MenuItem;
   isOpen: boolean;
   onClose: () => void;
+  imageCacheVersion?: number;
 }
 
 export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion }: MenuItemModalProps) {
