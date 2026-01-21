@@ -437,6 +437,31 @@ function SettingsPageContent() {
     }
   };
 
+  const BRIDGE_URL = 'http://localhost:3005';
+
+  const handleTestPrint = async () => {
+    const ip = settings.printerSettings?.testIpAddress;
+    if (!ip) {
+      alert(getStatic('Lütfen geçerli bir IP adresi girin.'));
+      return;
+    }
+
+    try {
+      // alert(getStatic('Test dökümü gönderiliyor... IP: ') + ip); // Alert yerine loading state kullanılabilir ama şimdilik request atalım
+      const res = await fetch(`${BRIDGE_URL}/test/${ip}`, { method: 'POST' });
+      const data = await res.json();
+
+      if (data.success) {
+        alert(getStatic('✅ Test yazdırma başarılı! (Local Bridge)'));
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+    } catch (error: any) {
+      console.error('Test print error:', error);
+      alert(`${getStatic('❌ Test yazdırma hatası')}: ${error.message}\n${getStatic('Local Printer Bridge (Port 3005) çalışıyor mu? Bu özellik sadece yerel ağda çalışır.')}`);
+    }
+  };
+
 
   const tabs = [
     { id: 'general', name: getStatic('Genel Ayarlar'), icon: FaCog },
@@ -2032,7 +2057,7 @@ function SettingsPageContent() {
                                 placeholder="Örn: 192.168.1.100"
                               />
                               <button
-                                onClick={(e) => { e.preventDefault(); alert(getStatic('Test dökümü gönderiliyor... IP: ') + settings.printerSettings?.testIpAddress); }}
+                                onClick={(e) => { e.preventDefault(); handleTestPrint(); }}
                                 className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-bold hover:bg-black transition-colors"
                               >
                                 <TranslatedText>Test Çıktısı Al</TranslatedText>

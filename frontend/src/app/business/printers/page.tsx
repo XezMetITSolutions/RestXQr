@@ -87,46 +87,54 @@ function PrinterManagementContent() {
         }
     };
 
+    const BRIDGE_URL = 'http://localhost:3005';
+
     const handleTestPrint = async (stationId: string) => {
+        const station = stations.find(s => s.id === stationId);
+        if (!station || !station.ip) {
+            alert('❌ Hata: Yazıcı IP adresi bulunamadı.');
+            return;
+        }
+
         try {
             setTestingStation(stationId);
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
-            const apiUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+            // Local Bridge üzerinden test yazdırma (Debug sayfasındaki mantık)
+            const res = await fetch(`${BRIDGE_URL}/test/${station.ip}`, { method: 'POST' });
+            const data = await res.json();
 
-            const response = await fetch(`${apiUrl}/printers/${stationId}/test`, {
-                method: 'POST'
-            });
-
-            const data = await response.json();
             if (data.success) {
-                alert('✅ Test yazdırma başarılı!');
+                alert('✅ Test yazdırma başarılı! (Local Bridge)');
             } else {
                 alert(`❌ Hata: ${data.error}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Test print error:', error);
-            alert('❌ Test yazdırma hatası');
+            alert(`❌ Test yazdırma hatası: ${error.message}. Local Printer Bridge çalışıyor mu? (Port 3005)`);
         } finally {
             setTestingStation(null);
         }
     };
 
     const handleCheckStatus = async (stationId: string) => {
+        const station = stations.find(s => s.id === stationId);
+        if (!station || !station.ip) {
+            alert('❌ Hata: Yazıcı IP adresi bulunamadı.');
+            return;
+        }
+
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
-            const apiUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+            // Local Bridge üzerinden durum kontrolü (Debug sayfasındaki mantık)
+            const res = await fetch(`${BRIDGE_URL}/status/${station.ip}`);
+            const data = await res.json();
 
-            const response = await fetch(`${apiUrl}/printers/${stationId}/status`);
-            const data = await response.json();
-
-            if (data.success && data.data.connected) {
-                alert(`✅ ${data.data.station} yazıcısı bağlı`);
+            if (data.connected) {
+                alert(`✅ ${station.name} (${station.ip}) bağlı ve erişilebilir.`);
             } else {
-                alert(`❌ Yazıcı bağlı değil: ${data.data.error || 'Bilinmeyen hata'}`);
+                alert(`❌ Yazıcıya ulaşılamıyor: ${data.error || 'Bilinmeyen hata'}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Status check error:', error);
-            alert('❌ Durum kontrolü başarısız');
+            alert(`❌ Durum kontrolü başarısız: ${error.message}. Local Printer Bridge çalışıyor mu?`);
         }
     };
 
