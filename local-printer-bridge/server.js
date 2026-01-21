@@ -70,7 +70,9 @@ app.post('/test/:ip', async (req, res) => {
             characterSet: CharacterSet.PC857_TURKISH,
             removeSpecialCharacters: false,
             lineCharacter: '-',
-            options: { timeout: 5000 }
+            options: {
+                timeout: 5000
+            }
         });
 
         const isConnected = await printer.isPrinterConnected();
@@ -96,13 +98,72 @@ app.post('/test/:ip', async (req, res) => {
 
         printer.cut();
 
-        await printer.execute();
-        console.log("✅ Test print successful");
-        res.json({ success: true, message: "Test print sent successfully" });
+        try {
+            await printer.execute();
+            console.log("✅ Test print successful");
+            res.json({ success: true, message: "Test print sent successfully" });
+        } catch (execError) {
+            console.error("Execute error:", execError);
+            throw new Error("Printer execution failed: " + execError.message);
+        }
 
     } catch (error) {
         console.error("Print error:", error);
         res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Image print endpoint (Base64)
+app.post('/print-image/:ip', async (req, res) => {
+    const { ip } = req.params;
+    const { image } = req.body; // Expecting base64 string (data:image/png;base64,...)
+
+    if (!image) {
+        return res.status(400).json({ success: false, error: "No image provided" });
+    }
+
+    console.log(`Received IMAGE print request for ${ip}`);
+
+    const tempFilePath = path.join(__dirname, `temp_print_${Date.now()}.png`);
+
+    try {
+        // Save base64 to file
+        const base64Data = image.replace(/^data:image\/png;base64,/, "");
+        fs.writeFileSync(tempFilePath, base64Data, 'base64');
+        console.log(`Image saved to ${tempFilePath}`);
+
+        const printer = new ThermalPrinter({
+            type: PrinterTypes.EPSON,
+            interface: `tcp://${ip}:9100`,
+            options: { timeout: 10000 }
+        });
+
+        // Print the image
+        await printer.printImage(tempFilePath);
+        printer.cut();
+
+        try {
+            await printer.execute();
+            console.log("✅ Image print successful");
+            res.json({ success: true, message: "Image printed successfully" });
+        } catch (execError) {
+            console.error("Execute error:", execError);
+            throw new Error("Printer execution failed: " + execError.message);
+        }
+
+    } catch (error) {
+        console.error("Image print error:", error);
+        res.status(500).json({ success: false, error: error.message });
+    } finally {
+        // Cleanup temp file
+        if (fs.existsSync(tempFilePath)) {
+            try {
+                fs.unlinkSync(tempFilePath);
+                console.log("Temp file cleaned up");
+            } catch (cleanupError) {
+                console.error("Failed to delete temp file:", cleanupError);
+            }
+        }
     }
 });
 

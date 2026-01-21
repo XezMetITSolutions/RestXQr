@@ -199,6 +199,110 @@ export default function PrinterTestPage() {
         }
     };
 
+    const generateReceiptImage = (stationIp: string) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 384; // Standard thermal printer width (384px for 58mm, 576px for 80mm) - using safe width
+        canvas.height = 400; // Estimated height
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return null;
+
+        // Background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Text settings
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'center';
+
+        // Header
+        ctx.font = 'bold 24px Arial';
+        ctx.fillText('RestXQR Image Print', canvas.width / 2, 40);
+
+        ctx.font = '18px Arial';
+        ctx.fillText('Automatic Image Mode', canvas.width / 2, 70);
+
+        // Divider
+        ctx.beginPath();
+        ctx.moveTo(10, 90);
+        ctx.lineTo(canvas.width - 10, 90);
+        ctx.stroke();
+
+        // Turkish Characters Test
+        ctx.textAlign = 'left';
+        ctx.font = 'bold 20px Arial';
+        ctx.fillText('Türkçe Karakter Testi:', 20, 130);
+
+        ctx.font = '22px Arial';
+        ctx.fillText('ÇğıÖşü İIĞÜŞÇ', 20, 160);
+        ctx.fillText('Lezzetli Çorba & Kebap', 20, 190);
+
+        // Info
+        ctx.font = '16px monospace';
+        ctx.fillText(`IP: ${stationIp}`, 20, 240);
+        ctx.fillText(`Date: ${new Date().toLocaleDateString()}`, 20, 270);
+        ctx.fillText(`Time: ${new Date().toLocaleTimeString()}`, 20, 290);
+
+        // Footer
+        ctx.textAlign = 'center';
+        ctx.font = 'italic 16px Arial';
+        ctx.fillText('Printed via Canvas -> Bridge', canvas.width / 2, 350);
+
+        return canvas.toDataURL('image/png');
+    };
+
+    const testImagePrint = async (stationId: string) => {
+        setPrintingStation(stationId);
+        const station = stations.find(s => s.id === stationId);
+        if (!station) return;
+
+        if (connectionMode !== 'local') {
+            setMessages(prev => ({
+                ...prev,
+                [stationId]: { type: 'error', text: 'Image printing only works in Local Bridge mode!' }
+            }));
+            setPrintingStation(null);
+            return;
+        }
+
+        try {
+            const base64Image = generateReceiptImage(station.ip);
+            if (!base64Image) throw new Error("Failed to generate image");
+
+            const response = await fetch(`http://localhost:3005/print-image/${station.ip}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64Image })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                setMessages(prev => ({
+                    ...prev,
+                    [stationId]: { type: 'success', text: '✅ Image print sent successfully!' }
+                }));
+            } else {
+                setMessages(prev => ({
+                    ...prev,
+                    [stationId]: { type: 'error', text: `❌ Print failed: ${data.error}` }
+                }));
+            }
+        } catch (error) {
+            setMessages(prev => ({
+                ...prev,
+                [stationId]: { type: 'error', text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` }
+            }));
+        } finally {
+            setPrintingStation(null);
+            setTimeout(() => {
+                setMessages(prev => {
+                    const newMessages = { ...prev };
+                    delete newMessages[stationId];
+                    return newMessages;
+                });
+            }, 5000);
+        }
+    };
+
     const handleConfigChange = (stationId: string, field: keyof PrinterConfig, value: any) => {
         setStations(prev => prev.map(s =>
             s.id === stationId ? { ...s, [field]: value } : s
@@ -362,31 +466,29 @@ export default function PrinterTestPage() {
                                 )}
 
                                 {/* Action Buttons */}
-                                <div className="flex gap-2 pt-2">
-                                    <button
-                                        onClick={() => checkStatus(station.id)}
-                                        disabled={!station.enabled || statusChecking === station.id}
-                                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
-                                    >
-                                        {statusChecking === station.id ? (
-                                            <>
-                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                                Checking...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                Check Status
-                                            </>
-                                        )}
-                                    </button>
+                                <div className="flex flex-col gap-2 pt-2">
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => checkStatus(station.id)}
+                                            disabled={!station.enabled || statusChecking === station.id}
+                                            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-xs"
+                                        >
+                                            {statusChecking === station.id ? 'Checking...' : 'Check Status'}
+                                        </button>
 
+                                        <button
+                                            onClick={() => testPrint(station.id)}
+                                            disabled={!station.enabled || printingStation === station.id}
+                                            className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-xs"
+                                        >
+                                            {printingStation === station.id ? 'Printing...' : 'Test Text'}
+                                        </button>
+                                    </div>
                                     <button
-                                        onClick={() => testPrint(station.id)}
-                                        disabled={!station.enabled || printingStation === station.id}
-                                        className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                                        onClick={() => testImagePrint(station.id)}
+                                        disabled={!station.enabled || printingStation === station.id || connectionMode !== 'local'}
+                                        className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-xs"
+                                        title={connectionMode !== 'local' ? 'Switch to Local Bridge mode to use Image Print' : 'Print as Image (Solves Character Issues)'}
                                     >
                                         {printingStation === station.id ? (
                                             <>
@@ -395,10 +497,8 @@ export default function PrinterTestPage() {
                                             </>
                                         ) : (
                                             <>
-                                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                                                </svg>
-                                                Test Print
+                                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                Test Image Print (Best for Turkish)
                                             </>
                                         )}
                                     </button>
