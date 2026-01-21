@@ -80,21 +80,62 @@ app.post('/test/:ip', async (req, res) => {
             throw new Error("Printer not connected");
         }
 
+        // Kitchen Receipt Format
         printer.alignCenter();
-        printer.println("RestXQR Local Bridge");
-        printer.drawLine();
-
         printer.setTextDoubleHeight();
-        printer.println("TEST BASARILI");
+        printer.bold(true);
+        printer.println("MASA 15");
+        printer.bold(false);
         printer.setTextNormal();
-
+        printer.println(new Date().toLocaleString('tr-TR'));
         printer.drawLine();
-        printer.println(encodeText("Türkçe Karakter Testi:"));
-        printer.println(encodeText("ÇğıÖşü İIĞÜŞÇ"));
         printer.newLine();
 
-        printer.println(encodeText("Station: " + ip));
-        printer.println("Time: " + new Date().toLocaleTimeString());
+        // Products with Turkish/Chinese names and special notes
+        printer.alignLeft();
+
+        // Product 1
+        printer.bold(true);
+        printer.println(encodeText("2x Karışık Ramen"));
+        printer.bold(false);
+        printer.println("2x 什锦拉面");
+        printer.invert(true);
+        printer.println(encodeText("  ⚠ Acılı, Soğansız"));
+        printer.invert(false);
+        printer.drawLine();
+
+        // Product 2
+        printer.bold(true);
+        printer.println(encodeText("1x Dana Etli Ramen"));
+        printer.bold(false);
+        printer.println("1x 牛肉拉面");
+        printer.invert(true);
+        printer.println(encodeText("  ⚠ Çok Acılı"));
+        printer.invert(false);
+        printer.drawLine();
+
+        // Product 3
+        printer.bold(true);
+        printer.println(encodeText("3x Mantı"));
+        printer.bold(false);
+        printer.println("3x 饺子");
+        printer.invert(true);
+        printer.println(encodeText("  ⚠ Acısız"));
+        printer.invert(false);
+        printer.drawLine();
+
+        // Product 4
+        printer.bold(true);
+        printer.println(encodeText("1x Izgara Tavuk"));
+        printer.bold(false);
+        printer.println("1x 烤鸡");
+        printer.println(encodeText("  Not: Az pişmiş"));
+        printer.drawLine();
+
+        printer.newLine();
+        printer.alignCenter();
+        printer.setTextSize(0, 0);
+        printer.println("RestXQr - " + ip);
 
         printer.cut();
 
