@@ -176,20 +176,6 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       visible: true
     },
     {
-      href: `${basePath}/db-migration`,
-      icon: FaDatabase,
-      label: <TranslatedText>DB Migration</TranslatedText>,
-      active: pathname === `${basePath}/db-migration`,
-      visible: true
-    },
-    {
-      href: `${basePath}/station-debug`,
-      icon: FaDatabase,
-      label: <TranslatedText>İstasyon Debug</TranslatedText>,
-      active: pathname === `${basePath}/station-debug`,
-      visible: true
-    },
-    {
       href: `${basePath}/printers`,
       icon: FaPrint,
       label: <TranslatedText>Yazıcı Yönetimi</TranslatedText>,
