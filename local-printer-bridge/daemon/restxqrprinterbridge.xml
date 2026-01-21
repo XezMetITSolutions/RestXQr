@@ -1,0 +1,32 @@
+<service>
+	<id>restxqrprinterbridge.exe</id>
+	<name>RestXQR Printer Bridge</name>
+	<description>Local printer bridge for RestXQR cloud application. Allows printing to local thermal printers.</description>
+	<executable>C:\Program Files\nodejs\node.exe</executable>
+	<argument>--harmony</argument>
+	<argument>--max_old_space_size=4096</argument>
+	<argument>C:\Users\Anwender\Downloads\RestXQR\local-printer-bridge\node_modules\node-windows\lib\wrapper.js</argument>
+	<argument>--file</argument>
+	<argument>C:\Users\Anwender\Downloads\RestXQR\local-printer-bridge\server.js</argument>
+	<argument>--scriptoptions=</argument>
+	<argument>--log</argument>
+	<argument>RestXQR Printer Bridge wrapper</argument>
+	<argument>--grow</argument>
+	<argument>0.25</argument>
+	<argument>--wait</argument>
+	<argument>1</argument>
+	<argument>--maxrestarts</argument>
+	<argument>3</argument>
+	<argument>--abortonerror</argument>
+	<argument>n</argument>
+	<argument>--stopparentfirst</argument>
+	<argument>undefined</argument>
+	<logmode>rotate</logmode>
+	<stoptimeout>30sec</stoptimeout>
+	<serviceaccount>
+		<domain>3ITTEST</domain>
+		<user>LocalSystem</user>
+		<password></password>
+	</serviceaccount>
+	<workingdirectory>C:\Users\Anwender\Downloads\RestXQR\local-printer-bridge</workingdirectory>
+</service>

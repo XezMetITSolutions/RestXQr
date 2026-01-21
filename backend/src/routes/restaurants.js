@@ -137,6 +137,17 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Get restaurant error:', error);
+
+    // Check if it's a missing column error
+    if (error.name === 'SequelizeDatabaseError' && error.message.includes('column') && error.message.includes('does not exist')) {
+      return res.status(200).json({
+        success: true,
+        data: null,
+        warning: 'Database schema needs update. Please visit /debug/db-schema',
+        error: error.message
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Internal server error',

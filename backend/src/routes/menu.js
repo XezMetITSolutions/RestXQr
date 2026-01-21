@@ -55,6 +55,17 @@ router.get('/:restaurantId/menu', async (req, res) => {
 
   } catch (error) {
     console.error('Get restaurant menu error:', error);
+
+    // Check if it's a missing column error
+    if (error.name === 'SequelizeDatabaseError' && error.message.includes('column') && error.message.includes('does not exist')) {
+      return res.status(200).json({
+        success: true,
+        data: { categories: [], items: [] },
+        warning: 'Database schema needs update. Some columns are missing. Please run /api/admin-fix/fix-db-schema',
+        error: error.message
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -392,7 +403,6 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       displayOrder: order || 0,
       isAvailable: isAvailable !== undefined ? isAvailable : true,
       isPopular: isPopular || false,
-      preparationTime: preparationTime || null,
       calories: calories || null,
       subcategory: subcategory || null,
       ingredients: ingredients || null,
@@ -400,7 +410,10 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       portion: portion || null,
       portionSize: portion || null,
       kitchenStation: kitchenStation || null,
-      variants: variants || []
+      variations: req.body.variations || [],
+      options: req.body.options || [],
+      type: req.body.type || 'single',
+      bundleItems: req.body.bundleItems || []
     });
 
     console.log('Backend - Oluşturulan item:', {

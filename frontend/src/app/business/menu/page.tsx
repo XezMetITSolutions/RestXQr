@@ -34,7 +34,8 @@ import {
   FaGlobe,
   FaMagic,
   FaLanguage,
-  FaClock
+  FaClock,
+  FaBoxOpen
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
@@ -134,7 +135,7 @@ export default function MenuManagement() {
     return staticDictionary[text]?.[code] || text;
   }; const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || t('Kullanıcı');
 
-  const [activeTab, setActiveTab] = useState<'items' | 'categories' | 'stations' | 'stats'>('items');
+  const [activeTab, setActiveTab] = useState<'items' | 'combos' | 'categories' | 'stations' | 'stats'>('items');
   const [searchTerm, setSearchTerm] = useState('');
   const [showItemForm, setShowItemForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
@@ -197,7 +198,10 @@ export default function MenuManagement() {
     isPopular: false,
     kitchenStation: '',
     translations: {},
-    variants: [] as any[]
+    variations: [] as Array<{ name: string, price: number }>,
+    options: [] as Array<{ name: string, values: string[] }>,
+    type: 'single' as 'single' | 'bundle',
+    bundleItems: [] as Array<{ itemId: string; quantity: number; name?: string }>
   });
 
   const [categoryFormData, setCategoryFormData] = useState({
@@ -374,7 +378,11 @@ export default function MenuManagement() {
       isAvailable: true,
       isPopular: false,
       kitchenStation: '',
-      translations: {}
+      translations: {},
+      variations: [],
+      options: [],
+      type: activeTab === 'combos' ? 'bundle' : 'single',
+      bundleItems: []
     });
     setShowItemForm(true);
   };
@@ -403,9 +411,11 @@ export default function MenuManagement() {
       isAvailable: item.isAvailable !== false,
       isPopular: item.isPopular || false,
       kitchenStation: item.kitchenStation || '',
-      kitchenStation: item.kitchenStation || '',
       translations: item.translations || {},
-      variants: item.variants || []
+      variations: item.variations || [],
+      options: item.options || [],
+      type: item.type || 'single',
+      bundleItems: item.bundleItems || []
     });
 
     console.log('📝 handleEditItem - Original Item:', {
@@ -1041,30 +1051,45 @@ export default function MenuManagement() {
   };
 
   // Filtrelenmiş ürünler
-  const filteredItems = items.filter(item => {
-    // Debug: Ürün verilerini console'a yazdır
-    console.log('Ürün verisi:', {
-      id: item.id,
-      name: item.name,
-      imageUrl: item.imageUrl,
-      image: item.image
-    });
+  // Filtrelenmiş ürünler
+  const filteredItems = useMemo(() => {
+    let result = items;
 
-    // Güvenlik kontrolü - item.name ve item.description undefined olabilir
-    const itemName = item.name || '';
-    const itemDescription = item.description || '';
+    // 1. Tab filtering
+    if (activeTab === 'combos') {
+      result = result.filter(item => item.type === 'bundle');
+    } else if (activeTab === 'items') {
+      result = result.filter(item => !item.type || item.type === 'single');
+    }
 
-    const matchesSearch = itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      itemDescription.toLowerCase().includes(searchTerm.toLowerCase());
+    // 2. Search
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(item =>
+        (item.name && item.name.toLowerCase().includes(term)) ||
+        (item.description && item.description.toLowerCase().includes(term))
+      );
+    }
 
-    const matchesStatus = statusFilter === 'all' ||
-      (statusFilter === 'available' && item.isAvailable !== false) ||
-      (statusFilter === 'out-of-stock' && item.isAvailable === false);
+    // 3. Category
+    if (selectedCategory !== 'all') {
+      result = result.filter(item => item.categoryId === selectedCategory);
+    }
 
-    const showItem = showOutOfStock || item.isAvailable !== false;
+    // 4. Status
+    if (statusFilter === 'available') {
+      result = result.filter(item => item.isAvailable !== false);
+    } else if (statusFilter === 'out-of-stock') {
+      result = result.filter(item => item.isAvailable === false);
+    }
 
-    return matchesSearch && matchesStatus && showItem;
-  });
+    // 5. Hide out of stock if toggle is off (and not specifically filtering for them)
+    if (!showOutOfStock && statusFilter === 'all') {
+      result = result.filter(item => item.isAvailable !== false);
+    }
+
+    return result;
+  }, [items, searchTerm, selectedCategory, statusFilter, activeTab, showOutOfStock]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden" style={{ zoom: '0.8' }}>
@@ -1120,6 +1145,16 @@ export default function MenuManagement() {
               >
                 <FaUtensils />
                 <TranslatedText>Ürünler</TranslatedText> ({items.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('combos')}
+                className={`px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 flex items-center gap-2 ${activeTab === 'combos'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+              >
+                <FaBoxOpen /> {/* Assuming FaBoxOpen for combos, or another suitable icon */}
+                <TranslatedText>Menüler</TranslatedText>
               </button>
               <button
                 onClick={() => setActiveTab('categories')}
@@ -1560,6 +1595,116 @@ export default function MenuManagement() {
             </div>
           )}
 
+
+          {!loading && activeTab === 'combos' && (
+            <div className="space-y-6">
+              {/* Add New Combo Button & Help */}
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold"><TranslatedText>Menüler</TranslatedText></h2>
+                <button
+                  onClick={handleAddItem}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                >
+                  <FaPlus />
+                  <TranslatedText>Yeni Menü Ekle</TranslatedText>
+                </button>
+              </div>
+
+              {filteredItems.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <FaUtensils className="mx-auto text-5xl" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz menü yok</TranslatedText></h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    <TranslatedText>Müşterilerinize avantajlı menüler oluşturun</TranslatedText>
+                  </p>
+                  <button
+                    onClick={handleAddItem}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                  >
+                    <FaPlus />
+                    <TranslatedText>İlk Menüyü Ekle</TranslatedText>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredItems.map(item => (
+                    <div key={item.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="relative h-48 bg-gray-100">
+                        <img
+                          src={
+                            (item.imageUrl || item.image)
+                              ? (item.imageUrl || item.image)?.startsWith('http')
+                                ? (item.imageUrl || item.image)
+                                : (() => {
+                                  const imagePath = item.imageUrl || item.image;
+                                  if (imagePath && typeof imagePath === 'string' && imagePath.startsWith('/uploads/')) {
+                                    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                                    return `${baseUrl}${imagePath}`;
+                                  }
+                                  return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${imagePath}`;
+                                })()
+                              : '/placeholder-food.jpg'
+                          }
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => { e.currentTarget.src = '/placeholder-food.jpg'; }}
+                        />
+                        <div className="absolute top-2 right-2">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${item.isAvailable !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {item.isAvailable !== false ? <TranslatedText>Mevcut</TranslatedText> : <TranslatedText>Tükendi</TranslatedText>}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-bold text-lg">{item.name}</h3>
+                          <span className="font-bold text-purple-600 text-lg">₺{item.price}</span>
+                        </div>
+                        <p className="text-sm text-gray-500 line-clamp-2 mb-3">{item.description}</p>
+
+                        {/* Bundle Items Summary */}
+                        <div className="bg-purple-50 p-3 rounded-lg mb-4">
+                          <h4 className="text-xs font-bold text-purple-800 uppercase mb-2"><TranslatedText>Menü İçeriği</TranslatedText></h4>
+                          <ul className="text-sm space-y-1">
+                            {item.bundleItems && item.bundleItems.length > 0 ? (
+                              item.bundleItems.map((bi: any, idx: number) => {
+                                const originalItem = items.find(i => i.id === bi.itemId);
+                                return (
+                                  <li key={idx} className="flex justify-between">
+                                    <span>{bi.quantity}x {originalItem?.name || bi.name || 'Ürün'}</span>
+                                  </li>
+                                );
+                              })
+                            ) : (
+                              <li className="text-gray-400 text-xs"><TranslatedText>İçerik bilgisi yok</TranslatedText></li>
+                            )}
+                          </ul>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditItem(item)}
+                            className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium"
+                          >
+                            <TranslatedText>Düzenle</TranslatedText>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteItem(item.id)}
+                            className="py-2 px-3 border border-red-200 text-red-600 rounded-lg hover:bg-red-50"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {!loading && activeTab === 'categories' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
@@ -1911,6 +2056,225 @@ export default function MenuManagement() {
                         </p>
                       </div>
                     </div>
+
+
+                    {/* VARYASYONLAR (Variations) */}
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                          <FaTag className="text-blue-500" />
+                          {t('Varyasyonlar')}
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              variations: [...(prev.variations || []), { name: '', price: 0 }]
+                            }));
+                          }}
+                          className="text-sm text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1"
+                        >
+                          <FaPlus size={12} /> {t('Varyasyon Ekle')}
+                        </button>
+                      </div>
+
+                      {formData.variations && formData.variations.length > 0 ? (
+                        <div className="space-y-2">
+                          {formData.variations.map((v, idx) => (
+                            <div key={idx} className="flex gap-2 items-center">
+                              <input
+                                type="text"
+                                placeholder={t('Örn: 2 Adet, Büyük Boy')}
+                                value={v.name}
+                                onChange={e => {
+                                  const newVars = [...formData.variations];
+                                  newVars[idx].name = e.target.value;
+                                  setFormData({ ...formData, variations: newVars });
+                                }}
+                                className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                              />
+                              <input
+                                type="number"
+                                placeholder={t('Fiyat')}
+                                value={v.price}
+                                onChange={e => {
+                                  const newVars = [...formData.variations];
+                                  newVars[idx].price = parseFloat(e.target.value);
+                                  setFormData({ ...formData, variations: newVars });
+                                }}
+                                className="w-24 px-3 py-2 border rounded-lg text-sm"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newVars = formData.variations.filter((_, i) => i !== idx);
+                                  setFormData({ ...formData, variations: newVars });
+                                }}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded"
+                              >
+                                <FaTrash size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-400 text-sm text-center italic">{t('Varyasyon eklenmemiş (Örn: Porsiyon büyüklüğü, Adet)')}</p>
+                      )}
+                    </div>
+
+                    {/* ÖZELLİKLER (Options) */}
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                          <FaClipboardList className="text-orange-500" />
+                          {t('Özellik Seçenekleri')}
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              options: [...(prev.options || []), { name: '', values: [] }]
+                            }));
+                          }}
+                          className="text-sm text-orange-600 hover:text-orange-800 font-bold flex items-center gap-1"
+                        >
+                          <FaPlus size={12} /> {t('Grup Ekle')}
+                        </button>
+                      </div>
+
+                      {formData.options && formData.options.length > 0 ? (
+                        <div className="space-y-4">
+                          {formData.options.map((opt, idx) => (
+                            <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200">
+                              <div className="flex justify-between items-center mb-2">
+                                <input
+                                  type="text"
+                                  placeholder={t('Grup Adı (Örn: Acı Durumu, Soslar)')}
+                                  value={opt.name}
+                                  onChange={e => {
+                                    const newOpts = [...formData.options];
+                                    newOpts[idx].name = e.target.value;
+                                    setFormData({ ...formData, options: newOpts });
+                                  }}
+                                  className="flex-1 px-3 py-2 border rounded-lg text-sm font-bold mr-2"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newOpts = formData.options.filter((_, i) => i !== idx);
+                                    setFormData({ ...formData, options: newOpts });
+                                  }}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <FaTrash size={14} />
+                                </button>
+                              </div>
+
+                              <div>
+                                <label className="text-xs text-gray-500 mb-1 block">{t('Seçenekler (Virgülle ayırın)')}</label>
+                                <input
+                                  type="text"
+                                  placeholder={t('Örn: Az Acılı, Çok Acılı, Acısız')}
+                                  value={opt.values.join(', ')}
+                                  onChange={e => {
+                                    const newOpts = [...formData.options];
+                                    newOpts[idx].values = e.target.value.split(',').map(s => s.trim()); // removed filter(Boolean) to allows typing comma
+                                    setFormData({ ...formData, options: newOpts });
+                                  }}
+                                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-400 text-sm text-center italic">{t('Seçenek grubu eklenmemiş (Örn: Acı tercihi, Pişme derecesi)')}</p>
+                      )}
+                    </div>
+
+                    {/* MENÜ İÇERİĞİ (Bundle Items) - Sadece 'bundle' tipinde gösterilir */}
+                    {formData.type === 'bundle' && (
+                      <div className="bg-purple-50 p-4 rounded-xl border border-purple-200 mb-4">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                          <FaUtensils className="text-purple-600" />
+                          <TranslatedText>Menü İçeriği</TranslatedText>
+                        </h4>
+
+                        <div className="space-y-4">
+                          {formData.bundleItems.map((bi, idx) => (
+                            <div key={idx} className="flex gap-2 items-center bg-white p-2 rounded-lg border">
+                              <select
+                                className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                                value={bi.itemId}
+                                onChange={(e) => {
+                                  const newItems = [...formData.bundleItems];
+                                  newItems[idx].itemId = e.target.value;
+                                  // Update name reference
+                                  const selectedItem = items.find(i => i.id === e.target.value);
+                                  if (selectedItem) newItems[idx].name = selectedItem.name;
+                                  setFormData({ ...formData, bundleItems: newItems });
+
+                                  // Auto calculate price suggestion if price is 0
+                                  /* Optional: Add logic here to sum prices */
+                                }}
+                              >
+                                <option value="">{t('Ürün Seçin')}</option>
+                                {items.filter(i => i.type !== 'bundle').map(i => (
+                                  <option key={i.id} value={i.id}>{i.name} ({i.price}₺)</option>
+                                ))}
+                              </select>
+                              <input
+                                type="number"
+                                min="1"
+                                value={bi.quantity}
+                                onChange={(e) => {
+                                  const newItems = [...formData.bundleItems];
+                                  newItems[idx].quantity = parseInt(e.target.value) || 1;
+                                  setFormData({ ...formData, bundleItems: newItems });
+                                }}
+                                className="w-20 px-3 py-2 border rounded-lg text-sm"
+                                placeholder="Adet"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newItems = formData.bundleItems.filter((_, i) => i !== idx);
+                                  setFormData({ ...formData, bundleItems: newItems });
+                                }}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
+                          ))}
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                bundleItems: [...(prev.bundleItems || []), { itemId: '', quantity: 1 }]
+                              }));
+                            }}
+                            className="w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 font-medium flex justify-center items-center gap-2"
+                          >
+                            <FaPlus /> <TranslatedText>Ürün Ekle</TranslatedText>
+                          </button>
+
+                          {formData.bundleItems.length > 0 && (
+                            <div className="text-right text-xs text-gray-500">
+                              Toplam: {formData.bundleItems.reduce((sum, bi) => {
+                                const item = items.find(i => i.id === bi.itemId);
+                                return sum + (item ? item.price * bi.quantity : 0);
+                              }, 0)} ₺ (Liste Fiyatı)
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
 
                     {/* Kalori ve Hazırlık Süresi */}
                     <div className="grid grid-cols-2 gap-4">
@@ -2370,8 +2734,13 @@ export default function MenuManagement() {
                           isAvailable: true,
                           isPopular: false,
                           kitchenStation: '',
-                          translations: {}
+                          translations: {},
+                          variations: [],
+                          options: [],
+                          type: activeTab === 'combos' ? 'bundle' : 'single',
+                          bundleItems: []
                         });
+
                       }}
                       className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
@@ -3106,7 +3475,7 @@ export default function MenuManagement() {
             </div>
           )}
         </div>
-      </div>
+      </div >
     </div >
   );
 }

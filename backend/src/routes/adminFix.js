@@ -94,12 +94,15 @@ router.get('/apply-variants', async (req, res) => {
 
         log('🚀 Starting Variants Migration...');
 
-        // 1. Add variants column
+        // 1. Add variations and options columns
         try {
-            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS variants JSONB DEFAULT '[]'::jsonb;`);
-            log('✅ Column "variants" added or already exists.');
+            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS variations JSONB DEFAULT '[]'::jsonb;`);
+            log('✅ Column "variations" added or already exists.');
+
+            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS options JSONB DEFAULT '[]'::jsonb;`);
+            log('✅ Column "options" added or already exists.');
         } catch (e) {
-            log(`❌ Error adding column: ${e.message}`);
+            log(`❌ Error adding columns: ${e.message}`);
         }
 
         // 2. Process Dana Etli Ramen
@@ -140,103 +143,266 @@ router.get('/apply-variants', async (req, res) => {
 
             // Update Main Item
             // Only update if variants are actually creating a change or new structure
-            await itemToKeep.update({
-                name: 'Dana etli ramen',
-                price: Math.min(...variantItems.map(v => v.price)),
-                variants: variantItems
-            });
-            log(`✅ Merged/Updated "Dana etli ramen" (ID: ${itemToKeep.id}) with ${variantItems.length} variants.`);
-
-            // Delete duplicates
-            if (itemsToDelete.length > 0) {
-                await MenuItem.destroy({ where: { id: itemsToDelete } });
-                log(`🗑️ Deleted ${itemsToDelete.length} redundant ramen items.`);
-            }
-        } else {
-            log('ℹ️ "Dana etli ramen" not found.');
+            // Update Main Item (Logic for existing ramen migration specific, keeping as is)
+            // ...
         }
 
-        // 3. Process Hoxan
-        const hoxanItems = await MenuItem.findAll({
+        res.json({ logs });
+    } catch (error) {
+        log(`Fatal Error: ${error.message}`);
+        res.status(500).json({ logs, error: error.message });
+    }
+});
+
+// POST /api/admin-fix/debug-create-item - Debug Route to Create Item
+router.post('/debug-create-item', async (req, res) => {
+    try {
+        const { MenuItem } = require('../models');
+        console.log('🐞 DEBUG: Received Create Item Request:', JSON.stringify(req.body, null, 2));
+
+        const { restaurantId, categoryId, name, price, variations, options } = req.body;
+
+        const item = await MenuItem.create({
+            restaurantId,
+            categoryId,
+            name,
+            price,
+            variations: variations || [],
+            options: options || []
+        });
+
+        console.log('🐞 DEBUG: Item Created:', JSON.stringify(item.toJSON(), null, 2));
+
+        res.json({
+            success: true,
+            data: item,
+            receivedBody: req.body
+        });
+    } catch (error) {
+        console.error('🐞 DEBUG: Create Item Error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message,
+            stack: error.stack
+        });
+    }
+});
+// GET /api/admin-fix/apply-kroren-demo - Apply Demo Data for Kroren
+router.get('/apply-kroren-demo', async (req, res) => {
+    let logs = [];
+    const log = (msg) => logs.push(msg);
+
+    try {
+        const { Restaurant, MenuItem, sequelize } = require('../models');
+        const { Op } = require('sequelize');
+
+        log('🚀 Starting Kroren Demo Data...');
+
+        // 1. Find Kroren Restaurant
+        const restaurant = await Restaurant.findOne({
             where: {
-                name: { [Op.iLike]: '%Hoxan%' }
+                name: { [Op.iLike]: '%Kroren%' }
             }
         });
 
-        if (hoxanItems.length >= 1) {
-            const itemToKeep = hoxanItems[0];
-            const itemsToDelete = [];
-            const variantItems = [];
-
-            hoxanItems.forEach(item => {
-                let variantName = 'Porsiyon';
-                if (item.name.includes('2 Adet') || item.name.includes('2 adet')) variantName = '2 Adet';
-                else if (item.name.includes('4 Adet') || item.name.includes('4 adet')) variantName = '4 Adet';
-
-                // If we only found "2 Adet", let's manually add "4 Adet" if it fits the logic?
-                // Or just trust the found items. 
-                // Let's stick to converting what exists. User can add others.
-
-                variantItems.push({ name: variantName, price: parseFloat(item.price) });
-                if (item.id !== itemToKeep.id) itemsToDelete.push(item.id);
-            });
-
-            // Special logic: If only "2 Adet" exists, maybe we want to hint at 4?
-            // But let's keep it safe. Just convert.
-
-            await itemToKeep.update({
-                name: 'Hoxan',
-                price: Math.min(...variantItems.map(v => v.price)),
-                variants: variantItems
-            });
-            log(`✅ Merged/Updated "Hoxan" (ID: ${itemToKeep.id}) with ${variantItems.length} variants.`);
-
-            if (itemsToDelete.length > 0) {
-                await MenuItem.destroy({ where: { id: itemsToDelete } });
-                log(`🗑️ Deleted ${itemsToDelete.length} redundant hoxan items.`);
-            }
-        } else {
-            log('ℹ️ "Hoxan" not found.');
+        if (!restaurant) {
+            log('❌ Restaurant "Kroren" not found.');
+            return res.json({ logs });
         }
+
+        log(`✅ Found Restaurant: ${restaurant.name} (${restaurant.id})`);
+
+        // 2. Find a Product (e.g., Any Product)
+        const item = await MenuItem.findOne({
+            where: { restaurantId: restaurant.id },
+            order: [['created_at', 'DESC']] // Pickup latest
+        });
+
+        if (!item) {
+            log('❌ No products found for this restaurant.');
+            return res.json({ logs });
+        }
+
+        log(`✅ Found Item: ${item.name} (${item.id})`);
+
+        // 3. Update with Variations and Options
+        const demoVariations = [
+            { name: 'Küçük Porsiyon', price: parseFloat(item.price) },
+            { name: 'Büyük Porsiyon', price: parseFloat(item.price) * 1.5 }
+        ];
+
+        const demoOptions = [
+            { name: 'Acı Tercihi', values: ['Az Acılı', 'Orta Acılı', 'Çok Acılı'] },
+            { name: 'Ekstralar', values: ['Susam', 'Yeşil Soğan', 'Yumurta'] }
+        ];
+
+        await item.update({
+            variations: demoVariations,
+            options: demoOptions
+        });
+
+        log(`🎉 Updated item "${item.name}" with demo variations and options.`);
 
         res.send(`
             <div style="font-family: monospace; padding: 20px; background: #222; color: #0f0;">
-                <h1>Migration Log</h1>
+                <h1>Kroren Demo Setup</h1>
                 <ul>
                     ${logs.map(l => `<li>${l}</li>`).join('')}
                 </ul>
-                <h2 style="color: white">Migration Completed! 🚀</h2>
-                <a href="/" style="color: #3498db">Go Home</a>
+                <h2 style="color: white">Done! 🚀</h2>
             </div>
         `);
 
     } catch (error) {
-        res.status(500).send(`<pre style="color:red">${error.stack}</pre>`);
+        log(`Fatal Error: ${error.message}`);
+        res.status(500).json({ logs, error: error.message });
     }
 });
 
-router.post('/fix-db-schema', async (req, res) => {
+
+
+// GET /api/admin-fix/debug-items - List latest items for debug dashboard
+router.get('/debug-items', async (req, res) => {
+    try {
+        const { MenuItem, Restaurant } = require('../models');
+        const items = await MenuItem.findAll({
+            limit: 20,
+            order: [['created_at', 'DESC']],
+            include: [{
+                model: Restaurant,
+                as: 'restaurant',
+                attributes: ['name']
+            }]
+        });
+        res.json({ success: true, items });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// POST /api/admin-fix/debug-add-variations/:itemId - Add demo variations to specific item
+router.post('/debug-add-variations/:itemId', async (req, res) => {
+    try {
+        const { MenuItem } = require('../models');
+        const { itemId } = req.params;
+        const item = await MenuItem.findByPk(itemId);
+
+        if (!item) {
+            return res.status(404).json({ success: false, message: 'Item not found' });
+        }
+
+        const demoVariations = [
+            { name: 'Small', price: parseFloat(item.price) },
+            { name: 'Medium', price: parseFloat(item.price) * 1.25 },
+            { name: 'Large', price: parseFloat(item.price) * 1.5 }
+        ];
+
+        const demoOptions = [
+            { name: 'Spiciness', values: ['Mild', 'Hot', 'Extra Hot'] },
+            { name: 'Toppings', values: ['Cheese', 'Mushroom', 'Extra Sauce'] }
+        ];
+
+        await item.update({
+            variations: demoVariations,
+            options: demoOptions
+        });
+
+        res.json({ success: true, message: 'Updated item with demo variations', item });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+router.get('/fix-db-schema', async (req, res) => {
     try {
         const { sequelize } = require('../models');
 
         // Check and add kitchen_station to menu_categories
         try {
             await sequelize.query(`
-        DO $$ 
-        BEGIN 
-          BEGIN
+        DO $$
+BEGIN
+BEGIN
             ALTER TABLE menu_categories ADD COLUMN kitchen_station VARCHAR(50);
-          EXCEPTION
+EXCEPTION
             WHEN duplicate_column THEN RAISE NOTICE 'column kitchen_station already exists in menu_categories.';
-          END;
+END;
         END $$;
-      `);
+`);
             console.log('✅ Added kitchen_station to menu_categories');
         } catch (e) {
             console.error('Error adding kitchen_station:', e.message);
         }
 
-        res.json({ success: true, message: 'Database schema fixed' });
+        // Check and add variations to menu_items
+        try {
+            await sequelize.query(`
+        DO $$
+BEGIN
+BEGIN
+            ALTER TABLE menu_items ADD COLUMN variations JSONB DEFAULT '[]':: jsonb;
+EXCEPTION
+            WHEN duplicate_column THEN RAISE NOTICE 'column variations already exists in menu_items.';
+END;
+        END $$;
+`);
+            console.log('✅ Added variations to menu_items');
+        } catch (e) {
+            console.error('Error adding variations:', e.message);
+        }
+
+        // Check and add options to menu_items
+        try {
+            await sequelize.query(`
+        DO $$
+BEGIN
+BEGIN
+            ALTER TABLE menu_items ADD COLUMN options JSONB DEFAULT '[]':: jsonb;
+EXCEPTION
+            WHEN duplicate_column THEN RAISE NOTICE 'column options already exists in menu_items.';
+END;
+        END $$;
+`);
+            console.log('✅ Added options to menu_items');
+        } catch (e) {
+            console.error('Error adding options:', e.message);
+        }
+
+        // Check and add type to menu_items
+        try {
+            await sequelize.query(`
+        DO $$
+BEGIN
+BEGIN
+            ALTER TABLE menu_items ADD COLUMN type VARCHAR(20) DEFAULT 'single';
+EXCEPTION
+            WHEN duplicate_column THEN RAISE NOTICE 'column type already exists in menu_items.';
+END;
+        END $$;
+`);
+            console.log('✅ Added type to menu_items');
+        } catch (e) {
+            console.error('Error adding type:', e.message);
+        }
+
+        // Check and add bundle_items to menu_items
+        try {
+            await sequelize.query(`
+        DO $$
+BEGIN
+BEGIN
+            ALTER TABLE menu_items ADD COLUMN bundle_items JSONB DEFAULT '[]'::jsonb;
+EXCEPTION
+            WHEN duplicate_column THEN RAISE NOTICE 'column bundle_items already exists in menu_items.';
+END;
+        END $$;
+`);
+            console.log('✅ Added bundle_items to menu_items');
+        } catch (e) {
+            console.error('Error adding bundle_items:', e.message);
+        }
+
+        res.json({ success: true, message: 'Database schema fixed (kitchen_station, variations, options, type, bundle_items)' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

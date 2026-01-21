@@ -20,8 +20,36 @@ class PrinterService {
             'ü': '\x81', 'Ü': '\x9A'
         };
 
-        // İstasyon yazıcı konfigürasyonları - Kullanıcı ekleyecek
-        this.stations = {};
+        // İstasyon yazıcı konfigürasyonları - Default stations for XPrinter XP-80
+        this.stations = {
+            station1: {
+                name: 'Station 1 - Grill (XPrinter XP-80)',
+                ip: '192.168.1.13',
+                port: 9100,
+                enabled: true,
+                type: PrinterTypes.EPSON,
+                characterSet: CharacterSet.PC857_TURKISH,
+                codePage: 'CP857'
+            },
+            station2: {
+                name: 'Station 2 - Cold Kitchen (XPrinter XP-80)',
+                ip: '192.168.1.14',
+                port: 9100,
+                enabled: true,
+                type: PrinterTypes.EPSON,
+                characterSet: CharacterSet.PC857_TURKISH,
+                codePage: 'CP857'
+            },
+            station3: {
+                name: 'Station 3 - Bar (XPrinter XP-80)',
+                ip: '192.168.1.15',
+                port: 9100,
+                enabled: true,
+                type: PrinterTypes.EPSON,
+                characterSet: CharacterSet.PC857_TURKISH,
+                codePage: 'CP857'
+            }
+        };
     }
 
     /**

@@ -322,6 +322,10 @@ export default function KasaPanel() {
               cashierNote: updatedOrder.cashierNote
             });
           }
+          // User requested modal to close even after partial payment
+          setShowPaymentModal(false);
+          setSelectedOrder(null);
+          setShowCashPad(false);
         } else {
           if (updatedOrder?.tableNumber) {
             fetch(`${API_URL}/qr/deactivate-by-table`, {
@@ -381,6 +385,10 @@ export default function KasaPanel() {
               cashierNote: updatedOrder.cashierNote
             });
           }
+          // User requested modal to close even after partial payment
+          setShowPaymentModal(false);
+          setSelectedOrder(null);
+          setShowCashPad(false);
         } else {
           if (updatedOrder?.tableNumber) {
             fetch(`${API_URL}/qr/deactivate-by-table`, {

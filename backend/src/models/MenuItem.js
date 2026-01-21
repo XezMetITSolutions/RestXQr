@@ -124,11 +124,28 @@ module.exports = (sequelize, DataTypes) => {
       field: 'kitchen_station',
       comment: 'Kitchen station: izgara, makarna, soguk, tatli'
     },
-    variants: {
+    variations: {
       type: DataTypes.JSONB,
       allowNull: true,
       defaultValue: [],
-      comment: 'Array of variants: [{name: "Small", price: 100}, {name: "Large", price: 150}]'
+      comment: 'Array of variations (e.g., small, large) with prices'
+    },
+    options: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: [],
+      comment: 'Array of option groups (e.g., spiciness) with choices'
+    },
+    type: {
+      type: DataTypes.STRING(20),
+      defaultValue: 'single',
+      comment: 'Item type: single or bundle'
+    },
+    bundleItems: {
+      type: DataTypes.JSONB,
+      defaultValue: [],
+      field: 'bundle_items',
+      comment: 'List of item IDs included in this bundle'
     }
   }, {
     tableName: 'menu_items',

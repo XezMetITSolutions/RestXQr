@@ -52,6 +52,16 @@ export default function DebugPage() {
     <div className="p-4 bg-gray-100 min-h-screen text-gray-800 font-mono text-xs">
       <h1 className="text-xl font-bold mb-4 border-b pb-2">RestXqR Debugger</h1>
 
+      {/* Navigation Links */}
+      <div className="bg-white p-4 rounded shadow mb-4">
+        <h2 className="font-bold text-lg mb-2 text-blue-600">Debug Tools</h2>
+        <div className="flex flex-wrap gap-2">
+          <a href="/debug/printer-test" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">🖨️ Printer Test</a>
+          <a href="/debug/db-schema" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">📊 DB Schema</a>
+          <a href="/debug/find-staff" className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">👥 Find Staff</a>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Environment Info */}
         <div className="bg-white p-4 rounded shadow">

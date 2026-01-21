@@ -9,6 +9,7 @@ interface MenuItemModalProps {
   item: MenuItem;
   isOpen: boolean;
   onClose: () => void;
+  imageCacheVersion?: number;
 }
 
 export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion }: MenuItemModalProps) {
@@ -18,7 +19,9 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
   const [selectedVariant, setSelectedVariant] = useState<{ name: string, price: number } | null>(null);
 
   useEffect(() => {
-    if (item.variants && item.variants.length > 0) {
+    if (item.variations?.length > 0) {
+      setSelectedVariant(item.variations[0]);
+    } else if (item.variants?.length > 0) {
       setSelectedVariant(item.variants[0]);
     } else {
       setSelectedVariant(null);
@@ -101,17 +104,17 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
             {currentPrice} ₺
           </div>
 
-          {/* Variants */}
-          {item.variants && item.variants.length > 0 && (
+          {/* Variations (was Variants) */}
+          {(item.variations?.length > 0 || item.variants?.length > 0) && (
             <div className="mb-4">
-              <h3 className="font-semibold mb-2">Seçenekler</h3>
+              <h3 className="font-semibold mb-2">Varyasyonlar</h3>
               <div className="flex flex-col gap-2">
-                {item.variants.map((v, i) => (
+                {(item.variations || item.variants).map((v: any, i: number) => (
                   <label
                     key={i}
                     className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${selectedVariant?.name === v.name
-                        ? 'border-[var(--brand-strong)] bg-opacity-5'
-                        : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-[var(--brand-strong)] bg-opacity-5'
+                      : 'border-gray-200 hover:border-gray-300'
                       }`}
                     style={{
                       backgroundColor: selectedVariant?.name === v.name ? 'rgba(211, 84, 0, 0.05)' : 'transparent'
@@ -120,8 +123,8 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
                   >
                     <div className="flex items-center">
                       <div className={`w-4 h-4 rounded-full border mr-3 flex items-center justify-center ${selectedVariant?.name === v.name
-                          ? 'border-[var(--brand-strong)]'
-                          : 'border-gray-400'
+                        ? 'border-[var(--brand-strong)]'
+                        : 'border-gray-400'
                         }`}>
                         {selectedVariant?.name === v.name && (
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--brand-strong)' }} />
@@ -133,6 +136,38 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
                   </label>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Options */}
+          {item.options && item.options.length > 0 && (
+            <div className="mb-4">
+              {item.options.map((opt: any, idx: number) => (
+                <div key={idx} className="mb-3">
+                  <h3 className="font-semibold mb-2">{opt.name}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {opt.values.map((val: string, vIdx: number) => (
+                      <label key={vIdx} className="flex items-center space-x-2 cursor-pointer bg-gray-50 px-3 py-2 rounded-md border border-gray-200 hover:bg-gray-100">
+                        <input
+                          type="checkbox"
+                          name={`option-${idx}`}
+                          value={val}
+                          className="rounded text-[var(--brand-primary)] focus:ring-[var(--brand-primary)]"
+                          onChange={(e) => {
+                            // Handle option selection logic (simple array append for now? or single select?)
+                            // Since we don't have advanced validation, let's just create a note string.
+                            setNotes(prev => {
+                              if (e.target.checked) return prev ? `${prev}, ${val}` : val;
+                              return prev.replace(new RegExp(`(, )?${val}(, )?`), '').trim(); // simplistic remove
+                            })
+                          }}
+                        />
+                        <span className="text-sm">{val}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
