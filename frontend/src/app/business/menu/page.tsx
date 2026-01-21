@@ -134,7 +134,7 @@ export default function MenuManagement() {
     return staticDictionary[text]?.[code] || text;
   }; const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || t('Kullanıcı');
 
-  const [activeTab, setActiveTab] = useState<'items' | 'categories' | 'stations' | 'stats'>('items');
+  const [activeTab, setActiveTab] = useState<'items' | 'combos' | 'categories' | 'stations' | 'stats'>('items');
   const [searchTerm, setSearchTerm] = useState('');
   const [showItemForm, setShowItemForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
@@ -198,7 +198,9 @@ export default function MenuManagement() {
     kitchenStation: '',
     translations: {},
     variations: [] as Array<{ name: string, price: number }>,
-    options: [] as Array<{ name: string, values: string[] }>
+    options: [] as Array<{ name: string, values: string[] }>,
+    type: 'single' as 'single' | 'bundle',
+    bundleItems: [] as Array<{ itemId: string; quantity: number }>
   });
 
   const [categoryFormData, setCategoryFormData] = useState({
@@ -377,7 +379,9 @@ export default function MenuManagement() {
       kitchenStation: '',
       translations: {},
       variations: [],
-      options: []
+      options: [],
+      type: activeTab === 'combos' ? 'bundle' : 'single',
+      bundleItems: []
     });
     setShowItemForm(true);
   };
@@ -408,7 +412,9 @@ export default function MenuManagement() {
       kitchenStation: item.kitchenStation || '',
       translations: item.translations || {},
       variations: item.variations || [],
-      options: item.options || []
+      options: item.options || [],
+      type: item.type || 'single',
+      bundleItems: item.bundleItems || []
     });
 
     console.log('📝 handleEditItem - Original Item:', {
@@ -1057,17 +1063,27 @@ export default function MenuManagement() {
     const itemName = item.name || '';
     const itemDescription = item.description || '';
 
-    const matchesSearch = itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      itemDescription.toLowerCase().includes(searchTerm.toLowerCase());
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(item =>
+        item.name.toLowerCase().includes(term) ||
+        (item.description && item.description.toLowerCase().includes(term))
+      );
+    }
 
-    const matchesStatus = statusFilter === 'all' ||
-      (statusFilter === 'available' && item.isAvailable !== false) ||
-      (statusFilter === 'out-of-stock' && item.isAvailable === false);
+    if (selectedCategory !== 'all') {
+      result = result.filter(item => item.categoryId === selectedCategory);
+    }
 
-    const showItem = showOutOfStock || item.isAvailable !== false;
+    // Status filter logic
+    if (statusFilter === 'available') {
+      result = result.filter(item => item.isAvailable);
+    } else if (statusFilter === 'out-of-stock') {
+      result = result.filter(item => !item.isAvailable);
+    }
 
-    return matchesSearch && matchesStatus && showItem;
-  });
+    return result;
+  }, [items, searchTerm, selectedCategory, statusFilter, activeTab]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden" style={{ zoom: '0.8' }}>
@@ -1123,6 +1139,16 @@ export default function MenuManagement() {
               >
                 <FaUtensils />
                 <TranslatedText>Ürünler</TranslatedText> ({items.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('combos')}
+                className={`px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 flex items-center gap-2 ${activeTab === 'combos'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+              >
+                <FaBoxOpen /> {/* Assuming FaBoxOpen for combos, or another suitable icon */}
+                <TranslatedText>Menüler</TranslatedText>
               </button>
               <button
                 onClick={() => setActiveTab('categories')}
@@ -1563,1005 +1589,455 @@ export default function MenuManagement() {
             </div>
           )}
 
-          {!loading && activeTab === 'categories' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold"><TranslatedText>Kategoriler</TranslatedText></h2>
+        </div>
+          )}
+
+        {!loading && activeTab === 'combos' && (
+          <div className="space-y-6">
+            {/* Add New Combo Button & Help */}
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold"><TranslatedText>Menüler</TranslatedText></h2>
+              <button
+                onClick={handleAddItem}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+              >
+                <FaPlus />
+                <TranslatedText>Yeni Menü Ekle</TranslatedText>
+              </button>
+            </div>
+
+            {filteredItems.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+                <div className="text-gray-400 mb-4">
+                  <FaUtensils className="mx-auto text-5xl" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz menü yok</TranslatedText></h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  <TranslatedText>Müşterilerinize avantajlı menüler oluşturun</TranslatedText>
+                </p>
                 <button
-                  onClick={handleAddCategory}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                  onClick={handleAddItem}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
                 >
                   <FaPlus />
-                  <TranslatedText>Yeni Kategori Ekle</TranslatedText>
+                  <TranslatedText>İlk Menüyü Ekle</TranslatedText>
                 </button>
               </div>
-
-              {categories.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-                  <div className="text-gray-400 mb-4">
-                    <FaFolderOpen className="mx-auto text-5xl" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz kategori yok</TranslatedText></h3>
-                  <p className="text-sm text-gray-500 mb-4">
-                    <TranslatedText>Menü ürünlerinizi düzenlemek için kategoriler oluşturun</TranslatedText>
-                  </p>
-                  <button
-                    onClick={handleAddCategory}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
-                  >
-                    <FaPlus />
-                    <TranslatedText>İlk Kategoriyi Ekle</TranslatedText>
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {categories.map(category => (
-                    <div key={category.id} className="bg-white rounded-lg shadow-sm border p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-semibold text-lg">{category.name}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${category.isActive !== false
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                          }`}>
-                          {category.isActive !== false ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredItems.map(item => (
+                  <div key={item.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="relative h-48 bg-gray-100">
+                      <img
+                        src={
+                          (item.imageUrl || item.image)
+                            ? (item.imageUrl || item.image)?.startsWith('http')
+                              ? (item.imageUrl || item.image)
+                              : (() => {
+                                const imagePath = item.imageUrl || item.image;
+                                if (imagePath && typeof imagePath === 'string' && imagePath.startsWith('/uploads/')) {
+                                  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                                  return `${baseUrl}${imagePath}`;
+                                }
+                                return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${imagePath}`;
+                              })()
+                            : '/placeholder-food.jpg'
+                        }
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.src = '/placeholder-food.jpg'; }}
+                      />
+                      <div className="absolute top-2 right-2">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${item.isAvailable !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {item.isAvailable !== false ? <TranslatedText>Mevcut</TranslatedText> : <TranslatedText>Tükendi</TranslatedText>}
                         </span>
                       </div>
-
-                      {category.kitchenStation && (
-                        <div className="mb-3">
-                          <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                            <FaFire className="mr-1" />
-                            {stations.find(s => s.name.toLowerCase() === category.kitchenStation?.toLowerCase())?.name || category.kitchenStation}
-                          </span>
-                        </div>
-                      )}
-
-                      <div>
-                        <p className="text-sm text-gray-500 mb-4">
-                          {items.filter(i => i.categoryId === category.id).length} <TranslatedText>ürün</TranslatedText>
-                        </p>
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditCategory(category)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
-                          >
-                            <FaEdit />
-                            <TranslatedText>Düzenle</TranslatedText>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCategory(category.id)}
-                            className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
-                          >
-                            <FaTrash />
-                          </button>
-                        </div>
-                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-lg">{item.name}</h3>
+                        <span className="font-bold text-purple-600 text-lg">₺{item.price}</span>
+                      </div>
+                      <p className="text-sm text-gray-500 line-clamp-2 mb-3">{item.description}</p>
 
-          {!loading && activeTab === 'stations' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold"><TranslatedText>Mutfak İstasyonları</TranslatedText></h2>
-                <button
-                  onClick={handleAddStation}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-                >
-                  <FaPlus />
-                  <TranslatedText>Yeni İstasyon Ekle</TranslatedText>
-                </button>
-              </div>
-
-              {stations.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-                  <div className="text-gray-400 mb-4">
-                    <FaFire className="mx-auto text-5xl" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz istasyon yok</TranslatedText></h3>
-                  <p className="text-sm text-gray-500 mb-4">
-                    <TranslatedText>Mutfak istasyonları oluşturarak ürünlerinizi organize edin</TranslatedText>
-                  </p>
-                  <button
-                    onClick={handleAddStation}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
-                  >
-                    <FaPlus />
-                    <TranslatedText>İlk İstasyonu Ekle</TranslatedText>
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {stations.sort((a, b) => a.order - b.order).map(station => (
-                    <div key={station.id} className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-lg transition-shadow">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="text-3xl">{station.emoji}</div>
-                          <div>
-                            <h3 className="font-semibold text-lg">{station.name}</h3>
-                            <p className="text-xs text-gray-500">Sıra: {station.order}</p>
-                          </div>
-                        </div>
-                        <div
-                          className="w-8 h-8 rounded-full border-2 border-gray-200"
-                          style={{ backgroundColor: station.color }}
-                        />
+                      {/* Bundle Items Summary */}
+                      <div className="bg-purple-50 p-3 rounded-lg mb-4">
+                        <h4 className="text-xs font-bold text-purple-800 uppercase mb-2"><TranslatedText>Menü İçeriği</TranslatedText></h4>
+                        <ul className="text-sm space-y-1">
+                          {item.bundleItems && item.bundleItems.length > 0 ? (
+                            item.bundleItems.map((bi: any, idx: number) => {
+                              const originalItem = items.find(i => i.id === bi.itemId);
+                              return (
+                                <li key={idx} className="flex justify-between">
+                                  <span>{bi.quantity}x {originalItem?.name || bi.name || 'Ürün'}</span>
+                                </li>
+                              );
+                            })
+                          ) : (
+                            <li className="text-gray-400 text-xs"><TranslatedText>İçerik bilgisi yok</TranslatedText></li>
+                          )}
+                        </ul>
                       </div>
 
-                      <div className="mt-4">
-                        <p className="text-sm text-gray-500 mb-4">
-                          {items.filter(i => i.kitchenStation === station.name.toLowerCase()).length} <TranslatedText>ürün</TranslatedText>
-                        </p>
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditStation(station)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
-                          >
-                            <FaEdit />
-                            <TranslatedText>Düzenle</TranslatedText>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteStation(station.id)}
-                            className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
-                          >
-                            <FaTrash />
-                          </button>
-                        </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditItem(item)}
+                          className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium"
+                        >
+                          <TranslatedText>Düzenle</TranslatedText>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="py-2 px-3 border border-red-200 text-red-600 rounded-lg hover:bg-red-50"
+                        >
+                          <FaTrash />
+                        </button>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {!loading && activeTab === 'stats' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold"><TranslatedText>Menü İstatistikleri</TranslatedText></h2>
-                <div className="text-xs text-gray-500"><TranslatedText>Backend verileri üzerinden hesaplanır</TranslatedText></div>
-              </div>
-
-              {/* KPI Kartları */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  { label: 'Toplam Ürün', value: items.length, icon: <FaUtensils className='text-blue-600' />, bg: 'bg-blue-100' },
-                  { label: 'Popüler Ürünler', value: items.filter(i => i.isPopular).length, icon: <FaFire className='text-red-600' />, bg: 'bg-red-100' },
-                  { label: 'Kategori Sayısı', value: categories.length, icon: <FaTag className='text-green-600' />, bg: 'bg-green-100' },
-                  { label: 'Ortalama Fiyat', value: `₺${items.length > 0 ? Math.round(items.reduce((s, i) => s + i.price, 0) / items.length) : 0}`, icon: <FaChartBar className='text-purple-600' />, bg: 'bg-purple-100' }
-                ].map((kpi, idx) => (
-                  <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600"><TranslatedText>{kpi.label}</TranslatedText></p>
-                        <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
-                      </div>
-                      <div className={`p-3 rounded-full ${kpi.bg}`}>{kpi.icon}</div>
                     </div>
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+        )}
+
+        {!loading && activeTab === 'categories' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold"><TranslatedText>Kategoriler</TranslatedText></h2>
+              <button
+                onClick={handleAddCategory}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+              >
+                <FaPlus />
+                <TranslatedText>Yeni Kategori Ekle</TranslatedText>
+              </button>
             </div>
-          )}
 
-          {/* Modals */}
-          {showItemForm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999] lg:ml-72">
-                <div className="p-6 border-b flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">
-                    {editingItem ? <TranslatedText>Ürünü Düzenle</TranslatedText> : <TranslatedText>Yeni Ürün Ekle</TranslatedText>}
-                  </h2>
-                  <button
-                    onClick={() => setShowItemForm(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <FaTimes size={24} />
-                  </button>
+            {categories.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+                <div className="text-gray-400 mb-4">
+                  <FaFolderOpen className="mx-auto text-5xl" />
                 </div>
-                <div className="p-6 overflow-y-auto max-h-[70vh]">
-                  <form className="space-y-6">
-                    {/* Ürün Adı */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Ürün Adı *</TranslatedText>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder={t('Örn: Bruschetta')}
-                        required
-                      />
+                <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz kategori yok</TranslatedText></h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  <TranslatedText>Menü ürünlerinizi düzenlemek için kategoriler oluşturun</TranslatedText>
+                </p>
+                <button
+                  onClick={handleAddCategory}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                >
+                  <FaPlus />
+                  <TranslatedText>İlk Kategoriyi Ekle</TranslatedText>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {categories.map(category => (
+                  <div key={category.id} className="bg-white rounded-lg shadow-sm border p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-semibold text-lg">{category.name}</h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${category.isActive !== false
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                        }`}>
+                        {category.isActive !== false ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
+                      </span>
                     </div>
 
-                    {/* Açıklama */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Açıklama</TranslatedText>
-                      </label>
-                      <textarea
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder={t('Ürün açıklaması...')}
-                      />
-                    </div>
-
-                    {translationLanguages.length > 0 && (
-                      <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 space-y-4">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex items-center gap-2 text-purple-800">
-                            <FaGlobe />
-                            <div>
-                              <p className="font-semibold"><TranslatedText>Çeviriler</TranslatedText></p>
-                              <p className="text-xs text-purple-600">
-                                <TranslatedText>Seçili diller için ürün adı ve açıklamasını düzenleyin.</TranslatedText>
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={handleItemAutoTranslate}
-                            disabled={isTranslatingItem}
-                            className="inline-flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-60"
-                          >
-                            <FaMagic />
-                            {isTranslatingItem ? <TranslatedText>Çevriliyor...</TranslatedText> : <TranslatedText>Otomatik Çevir</TranslatedText>}
-                          </button>
-                        </div>
-                        {itemTranslationError && (
-                          <p className="text-xs text-red-600">{itemTranslationError}</p>
-                        )}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {translationLanguages.map((lang) => (
-                            <div key={lang} className="space-y-3">
-                              <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">
-                                  <TranslatedText>Ürün Adı</TranslatedText> ({lang.toUpperCase()})
-                                </label>
-                                <input
-                                  type="text"
-                                  value={(formData.translations as any)?.[lang]?.name || ''}
-                                  onChange={(e) => updateItemTranslationField(lang, 'name', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">
-                                  <TranslatedText>Açıklama</TranslatedText> ({lang.toUpperCase()})
-                                </label>
-                                <textarea
-                                  rows={2}
-                                  value={(formData.translations as any)?.[lang]?.description || ''}
-                                  onChange={(e) => updateItemTranslationField(lang, 'description', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                    {category.kitchenStation && (
+                      <div className="mb-3">
+                        <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                          <FaFire className="mr-1" />
+                          {stations.find(s => s.name.toLowerCase() === category.kitchenStation?.toLowerCase())?.name || category.kitchenStation}
+                        </span>
                       </div>
                     )}
 
-                    {/* Fiyat ve Kategori */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          <TranslatedText>Fiyat (₺) *</TranslatedText>
-                        </label>
-                        <input
-                          type="number"
-                          value={formData.price}
-                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="45"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          <TranslatedText>Kategori *</TranslatedText>
-                        </label>
-                        <select
-                          value={formData.category}
-                          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          required
-                        >
-                          <option value="">{t('Kategori Seçin')}</option>
-                          {categories.length > 0 ? (
-                            categories.map(cat => (
-                              <option key={cat.id} value={cat.id}>{cat.name}</option>
-                            ))
-                          ) : (
-                            <option disabled>{t('Önce kategori ekleyin')}</option>
-                          )}
-                        </select>
-                        {categories.length === 0 && (
-                          <p className="text-xs text-red-600 mt-1">
-                            ⚠️ {t('Kategori bulunamadı. Lütfen önce "Kategoriler" sekmesinden kategori ekleyin.')}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Mutfak İstasyonu */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          <TranslatedText>Mutfak İstasyonu</TranslatedText>
-                        </label>
-                        <select
-                          value={formData.kitchenStation}
-                          onChange={(e) => setFormData({ ...formData, kitchenStation: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        >
-                          <option value="">{t('İstasyon Seçin')}</option>
-                          {stations.sort((a, b) => a.order - b.order).map(station => (
-                            <option key={station.id} value={station.name.toLowerCase()}>
-                              {station.emoji} {station.name}
-                            </option>
-                          ))}
-                        </select>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {t('Ürün hangi mutfak istasyonunda hazırlanacak?')}
-                        </p>
-                      </div>
-                    </div>
-
-
-                    {/* VARYASYONLAR (Variations) */}
-                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
-                      <div className="flex justify-between items-center mb-4">
-                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
-                          <FaTag className="text-blue-500" />
-                          {t('Varyasyonlar')}
-                        </h4>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFormData(prev => ({
-                              ...prev,
-                              variations: [...(prev.variations || []), { name: '', price: 0 }]
-                            }));
-                          }}
-                          className="text-sm text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1"
-                        >
-                          <FaPlus size={12} /> {t('Varyasyon Ekle')}
-                        </button>
-                      </div>
-
-                      {formData.variations && formData.variations.length > 0 ? (
-                        <div className="space-y-2">
-                          {formData.variations.map((v, idx) => (
-                            <div key={idx} className="flex gap-2 items-center">
-                              <input
-                                type="text"
-                                placeholder={t('Örn: 2 Adet, Büyük Boy')}
-                                value={v.name}
-                                onChange={e => {
-                                  const newVars = [...formData.variations];
-                                  newVars[idx].name = e.target.value;
-                                  setFormData({ ...formData, variations: newVars });
-                                }}
-                                className="flex-1 px-3 py-2 border rounded-lg text-sm"
-                              />
-                              <input
-                                type="number"
-                                placeholder={t('Fiyat')}
-                                value={v.price}
-                                onChange={e => {
-                                  const newVars = [...formData.variations];
-                                  newVars[idx].price = parseFloat(e.target.value);
-                                  setFormData({ ...formData, variations: newVars });
-                                }}
-                                className="w-24 px-3 py-2 border rounded-lg text-sm"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const newVars = formData.variations.filter((_, i) => i !== idx);
-                                  setFormData({ ...formData, variations: newVars });
-                                }}
-                                className="p-2 text-red-500 hover:bg-red-50 rounded"
-                              >
-                                <FaTrash size={14} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-gray-400 text-sm text-center italic">{t('Varyasyon eklenmemiş (Örn: Porsiyon büyüklüğü, Adet)')}</p>
-                      )}
-                    </div>
-
-                    {/* ÖZELLİKLER (Options) */}
-                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
-                      <div className="flex justify-between items-center mb-4">
-                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
-                          <FaClipboardList className="text-orange-500" />
-                          {t('Özellik Seçenekleri')}
-                        </h4>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFormData(prev => ({
-                              ...prev,
-                              options: [...(prev.options || []), { name: '', values: [] }]
-                            }));
-                          }}
-                          className="text-sm text-orange-600 hover:text-orange-800 font-bold flex items-center gap-1"
-                        >
-                          <FaPlus size={12} /> {t('Grup Ekle')}
-                        </button>
-                      </div>
-
-                      {formData.options && formData.options.length > 0 ? (
-                        <div className="space-y-4">
-                          {formData.options.map((opt, idx) => (
-                            <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200">
-                              <div className="flex justify-between items-center mb-2">
-                                <input
-                                  type="text"
-                                  placeholder={t('Grup Adı (Örn: Acı Durumu, Soslar)')}
-                                  value={opt.name}
-                                  onChange={e => {
-                                    const newOpts = [...formData.options];
-                                    newOpts[idx].name = e.target.value;
-                                    setFormData({ ...formData, options: newOpts });
-                                  }}
-                                  className="flex-1 px-3 py-2 border rounded-lg text-sm font-bold mr-2"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const newOpts = formData.options.filter((_, i) => i !== idx);
-                                    setFormData({ ...formData, options: newOpts });
-                                  }}
-                                  className="text-red-500 hover:text-red-700"
-                                >
-                                  <FaTrash size={14} />
-                                </button>
-                              </div>
-
-                              <div>
-                                <label className="text-xs text-gray-500 mb-1 block">{t('Seçenekler (Virgülle ayırın)')}</label>
-                                <input
-                                  type="text"
-                                  placeholder={t('Örn: Az Acılı, Çok Acılı, Acısız')}
-                                  value={opt.values.join(', ')}
-                                  onChange={e => {
-                                    const newOpts = [...formData.options];
-                                    newOpts[idx].values = e.target.value.split(',').map(s => s.trim()); // removed filter(Boolean) to allows typing comma
-                                    setFormData({ ...formData, options: newOpts });
-                                  }}
-                                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-gray-400 text-sm text-center italic">{t('Seçenek grubu eklenmemiş (Örn: Acı tercihi, Pişme derecesi)')}</p>
-                      )}
-                    </div>
-
-                    {/* Kalori ve Hazırlık Süresi */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          <TranslatedText>Kalori</TranslatedText>
-                        </label>
-                        <input
-                          type="number"
-                          value={formData.calories}
-                          onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="250"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          <TranslatedText>Hazırlık Süresi (dakika)</TranslatedText>
-                        </label>
-                        <input
-                          type="number"
-                          value={formData.preparationTime}
-                          onChange={(e) => setFormData({ ...formData, preparationTime: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="15"
-                        />
-                      </div>
-                    </div>
-
-
-
-                    {/* Malzemeler */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Malzemeler</TranslatedText>
-                      </label>
-                      <textarea
-                        value={formData.ingredients}
-                        onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder={t('Malzemeleri virgülle ayırarak yazın (Örn: Domates, Mozzarella, Fesleğen)')}
+                      <p className="text-sm text-gray-500 mb-4">
+                        {items.filter(i => i.categoryId === category.id).length} <TranslatedText>ürün</TranslatedText>
+                      </p>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditCategory(category)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
+                        >
+                          <FaEdit />
+                          <TranslatedText>Düzenle</TranslatedText>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCategory(category.id)}
+                          className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {!loading && activeTab === 'stations' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold"><TranslatedText>Mutfak İstasyonları</TranslatedText></h2>
+              <button
+                onClick={handleAddStation}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+              >
+                <FaPlus />
+                <TranslatedText>Yeni İstasyon Ekle</TranslatedText>
+              </button>
+            </div>
+
+            {stations.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+                <div className="text-gray-400 mb-4">
+                  <FaFire className="mx-auto text-5xl" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz istasyon yok</TranslatedText></h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  <TranslatedText>Mutfak istasyonları oluşturarak ürünlerinizi organize edin</TranslatedText>
+                </p>
+                <button
+                  onClick={handleAddStation}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                >
+                  <FaPlus />
+                  <TranslatedText>İlk İstasyonu Ekle</TranslatedText>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {stations.sort((a, b) => a.order - b.order).map(station => (
+                  <div key={station.id} className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-lg transition-shadow">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="text-3xl">{station.emoji}</div>
+                        <div>
+                          <h3 className="font-semibold text-lg">{station.name}</h3>
+                          <p className="text-xs text-gray-500">Sıra: {station.order}</p>
+                        </div>
+                      </div>
+                      <div
+                        className="w-8 h-8 rounded-full border-2 border-gray-200"
+                        style={{ backgroundColor: station.color }}
                       />
                     </div>
 
-                    {/* Alerjenler */}
+                    <div className="mt-4">
+                      <p className="text-sm text-gray-500 mb-4">
+                        {items.filter(i => i.kitchenStation === station.name.toLowerCase()).length} <TranslatedText>ürün</TranslatedText>
+                      </p>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditStation(station)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
+                        >
+                          <FaEdit />
+                          <TranslatedText>Düzenle</TranslatedText>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteStation(station.id)}
+                          className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {!loading && activeTab === 'stats' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold"><TranslatedText>Menü İstatistikleri</TranslatedText></h2>
+              <div className="text-xs text-gray-500"><TranslatedText>Backend verileri üzerinden hesaplanır</TranslatedText></div>
+            </div>
+
+            {/* KPI Kartları */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { label: 'Toplam Ürün', value: items.length, icon: <FaUtensils className='text-blue-600' />, bg: 'bg-blue-100' },
+                { label: 'Popüler Ürünler', value: items.filter(i => i.isPopular).length, icon: <FaFire className='text-red-600' />, bg: 'bg-red-100' },
+                { label: 'Kategori Sayısı', value: categories.length, icon: <FaTag className='text-green-600' />, bg: 'bg-green-100' },
+                { label: 'Ortalama Fiyat', value: `₺${items.length > 0 ? Math.round(items.reduce((s, i) => s + i.price, 0) / items.length) : 0}`, icon: <FaChartBar className='text-purple-600' />, bg: 'bg-purple-100' }
+              ].map((kpi, idx) => (
+                <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Alerjen</TranslatedText>
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {['Gluten', 'Süt', 'Yumurta', 'Fındık', 'Fıstık', 'Soya', 'Balık', 'Kabuklu Deniz Ürünleri'].map((allergen) => (
-                          <label key={allergen} className="flex items-center p-2 border border-gray-200 rounded-lg hover:bg-gray-50">
-                            <input
-                              type="checkbox"
-                              checked={Array.isArray(formData.allergens) && formData.allergens.some(a => a.toLowerCase() === allergen.toLowerCase())}
-                              onChange={(e) => {
-                                const currentAllergens = Array.isArray(formData.allergens) ? formData.allergens : [];
-                                console.log('Alerjen değişikliği:', { allergen, checked: e.target.checked, currentAllergens });
-                                if (e.target.checked) {
-                                  const newAllergens = [...currentAllergens, allergen];
-                                  console.log('Yeni alerjenler:', newAllergens);
-                                  setFormData({ ...formData, allergens: newAllergens });
-                                } else {
-                                  const newAllergens = currentAllergens.filter(a => a !== allergen);
-                                  console.log('Kaldırılan alerjenler:', newAllergens);
-                                  setFormData({ ...formData, allergens: newAllergens });
-                                }
-                              }}
-                              className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
-                            />
-                            <span className="ml-2 text-sm text-gray-700"><TranslatedText>{allergen}</TranslatedText></span>
-                          </label>
+                      <p className="text-sm font-medium text-gray-600"><TranslatedText>{kpi.label}</TranslatedText></p>
+                      <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
+                    </div>
+                    <div className={`p-3 rounded-full ${kpi.bg}`}>{kpi.icon}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Modals */}
+        {showItemForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999] lg:ml-72">
+              <div className="p-6 border-b flex justify-between items-center">
+                <h2 className="text-2xl font-bold">
+                  {editingItem ? <TranslatedText>Ürünü Düzenle</TranslatedText> : <TranslatedText>Yeni Ürün Ekle</TranslatedText>}
+                </h2>
+                <button
+                  onClick={() => setShowItemForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes size={24} />
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto max-h-[70vh]">
+                <form className="space-y-6">
+                  {/* Ürün Adı */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Ürün Adı *</TranslatedText>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder={t('Örn: Bruschetta')}
+                      required
+                    />
+                  </div>
+
+                  {/* Açıklama */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Açıklama</TranslatedText>
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder={t('Ürün açıklaması...')}
+                    />
+                  </div>
+
+                  {translationLanguages.length > 0 && (
+                    <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 space-y-4">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-2 text-purple-800">
+                          <FaGlobe />
+                          <div>
+                            <p className="font-semibold"><TranslatedText>Çeviriler</TranslatedText></p>
+                            <p className="text-xs text-purple-600">
+                              <TranslatedText>Seçili diller için ürün adı ve açıklamasını düzenleyin.</TranslatedText>
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleItemAutoTranslate}
+                          disabled={isTranslatingItem}
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-60"
+                        >
+                          <FaMagic />
+                          {isTranslatingItem ? <TranslatedText>Çevriliyor...</TranslatedText> : <TranslatedText>Otomatik Çevir</TranslatedText>}
+                        </button>
+                      </div>
+                      {itemTranslationError && (
+                        <p className="text-xs text-red-600">{itemTranslationError}</p>
+                      )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {translationLanguages.map((lang) => (
+                          <div key={lang} className="space-y-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                <TranslatedText>Ürün Adı</TranslatedText> ({lang.toUpperCase()})
+                              </label>
+                              <input
+                                type="text"
+                                value={(formData.translations as any)?.[lang]?.name || ''}
+                                onChange={(e) => updateItemTranslationField(lang, 'name', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                <TranslatedText>Açıklama</TranslatedText> ({lang.toUpperCase()})
+                              </label>
+                              <textarea
+                                rows={2}
+                                value={(formData.translations as any)?.[lang]?.description || ''}
+                                onChange={(e) => updateItemTranslationField(lang, 'description', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                              />
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
+                  )}
 
-                    {/* Ürün Fotoğrafı */}
+                  {/* Fiyat ve Kategori */}
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Ürün Fotoğrafı</TranslatedText>
-                      </label>
-
-                      {/* Fotoğraf Yükleme Seçenekleri */}
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        {/* Kameradan Çek */}
-                        <button
-                          type="button"
-                          onClick={startCamera}
-                          className="p-4 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors text-center"
-                        >
-                          <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
-                            <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                          </div>
-                          <p className="text-sm font-medium text-purple-600"><TranslatedText>Kameradan Çek</TranslatedText></p>
-                          <p className="text-xs text-gray-500"><TranslatedText>Telefon kamerası</TranslatedText></p>
-                        </button>
-
-                        {/* Dosyadan Yükle veya Yapıştır */}
-                        <div
-                          className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors text-center cursor-pointer relative"
-                          onPaste={async (e) => {
-                            e.preventDefault();
-                            const items = e.clipboardData.items;
-
-                            for (let i = 0; i < items.length; i++) {
-                              const item = items[i];
-
-                              if (item.type.indexOf('image') !== -1) {
-                                const file = item.getAsFile();
-                                if (file) {
-                                  console.log('📋 Yapıştırılan resim:', file.name || 'Clipboard', 'Boyut:', file.size, 'Tip:', file.type);
-
-                                  // Dosya boyutunu kontrol et (max 5MB)
-                                  if (file.size > 5 * 1024 * 1024) {
-                                    alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
-                                    return;
-                                  }
-
-                                  // Resim yükleme
-                                  try {
-                                    const formData = new FormData();
-                                    formData.append('image', file);
-
-                                    const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
-                                      method: 'POST',
-                                      body: formData,
-                                    });
-
-                                    if (!response.ok) {
-                                      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                                    }
-
-                                    const result = await response.json();
-
-                                    if (result.success) {
-                                      console.log('✅ Yapıştırılan resim başarıyla yüklendi:', result.data.imageUrl);
-                                      setCapturedImage(result.data.imageUrl);
-                                      alert(t('Resim başarıyla yapıştırıldı ve yüklendi!'));
-                                    } else {
-                                      console.error('❌ Upload failed:', result.message);
-                                      alert(t('Resim yüklenemedi: ') + result.message);
-                                    }
-                                  } catch (error) {
-                                    console.error('❌ Resim yükleme hatası:', error);
-                                    alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
-                                  }
-                                  break;
-                                }
-                              }
-                            }
-                          }}
-                          tabIndex={0}
-                          onFocus={(e) => {
-                            e.currentTarget.style.outline = '2px solid #9333ea';
-                            e.currentTarget.style.outlineOffset = '2px';
-                          }}
-                          onBlur={(e) => {
-                            e.currentTarget.style.outline = 'none';
-                          }}
-                        >
-                          <label className="cursor-pointer">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  console.log('Seçilen dosya:', file.name, 'Boyut:', file.size, 'Tip:', file.type);
-
-                                  // Dosya boyutunu kontrol et (max 5MB)
-                                  if (file.size > 5 * 1024 * 1024) {
-                                    alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
-                                    return;
-                                  }
-
-                                  // Dosya tipini kontrol et
-                                  if (!file.type.startsWith('image/')) {
-                                    alert(t('Lütfen sadece resim dosyası seçin.'));
-                                    return;
-                                  }
-
-                                  // Basit ve güvenilir resim yükleme sistemi
-                                  try {
-                                    console.log('📤 Resim yükleniyor:', file.name, file.size, 'bytes');
-
-                                    const formData = new FormData();
-                                    formData.append('image', file);
-
-                                    console.log('📡 API URL:', process.env.NEXT_PUBLIC_API_URL);
-
-                                    const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
-                                      method: 'POST',
-                                      body: formData,
-                                    });
-
-                                    console.log('📊 Response status:', response.status);
-                                    console.log('📊 Response ok:', response.ok);
-
-                                    if (!response.ok) {
-                                      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                                    }
-
-                                    const result = await response.json();
-                                    console.log('📊 Response data:', result);
-
-                                    if (result.success) {
-                                      console.log('✅ Resim başarıyla yüklendi:', result.data.imageUrl);
-                                      setCapturedImage(result.data.imageUrl);
-                                      alert(t('Resim başarıyla yüklendi!'));
-                                    } else {
-                                      console.error('❌ Upload failed:', result.message);
-                                      alert(t('Resim yüklenemedi: ') + result.message);
-                                    }
-                                  } catch (error) {
-                                    console.error('❌ Resim yükleme hatası:', error);
-                                    alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
-                                  }
-                                }
-                              }}
-                              className="hidden"
-                            />
-                            <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
-                              <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                            </div>
-                            <p className="text-sm font-medium text-gray-600"><TranslatedText>Dosyadan Yükle</TranslatedText></p>
-                            <p className="text-xs text-gray-500"><TranslatedText>PNG, JPG, GIF</TranslatedText></p>
-                            <p className="text-xs text-purple-600 mt-1 font-medium"><TranslatedText>veya Ctrl+V ile yapıştır</TranslatedText></p>
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* AI Görsel İşleme */}
-                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="flex">
-                            <span className="text-yellow-400 text-lg">✨</span>
-                            <span className="text-yellow-400 text-sm">⭐</span>
-                            <span className="text-yellow-400 text-xs">✨</span>
-                          </div>
-                          <h4 className="font-semibold text-gray-800"><TranslatedText>AI Görsel İşleme Aktif!</TranslatedText></h4>
-                        </div>
-
-                        <ul className="space-y-2 text-sm text-gray-700">
-                          <li className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                            <span><TranslatedText>Otomatik arka plan kaldırma</TranslatedText></span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span><TranslatedText>Renk ve parlaklık optimizasyonu</TranslatedText></span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span><TranslatedText>Akıllı boyutlandırma</TranslatedText></span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                            <span><TranslatedText>Keskinlik artırma</TranslatedText></span>
-                          </li>
-                        </ul>
-
-                        <div className="mt-3 p-2 bg-yellow-100 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <span className="text-yellow-600">💡</span>
-                            <span className="text-xs text-yellow-800">
-                              <TranslatedText>Kameradan çekmek daha profesyonel sonuçlar verir</TranslatedText>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Seçilen Fotoğraf Önizleme */}
-                      {capturedImage && (
-                        <div className="mt-4">
-                          <p className="text-sm font-medium text-gray-700 mb-2"><TranslatedText>Seçilen Fotoğraf:</TranslatedText></p>
-                          <div className="relative inline-block">
-                            <img
-                              src={capturedImage.startsWith('http') ? capturedImage : `https://masapp-backend.onrender.com${capturedImage}`}
-                              alt="Ürün fotoğrafı önizleme"
-                              className="w-32 h-32 object-cover rounded-lg border"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setCapturedImage(null)}
-                              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Durum ve Popüler */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <TranslatedText>Ürün Durumu</TranslatedText>
-                          </label>
-                          <div className="flex gap-4">
-                            <label className="flex items-center">
-                              <input
-                                type="radio"
-                                name="status"
-                                value="available"
-                                checked={formData.isAvailable}
-                                onChange={(e) => setFormData({ ...formData, isAvailable: e.target.value === 'available' })}
-                                className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
-                              />
-                              <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <TranslatedText>Mevcut</TranslatedText>
-                              </span>
-                            </label>
-                            <label className="flex items-center">
-                              <input
-                                type="radio"
-                                name="status"
-                                value="out-of-stock"
-                                checked={!formData.isAvailable}
-                                onChange={(e) => setFormData({ ...formData, isAvailable: e.target.value !== 'out-of-stock' })}
-                                className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                              />
-                              <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
-                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                <TranslatedText>Tükendi</TranslatedText>
-                              </span>
-                            </label>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="flex items-center p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg hover:from-yellow-100 hover:to-orange-100 transition-colors">
-                            <input
-                              type="checkbox"
-                              checked={formData.isPopular}
-                              onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
-                              className="w-5 h-5 text-yellow-600 border-yellow-300 rounded focus:ring-yellow-500"
-                            />
-                            <span className="ml-3 text-sm font-medium text-yellow-800 flex items-center gap-2">
-                              <FaFire className="text-yellow-600" size={16} />
-                              <TranslatedText>Popüler Ürün</TranslatedText>
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </form>
-
-                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
-                    <button
-                      onClick={() => setShowItemForm(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                    >
-                      <TranslatedText>İptal</TranslatedText>
-                    </button>
-                    <button
-                      onClick={async () => {
-                        console.log('=== FORM SUBMIT BAŞLADI ===');
-                        console.log('Form Data:', formData);
-                        console.log('Captured Image:', capturedImage ? 'VAR (' + capturedImage.length + ' karakter)' : 'YOK');
-                        console.log('Captured Image Preview:', capturedImage ? capturedImage.substring(0, 100) + '...' : 'null');
-                        console.log('Editing Item:', editingItem);
-                        console.log('Current Restaurant ID:', currentRestaurantId);
-
-                        // Gerçek güncelleme işlemi
-                        if (editingItem) {
-                          // Ürün güncelleme
-                          try {
-                            if (currentRestaurantId) {
-                              const updateData = {
-                                name: formData.name,
-                                description: formData.description,
-                                price: Number(formData.price),
-                                categoryId: formData.category,
-                                isAvailable: formData.isAvailable,
-                                isPopular: formData.isPopular,
-                                imageUrl: capturedImage || editingItem.imageUrl,
-                                allergens: formData.allergens,
-                                kitchenStation: formData.kitchenStation
-                              };
-
-                              console.log('Update Data gönderiliyor:', updateData);
-                              console.log('Alerjenler:', formData.allergens);
-                              console.log('Resim URL uzunluğu:', updateData.imageUrl.length);
-
-                              await updateMenuItem(currentRestaurantId, editingItem.id, updateData);
-                              console.log('Ürün güncellendi:', formData);
-                              // Menüyü yeniden yükle
-                              await fetchRestaurantMenu(currentRestaurantId);
-                              alert(t('Ürün başarıyla güncellendi!'));
-                            }
-                          } catch (error) {
-                            console.error('Ürün güncellenirken hata:', error);
-                            alert(t('Ürün güncellenirken bir hata oluştu: ') + (error as any).message);
-                          }
-                        } else {
-                          // Yeni ürün ekleme
-                          if (!formData.name || !formData.price || !formData.category) {
-                            alert(t('Lütfen ürün adı, fiyat ve kategori alanlarını doldurun!'));
-                            return;
-                          }
-
-                          try {
-                            if (currentRestaurantId) {
-                              const createData = {
-                                categoryId: formData.category,
-                                name: formData.name,
-                                description: formData.description,
-                                price: Number(formData.price),
-                                imageUrl: capturedImage || '/placeholder-food.jpg',
-                                order: items.length + 1,
-                                isAvailable: formData.isAvailable,
-                                isPopular: formData.isPopular,
-                                allergens: formData.allergens,
-                                kitchenStation: formData.kitchenStation
-                              };
-
-                              console.log('Create Data gönderiliyor:', createData);
-                              console.log('Alerjenler:', formData.allergens);
-                              console.log('Resim URL uzunluğu:', createData.imageUrl.length);
-
-                              await createMenuItem(currentRestaurantId, createData);
-                              console.log('Yeni ürün backend\'e kaydedildi:', formData);
-                              // Menüyü yeniden yükle
-                              await fetchRestaurantMenu(currentRestaurantId);
-                              alert(t('Ürün başarıyla eklendi!'));
-                            }
-                          } catch (error) {
-                            console.error('Ürün eklenirken hata:', error);
-                            alert(t('Ürün eklenirken bir hata oluştu: ') + (error as any).message);
-                          }
-                        }
-
-                        // Başarılı işlem sonrası temizlik
-                        setShowItemForm(false);
-                        setEditingItem(null);
-                        setCapturedImage(null);
-                        // Form resetle
-                        setFormData({
-                          name: '',
-                          description: '',
-                          price: '',
-                          category: '',
-                          subcategory: '',
-                          preparationTime: '',
-                          calories: '',
-                          ingredients: '',
-                          allergens: [] as string[],
-                          portion: '',
-                          isAvailable: true,
-                          isPopular: false,
-                          kitchenStation: '',
-                          translations: {}
-                        });
-                      }}
-                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                    >
-                      {editingItem ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {showCategoryForm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
-                <div className="p-6 border-b flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">
-                    {editingCategory ? <TranslatedText>Kategoriyi Düzenle</TranslatedText> : <TranslatedText>Yeni Kategori Ekle</TranslatedText>}
-                  </h2>
-                  <button
-                    onClick={() => setShowCategoryForm(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <FaTimes size={24} />
-                  </button>
-                </div>
-                <div className="p-6">
-                  <form className="space-y-4">
-                    {/* Kategori Adı */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Kategori Adı *</TranslatedText>
+                        <TranslatedText>Fiyat (₺) *</TranslatedText>
                       </label>
                       <input
-                        type="text"
-                        value={categoryFormData.name}
-                        onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                        type="number"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder={t('Örn: Başlangıçlar, Ana Yemekler, Tatlılar')}
+                        placeholder="45"
                         required
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Kategori *</TranslatedText>
+                      </label>
+                      <select
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        required
+                      >
+                        <option value="">{t('Kategori Seçin')}</option>
+                        {categories.length > 0 ? (
+                          categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                          ))
+                        ) : (
+                          <option disabled>{t('Önce kategori ekleyin')}</option>
+                        )}
+                      </select>
+                      {categories.length === 0 && (
+                        <p className="text-xs text-red-600 mt-1">
+                          ⚠️ {t('Kategori bulunamadı. Lütfen önce "Kategoriler" sekmesinden kategori ekleyin.')}
+                        </p>
+                      )}
                     </div>
 
                     {/* Mutfak İstasyonu */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Varsayılan Mutfak İstasyonu</TranslatedText>
+                        <TranslatedText>Mutfak İstasyonu</TranslatedText>
                       </label>
                       <select
-                        value={categoryFormData.kitchenStation}
-                        onChange={(e) => setCategoryFormData({ ...categoryFormData, kitchenStation: e.target.value })}
+                        value={formData.kitchenStation}
+                        onChange={(e) => setFormData({ ...formData, kitchenStation: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       >
                         <option value="">{t('İstasyon Seçin')}</option>
@@ -2572,681 +2048,1425 @@ export default function MenuManagement() {
                         ))}
                       </select>
                       <p className="text-xs text-gray-500 mt-1">
-                        {t('Bu kategorideki ürünler varsayılan olarak hangi istasyona gidecek?')}
+                        {t('Ürün hangi mutfak istasyonunda hazırlanacak?')}
                       </p>
                     </div>
-
-                    {/* Durum */}
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={categoryFormData.isActive}
-                          onChange={(e) => setCategoryFormData({ ...categoryFormData, isActive: e.target.checked })}
-                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700"><TranslatedText>Aktif</TranslatedText></span>
-                      </label>
-                    </div>
-                  </form>
-
-                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
-                    <button
-                      onClick={() => setShowCategoryForm(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                    >
-                      <TranslatedText>İptal</TranslatedText>
-                    </button>
-                    <button
-                      onClick={async () => {
-                        // Gerçek kategori güncelleme işlemi
-                        if (!categoryFormData.name) {
-                          alert(t('Lütfen kategori adını girin!'));
-                          return;
-                        }
-
-                        try {
-                          if (editingCategory) {
-                            if (currentRestaurantId) {
-                              await updateMenuCategory(currentRestaurantId, editingCategory.id, {
-                                name: categoryFormData.name,
-                                description: categoryFormData.description,
-                                order: categoryFormData.order,
-                                isActive: categoryFormData.isActive,
-                                kitchenStation: categoryFormData.kitchenStation
-                              });
-                              console.log('Kategori güncellendi:', editingCategory);
-                              // Menüyü yeniden yükle
-                              await fetchRestaurantMenu(currentRestaurantId);
-                            }
-                          } else {
-                            // Backend API'sine kaydet
-                            if (currentRestaurantId) {
-                              await createMenuCategory(currentRestaurantId, {
-                                name: categoryFormData.name,
-                                description: categoryFormData.description,
-                                order: categories.length,
-                                isActive: categoryFormData.isActive,
-                                kitchenStation: categoryFormData.kitchenStation
-                              });
-                              console.log('Yeni kategori backend\'e kaydedildi');
-                              // Menüyü yeniden yükle
-                              await fetchRestaurantMenu(currentRestaurantId);
-                            }
-                          }
-                        } catch (error) {
-                          console.error('Kategori işlemi sırasında hata:', error);
-                          alert(t('Kategori işlemi sırasında bir hata oluştu: ') + (error as any).message);
-                        }
-                        setShowCategoryForm(false);
-                        setEditingCategory(null);
-                        setSubcategories([]); // Formu temizle
-                        setCategoryFormData({
-                          name: '',
-                          description: '',
-                          order: categories.length,
-                          isActive: true,
-                          kitchenStation: '',
-                          translations: {}
-                        });
-                      }}
-                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                    >
-                      {editingCategory ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
-                    </button>
                   </div>
-                </div>
-              </div>
-            </div>
-          )}
 
-          {/* İstasyon Form Modal */}
-          {showStationForm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
-                <div className="p-6 border-b flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">
-                    {editingStation ? <TranslatedText>İstasyonu Düzenle</TranslatedText> : <TranslatedText>Yeni İstasyon Ekle</TranslatedText>}
-                  </h2>
-                  <button
-                    onClick={() => setShowStationForm(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <FaTimes size={24} />
-                  </button>
-                </div>
-                <div className="p-6">
-                  <form className="space-y-4">
-                    {/* İstasyon Adı */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>İstasyon Adı *</TranslatedText>
-                      </label>
-                      <input
-                        type="text"
-                        value={stationFormData.name}
-                        onChange={(e) => setStationFormData({ ...stationFormData, name: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Örn: Izgara, Pizza, Sushi"
-                        required
-                      />
+
+                  {/* VARYASYONLAR (Variations) */}
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                        <FaTag className="text-blue-500" />
+                        {t('Varyasyonlar')}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            variations: [...(prev.variations || []), { name: '', price: 0 }]
+                          }));
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1"
+                      >
+                        <FaPlus size={12} /> {t('Varyasyon Ekle')}
+                      </button>
                     </div>
 
-                    {/* Emoji */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Emoji</TranslatedText>
-                      </label>
-                      <input
-                        type="text"
-                        value={stationFormData.emoji}
-                        onChange={(e) => setStationFormData({ ...stationFormData, emoji: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-2xl"
-                        placeholder="🔥"
-                        maxLength={2}
-                      />
-                      <p className="text-xs text-gray-500 mt-1">İstasyon için emoji seçin (opsiyonel)</p>
+                    {formData.variations && formData.variations.length > 0 ? (
+                      <div className="space-y-2">
+                        {formData.variations.map((v, idx) => (
+                          <div key={idx} className="flex gap-2 items-center">
+                            <input
+                              type="text"
+                              placeholder={t('Örn: 2 Adet, Büyük Boy')}
+                              value={v.name}
+                              onChange={e => {
+                                const newVars = [...formData.variations];
+                                newVars[idx].name = e.target.value;
+                                setFormData({ ...formData, variations: newVars });
+                              }}
+                              className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                            />
+                            <input
+                              type="number"
+                              placeholder={t('Fiyat')}
+                              value={v.price}
+                              onChange={e => {
+                                const newVars = [...formData.variations];
+                                newVars[idx].price = parseFloat(e.target.value);
+                                setFormData({ ...formData, variations: newVars });
+                              }}
+                              className="w-24 px-3 py-2 border rounded-lg text-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newVars = formData.variations.filter((_, i) => i !== idx);
+                                setFormData({ ...formData, variations: newVars });
+                              }}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded"
+                            >
+                              <FaTrash size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 text-sm text-center italic">{t('Varyasyon eklenmemiş (Örn: Porsiyon büyüklüğü, Adet)')}</p>
+                    )}
+                  </div>
+
+                  {/* ÖZELLİKLER (Options) */}
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                        <FaClipboardList className="text-orange-500" />
+                        {t('Özellik Seçenekleri')}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            options: [...(prev.options || []), { name: '', values: [] }]
+                          }));
+                        }}
+                        className="text-sm text-orange-600 hover:text-orange-800 font-bold flex items-center gap-1"
+                      >
+                        <FaPlus size={12} /> {t('Grup Ekle')}
+                      </button>
                     </div>
 
-                    {/* Renk */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Renk</TranslatedText>
-                      </label>
-                      <div className="flex gap-2 items-center">
-                        <input
-                          type="color"
-                          value={stationFormData.color}
-                          onChange={(e) => setStationFormData({ ...stationFormData, color: e.target.value })}
-                          className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
-                        />
-                        <input
-                          type="text"
-                          value={stationFormData.color}
-                          onChange={(e) => setStationFormData({ ...stationFormData, color: e.target.value })}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="#3B82F6"
-                        />
+                    {formData.options && formData.options.length > 0 ? (
+                      <div className="space-y-4">
+                        {formData.options.map((opt, idx) => (
+                          <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200">
+                            <div className="flex justify-between items-center mb-2">
+                              <input
+                                type="text"
+                                placeholder={t('Grup Adı (Örn: Acı Durumu, Soslar)')}
+                                value={opt.name}
+                                onChange={e => {
+                                  const newOpts = [...formData.options];
+                                  newOpts[idx].name = e.target.value;
+                                  setFormData({ ...formData, options: newOpts });
+                                }}
+                                className="flex-1 px-3 py-2 border rounded-lg text-sm font-bold mr-2"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newOpts = formData.options.filter((_, i) => i !== idx);
+                                  setFormData({ ...formData, options: newOpts });
+                                }}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <FaTrash size={14} />
+                              </button>
+                            </div>
+
+                            <div>
+                              <label className="text-xs text-gray-500 mb-1 block">{t('Seçenekler (Virgülle ayırın)')}</label>
+                              <input
+                                type="text"
+                                placeholder={t('Örn: Az Acılı, Çok Acılı, Acısız')}
+                                value={opt.values.join(', ')}
+                                onChange={e => {
+                                  const newOpts = [...formData.options];
+                                  newOpts[idx].values = e.target.value.split(',').map(s => s.trim()); // removed filter(Boolean) to allows typing comma
+                                  setFormData({ ...formData, options: newOpts });
+                                }}
+                                className="w-full px-3 py-2 border rounded-lg text-sm"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 text-sm text-center italic">{t('Seçenek grubu eklenmemiş (Örn: Acı tercihi, Pişme derecesi)')}</p>
+                    )}
+                  </div>
+
+                  {/* MENÜ İÇERİĞİ (Bundle Items) - Sadece 'bundle' tipinde gösterilir */}
+                  {formData.type === 'bundle' && (
+                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-200 mb-4">
+                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <FaUtensils className="text-purple-600" />
+                        <TranslatedText>Menü İçeriği</TranslatedText>
+                      </h4>
+
+                      <div className="space-y-4">
+                        {formData.bundleItems.map((bi, idx) => (
+                          <div key={idx} className="flex gap-2 items-center bg-white p-2 rounded-lg border">
+                            <select
+                              className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                              value={bi.itemId}
+                              onChange={(e) => {
+                                const newItems = [...formData.bundleItems];
+                                newItems[idx].itemId = e.target.value;
+                                // Update name reference
+                                const selectedItem = items.find(i => i.id === e.target.value);
+                                if (selectedItem) newItems[idx].name = selectedItem.name;
+                                setFormData({ ...formData, bundleItems: newItems });
+
+                                // Auto calculate price suggestion if price is 0
+                                /* Optional: Add logic here to sum prices */
+                              }}
+                            >
+                              <option value="">{t('Ürün Seçin')}</option>
+                              {items.filter(i => i.type !== 'bundle').map(i => (
+                                <option key={i.id} value={i.id}>{i.name} ({i.price}₺)</option>
+                              ))}
+                            </select>
+                            <input
+                              type="number"
+                              min="1"
+                              value={bi.quantity}
+                              onChange={(e) => {
+                                const newItems = [...formData.bundleItems];
+                                newItems[idx].quantity = parseInt(e.target.value) || 1;
+                                setFormData({ ...formData, bundleItems: newItems });
+                              }}
+                              className="w-20 px-3 py-2 border rounded-lg text-sm"
+                              placeholder="Adet"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newItems = formData.bundleItems.filter((_, i) => i !== idx);
+                                setFormData({ ...formData, bundleItems: newItems });
+                              }}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        ))}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              bundleItems: [...(prev.bundleItems || []), { itemId: '', quantity: 1 }]
+                            }));
+                          }}
+                          className="w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 font-medium flex justify-center items-center gap-2"
+                        >
+                          <FaPlus /> <TranslatedText>Ürün Ekle</TranslatedText>
+                        </button>
+
+                        {formData.bundleItems.length > 0 && (
+                          <div className="text-right text-xs text-gray-500">
+                            Toplam: {formData.bundleItems.reduce((sum, bi) => {
+                              const item = items.find(i => i.id === bi.itemId);
+                              return sum + (item ? item.price * bi.quantity : 0);
+                            }, 0)} ₺ (Liste Fiyatı)
+                          </div>
+                        )}
                       </div>
                     </div>
+                  )}
 
-                    {/* Sıra */}
+
+                  {/* Kalori ve Hazırlık Süresi */}
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Sıra</TranslatedText>
+                        <TranslatedText>Kalori</TranslatedText>
                       </label>
                       <input
                         type="number"
-                        value={stationFormData.order}
-                        onChange={(e) => setStationFormData({ ...stationFormData, order: parseInt(e.target.value) || 0 })}
+                        value={formData.calories}
+                        onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        min="0"
+                        placeholder="250"
                       />
-                      <p className="text-xs text-gray-500 mt-1">İstasyonların görüntülenme sırası</p>
                     </div>
-
-                    {/* Printer IP Address */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Printer (Yazıcı) IP Adresi</TranslatedText>
+                        <TranslatedText>Hazırlık Süresi (dakika)</TranslatedText>
                       </label>
                       <input
-                        type="text"
-                        value={stationFormData.ipAddress}
-                        onChange={(e) => setStationFormData({ ...stationFormData, ipAddress: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
-                        placeholder="Örn: 192.168.1.100"
+                        type="number"
+                        value={formData.preparationTime}
+                        onChange={(e) => setFormData({ ...formData, preparationTime: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="15"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Bu istasyona bağlı olan termal yazıcının IP adresini girin.</p>
-                    </div>
-                  </form>
-
-                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
-                    <button
-                      onClick={() => setShowStationForm(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                    >
-                      <TranslatedText>İptal</TranslatedText>
-                    </button>
-                    <button
-                      onClick={handleSaveStation}
-                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                    >
-                      {editingStation ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Kamera Modal */}
-          {showCameraModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
-                <div className="p-6 border-b flex justify-between items-center">
-                  <h2 className="text-xl font-bold"><TranslatedText>Fotoğraf Çek</TranslatedText></h2>
-                  <button
-                    onClick={stopCamera}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <FaTimes size={24} />
-                  </button>
-                </div>
-                <div className="p-6">
-                  <div className="relative bg-black rounded-lg overflow-hidden mb-4">
-                    <video
-                      id="camera-video"
-                      autoPlay
-                      playsInline
-                      className="w-full h-64 object-cover"
-                      ref={(video) => {
-                        if (video && cameraStream) {
-                          video.srcObject = cameraStream;
-                        }
-                      }}
-                    />
-                    <div className="absolute inset-0 border-2 border-white rounded-lg pointer-events-none">
-                      <div className="absolute top-2 left-2 right-2 h-8 bg-black bg-opacity-50 rounded flex items-center justify-center">
-                        <span className="text-white text-sm"><TranslatedText>Ürünü çerçeve içine alın</TranslatedText></span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={stopCamera}
-                      className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                    >
-                      <TranslatedText>İptal</TranslatedText>
-                    </button>
-                    <button
-                      onClick={capturePhoto}
-                      className="flex-1 py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                    >
-                      <TranslatedText>Fotoğraf Çek</TranslatedText>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Bulk Import Modal */}
-          {showBulkImport && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-2xl w-full relative z-[9999] lg:ml-72">
-                <div className="p-6 border-b flex justify-between items-center">
-                  <h2 className="text-xl font-bold flex items-center gap-2">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    <TranslatedText>Toplu Ürün İçe Aktar</TranslatedText>
-                  </h2>
-                  <button
-                    onClick={() => setShowBulkImport(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <FaTimes size={20} />
-                  </button>
-                </div>
-                <div className="p-6 space-y-6">
-                  {/* Info Box */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      <div>
-                        <h4 className="font-semibold text-blue-900 mb-1"><TranslatedText>CSV Formatı</TranslatedText></h4>
-                        <p className="text-sm text-blue-800">
-                          <TranslatedText>CSV dosyanız şu sütunları içermelidir:</TranslatedText> <strong><TranslatedText>Ürün Adı, Açıklama, Fiyat, Kategori</TranslatedText></strong>
-                        </p>
-                      </div>
                     </div>
                   </div>
 
-                  {/* Upload Area */}
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors">
-                    <input
-                      type="file"
-                      accept=".csv"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          console.log('CSV dosyası seçildi:', file.name);
-                          // CSV işleme mantığı buraya eklenecek
-                          alert(t('CSV yükleme özelliği yakında aktif olacak! 🚀'));
-                        }
-                      }}
-                      className="hidden"
-                      id="csv-upload"
-                    />
-                    <label htmlFor="csv-upload" className="cursor-pointer">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
-                        <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                      </div>
-                      <p className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>CSV Dosyası Yükle</TranslatedText></p>
-                      <p className="text-sm text-gray-500"><TranslatedText>Tıklayın veya dosyayı sürükleyin</TranslatedText></p>
-                      <p className="text-xs text-gray-400 mt-2"><TranslatedText>Maksimum dosya boyutu: 5MB</TranslatedText></p>
-                    </label>
-                  </div>
 
-                  {/* Example Template */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-gray-700"><TranslatedText>Örnek Şablon</TranslatedText></h4>
-                      <button
-                        onClick={() => {
-                          // CSV şablonu oluştur
-                          const csvContent = "Ürün Adı,Açıklama,Fiyat,Kategori\nMargherita Pizza,Domates sosu ve mozzarella,89.90,Ana Yemek\nCaesar Salad,Marul ve parmesan peyniri,45.00,Salata\nTiramisu,İtalyan tatlısı,35.00,Tatlı";
-                          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                          const link = document.createElement('a');
-                          link.href = URL.createObjectURL(blob);
-                          link.download = 'ornek_menu_sablonu.csv';
-                          link.click();
-                        }}
-                        className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        <TranslatedText>Şablonu İndir</TranslatedText>
-                      </button>
-                    </div>
-                    <div className="bg-white rounded border border-gray-200 p-3 text-xs font-mono overflow-x-auto">
-                      <div className="text-gray-600">Ürün Adı,Açıklama,Fiyat,Kategori</div>
-                      <div className="text-gray-500">Margherita Pizza,Domates sosu...,89.90,Ana Yemek</div>
-                      <div className="text-gray-500">Caesar Salad,Marul ve parmesan...,45.00,Salata</div>
-                    </div>
-                  </div>
 
-                  {/* Features */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700"><TranslatedText>Hızlı İçe Aktar</TranslatedText></p>
-                        <p className="text-xs text-gray-500"><TranslatedText>Yüzlerce ürünü tek seferde ekleyin</TranslatedText></p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700"><TranslatedText>Otomatik Doğrulama</TranslatedText></p>
-                        <p className="text-xs text-gray-500"><TranslatedText>Hatalı veriler otomatik tespit edilir</TranslatedText></p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-6 border-t flex justify-end gap-3 bg-gray-50">
-                  <button
-                    onClick={() => setShowBulkImport(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 font-medium"
-                  >
-                    <TranslatedText>İptal</TranslatedText>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Translations Modal */}
-          {showTranslationsModal && selectedItemForTranslation && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
-              <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999]">
-                <div className="p-6 border-b flex justify-between items-center">
+                  {/* Malzemeler */}
                   <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-2">
-                      <FaLanguage className="text-blue-600" />
-                      <TranslatedText>Ürün Çevirileri</TranslatedText>
-                    </h2>
-                    <p className="text-sm text-gray-600 mt-1">{selectedItemForTranslation.name}</p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowTranslationsModal(false);
-                      setSelectedItemForTranslation(null);
-                      setTranslations({});
-                    }}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <FaTimes size={24} />
-                  </button>
-                </div>
-                <div className="p-6 overflow-y-auto max-h-[70vh]">
-                  {loadingTranslations ? (
-                    <div className="flex items-center justify-center py-12">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                      <span className="ml-3 text-gray-600"><TranslatedText>Çeviriler yükleniyor...</TranslatedText></span>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {Object.entries(translations).length > 0 ? (
-                        Object.entries(translations).map(([lang, translation]) => {
-                          const languageNames: { [key: string]: string } = {
-                            'tr': 'Türkçe',
-                            'en': 'English',
-                            'ar': 'العربية',
-                            'de': 'Deutsch',
-                            'fr': 'Français',
-                            'es': 'Español',
-                            'it': 'Italiano',
-                            'ru': 'Русский'
-                          };
-
-                          return (
-                            <div key={lang} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                                  {lang.toUpperCase()}
-                                </div>
-                                <h3 className="font-semibold text-lg">{languageNames[lang] || lang}</h3>
-                              </div>
-                              <div className="space-y-3">
-                                <div>
-                                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide"><TranslatedText>Ürün Adı</TranslatedText></label>
-                                  <p className="text-gray-900 font-medium mt-1">{translation.name}</p>
-                                </div>
-                                {translation.description && (
-                                  <div>
-                                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide"><TranslatedText>Açıklama</TranslatedText></label>
-                                    <p className="text-gray-700 mt-1">{translation.description}</p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="text-center py-12">
-                          <FaLanguage className="mx-auto text-5xl text-gray-300 mb-4" />
-                          <p className="text-gray-600"><TranslatedText>Çeviriler yüklenemedi</TranslatedText></p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="p-6 border-t bg-gray-50 flex justify-end">
-                  <button
-                    onClick={() => {
-                      setShowTranslationsModal(false);
-                      setSelectedItemForTranslation(null);
-                      setTranslations({});
-                    }}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    <TranslatedText>Kapat</TranslatedText>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Bulk Translate Modal */}
-          {showBulkTranslateModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
-                <div className="p-6 border-b flex justify-between items-center">
-                  <h2 className="text-xl font-bold"><TranslatedText>Toplu Çeviri Ayarları</TranslatedText></h2>
-                  <button
-                    onClick={() => setShowBulkTranslateModal(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <FaTimes size={20} />
-                  </button>
-                </div>
-                <div className="p-6 space-y-4">
-                  <p className="text-sm text-gray-600">
-                    {selectedItems.length > 0 ? `${selectedItems.length} ürün` : `${items.length} ürün`} <TranslatedText>seçilen dillere çevrilecek.</TranslatedText>
-                  </p>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      <TranslatedText>Hedef Diller</TranslatedText>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Malzemeler</TranslatedText>
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { id: 'en', name: 'English', flag: '🇺🇸' },
-                        { id: 'de', name: 'German', flag: '🇩🇪' },
-                        { id: 'ar', name: 'Arabic', flag: '🇸🇦' },
-                        { id: 'ru', name: 'Russian', flag: '🇷🇺' },
-                        { id: 'fr', name: 'French', flag: '🇫🇷' },
-                        { id: 'es', name: 'Spanish', flag: '🇪🇸' },
-                        { id: 'it', name: 'Italian', flag: '🇮🇹' }
-                      ].map((lang) => (
-                        <button
-                          key={lang.id}
-                          onClick={() => {
-                            if (selectedBulkLanguages.includes(lang.id)) {
-                              setSelectedBulkLanguages(selectedBulkLanguages.filter(l => l !== lang.id));
-                            } else {
-                              setSelectedBulkLanguages([...selectedBulkLanguages, lang.id]);
-                            }
-                          }}
-                          className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedBulkLanguages.includes(lang.id)
-                            ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-sm'
-                            : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
-                            }`}
-                        >
-                          <span className="text-xl">{lang.flag}</span>
-                          <span className="text-sm font-semibold">{lang.name}</span>
-                          {selectedBulkLanguages.includes(lang.id) && (
-                            <FaCheck className="ml-auto text-purple-500 text-xs" />
-                          )}
-                        </button>
+                    <textarea
+                      value={formData.ingredients}
+                      onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder={t('Malzemeleri virgülle ayırarak yazın (Örn: Domates, Mozzarella, Fesleğen)')}
+                    />
+                  </div>
+
+                  {/* Alerjenler */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Alerjen</TranslatedText>
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['Gluten', 'Süt', 'Yumurta', 'Fındık', 'Fıstık', 'Soya', 'Balık', 'Kabuklu Deniz Ürünleri'].map((allergen) => (
+                        <label key={allergen} className="flex items-center p-2 border border-gray-200 rounded-lg hover:bg-gray-50">
+                          <input
+                            type="checkbox"
+                            checked={Array.isArray(formData.allergens) && formData.allergens.some(a => a.toLowerCase() === allergen.toLowerCase())}
+                            onChange={(e) => {
+                              const currentAllergens = Array.isArray(formData.allergens) ? formData.allergens : [];
+                              console.log('Alerjen değişikliği:', { allergen, checked: e.target.checked, currentAllergens });
+                              if (e.target.checked) {
+                                const newAllergens = [...currentAllergens, allergen];
+                                console.log('Yeni alerjenler:', newAllergens);
+                                setFormData({ ...formData, allergens: newAllergens });
+                              } else {
+                                const newAllergens = currentAllergens.filter(a => a !== allergen);
+                                console.log('Kaldırılan alerjenler:', newAllergens);
+                                setFormData({ ...formData, allergens: newAllergens });
+                              }
+                            }}
+                            className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700"><TranslatedText>{allergen}</TranslatedText></span>
+                        </label>
                       ))}
                     </div>
                   </div>
 
-                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-3">
-                    <FaExclamationTriangle className="text-blue-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-blue-700 leading-relaxed">
-                      <TranslatedText>Sadece seçtiğiniz diller için çeviriler güncellenecektir. Mevcut çevirilerinizin üzerine yazılabilir.</TranslatedText>
-                    </p>
-                  </div>
-                </div>
-                <div className="p-6 border-t flex justify-end gap-3">
-                  <button
-                    onClick={() => setShowBulkTranslateModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-semibold"
-                  >
-                    <TranslatedText>İptal</TranslatedText>
-                  </button>
-                  <button
-                    onClick={startBulkTranslation}
-                    disabled={selectedBulkLanguages.length === 0}
-                    className="flex-1 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
-                  >
-                    <TranslatedText>Çeviriyi Başlat</TranslatedText>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Bulk Price Update Modal */}
-          {showBulkPriceModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
-                <div className="p-6 border-b flex justify-between items-center">
-                  <h2 className="text-xl font-bold"><TranslatedText>Toplu Fiyat Düzenle</TranslatedText></h2>
-                  <button
-                    onClick={() => setShowBulkPriceModal(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <FaTimes size={20} />
-                  </button>
-                </div>
-                <div className="p-6 space-y-4">
-                  <p className="text-sm text-gray-600">
-                    {selectedItems.length} <TranslatedText>ürünün fiyatını güncelleyeceksiniz.</TranslatedText>
-                  </p>
-
-                  {/* Operation Type */}
+                  {/* Ürün Fotoğrafı */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>İşlem Türü</TranslatedText>
+                      <TranslatedText>Ürün Fotoğrafı</TranslatedText>
                     </label>
-                    <div className="grid grid-cols-2 gap-2">
+
+                    {/* Fotoğraf Yükleme Seçenekleri */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      {/* Kameradan Çek */}
                       <button
-                        onClick={() => setBulkPriceOperation('increase')}
-                        className={`p-2 text-sm rounded-lg border ${bulkPriceOperation === 'increase'
-                          ? 'bg-green-50 border-green-300 text-green-700'
-                          : 'border-gray-300 text-gray-700'
-                          }`}
+                        type="button"
+                        onClick={startCamera}
+                        className="p-4 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors text-center"
                       >
-                        <TranslatedText>Arttır</TranslatedText>
+                        <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                          <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        <p className="text-sm font-medium text-purple-600"><TranslatedText>Kameradan Çek</TranslatedText></p>
+                        <p className="text-xs text-gray-500"><TranslatedText>Telefon kamerası</TranslatedText></p>
                       </button>
-                      <button
-                        onClick={() => setBulkPriceOperation('decrease')}
-                        className={`p-2 text-sm rounded-lg border ${bulkPriceOperation === 'decrease'
-                          ? 'bg-red-50 border-red-300 text-red-700'
-                          : 'border-gray-300 text-gray-700'
-                          }`}
+
+                      {/* Dosyadan Yükle veya Yapıştır */}
+                      <div
+                        className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors text-center cursor-pointer relative"
+                        onPaste={async (e) => {
+                          e.preventDefault();
+                          const items = e.clipboardData.items;
+
+                          for (let i = 0; i < items.length; i++) {
+                            const item = items[i];
+
+                            if (item.type.indexOf('image') !== -1) {
+                              const file = item.getAsFile();
+                              if (file) {
+                                console.log('📋 Yapıştırılan resim:', file.name || 'Clipboard', 'Boyut:', file.size, 'Tip:', file.type);
+
+                                // Dosya boyutunu kontrol et (max 5MB)
+                                if (file.size > 5 * 1024 * 1024) {
+                                  alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
+                                  return;
+                                }
+
+                                // Resim yükleme
+                                try {
+                                  const formData = new FormData();
+                                  formData.append('image', file);
+
+                                  const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
+                                    method: 'POST',
+                                    body: formData,
+                                  });
+
+                                  if (!response.ok) {
+                                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                                  }
+
+                                  const result = await response.json();
+
+                                  if (result.success) {
+                                    console.log('✅ Yapıştırılan resim başarıyla yüklendi:', result.data.imageUrl);
+                                    setCapturedImage(result.data.imageUrl);
+                                    alert(t('Resim başarıyla yapıştırıldı ve yüklendi!'));
+                                  } else {
+                                    console.error('❌ Upload failed:', result.message);
+                                    alert(t('Resim yüklenemedi: ') + result.message);
+                                  }
+                                } catch (error) {
+                                  console.error('❌ Resim yükleme hatası:', error);
+                                  alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
+                                }
+                                break;
+                              }
+                            }
+                          }
+                        }}
+                        tabIndex={0}
+                        onFocus={(e) => {
+                          e.currentTarget.style.outline = '2px solid #9333ea';
+                          e.currentTarget.style.outlineOffset = '2px';
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.outline = 'none';
+                        }}
                       >
-                        <TranslatedText>Azalt</TranslatedText>
-                      </button>
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                console.log('Seçilen dosya:', file.name, 'Boyut:', file.size, 'Tip:', file.type);
+
+                                // Dosya boyutunu kontrol et (max 5MB)
+                                if (file.size > 5 * 1024 * 1024) {
+                                  alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
+                                  return;
+                                }
+
+                                // Dosya tipini kontrol et
+                                if (!file.type.startsWith('image/')) {
+                                  alert(t('Lütfen sadece resim dosyası seçin.'));
+                                  return;
+                                }
+
+                                // Basit ve güvenilir resim yükleme sistemi
+                                try {
+                                  console.log('📤 Resim yükleniyor:', file.name, file.size, 'bytes');
+
+                                  const formData = new FormData();
+                                  formData.append('image', file);
+
+                                  console.log('📡 API URL:', process.env.NEXT_PUBLIC_API_URL);
+
+                                  const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
+                                    method: 'POST',
+                                    body: formData,
+                                  });
+
+                                  console.log('📊 Response status:', response.status);
+                                  console.log('📊 Response ok:', response.ok);
+
+                                  if (!response.ok) {
+                                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                                  }
+
+                                  const result = await response.json();
+                                  console.log('📊 Response data:', result);
+
+                                  if (result.success) {
+                                    console.log('✅ Resim başarıyla yüklendi:', result.data.imageUrl);
+                                    setCapturedImage(result.data.imageUrl);
+                                    alert(t('Resim başarıyla yüklendi!'));
+                                  } else {
+                                    console.error('❌ Upload failed:', result.message);
+                                    alert(t('Resim yüklenemedi: ') + result.message);
+                                  }
+                                } catch (error) {
+                                  console.error('❌ Resim yükleme hatası:', error);
+                                  alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
+                                }
+                              }
+                            }}
+                            className="hidden"
+                          />
+                          <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                            <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                          <p className="text-sm font-medium text-gray-600"><TranslatedText>Dosyadan Yükle</TranslatedText></p>
+                          <p className="text-xs text-gray-500"><TranslatedText>PNG, JPG, GIF</TranslatedText></p>
+                          <p className="text-xs text-purple-600 mt-1 font-medium"><TranslatedText>veya Ctrl+V ile yapıştır</TranslatedText></p>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* AI Görsel İşleme */}
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex">
+                          <span className="text-yellow-400 text-lg">✨</span>
+                          <span className="text-yellow-400 text-sm">⭐</span>
+                          <span className="text-yellow-400 text-xs">✨</span>
+                        </div>
+                        <h4 className="font-semibold text-gray-800"><TranslatedText>AI Görsel İşleme Aktif!</TranslatedText></h4>
+                      </div>
+
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        <li className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span><TranslatedText>Otomatik arka plan kaldırma</TranslatedText></span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span><TranslatedText>Renk ve parlaklık optimizasyonu</TranslatedText></span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span><TranslatedText>Akıllı boyutlandırma</TranslatedText></span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                          <span><TranslatedText>Keskinlik artırma</TranslatedText></span>
+                        </li>
+                      </ul>
+
+                      <div className="mt-3 p-2 bg-yellow-100 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <span className="text-yellow-600">💡</span>
+                          <span className="text-xs text-yellow-800">
+                            <TranslatedText>Kameradan çekmek daha profesyonel sonuçlar verir</TranslatedText>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Seçilen Fotoğraf Önizleme */}
+                    {capturedImage && (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-gray-700 mb-2"><TranslatedText>Seçilen Fotoğraf:</TranslatedText></p>
+                        <div className="relative inline-block">
+                          <img
+                            src={capturedImage.startsWith('http') ? capturedImage : `https://masapp-backend.onrender.com${capturedImage}`}
+                            alt="Ürün fotoğrafı önizleme"
+                            className="w-32 h-32 object-cover rounded-lg border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setCapturedImage(null)}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Durum ve Popüler */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <TranslatedText>Ürün Durumu</TranslatedText>
+                        </label>
+                        <div className="flex gap-4">
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name="status"
+                              value="available"
+                              checked={formData.isAvailable}
+                              onChange={(e) => setFormData({ ...formData, isAvailable: e.target.value === 'available' })}
+                              className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <TranslatedText>Mevcut</TranslatedText>
+                            </span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name="status"
+                              value="out-of-stock"
+                              checked={!formData.isAvailable}
+                              onChange={(e) => setFormData({ ...formData, isAvailable: e.target.value !== 'out-of-stock' })}
+                              className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <TranslatedText>Tükendi</TranslatedText>
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="flex items-center p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg hover:from-yellow-100 hover:to-orange-100 transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={formData.isPopular}
+                            onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
+                            className="w-5 h-5 text-yellow-600 border-yellow-300 rounded focus:ring-yellow-500"
+                          />
+                          <span className="ml-3 text-sm font-medium text-yellow-800 flex items-center gap-2">
+                            <FaFire className="text-yellow-600" size={16} />
+                            <TranslatedText>Popüler Ürün</TranslatedText>
+                          </span>
+                        </label>
+                      </div>
                     </div>
                   </div>
+                </form>
 
-                  {/* Price Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Değer Türü</TranslatedText>
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => setBulkPriceType('percentage')}
-                        className={`p-2 text-sm rounded-lg border ${bulkPriceType === 'percentage'
-                          ? 'bg-blue-50 border-blue-300 text-blue-700'
-                          : 'border-gray-300 text-gray-700'
-                          }`}
-                      >
-                        <FaPercent className="inline mr-1" />
-                        <TranslatedText>Yüzde</TranslatedText>
-                      </button>
-                      <button
-                        onClick={() => setBulkPriceType('fixed')}
-                        className={`p-2 text-sm rounded-lg border ${bulkPriceType === 'fixed'
-                          ? 'bg-blue-50 border-blue-300 text-blue-700'
-                          : 'border-gray-300 text-gray-700'
-                          }`}
-                      >
-                        <TranslatedText>₺ Sabit</TranslatedText>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Value Input */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Değer</TranslatedText>
-                    </label>
-                    <input
-                      type="number"
-                      value={bulkPriceValue}
-                      onChange={(e) => setBulkPriceValue(e.target.value)}
-                      placeholder={bulkPriceType === 'percentage' ? '10' : '5.00'}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {bulkPriceType === 'percentage'
-                        ? <><TranslatedText>Fiyatları %</TranslatedText>{bulkPriceValue || '0'} <TranslatedText>{bulkPriceOperation === 'increase' ? 'arttır' : 'azalt'}</TranslatedText></>
-                        : <><TranslatedText>Fiyatlara ₺</TranslatedText>{bulkPriceValue || '0'} <TranslatedText>{bulkPriceOperation === 'increase' ? 'ekle' : 'çıkar'}</TranslatedText></>
-                      }
-                    </p>
-                  </div>
-                </div>
-                <div className="p-6 border-t flex justify-end gap-3">
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
                   <button
-                    onClick={() => setShowBulkPriceModal(false)}
+                    onClick={() => setShowItemForm(false)}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
                     <TranslatedText>İptal</TranslatedText>
                   </button>
                   <button
-                    onClick={handleBulkPriceUpdate}
-                    disabled={!bulkPriceValue}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={async () => {
+                      console.log('=== FORM SUBMIT BAŞLADI ===');
+                      console.log('Form Data:', formData);
+                      console.log('Captured Image:', capturedImage ? 'VAR (' + capturedImage.length + ' karakter)' : 'YOK');
+                      console.log('Captured Image Preview:', capturedImage ? capturedImage.substring(0, 100) + '...' : 'null');
+                      console.log('Editing Item:', editingItem);
+                      console.log('Current Restaurant ID:', currentRestaurantId);
+
+                      // Gerçek güncelleme işlemi
+                      if (editingItem) {
+                        // Ürün güncelleme
+                        try {
+                          if (currentRestaurantId) {
+                            const updateData = {
+                              name: formData.name,
+                              description: formData.description,
+                              price: Number(formData.price),
+                              categoryId: formData.category,
+                              isAvailable: formData.isAvailable,
+                              isPopular: formData.isPopular,
+                              imageUrl: capturedImage || editingItem.imageUrl,
+                              allergens: formData.allergens,
+                              kitchenStation: formData.kitchenStation
+                            };
+
+                            console.log('Update Data gönderiliyor:', updateData);
+                            console.log('Alerjenler:', formData.allergens);
+                            console.log('Resim URL uzunluğu:', updateData.imageUrl.length);
+
+                            await updateMenuItem(currentRestaurantId, editingItem.id, updateData);
+                            console.log('Ürün güncellendi:', formData);
+                            // Menüyü yeniden yükle
+                            await fetchRestaurantMenu(currentRestaurantId);
+                            alert(t('Ürün başarıyla güncellendi!'));
+                          }
+                        } catch (error) {
+                          console.error('Ürün güncellenirken hata:', error);
+                          alert(t('Ürün güncellenirken bir hata oluştu: ') + (error as any).message);
+                        }
+                      } else {
+                        // Yeni ürün ekleme
+                        if (!formData.name || !formData.price || !formData.category) {
+                          alert(t('Lütfen ürün adı, fiyat ve kategori alanlarını doldurun!'));
+                          return;
+                        }
+
+                        try {
+                          if (currentRestaurantId) {
+                            const createData = {
+                              categoryId: formData.category,
+                              name: formData.name,
+                              description: formData.description,
+                              price: Number(formData.price),
+                              imageUrl: capturedImage || '/placeholder-food.jpg',
+                              order: items.length + 1,
+                              isAvailable: formData.isAvailable,
+                              isPopular: formData.isPopular,
+                              allergens: formData.allergens,
+                              kitchenStation: formData.kitchenStation
+                            };
+
+                            console.log('Create Data gönderiliyor:', createData);
+                            console.log('Alerjenler:', formData.allergens);
+                            console.log('Resim URL uzunluğu:', createData.imageUrl.length);
+
+                            await createMenuItem(currentRestaurantId, createData);
+                            console.log('Yeni ürün backend\'e kaydedildi:', formData);
+                            // Menüyü yeniden yükle
+                            await fetchRestaurantMenu(currentRestaurantId);
+                            alert(t('Ürün başarıyla eklendi!'));
+                          }
+                        } catch (error) {
+                          console.error('Ürün eklenirken hata:', error);
+                          alert(t('Ürün eklenirken bir hata oluştu: ') + (error as any).message);
+                        }
+                      }
+
+                      // Başarılı işlem sonrası temizlik
+                      setShowItemForm(false);
+                      setEditingItem(null);
+                      setCapturedImage(null);
+                      // Form resetle
+                      setFormData({
+                        name: '',
+                        description: '',
+                        price: '',
+                        category: '',
+                        subcategory: '',
+                        preparationTime: '',
+                        calories: '',
+                        ingredients: '',
+                        allergens: [] as string[],
+                        portion: '',
+                        isAvailable: true,
+                        isPopular: false,
+                        kitchenStation: '',
+                        translations: {}
+                      });
+                    }}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
-                    <TranslatedText>Güncelle</TranslatedText>
+                    {editingItem ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
                   </button>
                 </div>
               </div>
             </div>
-          )}
-        </div>
-      </div >
+          </div>
+        )}
+
+        {showCategoryForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+            <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
+              <div className="p-6 border-b flex justify-between items-center">
+                <h2 className="text-2xl font-bold">
+                  {editingCategory ? <TranslatedText>Kategoriyi Düzenle</TranslatedText> : <TranslatedText>Yeni Kategori Ekle</TranslatedText>}
+                </h2>
+                <button
+                  onClick={() => setShowCategoryForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes size={24} />
+                </button>
+              </div>
+              <div className="p-6">
+                <form className="space-y-4">
+                  {/* Kategori Adı */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Kategori Adı *</TranslatedText>
+                    </label>
+                    <input
+                      type="text"
+                      value={categoryFormData.name}
+                      onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder={t('Örn: Başlangıçlar, Ana Yemekler, Tatlılar')}
+                      required
+                    />
+                  </div>
+
+                  {/* Mutfak İstasyonu */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Varsayılan Mutfak İstasyonu</TranslatedText>
+                    </label>
+                    <select
+                      value={categoryFormData.kitchenStation}
+                      onChange={(e) => setCategoryFormData({ ...categoryFormData, kitchenStation: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                      <option value="">{t('İstasyon Seçin')}</option>
+                      {stations.sort((a, b) => a.order - b.order).map(station => (
+                        <option key={station.id} value={station.name.toLowerCase()}>
+                          {station.emoji} {station.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t('Bu kategorideki ürünler varsayılan olarak hangi istasyona gidecek?')}
+                    </p>
+                  </div>
+
+                  {/* Durum */}
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={categoryFormData.isActive}
+                        onChange={(e) => setCategoryFormData({ ...categoryFormData, isActive: e.target.checked })}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700"><TranslatedText>Aktif</TranslatedText></span>
+                    </label>
+                  </div>
+                </form>
+
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
+                  <button
+                    onClick={() => setShowCategoryForm(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    <TranslatedText>İptal</TranslatedText>
+                  </button>
+                  <button
+                    onClick={async () => {
+                      // Gerçek kategori güncelleme işlemi
+                      if (!categoryFormData.name) {
+                        alert(t('Lütfen kategori adını girin!'));
+                        return;
+                      }
+
+                      try {
+                        if (editingCategory) {
+                          if (currentRestaurantId) {
+                            await updateMenuCategory(currentRestaurantId, editingCategory.id, {
+                              name: categoryFormData.name,
+                              description: categoryFormData.description,
+                              order: categoryFormData.order,
+                              isActive: categoryFormData.isActive,
+                              kitchenStation: categoryFormData.kitchenStation
+                            });
+                            console.log('Kategori güncellendi:', editingCategory);
+                            // Menüyü yeniden yükle
+                            await fetchRestaurantMenu(currentRestaurantId);
+                          }
+                        } else {
+                          // Backend API'sine kaydet
+                          if (currentRestaurantId) {
+                            await createMenuCategory(currentRestaurantId, {
+                              name: categoryFormData.name,
+                              description: categoryFormData.description,
+                              order: categories.length,
+                              isActive: categoryFormData.isActive,
+                              kitchenStation: categoryFormData.kitchenStation
+                            });
+                            console.log('Yeni kategori backend\'e kaydedildi');
+                            // Menüyü yeniden yükle
+                            await fetchRestaurantMenu(currentRestaurantId);
+                          }
+                        }
+                      } catch (error) {
+                        console.error('Kategori işlemi sırasında hata:', error);
+                        alert(t('Kategori işlemi sırasında bir hata oluştu: ') + (error as any).message);
+                      }
+                      setShowCategoryForm(false);
+                      setEditingCategory(null);
+                      setSubcategories([]); // Formu temizle
+                      setCategoryFormData({
+                        name: '',
+                        description: '',
+                        order: categories.length,
+                        isActive: true,
+                        kitchenStation: '',
+                        translations: {}
+                      });
+                    }}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    {editingCategory ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* İstasyon Form Modal */}
+        {showStationForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+            <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
+              <div className="p-6 border-b flex justify-between items-center">
+                <h2 className="text-2xl font-bold">
+                  {editingStation ? <TranslatedText>İstasyonu Düzenle</TranslatedText> : <TranslatedText>Yeni İstasyon Ekle</TranslatedText>}
+                </h2>
+                <button
+                  onClick={() => setShowStationForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes size={24} />
+                </button>
+              </div>
+              <div className="p-6">
+                <form className="space-y-4">
+                  {/* İstasyon Adı */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>İstasyon Adı *</TranslatedText>
+                    </label>
+                    <input
+                      type="text"
+                      value={stationFormData.name}
+                      onChange={(e) => setStationFormData({ ...stationFormData, name: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Örn: Izgara, Pizza, Sushi"
+                      required
+                    />
+                  </div>
+
+                  {/* Emoji */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Emoji</TranslatedText>
+                    </label>
+                    <input
+                      type="text"
+                      value={stationFormData.emoji}
+                      onChange={(e) => setStationFormData({ ...stationFormData, emoji: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-2xl"
+                      placeholder="🔥"
+                      maxLength={2}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">İstasyon için emoji seçin (opsiyonel)</p>
+                  </div>
+
+                  {/* Renk */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Renk</TranslatedText>
+                    </label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        value={stationFormData.color}
+                        onChange={(e) => setStationFormData({ ...stationFormData, color: e.target.value })}
+                        className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={stationFormData.color}
+                        onChange={(e) => setStationFormData({ ...stationFormData, color: e.target.value })}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="#3B82F6"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sıra */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Sıra</TranslatedText>
+                    </label>
+                    <input
+                      type="number"
+                      value={stationFormData.order}
+                      onChange={(e) => setStationFormData({ ...stationFormData, order: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      min="0"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">İstasyonların görüntülenme sırası</p>
+                  </div>
+
+                  {/* Printer IP Address */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <TranslatedText>Printer (Yazıcı) IP Adresi</TranslatedText>
+                    </label>
+                    <input
+                      type="text"
+                      value={stationFormData.ipAddress}
+                      onChange={(e) => setStationFormData({ ...stationFormData, ipAddress: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                      placeholder="Örn: 192.168.1.100"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Bu istasyona bağlı olan termal yazıcının IP adresini girin.</p>
+                  </div>
+                </form>
+
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
+                  <button
+                    onClick={() => setShowStationForm(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    <TranslatedText>İptal</TranslatedText>
+                  </button>
+                  <button
+                    onClick={handleSaveStation}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    {editingStation ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Kamera Modal */}
+        {showCameraModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+            <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
+              <div className="p-6 border-b flex justify-between items-center">
+                <h2 className="text-xl font-bold"><TranslatedText>Fotoğraf Çek</TranslatedText></h2>
+                <button
+                  onClick={stopCamera}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes size={24} />
+                </button>
+              </div>
+              <div className="p-6">
+                <div className="relative bg-black rounded-lg overflow-hidden mb-4">
+                  <video
+                    id="camera-video"
+                    autoPlay
+                    playsInline
+                    className="w-full h-64 object-cover"
+                    ref={(video) => {
+                      if (video && cameraStream) {
+                        video.srcObject = cameraStream;
+                      }
+                    }}
+                  />
+                  <div className="absolute inset-0 border-2 border-white rounded-lg pointer-events-none">
+                    <div className="absolute top-2 left-2 right-2 h-8 bg-black bg-opacity-50 rounded flex items-center justify-center">
+                      <span className="text-white text-sm"><TranslatedText>Ürünü çerçeve içine alın</TranslatedText></span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={stopCamera}
+                    className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  >
+                    <TranslatedText>İptal</TranslatedText>
+                  </button>
+                  <button
+                    onClick={capturePhoto}
+                    className="flex-1 py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    <TranslatedText>Fotoğraf Çek</TranslatedText>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Import Modal */}
+        {showBulkImport && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+            <div className="bg-white rounded-xl max-w-2xl w-full relative z-[9999] lg:ml-72">
+              <div className="p-6 border-b flex justify-between items-center">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <TranslatedText>Toplu Ürün İçe Aktar</TranslatedText>
+                </h2>
+                <button
+                  onClick={() => setShowBulkImport(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+              <div className="p-6 space-y-6">
+                {/* Info Box */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <h4 className="font-semibold text-blue-900 mb-1"><TranslatedText>CSV Formatı</TranslatedText></h4>
+                      <p className="text-sm text-blue-800">
+                        <TranslatedText>CSV dosyanız şu sütunları içermelidir:</TranslatedText> <strong><TranslatedText>Ürün Adı, Açıklama, Fiyat, Kategori</TranslatedText></strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Upload Area */}
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        console.log('CSV dosyası seçildi:', file.name);
+                        // CSV işleme mantığı buraya eklenecek
+                        alert(t('CSV yükleme özelliği yakında aktif olacak! 🚀'));
+                      }
+                    }}
+                    className="hidden"
+                    id="csv-upload"
+                  />
+                  <label htmlFor="csv-upload" className="cursor-pointer">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
+                      <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                    </div>
+                    <p className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>CSV Dosyası Yükle</TranslatedText></p>
+                    <p className="text-sm text-gray-500"><TranslatedText>Tıklayın veya dosyayı sürükleyin</TranslatedText></p>
+                    <p className="text-xs text-gray-400 mt-2"><TranslatedText>Maksimum dosya boyutu: 5MB</TranslatedText></p>
+                  </label>
+                </div>
+
+                {/* Example Template */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-gray-700"><TranslatedText>Örnek Şablon</TranslatedText></h4>
+                    <button
+                      onClick={() => {
+                        // CSV şablonu oluştur
+                        const csvContent = "Ürün Adı,Açıklama,Fiyat,Kategori\nMargherita Pizza,Domates sosu ve mozzarella,89.90,Ana Yemek\nCaesar Salad,Marul ve parmesan peyniri,45.00,Salata\nTiramisu,İtalyan tatlısı,35.00,Tatlı";
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = 'ornek_menu_sablonu.csv';
+                        link.click();
+                      }}
+                      className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      <TranslatedText>Şablonu İndir</TranslatedText>
+                    </button>
+                  </div>
+                  <div className="bg-white rounded border border-gray-200 p-3 text-xs font-mono overflow-x-auto">
+                    <div className="text-gray-600">Ürün Adı,Açıklama,Fiyat,Kategori</div>
+                    <div className="text-gray-500">Margherita Pizza,Domates sosu...,89.90,Ana Yemek</div>
+                    <div className="text-gray-500">Caesar Salad,Marul ve parmesan...,45.00,Salata</div>
+                  </div>
+                </div>
+
+                {/* Features */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700"><TranslatedText>Hızlı İçe Aktar</TranslatedText></p>
+                      <p className="text-xs text-gray-500"><TranslatedText>Yüzlerce ürünü tek seferde ekleyin</TranslatedText></p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700"><TranslatedText>Otomatik Doğrulama</TranslatedText></p>
+                      <p className="text-xs text-gray-500"><TranslatedText>Hatalı veriler otomatik tespit edilir</TranslatedText></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 border-t flex justify-end gap-3 bg-gray-50">
+                <button
+                  onClick={() => setShowBulkImport(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 font-medium"
+                >
+                  <TranslatedText>İptal</TranslatedText>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Translations Modal */}
+        {showTranslationsModal && selectedItemForTranslation && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999]">
+              <div className="p-6 border-b flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <FaLanguage className="text-blue-600" />
+                    <TranslatedText>Ürün Çevirileri</TranslatedText>
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">{selectedItemForTranslation.name}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowTranslationsModal(false);
+                    setSelectedItemForTranslation(null);
+                    setTranslations({});
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes size={24} />
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto max-h-[70vh]">
+                {loadingTranslations ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                    <span className="ml-3 text-gray-600"><TranslatedText>Çeviriler yükleniyor...</TranslatedText></span>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {Object.entries(translations).length > 0 ? (
+                      Object.entries(translations).map(([lang, translation]) => {
+                        const languageNames: { [key: string]: string } = {
+                          'tr': 'Türkçe',
+                          'en': 'English',
+                          'ar': 'العربية',
+                          'de': 'Deutsch',
+                          'fr': 'Français',
+                          'es': 'Español',
+                          'it': 'Italiano',
+                          'ru': 'Русский'
+                        };
+
+                        return (
+                          <div key={lang} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                {lang.toUpperCase()}
+                              </div>
+                              <h3 className="font-semibold text-lg">{languageNames[lang] || lang}</h3>
+                            </div>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide"><TranslatedText>Ürün Adı</TranslatedText></label>
+                                <p className="text-gray-900 font-medium mt-1">{translation.name}</p>
+                              </div>
+                              {translation.description && (
+                                <div>
+                                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide"><TranslatedText>Açıklama</TranslatedText></label>
+                                  <p className="text-gray-700 mt-1">{translation.description}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="text-center py-12">
+                        <FaLanguage className="mx-auto text-5xl text-gray-300 mb-4" />
+                        <p className="text-gray-600"><TranslatedText>Çeviriler yüklenemedi</TranslatedText></p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="p-6 border-t bg-gray-50 flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowTranslationsModal(false);
+                    setSelectedItemForTranslation(null);
+                    setTranslations({});
+                  }}
+                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  <TranslatedText>Kapat</TranslatedText>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Translate Modal */}
+        {showBulkTranslateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+            <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
+              <div className="p-6 border-b flex justify-between items-center">
+                <h2 className="text-xl font-bold"><TranslatedText>Toplu Çeviri Ayarları</TranslatedText></h2>
+                <button
+                  onClick={() => setShowBulkTranslateModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <p className="text-sm text-gray-600">
+                  {selectedItems.length > 0 ? `${selectedItems.length} ürün` : `${items.length} ürün`} <TranslatedText>seçilen dillere çevrilecek.</TranslatedText>
+                </p>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <TranslatedText>Hedef Diller</TranslatedText>
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { id: 'en', name: 'English', flag: '🇺🇸' },
+                      { id: 'de', name: 'German', flag: '🇩🇪' },
+                      { id: 'ar', name: 'Arabic', flag: '🇸🇦' },
+                      { id: 'ru', name: 'Russian', flag: '🇷🇺' },
+                      { id: 'fr', name: 'French', flag: '🇫🇷' },
+                      { id: 'es', name: 'Spanish', flag: '🇪🇸' },
+                      { id: 'it', name: 'Italian', flag: '🇮🇹' }
+                    ].map((lang) => (
+                      <button
+                        key={lang.id}
+                        onClick={() => {
+                          if (selectedBulkLanguages.includes(lang.id)) {
+                            setSelectedBulkLanguages(selectedBulkLanguages.filter(l => l !== lang.id));
+                          } else {
+                            setSelectedBulkLanguages([...selectedBulkLanguages, lang.id]);
+                          }
+                        }}
+                        className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedBulkLanguages.includes(lang.id)
+                          ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-sm'
+                          : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
+                          }`}
+                      >
+                        <span className="text-xl">{lang.flag}</span>
+                        <span className="text-sm font-semibold">{lang.name}</span>
+                        {selectedBulkLanguages.includes(lang.id) && (
+                          <FaCheck className="ml-auto text-purple-500 text-xs" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-3">
+                  <FaExclamationTriangle className="text-blue-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-blue-700 leading-relaxed">
+                    <TranslatedText>Sadece seçtiğiniz diller için çeviriler güncellenecektir. Mevcut çevirilerinizin üzerine yazılabilir.</TranslatedText>
+                  </p>
+                </div>
+              </div>
+              <div className="p-6 border-t flex justify-end gap-3">
+                <button
+                  onClick={() => setShowBulkTranslateModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-semibold"
+                >
+                  <TranslatedText>İptal</TranslatedText>
+                </button>
+                <button
+                  onClick={startBulkTranslation}
+                  disabled={selectedBulkLanguages.length === 0}
+                  className="flex-1 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                >
+                  <TranslatedText>Çeviriyi Başlat</TranslatedText>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Price Update Modal */}
+        {showBulkPriceModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+            <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
+              <div className="p-6 border-b flex justify-between items-center">
+                <h2 className="text-xl font-bold"><TranslatedText>Toplu Fiyat Düzenle</TranslatedText></h2>
+                <button
+                  onClick={() => setShowBulkPriceModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <p className="text-sm text-gray-600">
+                  {selectedItems.length} <TranslatedText>ürünün fiyatını güncelleyeceksiniz.</TranslatedText>
+                </p>
+
+                {/* Operation Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <TranslatedText>İşlem Türü</TranslatedText>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setBulkPriceOperation('increase')}
+                      className={`p-2 text-sm rounded-lg border ${bulkPriceOperation === 'increase'
+                        ? 'bg-green-50 border-green-300 text-green-700'
+                        : 'border-gray-300 text-gray-700'
+                        }`}
+                    >
+                      <TranslatedText>Arttır</TranslatedText>
+                    </button>
+                    <button
+                      onClick={() => setBulkPriceOperation('decrease')}
+                      className={`p-2 text-sm rounded-lg border ${bulkPriceOperation === 'decrease'
+                        ? 'bg-red-50 border-red-300 text-red-700'
+                        : 'border-gray-300 text-gray-700'
+                        }`}
+                    >
+                      <TranslatedText>Azalt</TranslatedText>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Price Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <TranslatedText>Değer Türü</TranslatedText>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setBulkPriceType('percentage')}
+                      className={`p-2 text-sm rounded-lg border ${bulkPriceType === 'percentage'
+                        ? 'bg-blue-50 border-blue-300 text-blue-700'
+                        : 'border-gray-300 text-gray-700'
+                        }`}
+                    >
+                      <FaPercent className="inline mr-1" />
+                      <TranslatedText>Yüzde</TranslatedText>
+                    </button>
+                    <button
+                      onClick={() => setBulkPriceType('fixed')}
+                      className={`p-2 text-sm rounded-lg border ${bulkPriceType === 'fixed'
+                        ? 'bg-blue-50 border-blue-300 text-blue-700'
+                        : 'border-gray-300 text-gray-700'
+                        }`}
+                    >
+                      <TranslatedText>₺ Sabit</TranslatedText>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Value Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <TranslatedText>Değer</TranslatedText>
+                  </label>
+                  <input
+                    type="number"
+                    value={bulkPriceValue}
+                    onChange={(e) => setBulkPriceValue(e.target.value)}
+                    placeholder={bulkPriceType === 'percentage' ? '10' : '5.00'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {bulkPriceType === 'percentage'
+                      ? <><TranslatedText>Fiyatları %</TranslatedText>{bulkPriceValue || '0'} <TranslatedText>{bulkPriceOperation === 'increase' ? 'arttır' : 'azalt'}</TranslatedText></>
+                      : <><TranslatedText>Fiyatlara ₺</TranslatedText>{bulkPriceValue || '0'} <TranslatedText>{bulkPriceOperation === 'increase' ? 'ekle' : 'çıkar'}</TranslatedText></>
+                    }
+                  </p>
+                </div>
+              </div>
+              <div className="p-6 border-t flex justify-end gap-3">
+                <button
+                  onClick={() => setShowBulkPriceModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  <TranslatedText>İptal</TranslatedText>
+                </button>
+                <button
+                  onClick={handleBulkPriceUpdate}
+                  disabled={!bulkPriceValue}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <TranslatedText>Güncelle</TranslatedText>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div >
     </div >
   );
 }
