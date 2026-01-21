@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 echo Installing Windows Service dependencies...
 call npm install
 echo.
