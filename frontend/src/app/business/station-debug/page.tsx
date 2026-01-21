@@ -41,7 +41,7 @@ export default function StationDebugPage() {
         setLoading(true);
         try {
             console.log('Loading items for restaurant:', restaurantId);
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/restaurants/${restaurantId}/menu/items`;
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/restaurants/${restaurantId}/menu/items`;
             console.log('Fetching from:', url);
 
             const response = await fetch(url);
@@ -88,7 +88,7 @@ export default function StationDebugPage() {
                 console.log('Updating item:', itemId, 'to station:', selectedStation);
 
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/restaurants/${restaurantId}/menu/items/${itemId}`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/restaurants/${restaurantId}/menu/items/${itemId}`,
                     {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
