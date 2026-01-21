@@ -205,6 +205,68 @@ app.post('/api/debug/add-kitchen-station', async (req, res) => {
   }
 });
 
+// PRINTER CONFIG MIGRATION ENDPOINT
+app.post('/api/debug/add-printer-config', async (req, res) => {
+  console.log('🔧 Add printer_config column endpoint called');
+  try {
+    const { sequelize } = require('./models');
+    console.log('⚙️  Checking if printer_config column exists...');
+
+    const [results] = await sequelize.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name='restaurants' AND column_name='printer_config';
+    `);
+
+    if (results.length > 0) {
+      console.log('✅ printer_config column already exists');
+
+      await sequelize.query(`
+        UPDATE restaurants 
+        SET printer_config = '{"kavurma": {"ip": "192.168.1.13", "port": 9100, "enabled": true}}'::jsonb
+        WHERE username = 'kroren';
+      `);
+
+      return res.json({
+        success: true,
+        message: 'printer_config kolonu zaten mevcut. Kroren config güncellendi.',
+        timestamp: new Date().toISOString(),
+        alreadyExists: true
+      });
+    }
+
+    await sequelize.query(`
+      ALTER TABLE restaurants 
+      ADD COLUMN printer_config JSONB DEFAULT '{}'::jsonb;
+    `);
+
+    console.log('✅ printer_config column added successfully');
+
+    await sequelize.query(`
+      UPDATE restaurants 
+      SET printer_config = '{"kavurma": {"ip": "192.168.1.13", "port": 9100, "enabled": true}}'::jsonb
+      WHERE username = 'kroren';
+    `);
+
+    console.log('✅ Kroren printer config set');
+
+    res.json({
+      success: true,
+      message: 'printer_config kolonu eklendi ve Kroren kavurma istasyonu yapılandırıldı (192.168.1.13)!',
+      timestamp: new Date().toISOString(),
+      details: 'Kroren kavurma IP: 192.168.1.13'
+    });
+  } catch (error) {
+    console.error('❌ Add printer_config Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'printer_config kolonu eklenirken hata oluştu',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // TÜM SİPARİŞLERİ SİL (Debug/Test için)
 app.post('/api/debug/delete-all-orders', async (req, res) => {
   console.log('🗑️ Delete all orders endpoint called');
