@@ -141,6 +141,54 @@ app.post('/api/debug/sync-db', async (req, res) => {
   }
 });
 
+// VERİTABANI ŞEMASINI GÜNCELLE (Add kitchen_station column to menu_items)
+app.post('/api/debug/add-kitchen-station', async (req, res) => {
+  console.log('🔧 Add kitchen_station column endpoint called');
+  try {
+    const { sequelize } = require('./models');
+    console.log('⚙️  Adding kitchen_station column to menu_items table...');
+
+    // Check if column exists first
+    const [results] = await sequelize.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name='menu_items' AND column_name='kitchen_station';
+    `);
+
+    if (results.length > 0) {
+      console.log('✅ kitchen_station column already exists');
+      return res.json({
+        success: true,
+        message: 'kitchen_station kolonu zaten mevcut. Güncelleme gerekmedi.',
+        timestamp: new Date().toISOString(),
+        alreadyExists: true
+      });
+    }
+
+    // Add the column
+    await sequelize.query(`
+      ALTER TABLE menu_items 
+      ADD COLUMN kitchen_station VARCHAR(50) NULL;
+    `);
+
+    console.log('✅ kitchen_station column added successfully');
+    res.json({
+      success: true,
+      message: 'kitchen_station kolonu başarıyla eklendi! Artık ürünlere istasyon atayabilirsiniz.',
+      timestamp: new Date().toISOString(),
+      details: 'Column added with VARCHAR(50) NULL'
+    });
+  } catch (error) {
+    console.error('❌ Add kitchen_station Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'kitchen_station kolonu eklenirken hata oluştu',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // TÜM SİPARİŞLERİ SİL (Debug/Test için)
 app.post('/api/debug/delete-all-orders', async (req, res) => {
   console.log('🗑️ Delete all orders endpoint called');
@@ -1085,6 +1133,49 @@ const startServer = async () => {
   } catch (error) {
     console.error('⚠️ Database connection failed, but server continues running:', error.message);
     console.log('🔐 2FA endpoints will work without database');
+  }
+
+  // Örnek yazıcı istasyonları ekle (Çince desteği ile)
+  try {
+    const printerService = require('./services/printerService');
+
+    // Örnek istasyonlar - Kullanıcı kendi IP adreslerini girecek
+    printerService.addOrUpdateStation('kitchen', {
+      name: '厨房', // Mutfak (Çince)
+      ip: null, // Kullanıcı ayarlayacak
+      port: 9100,
+      enabled: false,
+      type: 'epson',
+      language: 'zh', // Çince
+      characterSet: 'PC936_CHINESE',
+      codePage: 'GB18030'
+    });
+
+    printerService.addOrUpdateStation('bar', {
+      name: 'Bar',
+      ip: null,
+      port: 9100,
+      enabled: false,
+      type: 'epson',
+      language: 'tr', // Türkçe
+      characterSet: 'PC857_TURKISH',
+      codePage: 'CP857'
+    });
+
+    printerService.addOrUpdateStation('dessert', {
+      name: 'Tatlı',
+      ip: null,
+      port: 9100,
+      enabled: false,
+      type: 'epson',
+      language: 'tr',
+      characterSet: 'PC857_TURKISH',
+      codePage: 'CP857'
+    });
+
+    console.log('✅ Örnek yazıcı istasyonları oluşturuldu (Çince desteği ile)');
+  } catch (printerError) {
+    console.error('⚠️ Yazıcı servisi başlatılamadı:', printerError.message);
   }
 
   return server;

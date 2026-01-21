@@ -24,7 +24,8 @@ import {
   FaCreditCard,
   FaBuilding,
   FaCode,
-  FaPrint
+  FaPrint,
+  FaDatabase
 } from 'react-icons/fa';
 import { useFeature } from '@/hooks/useFeature';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -172,6 +173,13 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaCog,
       label: <TranslatedText>Ayarlar</TranslatedText>,
       active: pathname === `${basePath}/settings`,
+      visible: true
+    },
+    {
+      href: `${basePath}/db-migration`,
+      icon: FaDatabase,
+      label: <TranslatedText>DB Migration</TranslatedText>,
+      active: pathname === `${basePath}/db-migration`,
       visible: true
     },
     {

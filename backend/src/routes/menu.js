@@ -491,9 +491,22 @@ router.put('/:restaurantId/menu/items/:itemId', async (req, res) => {
 
   } catch (error) {
     console.error('Update menu item error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      sql: error.sql,
+      original: error.original
+    });
+    console.error('Update data received:', updateData);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Database error',
+      details: process.env.NODE_ENV === 'development' ? {
+        sql: error.sql,
+        fields: Object.keys(updateData || {})
+      } : undefined
     });
   }
 });

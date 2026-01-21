@@ -14,6 +14,7 @@ interface Station {
     port: number;
     enabled: boolean;
     type: string;
+    language?: string; // 'tr' veya 'zh'
 }
 
 function PrinterManagementContent() {
@@ -71,7 +72,8 @@ function PrinterManagementContent() {
                     ip: station.ip,
                     port: station.port,
                     enabled: station.enabled,
-                    type: station.type
+                    type: station.type,
+                    language: station.language || 'tr'
                 })
             });
 
@@ -244,6 +246,20 @@ function PrinterManagementContent() {
                                                     />
                                                 </div>
 
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Dil / Language
+                                                    </label>
+                                                    <select
+                                                        value={editingStation.language || 'tr'}
+                                                        onChange={e => setEditingStation({ ...editingStation, language: e.target.value })}
+                                                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                                                    >
+                                                        <option value="tr">🇹🇷 Türkçe</option>
+                                                        <option value="zh">🇨🇳 中文 (Çince)</option>
+                                                    </select>
+                                                </div>
+
                                                 <div className="flex items-center gap-2">
                                                     <input
                                                         type="checkbox"
@@ -282,6 +298,12 @@ function PrinterManagementContent() {
                                                     <div className="bg-gray-50 p-3 rounded-lg">
                                                         <p className="text-xs text-gray-600">Port</p>
                                                         <p className="font-mono text-sm font-semibold">{station.port}</p>
+                                                    </div>
+                                                    <div className="bg-gray-50 p-3 rounded-lg">
+                                                        <p className="text-xs text-gray-600">Dil</p>
+                                                        <p className="font-semibold text-sm">
+                                                            {station.language === 'zh' ? '🇨🇳 中文 (Çince)' : '🇹🇷 Türkçe'}
+                                                        </p>
                                                     </div>
                                                     <div className="bg-gray-50 p-3 rounded-lg">
                                                         <p className="text-xs text-gray-600">Durum</p>

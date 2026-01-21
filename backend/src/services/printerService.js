@@ -122,7 +122,39 @@ class PrinterService {
     }
 
     /**
-     * Sipariş fişi yazdır (Gelişmiş - Türkçe destekli)
+     * Yeni istasyon ekle veya güncelle
+     */
+    addOrUpdateStation(stationId, config) {
+        this.stations[stationId] = {
+            ...this.stations[stationId],
+            ...config
+        };
+    }
+
+    /**
+     * Metni belirtilen dile çevir
+     */
+    async translateProductName(text, targetLanguage = 'zh') {
+        if (targetLanguage === 'zh') {
+            // Önce hazır çeviri sözlüğünden bak
+            try {
+                const chineseNames = require('../data/chinese_product_names');
+                if (chineseNames[text]) {
+                    console.log(`✅ Çince çeviri bulundu: ${text} → ${chineseNames[text]}`);
+                    return chineseNames[text];
+                }
+            } catch (error) {
+                console.warn('⚠️ Çince çeviri sözlüğü yüklenemedi:', error.message);
+            }
+        }
+
+        // Çeviri bulunamadı, orijinal metni döndür
+        // Gelecekte buraya DeepL veya Google Translate API eklenebilir
+        return text;
+    }
+
+    /**
+     * Sipariş fişi yazdır (Gelişmiş - Çok dilli destekli)
      */
     async printOrderAdvanced(station, orderData) {
         const stationConfig = this.stations[station];
@@ -133,10 +165,23 @@ class PrinterService {
         }
 
         try {
+            // Dil ayarını al (varsayılan: Türkçe)
+            const language = stationConfig.language || 'tr';
+
+            // Dile göre character set belirle
+            let characterSet = CharacterSet.PC857_TURKISH;
+            let codePage = 'CP857';
+
+            if (language === 'zh') {
+                // Çince için GB18030 kullan
+                characterSet = CharacterSet.PC936_CHINESE;
+                codePage = 'GB18030';
+            }
+
             const printer = new ThermalPrinter({
                 type: stationConfig.type,
                 interface: `tcp://${stationConfig.ip}:${stationConfig.port}`,
-                characterSet: stationConfig.characterSet || CharacterSet.PC857_TURKISH,
+                characterSet: characterSet,
                 removeSpecialCharacters: false,
                 lineCharacter: '-',
                 options: {
@@ -150,15 +195,15 @@ class PrinterService {
                 throw new Error('Printer not connected');
             }
 
-            // Code Page ayarla (CP857 - Türkçe)
-            printer.setCharacterSet(stationConfig.characterSet || CharacterSet.PC857_TURKISH);
+            // Code Page ayarla
+            printer.setCharacterSet(characterSet);
 
             printer.alignCenter();
             printer.bold(true);
             printer.setTextDoubleHeight();
 
             // İstasyon adını encode et
-            const stationName = this.encodeText(stationConfig.name.toUpperCase(), stationConfig.codePage);
+            const stationName = this.encodeText(stationConfig.name.toUpperCase(), codePage);
             printer.println(stationName);
 
             printer.setTextNormal();
@@ -166,45 +211,65 @@ class PrinterService {
             printer.drawLine();
             printer.newLine();
 
-            // Sipariş bilgileri
+            // Sipariş bilgileri - Dile göre
             printer.alignLeft();
-            printer.println(`Siparis No: ${orderData.orderNumber}`);
-            printer.println(`Masa: ${orderData.tableNumber}`);
-            printer.println(`Tarih: ${new Date().toLocaleString('tr-TR')}`);
+
+            if (language === 'zh') {
+                printer.println(`订单号: ${orderData.orderNumber}`);
+                printer.println(`桌号: ${orderData.tableNumber}`);
+                printer.println(`时间: ${new Date().toLocaleString('zh-CN')}`);
+            } else {
+                printer.println(`Siparis No: ${orderData.orderNumber}`);
+                printer.println(`Masa: ${orderData.tableNumber}`);
+                printer.println(`Tarih: ${new Date().toLocaleString('tr-TR')}`);
+            }
+
             printer.drawLine();
             printer.newLine();
 
             // Ürünler
             printer.bold(true);
-            const productsHeader = this.encodeText('URUNLER:', stationConfig.codePage);
-            printer.println(productsHeader);
+            const productsHeader = language === 'zh' ? '产品:' : 'URUNLER:';
+            const productsHeaderEncoded = this.encodeText(productsHeader, codePage);
+            printer.println(productsHeaderEncoded);
             printer.bold(false);
             printer.newLine();
 
-            orderData.items.forEach(item => {
+            for (const item of orderData.items) {
                 printer.bold(true);
 
-                // Ürün adını encode et
-                const itemName = this.encodeText(item.name, stationConfig.codePage);
-                printer.println(`${item.quantity}x ${itemName}`);
+                // Ürün adını dile göre çevir
+                let itemName = item.name;
+                if (language === 'zh' && item.nameChinese) {
+                    // Eğer ürünün Çince adı varsa onu kullan
+                    itemName = item.nameChinese;
+                } else if (language === 'zh') {
+                    // Yoksa çevir (gelecekte API ile)
+                    itemName = await this.translateProductName(item.name, 'zh');
+                }
+
+                const itemNameEncoded = this.encodeText(itemName, codePage);
+                printer.println(`${item.quantity}x ${itemNameEncoded}`);
 
                 printer.bold(false);
 
                 if (item.notes) {
-                    const notes = this.encodeText(`   NOT: ${item.notes}`, stationConfig.codePage);
+                    const noteLabel = language === 'zh' ? '备注: ' : 'NOT: ';
+                    const notes = this.encodeText(`   ${noteLabel}${item.notes}`, codePage);
                     printer.println(notes);
                 }
 
                 printer.newLine();
-            });
+            }
 
             printer.drawLine();
             printer.newLine();
             printer.alignCenter();
             printer.bold(true);
 
-            const footer = this.encodeText('AFIYET OLSUN!', stationConfig.codePage);
-            printer.println(footer);
+            const footer = language === 'zh' ? '请享用!' : 'AFIYET OLSUN!';
+            const footerEncoded = this.encodeText(footer, codePage);
+            printer.println(footerEncoded);
 
             printer.bold(false);
             printer.newLine();
@@ -212,7 +277,7 @@ class PrinterService {
             printer.cut();
 
             await printer.execute();
-            console.log(`✅ ${station} yazıcısına yazdırıldı (Türkçe karakter destekli)`);
+            console.log(`✅ ${station} yazıcısına yazdırıldı (${language === 'zh' ? 'Çince' : 'Türkçe'} karakter destekli)`);
 
             return { success: true };
 

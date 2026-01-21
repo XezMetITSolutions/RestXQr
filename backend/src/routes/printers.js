@@ -25,13 +25,14 @@ router.get('/', async (req, res) => {
 router.put('/:station', async (req, res) => {
     try {
         const { station } = req.params;
-        const { ip, port, enabled, type } = req.body;
+        const { ip, port, enabled, type, language } = req.body;
 
         printerService.updateStationPrinter(station, {
             ip,
             port: port || 9100,
             enabled: enabled !== undefined ? enabled : true,
-            type: type || 'epson'
+            type: type || 'epson',
+            language: language || 'tr' // Varsayılan Türkçe
         });
 
         res.json({
