@@ -96,11 +96,27 @@ export default function PrinterTestPage() {
         }
     };
 
+    const [connectionMode, setConnectionMode] = useState<'cloud' | 'local'>('local');
+
     const checkStatus = async (stationId: string) => {
         setStatusChecking(stationId);
+        const station = stations.find(s => s.id === stationId);
+        if (!station) return;
+
         try {
-            const response = await fetch(`/api/printers/${stationId}/status`);
-            const data = await response.json();
+            let data;
+
+            if (connectionMode === 'local') {
+                const response = await fetch(`http://localhost:3005/status/${station.ip}`);
+                data = await response.json();
+                // Normalize local bridge response to match cloud response structure if needed
+                if (data.success) {
+                    data.data = { connected: data.connected };
+                }
+            } else {
+                const response = await fetch(`/api/printers/${stationId}/status`);
+                data = await response.json();
+            }
 
             if (data.success) {
                 setStatuses(prev => ({ ...prev, [stationId]: data.data }));
@@ -137,12 +153,23 @@ export default function PrinterTestPage() {
 
     const testPrint = async (stationId: string) => {
         setPrintingStation(stationId);
-        try {
-            const response = await fetch(`/api/printers/${stationId}/test`, {
-                method: 'POST',
-            });
+        const station = stations.find(s => s.id === stationId);
+        if (!station) return;
 
-            const data = await response.json();
+        try {
+            let data;
+
+            if (connectionMode === 'local') {
+                const response = await fetch(`http://localhost:3005/test/${station.ip}`, {
+                    method: 'POST'
+                });
+                data = await response.json();
+            } else {
+                const response = await fetch(`/api/printers/${stationId}/test`, {
+                    method: 'POST',
+                });
+                data = await response.json();
+            }
 
             if (data.success) {
                 setMessages(prev => ({
@@ -194,8 +221,31 @@ export default function PrinterTestPage() {
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">🖨️ Printer Debug & Testing</h1>
-                    <p className="text-gray-600">Configure and test your thermal printers for automatic order printing</p>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">🖨️ Printer Debug & Testing</h1>
+                            <p className="text-gray-600">Configure and test your thermal printers for automatic order printing</p>
+                        </div>
+                        <div className="bg-gray-100 p-1 rounded-lg flex items-center">
+                            <button
+                                onClick={() => setConnectionMode('cloud')}
+                                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${connectionMode === 'cloud' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                            >
+                                Cloud (Backend)
+                            </button>
+                            <button
+                                onClick={() => setConnectionMode('local')}
+                                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${connectionMode === 'local' ? 'bg-white shadow text-green-600' : 'text-gray-600 hover:text-gray-900'}`}
+                            >
+                                Local Bridge
+                            </button>
+                        </div>
+                    </div>
+                    {connectionMode === 'local' && (
+                        <div className="mt-4 bg-green-50 border border-green-200 rounded p-2 text-sm text-green-800">
+                            <strong>Local Bridge Mode Active:</strong> Commands are sent to <code>http://localhost:3005</code>. Ensure Local Bridge is running!
+                        </div>
+                    )}
                 </div>
 
                 {/* Info Panel */}
