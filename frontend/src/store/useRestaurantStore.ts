@@ -616,4 +616,6 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
   })),
 }));
 
+export { useRestaurantStore };
 export default useRestaurantStore;
+
