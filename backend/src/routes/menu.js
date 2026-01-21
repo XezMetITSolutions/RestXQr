@@ -400,7 +400,9 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       portionSize: portion || null,
       kitchenStation: kitchenStation || null,
       variations: req.body.variations || [],
-      options: req.body.options || []
+      options: req.body.options || [],
+      type: req.body.type || 'single',
+      bundleItems: req.body.bundleItems || []
     });
 
     console.log('Backend - Oluşturulan item:', {
