@@ -282,7 +282,9 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         calories: data.calories || null,
         allergens: data.allergens || [],
         ingredients: data.ingredients || [],
-        kitchenStation: data.kitchenStation || null
+        kitchenStation: data.kitchenStation || null,
+        type: data.type || 'single',
+        bundleItems: data.bundleItems || []
       };
 
       console.log('🚀 Creating menu item:', { restaurantId, backendData });
@@ -376,9 +378,11 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         displayOrder: data.order || data.displayOrder,
         isAvailable: data.isAvailable,
         isPopular: data.isPopular,
-        allergens: data.allergens,
-        ingredients: data.ingredients,
-        kitchenStation: data.kitchenStation
+        allergens: data.allergens || [],
+        ingredients: data.ingredients || [],
+        kitchenStation: data.kitchenStation || null,
+        type: data.type || 'single',
+        bundleItems: data.bundleItems || []
       };
 
       const response = await apiService.updateMenuItem(restaurantId, itemId, backendData);
@@ -473,7 +477,9 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
           allergens: Array.isArray(item.allergens) ? item.allergens : (typeof item.allergens === 'string' ? item.allergens.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
           kitchenStation: item.kitchenStation,
           variations: item.variations || [],
-          options: item.options || []
+          options: item.options || [],
+          type: item.type || 'single',
+          bundleItems: item.bundleItems || []
         }));
 
         console.log('✅ Transformed categories:', transformedCategories.length);

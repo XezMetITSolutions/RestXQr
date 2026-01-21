@@ -34,6 +34,8 @@ export interface MenuItem {
   variants?: { name: string; price: number }[];
   variations?: { name: string; price: number }[];
   options?: { name: string; values: string[] }[];
+  type?: 'single' | 'bundle';
+  bundleItems?: { itemId: string; quantity: number; name?: string }[];
 }
 
 export interface MenuSubcategory {
@@ -151,7 +153,9 @@ const useMenuStore = create<MenuState>()((set, get) => ({
             nutritionInfo: item.nutritionInfo || {},
             variants: item.variants || [],
             variations: item.variations || [], // Map variations
-            options: item.options || [] // Map options
+            options: item.options || [], // Map options
+            type: item.type || 'single',
+            bundleItems: item.bundleItems || []
           })) || []
         );
 
@@ -244,7 +248,9 @@ const useMenuStore = create<MenuState>()((set, get) => ({
           isAvailable: result.data.isAvailable,
           allergens: Array.isArray(result.data.allergens) ? result.data.allergens : (typeof result.data.allergens === 'string' ? result.data.allergens.split(',') : []),
           ingredients: result.data.ingredients || [],
-          nutritionInfo: result.data.nutritionInfo || {}
+          nutritionInfo: result.data.nutritionInfo || {},
+          type: result.data.type || 'single',
+          bundleItems: result.data.bundleItems || []
         };
 
         set((state) => ({

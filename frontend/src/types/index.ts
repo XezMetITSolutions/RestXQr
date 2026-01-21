@@ -127,6 +127,8 @@ export interface MenuItem {
   variants?: { name: string; price: number }[];
   variations?: { name: string; price: number }[];
   options?: { name: string; values: string[] }[];
+  type?: 'single' | 'bundle';
+  bundleItems?: { itemId: string; quantity: number; name?: string }[];
 }
 
 // Sipariş Tipleri
