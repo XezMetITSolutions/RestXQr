@@ -436,7 +436,7 @@ router.put('/:id', async (req, res) => {
 
     await order.save();
 
-    // Sipariş onaylandığında (false -> true) bildirim gönder
+    // Sipariş onaylandığında (false -> true) bildirim gönder VE YAZDIR
     const { publish } = require('../lib/realtime');
     if (approved === true && oldApproved === false) {
       try {
@@ -448,6 +448,76 @@ router.put('/:id', async (req, res) => {
           timestamp: new Date().toISOString()
         });
         console.log(`✅ Sipariş ${id} onaylandı ve bildirim gönderildi.`);
+
+        // YAZICI ÇIKTISI: Sipariş onaylandığında otomatik yazdır
+        try {
+          const printerService = require('../services/printerService');
+          const restaurant = await Restaurant.findByPk(order.restaurantId);
+
+          if (restaurant && restaurant.printerConfig) {
+            // Sipariş itemlarını al
+            const orderItems = await OrderItem.findAll({
+              where: { orderId: order.id },
+              include: [{
+                model: MenuItem,
+                as: 'menuItem',
+                attributes: ['name', 'kitchenStation']
+              }]
+            });
+
+            // İstasyonlara göre grupla
+            const itemsByStation = {};
+            for (const item of orderItems) {
+              const station = item.menuItem?.kitchenStation || 'default';
+              if (!itemsByStation[station]) {
+                itemsByStation[station] = [];
+              }
+              itemsByStation[station].push({
+                name: item.menuItem?.name || 'Ürün',
+                quantity: item.quantity,
+                notes: item.notes || ''
+              });
+            }
+
+            // Her istasyona yazdır
+            for (const [stationId, stationItems] of Object.entries(itemsByStation)) {
+              const printerConfig = restaurant.printerConfig[stationId];
+
+              if (printerConfig && printerConfig.enabled && printerConfig.ip) {
+                console.log(`🖨️ ${stationId} istasyonuna yazdırılıyor (${printerConfig.ip})...`);
+
+                // PrinterService'e istasyon ekle/güncelle
+                printerService.addOrUpdateStation(stationId, {
+                  name: stationId,
+                  ip: printerConfig.ip,
+                  port: printerConfig.port || 9100,
+                  enabled: true,
+                  type: require('node-thermal-printer').PrinterTypes.EPSON,
+                  characterSet: require('node-thermal-printer').CharacterSet.PC857_TURKISH,
+                  codePage: 'CP857'
+                });
+
+                // Yazdır
+                const printResult = await printerService.printOrderAdvanced(stationId, {
+                  orderNumber: order.id.substring(0, 8),
+                  tableNumber: order.tableNumber || 'Paket',
+                  items: stationItems
+                });
+
+                if (printResult.success) {
+                  console.log(`✅ ${stationId} istasyonuna yazdırıldı`);
+                } else {
+                  console.error(`❌ ${stationId} yazdırma hatası:`, printResult.error);
+                }
+              } else {
+                console.log(`⚠️ ${stationId} istasyonu için yazıcı yapılandırılmamış`);
+              }
+            }
+          }
+        } catch (printError) {
+          console.error('❌ Yazdırma hatası:', printError);
+          // Yazdırma hatası sipariş onayını engellemez
+        }
       } catch (err) {
         console.error('❌ Onay bildirimi gönderilirken hata:', err);
       }

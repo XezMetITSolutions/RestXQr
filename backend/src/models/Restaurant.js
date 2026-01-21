@@ -112,6 +112,13 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: {},
       field: 'settings',
       comment: 'General restaurant settings (payment toggles, etc.)'
+    },
+    printerConfig: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: {},
+      field: 'printer_config',
+      comment: 'Printer IP configuration for each kitchen station: {stationId: {ip, port, enabled}}'
     }
   }, {
     tableName: 'restaurants',
