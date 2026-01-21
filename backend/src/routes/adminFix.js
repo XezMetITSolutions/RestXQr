@@ -94,12 +94,15 @@ router.get('/apply-variants', async (req, res) => {
 
         log('🚀 Starting Variants Migration...');
 
-        // 1. Add variants column
+        // 1. Add variations and options columns
         try {
-            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS variants JSONB DEFAULT '[]'::jsonb;`);
-            log('✅ Column "variants" added or already exists.');
+            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS variations JSONB DEFAULT '[]'::jsonb;`);
+            log('✅ Column "variations" added or already exists.');
+
+            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS options JSONB DEFAULT '[]'::jsonb;`);
+            log('✅ Column "options" added or already exists.');
         } catch (e) {
-            log(`❌ Error adding column: ${e.message}`);
+            log(`❌ Error adding columns: ${e.message}`);
         }
 
         // 2. Process Dana Etli Ramen
