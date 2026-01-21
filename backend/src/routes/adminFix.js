@@ -258,14 +258,7 @@ router.get('/apply-kroren-demo', async (req, res) => {
         res.status(500).json({ logs, error: error.message });
     }
 });
-<a href="/" style="color: #3498db">Go Home</a>
-            </div >
-    `);
 
-    } catch (error) {
-    res.status(500).send(`< pre style = "color:red" > ${ error.stack }</pre > `);
-}
-});
 
 router.post('/fix-db-schema', async (req, res) => {
     try {
