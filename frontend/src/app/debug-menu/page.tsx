@@ -1,113 +1,131 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function DebugMenuPage() {
-  const [result, setResult] = useState<any>(null);
+  const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
 
-  const testData = {
-    // You might need to replace these with real IDs from your DB or specific test ones
-    restaurantId: 'REPLACE_WITH_VALID_RESTAURANT_ID',
-    categoryId: 'REPLACE_WITH_VALID_CATEGORY_ID',
-    name: 'Debug Test Item',
-    price: 150,
-    variations: [
-      { name: 'Small', price: 100 },
-      { name: 'Large', price: 200 }
-    ],
-    options: [
-      { name: 'Spiciness', values: ['Low', 'Medium', 'High'] }
-    ]
-  };
+  const addToLog = (msg: string) => setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev]);
 
-  const handleTest = async () => {
+  const fetchItems = async () => {
     setLoading(true);
-    setResult(null);
+    addToLog('Fetching items...');
     try {
-      // Fetch a valid restaurant and category first if needed, or user inputs manually
-      // For simplicity, let's assume valid IDs are needed.
-      // We will try to fetch the first restaurant and category relative to the logged in user or hardcoded?
-      // Since this is a standalone debug page, let's make it fetch the first restaurant/category.
-
-      const adminToken = localStorage.getItem('adminToken'); // Assuming admin login
-      // OR specific restaurant login logic. Let's try to get restaurant from generic API or user input.
-
-      // Easier: Let user input Restaurant ID and Category ID
-      if (!testData.restaurantId || testData.restaurantId.includes('REPLACE')) {
-        alert('Please enter valid Restaurant ID and Category ID in the code or form (implementation update pending)');
-        // For now just sending what we have to see backend log
-      }
-
-      const response = await fetch('https://api.restxqr.com/api/admin-fix/debug-create-item', { // Adjust URL as needed
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(testData)
-      });
-
+      // Use full URL or relative if proxy set up. Using absolute based on previous context.
+      const response = await fetch('https://masapp-backend.onrender.com/api/admin-fix/debug-items');
       const data = await response.json();
-      setResult(data);
-    } catch (error: any) {
-      setResult({ error: error.message });
+      if (data.success) {
+        setItems(data.items);
+        addToLog(`Loaded ${data.items.length} items.`);
+      } else {
+        addToLog(`❌ Error loading items: ${data.error}`);
+      }
+    } catch (err: any) {
+      addToLog(`❌ Network Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleAddVariations = async (item: any) => {
+    addToLog(`Adding variations to ${item.name} (${item.id})...`);
+    try {
+      const response = await fetch(`https://masapp-backend.onrender.com/api/admin-fix/debug-add-variations/${item.id}`, {
+        method: 'POST'
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        addToLog(`✅ Success! Variations added to ${item.name}.`);
+        // Refresh specific item in list
+        setItems(prev => prev.map(i => i.id === item.id ? data.item : i));
+      } else {
+        addToLog(`❌ Failed: ${data.message || data.error}`);
+      }
+    } catch (err: any) {
+      addToLog(`❌ Network Error: ${err.message}`);
+    }
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Menu Variation Debugger</h1>
-
-      <div className="mb-4 space-y-2">
-        <p className="text-gray-600">This tool attempts to send a raw JSON payload with variations to the backend.</p>
-        <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
-          {JSON.stringify(testData, null, 2)}
-        </pre>
+    <div className="p-8 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">🛠️ Advanced Menu Debugger</h1>
+        <button
+          onClick={fetchItems}
+          disabled={loading}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading ? 'Loading...' : 'Refresh List'}
+        </button>
       </div>
 
-      <div className="flex gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Restaurant ID"
-          className="border p-2 rounded"
-          onChange={e => testData.restaurantId = e.target.value}
-        />
-        <input
-          type="text"
-          placeholder="Category ID"
-          className="border p-2 rounded"
-          onChange={e => testData.categoryId = e.target.value}
-        />
+      <div className="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variations Included?</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {items.map(item => (
+              <tr key={item.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap font-medium">{item.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-500">{item.restaurant?.name || 'N/A'}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{item.price}TL</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {item.variations && item.variations.length > 0
+                    ? <span className="px-2 py-1 text-xs font-bold bg-green-100 text-green-800 rounded-full">Yes ({item.variations.length})</span>
+                    : <span className="px-2 py-1 text-xs font-bold bg-gray-100 text-gray-800 rounded-full">No</span>
+                  }
+                  {item.options && item.options.length > 0
+                    && <span className="ml-2 px-2 py-1 text-xs font-bold bg-blue-100 text-blue-800 rounded-full">Opt ({item.options.length})</span>
+                  }
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <button
+                    onClick={() => handleAddVariations(item)}
+                    className="text-sm bg-orange-100 text-orange-700 px-3 py-1 rounded hover:bg-orange-200 border border-orange-300 transition-colors"
+                  >
+                    Auto-Add Variations
+                  </button>
+                  <details className="mt-2 text-xs text-gray-400 cursor-pointer">
+                    <summary>Raw Data</summary>
+                    <pre className="max-w-xs overflow-auto bg-gray-900 text-green-400 p-2 rounded mt-1">
+                      {JSON.stringify({ variations: item.variations, options: item.options }, null, 2)}
+                    </pre>
+                  </details>
+                </td>
+              </tr>
+            ))}
+            {items.length === 0 && !loading && (
+              <tr>
+                <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
+                  No items found. Check backend connection.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
-      <button
-        onClick={handleTest}
-        disabled={loading}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        {loading ? 'Testing...' : 'Send Test Request'}
-      </button>
-
-      {result && (
-        <div className="mt-8">
-          <h2 className="text-xl font-bold mb-2">Result:</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold">Sent Payload:</h3>
-              <pre className="bg-yellow-50 p-4 rounded text-xs overflow-auto border border-yellow-200">
-                {JSON.stringify(result.receivedBody, null, 2)}
-              </pre>
-            </div>
-            <div>
-              <h3 className="font-semibold">Backend Response (Saved Item):</h3>
-              <pre className={`p-4 rounded text-xs overflow-auto border ${result.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                {JSON.stringify(result, null, 2)}
-              </pre>
-            </div>
-          </div>
+      <div className="mt-8">
+        <h3 className="text-lg font-bold mb-2">Logs</h3>
+        <div className="bg-gray-900 text-gray-300 p-4 rounded-lg font-mono text-sm h-64 overflow-y-auto">
+          {logs.length === 0 ? <span className="text-gray-600">Waiting for actions...</span> : logs.map((log, i) => (
+            <div key={i} className="border-b border-gray-800 py-1">{log}</div>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }

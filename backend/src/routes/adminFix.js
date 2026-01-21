@@ -260,6 +260,59 @@ router.get('/apply-kroren-demo', async (req, res) => {
 });
 
 
+
+// GET /api/admin-fix/debug-items - List latest items for debug dashboard
+router.get('/debug-items', async (req, res) => {
+    try {
+        const { MenuItem, Restaurant } = require('../models');
+        const items = await MenuItem.findAll({
+            limit: 20,
+            order: [['created_at', 'DESC']],
+            include: [{
+                model: Restaurant,
+                as: 'restaurant',
+                attributes: ['name']
+            }]
+        });
+        res.json({ success: true, items });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// POST /api/admin-fix/debug-add-variations/:itemId - Add demo variations to specific item
+router.post('/debug-add-variations/:itemId', async (req, res) => {
+    try {
+        const { MenuItem } = require('../models');
+        const { itemId } = req.params;
+        const item = await MenuItem.findByPk(itemId);
+
+        if (!item) {
+            return res.status(404).json({ success: false, message: 'Item not found' });
+        }
+
+        const demoVariations = [
+            { name: 'Small', price: parseFloat(item.price) },
+            { name: 'Medium', price: parseFloat(item.price) * 1.25 },
+            { name: 'Large', price: parseFloat(item.price) * 1.5 }
+        ];
+
+        const demoOptions = [
+            { name: 'Spiciness', values: ['Mild', 'Hot', 'Extra Hot'] },
+            { name: 'Toppings', values: ['Cheese', 'Mushroom', 'Extra Sauce'] }
+        ];
+
+        await item.update({
+            variations: demoVariations,
+            options: demoOptions
+        });
+
+        res.json({ success: true, message: 'Updated item with demo variations', item });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 router.post('/fix-db-schema', async (req, res) => {
     try {
         const { sequelize } = require('../models');
