@@ -368,7 +368,41 @@ END;
             console.error('Error adding options:', e.message);
         }
 
-        res.json({ success: true, message: 'Database schema fixed (kitchen_station, variations, options)' });
+        // Check and add type to menu_items
+        try {
+            await sequelize.query(`
+        DO $$
+BEGIN
+BEGIN
+            ALTER TABLE menu_items ADD COLUMN type VARCHAR(20) DEFAULT 'single';
+EXCEPTION
+            WHEN duplicate_column THEN RAISE NOTICE 'column type already exists in menu_items.';
+END;
+        END $$;
+`);
+            console.log('✅ Added type to menu_items');
+        } catch (e) {
+            console.error('Error adding type:', e.message);
+        }
+
+        // Check and add bundle_items to menu_items
+        try {
+            await sequelize.query(`
+        DO $$
+BEGIN
+BEGIN
+            ALTER TABLE menu_items ADD COLUMN bundle_items JSONB DEFAULT '[]'::jsonb;
+EXCEPTION
+            WHEN duplicate_column THEN RAISE NOTICE 'column bundle_items already exists in menu_items.';
+END;
+        END $$;
+`);
+            console.log('✅ Added bundle_items to menu_items');
+        } catch (e) {
+            console.error('Error adding bundle_items:', e.message);
+        }
+
+        res.json({ success: true, message: 'Database schema fixed (kitchen_station, variations, options, type, bundle_items)' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
