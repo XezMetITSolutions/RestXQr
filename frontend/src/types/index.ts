@@ -124,6 +124,9 @@ export interface MenuItem {
   isPopular?: boolean;
   order: number;
   kitchenStation?: string;
+  variants?: { name: string; price: number }[];
+  variations?: { name: string; price: number }[];
+  options?: { name: string; values: string[] }[];
 }
 
 // Sipariş Tipleri
