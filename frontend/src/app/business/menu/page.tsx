@@ -406,15 +406,9 @@ export default function MenuManagement() {
       isAvailable: item.isAvailable !== false,
       isPopular: item.isPopular || false,
       kitchenStation: item.kitchenStation || '',
-<<<<<<< HEAD
-      kitchenStation: item.kitchenStation || '',
-      translations: item.translations || {},
-      variants: item.variants || []
-=======
       translations: item.translations || {},
       variations: item.variations || [],
       options: item.options || []
->>>>>>> bd8ef48 (feat: Add product variations and options support (frontend + backend))
     });
 
     console.log('📝 handleEditItem - Original Item:', {
