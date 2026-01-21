@@ -29,8 +29,8 @@ export default function DatabaseMigrationPage() {
         } catch (error) {
             setResult({
                 success: false,
-                message: 'Bağlantı hatası oluştu',
-                error: error instanceof Error ? error.message : 'Bilinmeyen hata',
+                message: 'Backend bağlantı hatası - Endpoint henüz deploy olmamış olabilir',
+                error: `${error instanceof Error ? error.message : 'Bilinmeyen hata'} (API: ${process.env.NEXT_PUBLIC_API_URL})`,
             });
         } finally {
             setLoading(false);
@@ -56,7 +56,7 @@ export default function DatabaseMigrationPage() {
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                         menu_items tablosuna kitchen_station kolonu ekler. Bu kolon, ürünlerin hangi mutfak istasyonuna
-                        ait olduğunu belirtir (izgara, makarna, soğuk, tatlı).
+                        ait olduğunu belirtir. İstasyon değerleri menü yönetimi sayfasından manuel olarak atanır.
                     </p>
                 </div>
 
@@ -106,8 +106,8 @@ export default function DatabaseMigrationPage() {
                     {/* Result Alert */}
                     {result && (
                         <div className={`rounded-lg p-4 ${result.success
-                                ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
-                                : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+                            ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+                            : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
                             }`}>
                             <div className="flex items-start gap-3">
                                 {result.success ? (
@@ -121,8 +121,8 @@ export default function DatabaseMigrationPage() {
                                 )}
                                 <div className="flex-1">
                                     <p className={`font-semibold text-sm ${result.success
-                                            ? 'text-green-800 dark:text-green-300'
-                                            : 'text-red-800 dark:text-red-300'
+                                        ? 'text-green-800 dark:text-green-300'
+                                        : 'text-red-800 dark:text-red-300'
                                         }`}>
                                         {result.message}
                                     </p>
@@ -153,7 +153,7 @@ export default function DatabaseMigrationPage() {
                             <li>• Tablo: <code className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded text-xs">menu_items</code></li>
                             <li>• Kolon: <code className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded text-xs">kitchen_station</code></li>
                             <li>• Tip: <code className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded text-xs">VARCHAR(50) NULL</code></li>
-                            <li>• Değerler: izgara, makarna, soguk, tatli</li>
+                            <li>• Değerler: Menü yönetiminden manuel olarak atanır</li>
                         </ul>
                     </div>
 
