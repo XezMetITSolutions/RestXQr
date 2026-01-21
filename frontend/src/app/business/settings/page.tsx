@@ -2067,104 +2067,53 @@ function SettingsPageContent() {
                         </div>
                       </div>
 
-                      {/* Sağ Kolon - Canlı Fiş Önizleme */}
+                      {/* Sağ Kolon - Mutfak Fişi Önizleme */}
                       <div className="bg-gray-100 p-8 rounded-2xl flex flex-col items-center">
-                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6"><TranslatedText>Dijital Fiş Önizleme</TranslatedText></div>
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6"><TranslatedText>Mutfak Fişi Önizleme</TranslatedText></div>
 
                         {/* Termal Kağıt Görünümü */}
                         <div className={`bg-white shadow-2xl p-6 min-h-[400px] transition-all duration-300 ${settings.printerSettings?.paperWidth === '58mm' ? 'w-[250px]' : 'w-[320px]'} relative overflow-hidden`}>
                           {/* Kağıt Kesik Çizgisi */}
                           <div className="absolute top-0 left-0 w-full h-1 bg-gray-200" style={{ backgroundImage: 'linear-gradient(to right, white 50%, #f3f4f6 50%)', backgroundSize: '10px 100%' }}></div>
 
-                          <div className="space-y-6 text-center text-gray-800 font-mono">
-                            {/* Logo */}
-                            {settings.printerSettings?.showLogo && (
-                              <div className="flex justify-center mb-2">
-                                <div className="w-16 h-16 border-2 border-gray-900 rounded-lg flex items-center justify-center">
-                                  <span className="text-2xl font-bold">LOGO</span>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Header */}
-                            {settings.printerSettings?.receiptHeader && (
-                              <div className="text-sm whitespace-pre-line border-b border-dashed border-gray-400 pb-2">
-                                {settings.printerSettings.receiptHeader}
-                              </div>
-                            )}
-
-                            {/* Info */}
-                            <div className="text-xs space-y-1 py-2">
-                              {settings.printerSettings?.showDateTime && (
-                                <div className="flex justify-between">
-                                  <span>TARİH/SAAT:</span>
-                                  <span>{new Date().toLocaleString()}</span>
-                                </div>
-                              )}
-                              {settings.printerSettings?.showOrderNumber && (
-                                <div className="flex justify-between">
-                                  <span>SİPARİŞ NO:</span>
-                                  <span className="font-bold">#10245</span>
-                                </div>
-                              )}
-                              {settings.printerSettings?.showTableNumber && (
-                                <div className="flex justify-between">
-                                  <span>MASA NO:</span>
-                                  <span className="font-bold">Masa 15</span>
-                                </div>
-                              )}
+                          <div className="space-y-4 text-gray-800 font-mono">
+                            {/* Masa/Sipariş Bilgisi */}
+                            <div className="text-center border-b border-dashed border-gray-400 pb-3">
+                              <div className="text-lg font-bold">MASA 15</div>
+                              <div className="text-xs text-gray-600">{new Date().toLocaleString('tr-TR')}</div>
                             </div>
 
-                            {/* Ürünler */}
-                            <div className="border-t border-b border-gray-900 border-dashed py-3 text-xs">
-                              <div className="flex justify-between mb-2 font-bold">
-                                <span>ÜRÜN ADI</span>
-                                <span>FİYAT</span>
+                            {/* Ürünler - Sadece Adet ve İsim */}
+                            <div className="space-y-3 text-sm">
+                              <div className="border-b border-gray-300 pb-2">
+                                <div className="font-bold text-base">2x Karışık Ramen</div>
+                                <div className="text-gray-600 mt-1">2x 什锦拉面</div>
+                                <div className="text-xs text-red-600 mt-1 italic">⚠ Acılı, Soğansız</div>
                               </div>
-                              <div className="space-y-1">
-                                <div className="flex justify-between">
-                                  <span>1x Karışık Pizza</span>
-                                  <span>450.00 TL</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>2x Coca Cola</span>
-                                  <span>110.00 TL</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>1x Sufle</span>
-                                  <span>120.00 TL</span>
-                                </div>
+
+                              <div className="border-b border-gray-300 pb-2">
+                                <div className="font-bold text-base">1x Dana Etli Ramen</div>
+                                <div className="text-gray-600 mt-1">1x 牛肉拉面</div>
+                                <div className="text-xs text-red-600 mt-1 italic">⚠ Çok Acılı</div>
+                              </div>
+
+                              <div className="border-b border-gray-300 pb-2">
+                                <div className="font-bold text-base">3x Mantı</div>
+                                <div className="text-gray-600 mt-1">3x 饺子</div>
+                                <div className="text-xs text-red-600 mt-1 italic">⚠ Acısız</div>
+                              </div>
+
+                              <div className="border-b border-gray-300 pb-2">
+                                <div className="font-bold text-base">1x Izgara Tavuk</div>
+                                <div className="text-gray-600 mt-1">1x 烤鸡</div>
+                                <div className="text-xs text-gray-500 mt-1 italic">Not: Az pişmiş</div>
                               </div>
                             </div>
-
-                            {/* Toplam */}
-                            <div className="space-y-1 text-sm pt-2">
-                              <div className="flex justify-between">
-                                <span>ARA TOPLAM:</span>
-                                <span>680.00 TL</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>KDV (%10):</span>
-                                <span>68.00 TL</span>
-                              </div>
-                              <div className="flex justify-between font-black text-lg border-t pt-2 mt-2">
-                                <span>TOPLAM:</span>
-                                <span>748.00 TL</span>
-                              </div>
-                            </div>
-
-                            {/* Footer */}
-                            {settings.printerSettings?.receiptFooter && (
-                              <div className="text-xs border-t border-dashed border-gray-400 pt-4 mt-8 italic">
-                                {settings.printerSettings.receiptFooter}
-                              </div>
-                            )}
 
                             <div className="text-[8px] opacity-50 mt-8">
                               RestXQr Cloud Printing System
                             </div>
                           </div>
-
                           {/* Kağıt Alt Kesik Çizgisi */}
                           <div className="absolute bottom-0 left-0 w-full h-4 bg-white" style={{ clipPath: 'polygon(0 0, 5% 100%, 10% 0, 15% 100%, 20% 0, 25% 100%, 30% 0, 35% 100%, 40% 0, 45% 100%, 50% 0, 55% 100%, 60% 0, 65% 100%, 70% 0, 75% 100%, 80% 0, 85% 100%, 90% 0, 95% 100%, 100% 0)' }}></div>
                         </div>
