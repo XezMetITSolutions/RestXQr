@@ -113,10 +113,21 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('✅ PostgreSQL connection established successfully.');
 
-    // Sync models (create tables)
-    // Startup'ta sadece tablolar yoksa oluştur, alter yapma (timeout/crash önlemek için)
-    await sequelize.sync();
-    console.log('✅ Database models synchronized (create if missing).');
+    // Sync models in correct order (respecting foreign key dependencies)
+    // First sync parent tables (no dependencies)
+    await Restaurant.sync();
+    await AdminUser.sync();
+    console.log('✅ Core tables synchronized');
+
+    // Then sync child tables
+    await MenuCategory.sync();
+    await MenuItem.sync();
+    await KitchenStation.sync();
+    await VideoMenuItem.sync();
+    await Event.sync();
+    await InventoryItem.sync();
+    await Branch.sync();
+    console.log('✅ All database tables synchronized');
   } catch (error) {
     console.error('❌ Unable to connect to PostgreSQL:', error);
 
