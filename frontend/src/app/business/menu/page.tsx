@@ -34,7 +34,8 @@ import {
   FaGlobe,
   FaMagic,
   FaLanguage,
-  FaClock
+  FaClock,
+  FaBoxOpen
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
@@ -200,7 +201,7 @@ export default function MenuManagement() {
     variations: [] as Array<{ name: string, price: number }>,
     options: [] as Array<{ name: string, values: string[] }>,
     type: 'single' as 'single' | 'bundle',
-    bundleItems: [] as Array<{ itemId: string; quantity: number }>
+    bundleItems: [] as Array<{ itemId: string; quantity: number; name?: string }>
   });
 
   const [categoryFormData, setCategoryFormData] = useState({
@@ -1050,40 +1051,45 @@ export default function MenuManagement() {
   };
 
   // Filtrelenmiş ürünler
-  const filteredItems = items.filter(item => {
-    // Debug: Ürün verilerini console'a yazdır
-    console.log('Ürün verisi:', {
-      id: item.id,
-      name: item.name,
-      imageUrl: item.imageUrl,
-      image: item.image
-    });
+  // Filtrelenmiş ürünler
+  const filteredItems = useMemo(() => {
+    let result = items;
 
-    // Güvenlik kontrolü - item.name ve item.description undefined olabilir
-    const itemName = item.name || '';
-    const itemDescription = item.description || '';
+    // 1. Tab filtering
+    if (activeTab === 'combos') {
+      result = result.filter(item => item.type === 'bundle');
+    } else if (activeTab === 'items') {
+      result = result.filter(item => !item.type || item.type === 'single');
+    }
 
+    // 2. Search
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(item =>
-        item.name.toLowerCase().includes(term) ||
+        (item.name && item.name.toLowerCase().includes(term)) ||
         (item.description && item.description.toLowerCase().includes(term))
       );
     }
 
+    // 3. Category
     if (selectedCategory !== 'all') {
       result = result.filter(item => item.categoryId === selectedCategory);
     }
 
-    // Status filter logic
+    // 4. Status
     if (statusFilter === 'available') {
-      result = result.filter(item => item.isAvailable);
+      result = result.filter(item => item.isAvailable !== false);
     } else if (statusFilter === 'out-of-stock') {
-      result = result.filter(item => !item.isAvailable);
+      result = result.filter(item => item.isAvailable === false);
+    }
+
+    // 5. Hide out of stock if toggle is off (and not specifically filtering for them)
+    if (!showOutOfStock && statusFilter === 'all') {
+      result = result.filter(item => item.isAvailable !== false);
     }
 
     return result;
-  }, [items, searchTerm, selectedCategory, statusFilter, activeTab]);
+  }, [items, searchTerm, selectedCategory, statusFilter, activeTab, showOutOfStock]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden" style={{ zoom: '0.8' }}>
@@ -1589,1159 +1595,1164 @@ export default function MenuManagement() {
             </div>
           )}
 
-        </div>
-          )}
 
-        {!loading && activeTab === 'combos' && (
-          <div className="space-y-6">
-            {/* Add New Combo Button & Help */}
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold"><TranslatedText>Menüler</TranslatedText></h2>
-              <button
-                onClick={handleAddItem}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-              >
-                <FaPlus />
-                <TranslatedText>Yeni Menü Ekle</TranslatedText>
-              </button>
-            </div>
-
-            {filteredItems.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-                <div className="text-gray-400 mb-4">
-                  <FaUtensils className="mx-auto text-5xl" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz menü yok</TranslatedText></h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  <TranslatedText>Müşterilerinize avantajlı menüler oluşturun</TranslatedText>
-                </p>
+          {!loading && activeTab === 'combos' && (
+            <div className="space-y-6">
+              {/* Add New Combo Button & Help */}
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold"><TranslatedText>Menüler</TranslatedText></h2>
                 <button
                   onClick={handleAddItem}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
                 >
                   <FaPlus />
-                  <TranslatedText>İlk Menüyü Ekle</TranslatedText>
+                  <TranslatedText>Yeni Menü Ekle</TranslatedText>
                 </button>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredItems.map(item => (
-                  <div key={item.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
-                    <div className="relative h-48 bg-gray-100">
-                      <img
-                        src={
-                          (item.imageUrl || item.image)
-                            ? (item.imageUrl || item.image)?.startsWith('http')
-                              ? (item.imageUrl || item.image)
-                              : (() => {
-                                const imagePath = item.imageUrl || item.image;
-                                if (imagePath && typeof imagePath === 'string' && imagePath.startsWith('/uploads/')) {
-                                  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
-                                  return `${baseUrl}${imagePath}`;
-                                }
-                                return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${imagePath}`;
-                              })()
-                            : '/placeholder-food.jpg'
-                        }
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.currentTarget.src = '/placeholder-food.jpg'; }}
-                      />
-                      <div className="absolute top-2 right-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${item.isAvailable !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {item.isAvailable !== false ? <TranslatedText>Mevcut</TranslatedText> : <TranslatedText>Tükendi</TranslatedText>}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-lg">{item.name}</h3>
-                        <span className="font-bold text-purple-600 text-lg">₺{item.price}</span>
-                      </div>
-                      <p className="text-sm text-gray-500 line-clamp-2 mb-3">{item.description}</p>
 
-                      {/* Bundle Items Summary */}
-                      <div className="bg-purple-50 p-3 rounded-lg mb-4">
-                        <h4 className="text-xs font-bold text-purple-800 uppercase mb-2"><TranslatedText>Menü İçeriği</TranslatedText></h4>
-                        <ul className="text-sm space-y-1">
-                          {item.bundleItems && item.bundleItems.length > 0 ? (
-                            item.bundleItems.map((bi: any, idx: number) => {
-                              const originalItem = items.find(i => i.id === bi.itemId);
-                              return (
-                                <li key={idx} className="flex justify-between">
-                                  <span>{bi.quantity}x {originalItem?.name || bi.name || 'Ürün'}</span>
-                                </li>
-                              );
-                            })
-                          ) : (
-                            <li className="text-gray-400 text-xs"><TranslatedText>İçerik bilgisi yok</TranslatedText></li>
-                          )}
-                        </ul>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEditItem(item)}
-                          className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium"
-                        >
-                          <TranslatedText>Düzenle</TranslatedText>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteItem(item.id)}
-                          className="py-2 px-3 border border-red-200 text-red-600 rounded-lg hover:bg-red-50"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </div>
+              {filteredItems.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <FaUtensils className="mx-auto text-5xl" />
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {!loading && activeTab === 'categories' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold"><TranslatedText>Kategoriler</TranslatedText></h2>
-              <button
-                onClick={handleAddCategory}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-              >
-                <FaPlus />
-                <TranslatedText>Yeni Kategori Ekle</TranslatedText>
-              </button>
-            </div>
-
-            {categories.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-                <div className="text-gray-400 mb-4">
-                  <FaFolderOpen className="mx-auto text-5xl" />
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz menü yok</TranslatedText></h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    <TranslatedText>Müşterilerinize avantajlı menüler oluşturun</TranslatedText>
+                  </p>
+                  <button
+                    onClick={handleAddItem}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                  >
+                    <FaPlus />
+                    <TranslatedText>İlk Menüyü Ekle</TranslatedText>
+                  </button>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz kategori yok</TranslatedText></h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  <TranslatedText>Menü ürünlerinizi düzenlemek için kategoriler oluşturun</TranslatedText>
-                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredItems.map(item => (
+                    <div key={item.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="relative h-48 bg-gray-100">
+                        <img
+                          src={
+                            (item.imageUrl || item.image)
+                              ? (item.imageUrl || item.image)?.startsWith('http')
+                                ? (item.imageUrl || item.image)
+                                : (() => {
+                                  const imagePath = item.imageUrl || item.image;
+                                  if (imagePath && typeof imagePath === 'string' && imagePath.startsWith('/uploads/')) {
+                                    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                                    return `${baseUrl}${imagePath}`;
+                                  }
+                                  return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${imagePath}`;
+                                })()
+                              : '/placeholder-food.jpg'
+                          }
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => { e.currentTarget.src = '/placeholder-food.jpg'; }}
+                        />
+                        <div className="absolute top-2 right-2">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${item.isAvailable !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {item.isAvailable !== false ? <TranslatedText>Mevcut</TranslatedText> : <TranslatedText>Tükendi</TranslatedText>}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-bold text-lg">{item.name}</h3>
+                          <span className="font-bold text-purple-600 text-lg">₺{item.price}</span>
+                        </div>
+                        <p className="text-sm text-gray-500 line-clamp-2 mb-3">{item.description}</p>
+
+                        {/* Bundle Items Summary */}
+                        <div className="bg-purple-50 p-3 rounded-lg mb-4">
+                          <h4 className="text-xs font-bold text-purple-800 uppercase mb-2"><TranslatedText>Menü İçeriği</TranslatedText></h4>
+                          <ul className="text-sm space-y-1">
+                            {item.bundleItems && item.bundleItems.length > 0 ? (
+                              item.bundleItems.map((bi: any, idx: number) => {
+                                const originalItem = items.find(i => i.id === bi.itemId);
+                                return (
+                                  <li key={idx} className="flex justify-between">
+                                    <span>{bi.quantity}x {originalItem?.name || bi.name || 'Ürün'}</span>
+                                  </li>
+                                );
+                              })
+                            ) : (
+                              <li className="text-gray-400 text-xs"><TranslatedText>İçerik bilgisi yok</TranslatedText></li>
+                            )}
+                          </ul>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditItem(item)}
+                            className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium"
+                          >
+                            <TranslatedText>Düzenle</TranslatedText>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteItem(item.id)}
+                            className="py-2 px-3 border border-red-200 text-red-600 rounded-lg hover:bg-red-50"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!loading && activeTab === 'categories' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold"><TranslatedText>Kategoriler</TranslatedText></h2>
                 <button
                   onClick={handleAddCategory}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
                 >
                   <FaPlus />
-                  <TranslatedText>İlk Kategoriyi Ekle</TranslatedText>
+                  <TranslatedText>Yeni Kategori Ekle</TranslatedText>
                 </button>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {categories.map(category => (
-                  <div key={category.id} className="bg-white rounded-lg shadow-sm border p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-semibold text-lg">{category.name}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${category.isActive !== false
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                        }`}>
-                        {category.isActive !== false ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
-                      </span>
-                    </div>
 
-                    {category.kitchenStation && (
-                      <div className="mb-3">
-                        <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                          <FaFire className="mr-1" />
-                          {stations.find(s => s.name.toLowerCase() === category.kitchenStation?.toLowerCase())?.name || category.kitchenStation}
+              {categories.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <FaFolderOpen className="mx-auto text-5xl" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz kategori yok</TranslatedText></h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    <TranslatedText>Menü ürünlerinizi düzenlemek için kategoriler oluşturun</TranslatedText>
+                  </p>
+                  <button
+                    onClick={handleAddCategory}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                  >
+                    <FaPlus />
+                    <TranslatedText>İlk Kategoriyi Ekle</TranslatedText>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {categories.map(category => (
+                    <div key={category.id} className="bg-white rounded-lg shadow-sm border p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="font-semibold text-lg">{category.name}</h3>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${category.isActive !== false
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                          }`}>
+                          {category.isActive !== false ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
                         </span>
                       </div>
-                    )}
 
-                    <div>
-                      <p className="text-sm text-gray-500 mb-4">
-                        {items.filter(i => i.categoryId === category.id).length} <TranslatedText>ürün</TranslatedText>
-                      </p>
+                      {category.kitchenStation && (
+                        <div className="mb-3">
+                          <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                            <FaFire className="mr-1" />
+                            {stations.find(s => s.name.toLowerCase() === category.kitchenStation?.toLowerCase())?.name || category.kitchenStation}
+                          </span>
+                        </div>
+                      )}
 
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEditCategory(category)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
-                        >
-                          <FaEdit />
-                          <TranslatedText>Düzenle</TranslatedText>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCategory(category.id)}
-                          className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
-                        >
-                          <FaTrash />
-                        </button>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-4">
+                          {items.filter(i => i.categoryId === category.id).length} <TranslatedText>ürün</TranslatedText>
+                        </p>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditCategory(category)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
+                          >
+                            <FaEdit />
+                            <TranslatedText>Düzenle</TranslatedText>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCategory(category.id)}
+                            className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {!loading && activeTab === 'stations' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold"><TranslatedText>Mutfak İstasyonları</TranslatedText></h2>
-              <button
-                onClick={handleAddStation}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-              >
-                <FaPlus />
-                <TranslatedText>Yeni İstasyon Ekle</TranslatedText>
-              </button>
-            </div>
-
-            {stations.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-                <div className="text-gray-400 mb-4">
-                  <FaFire className="mx-auto text-5xl" />
+                  ))}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz istasyon yok</TranslatedText></h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  <TranslatedText>Mutfak istasyonları oluşturarak ürünlerinizi organize edin</TranslatedText>
-                </p>
+              )}
+            </div>
+          )}
+
+          {!loading && activeTab === 'stations' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold"><TranslatedText>Mutfak İstasyonları</TranslatedText></h2>
                 <button
                   onClick={handleAddStation}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
                 >
                   <FaPlus />
-                  <TranslatedText>İlk İstasyonu Ekle</TranslatedText>
+                  <TranslatedText>Yeni İstasyon Ekle</TranslatedText>
                 </button>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {stations.sort((a, b) => a.order - b.order).map(station => (
-                  <div key={station.id} className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-lg transition-shadow">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="text-3xl">{station.emoji}</div>
-                        <div>
-                          <h3 className="font-semibold text-lg">{station.name}</h3>
-                          <p className="text-xs text-gray-500">Sıra: {station.order}</p>
+
+              {stations.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <FaFire className="mx-auto text-5xl" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz istasyon yok</TranslatedText></h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    <TranslatedText>Mutfak istasyonları oluşturarak ürünlerinizi organize edin</TranslatedText>
+                  </p>
+                  <button
+                    onClick={handleAddStation}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                  >
+                    <FaPlus />
+                    <TranslatedText>İlk İstasyonu Ekle</TranslatedText>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {stations.sort((a, b) => a.order - b.order).map(station => (
+                    <div key={station.id} className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-lg transition-shadow">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="text-3xl">{station.emoji}</div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{station.name}</h3>
+                            <p className="text-xs text-gray-500">Sıra: {station.order}</p>
+                          </div>
+                        </div>
+                        <div
+                          className="w-8 h-8 rounded-full border-2 border-gray-200"
+                          style={{ backgroundColor: station.color }}
+                        />
+                      </div>
+
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-500 mb-4">
+                          {items.filter(i => i.kitchenStation === station.name.toLowerCase()).length} <TranslatedText>ürün</TranslatedText>
+                        </p>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditStation(station)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
+                          >
+                            <FaEdit />
+                            <TranslatedText>Düzenle</TranslatedText>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStation(station.id)}
+                            className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                          >
+                            <FaTrash />
+                          </button>
                         </div>
                       </div>
-                      <div
-                        className="w-8 h-8 rounded-full border-2 border-gray-200"
-                        style={{ backgroundColor: station.color }}
-                      />
                     </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-                    <div className="mt-4">
-                      <p className="text-sm text-gray-500 mb-4">
-                        {items.filter(i => i.kitchenStation === station.name.toLowerCase()).length} <TranslatedText>ürün</TranslatedText>
-                      </p>
+          {!loading && activeTab === 'stats' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold"><TranslatedText>Menü İstatistikleri</TranslatedText></h2>
+                <div className="text-xs text-gray-500"><TranslatedText>Backend verileri üzerinden hesaplanır</TranslatedText></div>
+              </div>
 
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEditStation(station)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
-                        >
-                          <FaEdit />
-                          <TranslatedText>Düzenle</TranslatedText>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteStation(station.id)}
-                          className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
-                        >
-                          <FaTrash />
-                        </button>
+              {/* KPI Kartları */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { label: 'Toplam Ürün', value: items.length, icon: <FaUtensils className='text-blue-600' />, bg: 'bg-blue-100' },
+                  { label: 'Popüler Ürünler', value: items.filter(i => i.isPopular).length, icon: <FaFire className='text-red-600' />, bg: 'bg-red-100' },
+                  { label: 'Kategori Sayısı', value: categories.length, icon: <FaTag className='text-green-600' />, bg: 'bg-green-100' },
+                  { label: 'Ortalama Fiyat', value: `₺${items.length > 0 ? Math.round(items.reduce((s, i) => s + i.price, 0) / items.length) : 0}`, icon: <FaChartBar className='text-purple-600' />, bg: 'bg-purple-100' }
+                ].map((kpi, idx) => (
+                  <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600"><TranslatedText>{kpi.label}</TranslatedText></p>
+                        <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
                       </div>
+                      <div className={`p-3 rounded-full ${kpi.bg}`}>{kpi.icon}</div>
                     </div>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-        )}
-
-        {!loading && activeTab === 'stats' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold"><TranslatedText>Menü İstatistikleri</TranslatedText></h2>
-              <div className="text-xs text-gray-500"><TranslatedText>Backend verileri üzerinden hesaplanır</TranslatedText></div>
             </div>
+          )}
 
-            {/* KPI Kartları */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { label: 'Toplam Ürün', value: items.length, icon: <FaUtensils className='text-blue-600' />, bg: 'bg-blue-100' },
-                { label: 'Popüler Ürünler', value: items.filter(i => i.isPopular).length, icon: <FaFire className='text-red-600' />, bg: 'bg-red-100' },
-                { label: 'Kategori Sayısı', value: categories.length, icon: <FaTag className='text-green-600' />, bg: 'bg-green-100' },
-                { label: 'Ortalama Fiyat', value: `₺${items.length > 0 ? Math.round(items.reduce((s, i) => s + i.price, 0) / items.length) : 0}`, icon: <FaChartBar className='text-purple-600' />, bg: 'bg-purple-100' }
-              ].map((kpi, idx) => (
-                <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600"><TranslatedText>{kpi.label}</TranslatedText></p>
-                      <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
-                    </div>
-                    <div className={`p-3 rounded-full ${kpi.bg}`}>{kpi.icon}</div>
-                  </div>
+          {/* Modals */}
+          {showItemForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
+              <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999] lg:ml-72">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">
+                    {editingItem ? <TranslatedText>Ürünü Düzenle</TranslatedText> : <TranslatedText>Yeni Ürün Ekle</TranslatedText>}
+                  </h2>
+                  <button
+                    onClick={() => setShowItemForm(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <FaTimes size={24} />
+                  </button>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Modals */}
-        {showItemForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999] lg:ml-72">
-              <div className="p-6 border-b flex justify-between items-center">
-                <h2 className="text-2xl font-bold">
-                  {editingItem ? <TranslatedText>Ürünü Düzenle</TranslatedText> : <TranslatedText>Yeni Ürün Ekle</TranslatedText>}
-                </h2>
-                <button
-                  onClick={() => setShowItemForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FaTimes size={24} />
-                </button>
-              </div>
-              <div className="p-6 overflow-y-auto max-h-[70vh]">
-                <form className="space-y-6">
-                  {/* Ürün Adı */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Ürün Adı *</TranslatedText>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder={t('Örn: Bruschetta')}
-                      required
-                    />
-                  </div>
-
-                  {/* Açıklama */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Açıklama</TranslatedText>
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder={t('Ürün açıklaması...')}
-                    />
-                  </div>
-
-                  {translationLanguages.length > 0 && (
-                    <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 space-y-4">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center gap-2 text-purple-800">
-                          <FaGlobe />
-                          <div>
-                            <p className="font-semibold"><TranslatedText>Çeviriler</TranslatedText></p>
-                            <p className="text-xs text-purple-600">
-                              <TranslatedText>Seçili diller için ürün adı ve açıklamasını düzenleyin.</TranslatedText>
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleItemAutoTranslate}
-                          disabled={isTranslatingItem}
-                          className="inline-flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-60"
-                        >
-                          <FaMagic />
-                          {isTranslatingItem ? <TranslatedText>Çevriliyor...</TranslatedText> : <TranslatedText>Otomatik Çevir</TranslatedText>}
-                        </button>
-                      </div>
-                      {itemTranslationError && (
-                        <p className="text-xs text-red-600">{itemTranslationError}</p>
-                      )}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {translationLanguages.map((lang) => (
-                          <div key={lang} className="space-y-3">
-                            <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">
-                                <TranslatedText>Ürün Adı</TranslatedText> ({lang.toUpperCase()})
-                              </label>
-                              <input
-                                type="text"
-                                value={(formData.translations as any)?.[lang]?.name || ''}
-                                onChange={(e) => updateItemTranslationField(lang, 'name', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">
-                                <TranslatedText>Açıklama</TranslatedText> ({lang.toUpperCase()})
-                              </label>
-                              <textarea
-                                rows={2}
-                                value={(formData.translations as any)?.[lang]?.description || ''}
-                                onChange={(e) => updateItemTranslationField(lang, 'description', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Fiyat ve Kategori */}
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="p-6 overflow-y-auto max-h-[70vh]">
+                  <form className="space-y-6">
+                    {/* Ürün Adı */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Fiyat (₺) *</TranslatedText>
+                        <TranslatedText>Ürün Adı *</TranslatedText>
                       </label>
                       <input
-                        type="number"
-                        value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="45"
+                        placeholder={t('Örn: Bruschetta')}
                         required
                       />
                     </div>
+
+                    {/* Açıklama */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Kategori *</TranslatedText>
+                        <TranslatedText>Açıklama</TranslatedText>
                       </label>
-                      <select
-                        value={formData.category}
-                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        required
-                      >
-                        <option value="">{t('Kategori Seçin')}</option>
-                        {categories.length > 0 ? (
-                          categories.map(cat => (
-                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                          ))
-                        ) : (
-                          <option disabled>{t('Önce kategori ekleyin')}</option>
-                        )}
-                      </select>
-                      {categories.length === 0 && (
-                        <p className="text-xs text-red-600 mt-1">
-                          ⚠️ {t('Kategori bulunamadı. Lütfen önce "Kategoriler" sekmesinden kategori ekleyin.')}
-                        </p>
-                      )}
+                        placeholder={t('Ürün açıklaması...')}
+                      />
                     </div>
 
-                    {/* Mutfak İstasyonu */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Mutfak İstasyonu</TranslatedText>
-                      </label>
-                      <select
-                        value={formData.kitchenStation}
-                        onChange={(e) => setFormData({ ...formData, kitchenStation: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      >
-                        <option value="">{t('İstasyon Seçin')}</option>
-                        {stations.sort((a, b) => a.order - b.order).map(station => (
-                          <option key={station.id} value={station.name.toLowerCase()}>
-                            {station.emoji} {station.name}
-                          </option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {t('Ürün hangi mutfak istasyonunda hazırlanacak?')}
-                      </p>
-                    </div>
-                  </div>
-
-
-                  {/* VARYASYONLAR (Variations) */}
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="font-bold text-gray-800 flex items-center gap-2">
-                        <FaTag className="text-blue-500" />
-                        {t('Varyasyonlar')}
-                      </h4>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData(prev => ({
-                            ...prev,
-                            variations: [...(prev.variations || []), { name: '', price: 0 }]
-                          }));
-                        }}
-                        className="text-sm text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1"
-                      >
-                        <FaPlus size={12} /> {t('Varyasyon Ekle')}
-                      </button>
-                    </div>
-
-                    {formData.variations && formData.variations.length > 0 ? (
-                      <div className="space-y-2">
-                        {formData.variations.map((v, idx) => (
-                          <div key={idx} className="flex gap-2 items-center">
-                            <input
-                              type="text"
-                              placeholder={t('Örn: 2 Adet, Büyük Boy')}
-                              value={v.name}
-                              onChange={e => {
-                                const newVars = [...formData.variations];
-                                newVars[idx].name = e.target.value;
-                                setFormData({ ...formData, variations: newVars });
-                              }}
-                              className="flex-1 px-3 py-2 border rounded-lg text-sm"
-                            />
-                            <input
-                              type="number"
-                              placeholder={t('Fiyat')}
-                              value={v.price}
-                              onChange={e => {
-                                const newVars = [...formData.variations];
-                                newVars[idx].price = parseFloat(e.target.value);
-                                setFormData({ ...formData, variations: newVars });
-                              }}
-                              className="w-24 px-3 py-2 border rounded-lg text-sm"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newVars = formData.variations.filter((_, i) => i !== idx);
-                                setFormData({ ...formData, variations: newVars });
-                              }}
-                              className="p-2 text-red-500 hover:bg-red-50 rounded"
-                            >
-                              <FaTrash size={14} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-400 text-sm text-center italic">{t('Varyasyon eklenmemiş (Örn: Porsiyon büyüklüğü, Adet)')}</p>
-                    )}
-                  </div>
-
-                  {/* ÖZELLİKLER (Options) */}
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="font-bold text-gray-800 flex items-center gap-2">
-                        <FaClipboardList className="text-orange-500" />
-                        {t('Özellik Seçenekleri')}
-                      </h4>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData(prev => ({
-                            ...prev,
-                            options: [...(prev.options || []), { name: '', values: [] }]
-                          }));
-                        }}
-                        className="text-sm text-orange-600 hover:text-orange-800 font-bold flex items-center gap-1"
-                      >
-                        <FaPlus size={12} /> {t('Grup Ekle')}
-                      </button>
-                    </div>
-
-                    {formData.options && formData.options.length > 0 ? (
-                      <div className="space-y-4">
-                        {formData.options.map((opt, idx) => (
-                          <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200">
-                            <div className="flex justify-between items-center mb-2">
-                              <input
-                                type="text"
-                                placeholder={t('Grup Adı (Örn: Acı Durumu, Soslar)')}
-                                value={opt.name}
-                                onChange={e => {
-                                  const newOpts = [...formData.options];
-                                  newOpts[idx].name = e.target.value;
-                                  setFormData({ ...formData, options: newOpts });
-                                }}
-                                className="flex-1 px-3 py-2 border rounded-lg text-sm font-bold mr-2"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const newOpts = formData.options.filter((_, i) => i !== idx);
-                                  setFormData({ ...formData, options: newOpts });
-                                }}
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                <FaTrash size={14} />
-                              </button>
-                            </div>
-
+                    {translationLanguages.length > 0 && (
+                      <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 space-y-4">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-center gap-2 text-purple-800">
+                            <FaGlobe />
                             <div>
-                              <label className="text-xs text-gray-500 mb-1 block">{t('Seçenekler (Virgülle ayırın)')}</label>
-                              <input
-                                type="text"
-                                placeholder={t('Örn: Az Acılı, Çok Acılı, Acısız')}
-                                value={opt.values.join(', ')}
-                                onChange={e => {
-                                  const newOpts = [...formData.options];
-                                  newOpts[idx].values = e.target.value.split(',').map(s => s.trim()); // removed filter(Boolean) to allows typing comma
-                                  setFormData({ ...formData, options: newOpts });
-                                }}
-                                className="w-full px-3 py-2 border rounded-lg text-sm"
-                              />
+                              <p className="font-semibold"><TranslatedText>Çeviriler</TranslatedText></p>
+                              <p className="text-xs text-purple-600">
+                                <TranslatedText>Seçili diller için ürün adı ve açıklamasını düzenleyin.</TranslatedText>
+                              </p>
                             </div>
                           </div>
-                        ))}
+                          <button
+                            type="button"
+                            onClick={handleItemAutoTranslate}
+                            disabled={isTranslatingItem}
+                            className="inline-flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-60"
+                          >
+                            <FaMagic />
+                            {isTranslatingItem ? <TranslatedText>Çevriliyor...</TranslatedText> : <TranslatedText>Otomatik Çevir</TranslatedText>}
+                          </button>
+                        </div>
+                        {itemTranslationError && (
+                          <p className="text-xs text-red-600">{itemTranslationError}</p>
+                        )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {translationLanguages.map((lang) => (
+                            <div key={lang} className="space-y-3">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  <TranslatedText>Ürün Adı</TranslatedText> ({lang.toUpperCase()})
+                                </label>
+                                <input
+                                  type="text"
+                                  value={(formData.translations as any)?.[lang]?.name || ''}
+                                  onChange={(e) => updateItemTranslationField(lang, 'name', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  <TranslatedText>Açıklama</TranslatedText> ({lang.toUpperCase()})
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  value={(formData.translations as any)?.[lang]?.description || ''}
+                                  onChange={(e) => updateItemTranslationField(lang, 'description', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ) : (
-                      <p className="text-gray-400 text-sm text-center italic">{t('Seçenek grubu eklenmemiş (Örn: Acı tercihi, Pişme derecesi)')}</p>
                     )}
-                  </div>
 
-                  {/* MENÜ İÇERİĞİ (Bundle Items) - Sadece 'bundle' tipinde gösterilir */}
-                  {formData.type === 'bundle' && (
-                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-200 mb-4">
-                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <FaUtensils className="text-purple-600" />
-                        <TranslatedText>Menü İçeriği</TranslatedText>
-                      </h4>
+                    {/* Fiyat ve Kategori */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <TranslatedText>Fiyat (₺) *</TranslatedText>
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="45"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <TranslatedText>Kategori *</TranslatedText>
+                        </label>
+                        <select
+                          value={formData.category}
+                          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          required
+                        >
+                          <option value="">{t('Kategori Seçin')}</option>
+                          {categories.length > 0 ? (
+                            categories.map(cat => (
+                              <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))
+                          ) : (
+                            <option disabled>{t('Önce kategori ekleyin')}</option>
+                          )}
+                        </select>
+                        {categories.length === 0 && (
+                          <p className="text-xs text-red-600 mt-1">
+                            ⚠️ {t('Kategori bulunamadı. Lütfen önce "Kategoriler" sekmesinden kategori ekleyin.')}
+                          </p>
+                        )}
+                      </div>
 
-                      <div className="space-y-4">
-                        {formData.bundleItems.map((bi, idx) => (
-                          <div key={idx} className="flex gap-2 items-center bg-white p-2 rounded-lg border">
-                            <select
-                              className="flex-1 px-3 py-2 border rounded-lg text-sm"
-                              value={bi.itemId}
-                              onChange={(e) => {
-                                const newItems = [...formData.bundleItems];
-                                newItems[idx].itemId = e.target.value;
-                                // Update name reference
-                                const selectedItem = items.find(i => i.id === e.target.value);
-                                if (selectedItem) newItems[idx].name = selectedItem.name;
-                                setFormData({ ...formData, bundleItems: newItems });
+                      {/* Mutfak İstasyonu */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <TranslatedText>Mutfak İstasyonu</TranslatedText>
+                        </label>
+                        <select
+                          value={formData.kitchenStation}
+                          onChange={(e) => setFormData({ ...formData, kitchenStation: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="">{t('İstasyon Seçin')}</option>
+                          {stations.sort((a, b) => a.order - b.order).map(station => (
+                            <option key={station.id} value={station.name.toLowerCase()}>
+                              {station.emoji} {station.name}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {t('Ürün hangi mutfak istasyonunda hazırlanacak?')}
+                        </p>
+                      </div>
+                    </div>
 
-                                // Auto calculate price suggestion if price is 0
-                                /* Optional: Add logic here to sum prices */
-                              }}
-                            >
-                              <option value="">{t('Ürün Seçin')}</option>
-                              {items.filter(i => i.type !== 'bundle').map(i => (
-                                <option key={i.id} value={i.id}>{i.name} ({i.price}₺)</option>
-                              ))}
-                            </select>
-                            <input
-                              type="number"
-                              min="1"
-                              value={bi.quantity}
-                              onChange={(e) => {
-                                const newItems = [...formData.bundleItems];
-                                newItems[idx].quantity = parseInt(e.target.value) || 1;
-                                setFormData({ ...formData, bundleItems: newItems });
-                              }}
-                              className="w-20 px-3 py-2 border rounded-lg text-sm"
-                              placeholder="Adet"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newItems = formData.bundleItems.filter((_, i) => i !== idx);
-                                setFormData({ ...formData, bundleItems: newItems });
-                              }}
-                              className="p-2 text-red-500 hover:bg-red-50 rounded"
-                            >
-                              <FaTrash />
-                            </button>
-                          </div>
-                        ))}
 
+                    {/* VARYASYONLAR (Variations) */}
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                          <FaTag className="text-blue-500" />
+                          {t('Varyasyonlar')}
+                        </h4>
                         <button
                           type="button"
                           onClick={() => {
                             setFormData(prev => ({
                               ...prev,
-                              bundleItems: [...(prev.bundleItems || []), { itemId: '', quantity: 1 }]
+                              variations: [...(prev.variations || []), { name: '', price: 0 }]
                             }));
                           }}
-                          className="w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 font-medium flex justify-center items-center gap-2"
+                          className="text-sm text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1"
                         >
-                          <FaPlus /> <TranslatedText>Ürün Ekle</TranslatedText>
+                          <FaPlus size={12} /> {t('Varyasyon Ekle')}
                         </button>
-
-                        {formData.bundleItems.length > 0 && (
-                          <div className="text-right text-xs text-gray-500">
-                            Toplam: {formData.bundleItems.reduce((sum, bi) => {
-                              const item = items.find(i => i.id === bi.itemId);
-                              return sum + (item ? item.price * bi.quantity : 0);
-                            }, 0)} ₺ (Liste Fiyatı)
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  )}
 
-
-                  {/* Kalori ve Hazırlık Süresi */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Kalori</TranslatedText>
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.calories}
-                        onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="250"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Hazırlık Süresi (dakika)</TranslatedText>
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.preparationTime}
-                        onChange={(e) => setFormData({ ...formData, preparationTime: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="15"
-                      />
-                    </div>
-                  </div>
-
-
-
-                  {/* Malzemeler */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Malzemeler</TranslatedText>
-                    </label>
-                    <textarea
-                      value={formData.ingredients}
-                      onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder={t('Malzemeleri virgülle ayırarak yazın (Örn: Domates, Mozzarella, Fesleğen)')}
-                    />
-                  </div>
-
-                  {/* Alerjenler */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Alerjen</TranslatedText>
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {['Gluten', 'Süt', 'Yumurta', 'Fındık', 'Fıstık', 'Soya', 'Balık', 'Kabuklu Deniz Ürünleri'].map((allergen) => (
-                        <label key={allergen} className="flex items-center p-2 border border-gray-200 rounded-lg hover:bg-gray-50">
-                          <input
-                            type="checkbox"
-                            checked={Array.isArray(formData.allergens) && formData.allergens.some(a => a.toLowerCase() === allergen.toLowerCase())}
-                            onChange={(e) => {
-                              const currentAllergens = Array.isArray(formData.allergens) ? formData.allergens : [];
-                              console.log('Alerjen değişikliği:', { allergen, checked: e.target.checked, currentAllergens });
-                              if (e.target.checked) {
-                                const newAllergens = [...currentAllergens, allergen];
-                                console.log('Yeni alerjenler:', newAllergens);
-                                setFormData({ ...formData, allergens: newAllergens });
-                              } else {
-                                const newAllergens = currentAllergens.filter(a => a !== allergen);
-                                console.log('Kaldırılan alerjenler:', newAllergens);
-                                setFormData({ ...formData, allergens: newAllergens });
-                              }
-                            }}
-                            className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700"><TranslatedText>{allergen}</TranslatedText></span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Ürün Fotoğrafı */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TranslatedText>Ürün Fotoğrafı</TranslatedText>
-                    </label>
-
-                    {/* Fotoğraf Yükleme Seçenekleri */}
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      {/* Kameradan Çek */}
-                      <button
-                        type="button"
-                        onClick={startCamera}
-                        className="p-4 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors text-center"
-                      >
-                        <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
-                          <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
+                      {formData.variations && formData.variations.length > 0 ? (
+                        <div className="space-y-2">
+                          {formData.variations.map((v, idx) => (
+                            <div key={idx} className="flex gap-2 items-center">
+                              <input
+                                type="text"
+                                placeholder={t('Örn: 2 Adet, Büyük Boy')}
+                                value={v.name}
+                                onChange={e => {
+                                  const newVars = [...formData.variations];
+                                  newVars[idx].name = e.target.value;
+                                  setFormData({ ...formData, variations: newVars });
+                                }}
+                                className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                              />
+                              <input
+                                type="number"
+                                placeholder={t('Fiyat')}
+                                value={v.price}
+                                onChange={e => {
+                                  const newVars = [...formData.variations];
+                                  newVars[idx].price = parseFloat(e.target.value);
+                                  setFormData({ ...formData, variations: newVars });
+                                }}
+                                className="w-24 px-3 py-2 border rounded-lg text-sm"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newVars = formData.variations.filter((_, i) => i !== idx);
+                                  setFormData({ ...formData, variations: newVars });
+                                }}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded"
+                              >
+                                <FaTrash size={14} />
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                        <p className="text-sm font-medium text-purple-600"><TranslatedText>Kameradan Çek</TranslatedText></p>
-                        <p className="text-xs text-gray-500"><TranslatedText>Telefon kamerası</TranslatedText></p>
-                      </button>
-
-                      {/* Dosyadan Yükle veya Yapıştır */}
-                      <div
-                        className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors text-center cursor-pointer relative"
-                        onPaste={async (e) => {
-                          e.preventDefault();
-                          const items = e.clipboardData.items;
-
-                          for (let i = 0; i < items.length; i++) {
-                            const item = items[i];
-
-                            if (item.type.indexOf('image') !== -1) {
-                              const file = item.getAsFile();
-                              if (file) {
-                                console.log('📋 Yapıştırılan resim:', file.name || 'Clipboard', 'Boyut:', file.size, 'Tip:', file.type);
-
-                                // Dosya boyutunu kontrol et (max 5MB)
-                                if (file.size > 5 * 1024 * 1024) {
-                                  alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
-                                  return;
-                                }
-
-                                // Resim yükleme
-                                try {
-                                  const formData = new FormData();
-                                  formData.append('image', file);
-
-                                  const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
-                                    method: 'POST',
-                                    body: formData,
-                                  });
-
-                                  if (!response.ok) {
-                                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                                  }
-
-                                  const result = await response.json();
-
-                                  if (result.success) {
-                                    console.log('✅ Yapıştırılan resim başarıyla yüklendi:', result.data.imageUrl);
-                                    setCapturedImage(result.data.imageUrl);
-                                    alert(t('Resim başarıyla yapıştırıldı ve yüklendi!'));
-                                  } else {
-                                    console.error('❌ Upload failed:', result.message);
-                                    alert(t('Resim yüklenemedi: ') + result.message);
-                                  }
-                                } catch (error) {
-                                  console.error('❌ Resim yükleme hatası:', error);
-                                  alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
-                                }
-                                break;
-                              }
-                            }
-                          }
-                        }}
-                        tabIndex={0}
-                        onFocus={(e) => {
-                          e.currentTarget.style.outline = '2px solid #9333ea';
-                          e.currentTarget.style.outlineOffset = '2px';
-                        }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.outline = 'none';
-                        }}
-                      >
-                        <label className="cursor-pointer">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                console.log('Seçilen dosya:', file.name, 'Boyut:', file.size, 'Tip:', file.type);
-
-                                // Dosya boyutunu kontrol et (max 5MB)
-                                if (file.size > 5 * 1024 * 1024) {
-                                  alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
-                                  return;
-                                }
-
-                                // Dosya tipini kontrol et
-                                if (!file.type.startsWith('image/')) {
-                                  alert(t('Lütfen sadece resim dosyası seçin.'));
-                                  return;
-                                }
-
-                                // Basit ve güvenilir resim yükleme sistemi
-                                try {
-                                  console.log('📤 Resim yükleniyor:', file.name, file.size, 'bytes');
-
-                                  const formData = new FormData();
-                                  formData.append('image', file);
-
-                                  console.log('📡 API URL:', process.env.NEXT_PUBLIC_API_URL);
-
-                                  const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
-                                    method: 'POST',
-                                    body: formData,
-                                  });
-
-                                  console.log('📊 Response status:', response.status);
-                                  console.log('📊 Response ok:', response.ok);
-
-                                  if (!response.ok) {
-                                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                                  }
-
-                                  const result = await response.json();
-                                  console.log('📊 Response data:', result);
-
-                                  if (result.success) {
-                                    console.log('✅ Resim başarıyla yüklendi:', result.data.imageUrl);
-                                    setCapturedImage(result.data.imageUrl);
-                                    alert(t('Resim başarıyla yüklendi!'));
-                                  } else {
-                                    console.error('❌ Upload failed:', result.message);
-                                    alert(t('Resim yüklenemedi: ') + result.message);
-                                  }
-                                } catch (error) {
-                                  console.error('❌ Resim yükleme hatası:', error);
-                                  alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
-                                }
-                              }
-                            }}
-                            className="hidden"
-                          />
-                          <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
-                            <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                          <p className="text-sm font-medium text-gray-600"><TranslatedText>Dosyadan Yükle</TranslatedText></p>
-                          <p className="text-xs text-gray-500"><TranslatedText>PNG, JPG, GIF</TranslatedText></p>
-                          <p className="text-xs text-purple-600 mt-1 font-medium"><TranslatedText>veya Ctrl+V ile yapıştır</TranslatedText></p>
-                        </label>
-                      </div>
+                      ) : (
+                        <p className="text-gray-400 text-sm text-center italic">{t('Varyasyon eklenmemiş (Örn: Porsiyon büyüklüğü, Adet)')}</p>
+                      )}
                     </div>
 
-                    {/* AI Görsel İşleme */}
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="flex">
-                          <span className="text-yellow-400 text-lg">✨</span>
-                          <span className="text-yellow-400 text-sm">⭐</span>
-                          <span className="text-yellow-400 text-xs">✨</span>
-                        </div>
-                        <h4 className="font-semibold text-gray-800"><TranslatedText>AI Görsel İşleme Aktif!</TranslatedText></h4>
+                    {/* ÖZELLİKLER (Options) */}
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                          <FaClipboardList className="text-orange-500" />
+                          {t('Özellik Seçenekleri')}
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              options: [...(prev.options || []), { name: '', values: [] }]
+                            }));
+                          }}
+                          className="text-sm text-orange-600 hover:text-orange-800 font-bold flex items-center gap-1"
+                        >
+                          <FaPlus size={12} /> {t('Grup Ekle')}
+                        </button>
                       </div>
 
-                      <ul className="space-y-2 text-sm text-gray-700">
-                        <li className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                          <span><TranslatedText>Otomatik arka plan kaldırma</TranslatedText></span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span><TranslatedText>Renk ve parlaklık optimizasyonu</TranslatedText></span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span><TranslatedText>Akıllı boyutlandırma</TranslatedText></span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span><TranslatedText>Keskinlik artırma</TranslatedText></span>
-                        </li>
-                      </ul>
+                      {formData.options && formData.options.length > 0 ? (
+                        <div className="space-y-4">
+                          {formData.options.map((opt, idx) => (
+                            <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200">
+                              <div className="flex justify-between items-center mb-2">
+                                <input
+                                  type="text"
+                                  placeholder={t('Grup Adı (Örn: Acı Durumu, Soslar)')}
+                                  value={opt.name}
+                                  onChange={e => {
+                                    const newOpts = [...formData.options];
+                                    newOpts[idx].name = e.target.value;
+                                    setFormData({ ...formData, options: newOpts });
+                                  }}
+                                  className="flex-1 px-3 py-2 border rounded-lg text-sm font-bold mr-2"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newOpts = formData.options.filter((_, i) => i !== idx);
+                                    setFormData({ ...formData, options: newOpts });
+                                  }}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <FaTrash size={14} />
+                                </button>
+                              </div>
 
-                      <div className="mt-3 p-2 bg-yellow-100 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <span className="text-yellow-600">💡</span>
-                          <span className="text-xs text-yellow-800">
-                            <TranslatedText>Kameradan çekmek daha profesyonel sonuçlar verir</TranslatedText>
-                          </span>
+                              <div>
+                                <label className="text-xs text-gray-500 mb-1 block">{t('Seçenekler (Virgülle ayırın)')}</label>
+                                <input
+                                  type="text"
+                                  placeholder={t('Örn: Az Acılı, Çok Acılı, Acısız')}
+                                  value={opt.values.join(', ')}
+                                  onChange={e => {
+                                    const newOpts = [...formData.options];
+                                    newOpts[idx].values = e.target.value.split(',').map(s => s.trim()); // removed filter(Boolean) to allows typing comma
+                                    setFormData({ ...formData, options: newOpts });
+                                  }}
+                                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                                />
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
+                      ) : (
+                        <p className="text-gray-400 text-sm text-center italic">{t('Seçenek grubu eklenmemiş (Örn: Acı tercihi, Pişme derecesi)')}</p>
+                      )}
                     </div>
 
-                    {/* Seçilen Fotoğraf Önizleme */}
-                    {capturedImage && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700 mb-2"><TranslatedText>Seçilen Fotoğraf:</TranslatedText></p>
-                        <div className="relative inline-block">
-                          <img
-                            src={capturedImage.startsWith('http') ? capturedImage : `https://masapp-backend.onrender.com${capturedImage}`}
-                            alt="Ürün fotoğrafı önizleme"
-                            className="w-32 h-32 object-cover rounded-lg border"
-                          />
+                    {/* MENÜ İÇERİĞİ (Bundle Items) - Sadece 'bundle' tipinde gösterilir */}
+                    {formData.type === 'bundle' && (
+                      <div className="bg-purple-50 p-4 rounded-xl border border-purple-200 mb-4">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                          <FaUtensils className="text-purple-600" />
+                          <TranslatedText>Menü İçeriği</TranslatedText>
+                        </h4>
+
+                        <div className="space-y-4">
+                          {formData.bundleItems.map((bi, idx) => (
+                            <div key={idx} className="flex gap-2 items-center bg-white p-2 rounded-lg border">
+                              <select
+                                className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                                value={bi.itemId}
+                                onChange={(e) => {
+                                  const newItems = [...formData.bundleItems];
+                                  newItems[idx].itemId = e.target.value;
+                                  // Update name reference
+                                  const selectedItem = items.find(i => i.id === e.target.value);
+                                  if (selectedItem) newItems[idx].name = selectedItem.name;
+                                  setFormData({ ...formData, bundleItems: newItems });
+
+                                  // Auto calculate price suggestion if price is 0
+                                  /* Optional: Add logic here to sum prices */
+                                }}
+                              >
+                                <option value="">{t('Ürün Seçin')}</option>
+                                {items.filter(i => i.type !== 'bundle').map(i => (
+                                  <option key={i.id} value={i.id}>{i.name} ({i.price}₺)</option>
+                                ))}
+                              </select>
+                              <input
+                                type="number"
+                                min="1"
+                                value={bi.quantity}
+                                onChange={(e) => {
+                                  const newItems = [...formData.bundleItems];
+                                  newItems[idx].quantity = parseInt(e.target.value) || 1;
+                                  setFormData({ ...formData, bundleItems: newItems });
+                                }}
+                                className="w-20 px-3 py-2 border rounded-lg text-sm"
+                                placeholder="Adet"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newItems = formData.bundleItems.filter((_, i) => i !== idx);
+                                  setFormData({ ...formData, bundleItems: newItems });
+                                }}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
+                          ))}
+
                           <button
                             type="button"
-                            onClick={() => setCapturedImage(null)}
-                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                bundleItems: [...(prev.bundleItems || []), { itemId: '', quantity: 1 }]
+                              }));
+                            }}
+                            className="w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 font-medium flex justify-center items-center gap-2"
                           >
-                            ×
+                            <FaPlus /> <TranslatedText>Ürün Ekle</TranslatedText>
                           </button>
+
+                          {formData.bundleItems.length > 0 && (
+                            <div className="text-right text-xs text-gray-500">
+                              Toplam: {formData.bundleItems.reduce((sum, bi) => {
+                                const item = items.find(i => i.id === bi.itemId);
+                                return sum + (item ? item.price * bi.quantity : 0);
+                              }, 0)} ₺ (Liste Fiyatı)
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
-                  </div>
 
-                  {/* Durum ve Popüler */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-3">
+
+                    {/* Kalori ve Hazırlık Süresi */}
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          <TranslatedText>Ürün Durumu</TranslatedText>
+                          <TranslatedText>Kalori</TranslatedText>
                         </label>
-                        <div className="flex gap-4">
-                          <label className="flex items-center">
+                        <input
+                          type="number"
+                          value={formData.calories}
+                          onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="250"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <TranslatedText>Hazırlık Süresi (dakika)</TranslatedText>
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.preparationTime}
+                          onChange={(e) => setFormData({ ...formData, preparationTime: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="15"
+                        />
+                      </div>
+                    </div>
+
+
+
+                    {/* Malzemeler */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Malzemeler</TranslatedText>
+                      </label>
+                      <textarea
+                        value={formData.ingredients}
+                        onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder={t('Malzemeleri virgülle ayırarak yazın (Örn: Domates, Mozzarella, Fesleğen)')}
+                      />
+                    </div>
+
+                    {/* Alerjenler */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Alerjen</TranslatedText>
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Gluten', 'Süt', 'Yumurta', 'Fındık', 'Fıstık', 'Soya', 'Balık', 'Kabuklu Deniz Ürünleri'].map((allergen) => (
+                          <label key={allergen} className="flex items-center p-2 border border-gray-200 rounded-lg hover:bg-gray-50">
                             <input
-                              type="radio"
-                              name="status"
-                              value="available"
-                              checked={formData.isAvailable}
-                              onChange={(e) => setFormData({ ...formData, isAvailable: e.target.value === 'available' })}
-                              className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                              type="checkbox"
+                              checked={Array.isArray(formData.allergens) && formData.allergens.some(a => a.toLowerCase() === allergen.toLowerCase())}
+                              onChange={(e) => {
+                                const currentAllergens = Array.isArray(formData.allergens) ? formData.allergens : [];
+                                console.log('Alerjen değişikliği:', { allergen, checked: e.target.checked, currentAllergens });
+                                if (e.target.checked) {
+                                  const newAllergens = [...currentAllergens, allergen];
+                                  console.log('Yeni alerjenler:', newAllergens);
+                                  setFormData({ ...formData, allergens: newAllergens });
+                                } else {
+                                  const newAllergens = currentAllergens.filter(a => a !== allergen);
+                                  console.log('Kaldırılan alerjenler:', newAllergens);
+                                  setFormData({ ...formData, allergens: newAllergens });
+                                }
+                              }}
+                              className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
                             />
-                            <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
-                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              <TranslatedText>Mevcut</TranslatedText>
-                            </span>
+                            <span className="ml-2 text-sm text-gray-700"><TranslatedText>{allergen}</TranslatedText></span>
                           </label>
-                          <label className="flex items-center">
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Ürün Fotoğrafı */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <TranslatedText>Ürün Fotoğrafı</TranslatedText>
+                      </label>
+
+                      {/* Fotoğraf Yükleme Seçenekleri */}
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        {/* Kameradan Çek */}
+                        <button
+                          type="button"
+                          onClick={startCamera}
+                          className="p-4 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors text-center"
+                        >
+                          <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                            <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                          </div>
+                          <p className="text-sm font-medium text-purple-600"><TranslatedText>Kameradan Çek</TranslatedText></p>
+                          <p className="text-xs text-gray-500"><TranslatedText>Telefon kamerası</TranslatedText></p>
+                        </button>
+
+                        {/* Dosyadan Yükle veya Yapıştır */}
+                        <div
+                          className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors text-center cursor-pointer relative"
+                          onPaste={async (e) => {
+                            e.preventDefault();
+                            const items = e.clipboardData.items;
+
+                            for (let i = 0; i < items.length; i++) {
+                              const item = items[i];
+
+                              if (item.type.indexOf('image') !== -1) {
+                                const file = item.getAsFile();
+                                if (file) {
+                                  console.log('📋 Yapıştırılan resim:', file.name || 'Clipboard', 'Boyut:', file.size, 'Tip:', file.type);
+
+                                  // Dosya boyutunu kontrol et (max 5MB)
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
+                                    return;
+                                  }
+
+                                  // Resim yükleme
+                                  try {
+                                    const formData = new FormData();
+                                    formData.append('image', file);
+
+                                    const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
+                                      method: 'POST',
+                                      body: formData,
+                                    });
+
+                                    if (!response.ok) {
+                                      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                                    }
+
+                                    const result = await response.json();
+
+                                    if (result.success) {
+                                      console.log('✅ Yapıştırılan resim başarıyla yüklendi:', result.data.imageUrl);
+                                      setCapturedImage(result.data.imageUrl);
+                                      alert(t('Resim başarıyla yapıştırıldı ve yüklendi!'));
+                                    } else {
+                                      console.error('❌ Upload failed:', result.message);
+                                      alert(t('Resim yüklenemedi: ') + result.message);
+                                    }
+                                  } catch (error) {
+                                    console.error('❌ Resim yükleme hatası:', error);
+                                    alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
+                                  }
+                                  break;
+                                }
+                              }
+                            }
+                          }}
+                          tabIndex={0}
+                          onFocus={(e) => {
+                            e.currentTarget.style.outline = '2px solid #9333ea';
+                            e.currentTarget.style.outlineOffset = '2px';
+                          }}
+                          onBlur={(e) => {
+                            e.currentTarget.style.outline = 'none';
+                          }}
+                        >
+                          <label className="cursor-pointer">
                             <input
-                              type="radio"
-                              name="status"
-                              value="out-of-stock"
-                              checked={!formData.isAvailable}
-                              onChange={(e) => setFormData({ ...formData, isAvailable: e.target.value !== 'out-of-stock' })}
-                              className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                              type="file"
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  console.log('Seçilen dosya:', file.name, 'Boyut:', file.size, 'Tip:', file.type);
+
+                                  // Dosya boyutunu kontrol et (max 5MB)
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    alert(t('Dosya boyutu çok büyük. Maksimum 5MB olmalıdır.'));
+                                    return;
+                                  }
+
+                                  // Dosya tipini kontrol et
+                                  if (!file.type.startsWith('image/')) {
+                                    alert(t('Lütfen sadece resim dosyası seçin.'));
+                                    return;
+                                  }
+
+                                  // Basit ve güvenilir resim yükleme sistemi
+                                  try {
+                                    console.log('📤 Resim yükleniyor:', file.name, file.size, 'bytes');
+
+                                    const formData = new FormData();
+                                    formData.append('image', file);
+
+                                    console.log('📡 API URL:', process.env.NEXT_PUBLIC_API_URL);
+
+                                    const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
+                                      method: 'POST',
+                                      body: formData,
+                                    });
+
+                                    console.log('📊 Response status:', response.status);
+                                    console.log('📊 Response ok:', response.ok);
+
+                                    if (!response.ok) {
+                                      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                                    }
+
+                                    const result = await response.json();
+                                    console.log('📊 Response data:', result);
+
+                                    if (result.success) {
+                                      console.log('✅ Resim başarıyla yüklendi:', result.data.imageUrl);
+                                      setCapturedImage(result.data.imageUrl);
+                                      alert(t('Resim başarıyla yüklendi!'));
+                                    } else {
+                                      console.error('❌ Upload failed:', result.message);
+                                      alert(t('Resim yüklenemedi: ') + result.message);
+                                    }
+                                  } catch (error) {
+                                    console.error('❌ Resim yükleme hatası:', error);
+                                    alert(t('Resim yüklenirken hata oluştu: ') + (error as any).message);
+                                  }
+                                }
+                              }}
+                              className="hidden"
                             />
-                            <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
-                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                              <TranslatedText>Tükendi</TranslatedText>
+                            <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                              <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <p className="text-sm font-medium text-gray-600"><TranslatedText>Dosyadan Yükle</TranslatedText></p>
+                            <p className="text-xs text-gray-500"><TranslatedText>PNG, JPG, GIF</TranslatedText></p>
+                            <p className="text-xs text-purple-600 mt-1 font-medium"><TranslatedText>veya Ctrl+V ile yapıştır</TranslatedText></p>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* AI Görsel İşleme */}
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="flex">
+                            <span className="text-yellow-400 text-lg">✨</span>
+                            <span className="text-yellow-400 text-sm">⭐</span>
+                            <span className="text-yellow-400 text-xs">✨</span>
+                          </div>
+                          <h4 className="font-semibold text-gray-800"><TranslatedText>AI Görsel İşleme Aktif!</TranslatedText></h4>
+                        </div>
+
+                        <ul className="space-y-2 text-sm text-gray-700">
+                          <li className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                            <span><TranslatedText>Otomatik arka plan kaldırma</TranslatedText></span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span><TranslatedText>Renk ve parlaklık optimizasyonu</TranslatedText></span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span><TranslatedText>Akıllı boyutlandırma</TranslatedText></span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                            <span><TranslatedText>Keskinlik artırma</TranslatedText></span>
+                          </li>
+                        </ul>
+
+                        <div className="mt-3 p-2 bg-yellow-100 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <span className="text-yellow-600">💡</span>
+                            <span className="text-xs text-yellow-800">
+                              <TranslatedText>Kameradan çekmek daha profesyonel sonuçlar verir</TranslatedText>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Seçilen Fotoğraf Önizleme */}
+                      {capturedImage && (
+                        <div className="mt-4">
+                          <p className="text-sm font-medium text-gray-700 mb-2"><TranslatedText>Seçilen Fotoğraf:</TranslatedText></p>
+                          <div className="relative inline-block">
+                            <img
+                              src={capturedImage.startsWith('http') ? capturedImage : `https://masapp-backend.onrender.com${capturedImage}`}
+                              alt="Ürün fotoğrafı önizleme"
+                              className="w-32 h-32 object-cover rounded-lg border"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setCapturedImage(null)}
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Durum ve Popüler */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <TranslatedText>Ürün Durumu</TranslatedText>
+                          </label>
+                          <div className="flex gap-4">
+                            <label className="flex items-center">
+                              <input
+                                type="radio"
+                                name="status"
+                                value="available"
+                                checked={formData.isAvailable}
+                                onChange={(e) => setFormData({ ...formData, isAvailable: e.target.value === 'available' })}
+                                className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                              />
+                              <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <TranslatedText>Mevcut</TranslatedText>
+                              </span>
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="radio"
+                                name="status"
+                                value="out-of-stock"
+                                checked={!formData.isAvailable}
+                                onChange={(e) => setFormData({ ...formData, isAvailable: e.target.value !== 'out-of-stock' })}
+                                className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                              />
+                              <span className="ml-2 text-sm text-gray-700 flex items-center gap-1">
+                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                <TranslatedText>Tükendi</TranslatedText>
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="flex items-center p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg hover:from-yellow-100 hover:to-orange-100 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={formData.isPopular}
+                              onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
+                              className="w-5 h-5 text-yellow-600 border-yellow-300 rounded focus:ring-yellow-500"
+                            />
+                            <span className="ml-3 text-sm font-medium text-yellow-800 flex items-center gap-2">
+                              <FaFire className="text-yellow-600" size={16} />
+                              <TranslatedText>Popüler Ürün</TranslatedText>
                             </span>
                           </label>
                         </div>
                       </div>
-                      <div>
-                        <label className="flex items-center p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg hover:from-yellow-100 hover:to-orange-100 transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.isPopular}
-                            onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
-                            className="w-5 h-5 text-yellow-600 border-yellow-300 rounded focus:ring-yellow-500"
-                          />
-                          <span className="ml-3 text-sm font-medium text-yellow-800 flex items-center gap-2">
-                            <FaFire className="text-yellow-600" size={16} />
-                            <TranslatedText>Popüler Ürün</TranslatedText>
-                          </span>
-                        </label>
-                      </div>
                     </div>
-                  </div>
-                </form>
+                  </form>
 
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
-                  <button
-                    onClick={() => setShowItemForm(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    <TranslatedText>İptal</TranslatedText>
-                  </button>
-                  <button
-                    onClick={async () => {
-                      console.log('=== FORM SUBMIT BAŞLADI ===');
-                      console.log('Form Data:', formData);
-                      console.log('Captured Image:', capturedImage ? 'VAR (' + capturedImage.length + ' karakter)' : 'YOK');
-                      console.log('Captured Image Preview:', capturedImage ? capturedImage.substring(0, 100) + '...' : 'null');
-                      console.log('Editing Item:', editingItem);
-                      console.log('Current Restaurant ID:', currentRestaurantId);
+                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
+                    <button
+                      onClick={() => setShowItemForm(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      <TranslatedText>İptal</TranslatedText>
+                    </button>
+                    <button
+                      onClick={async () => {
+                        console.log('=== FORM SUBMIT BAŞLADI ===');
+                        console.log('Form Data:', formData);
+                        console.log('Captured Image:', capturedImage ? 'VAR (' + capturedImage.length + ' karakter)' : 'YOK');
+                        console.log('Captured Image Preview:', capturedImage ? capturedImage.substring(0, 100) + '...' : 'null');
+                        console.log('Editing Item:', editingItem);
+                        console.log('Current Restaurant ID:', currentRestaurantId);
 
-                      // Gerçek güncelleme işlemi
-                      if (editingItem) {
-                        // Ürün güncelleme
-                        try {
-                          if (currentRestaurantId) {
-                            const updateData = {
-                              name: formData.name,
-                              description: formData.description,
-                              price: Number(formData.price),
-                              categoryId: formData.category,
-                              isAvailable: formData.isAvailable,
-                              isPopular: formData.isPopular,
-                              imageUrl: capturedImage || editingItem.imageUrl,
-                              allergens: formData.allergens,
-                              kitchenStation: formData.kitchenStation
-                            };
+                        // Gerçek güncelleme işlemi
+                        if (editingItem) {
+                          // Ürün güncelleme
+                          try {
+                            if (currentRestaurantId) {
+                              const updateData = {
+                                name: formData.name,
+                                description: formData.description,
+                                price: Number(formData.price),
+                                categoryId: formData.category,
+                                isAvailable: formData.isAvailable,
+                                isPopular: formData.isPopular,
+                                imageUrl: capturedImage || editingItem.imageUrl,
+                                allergens: formData.allergens,
+                                kitchenStation: formData.kitchenStation
+                              };
 
-                            console.log('Update Data gönderiliyor:', updateData);
-                            console.log('Alerjenler:', formData.allergens);
-                            console.log('Resim URL uzunluğu:', updateData.imageUrl.length);
+                              console.log('Update Data gönderiliyor:', updateData);
+                              console.log('Alerjenler:', formData.allergens);
+                              console.log('Resim URL uzunluğu:', updateData.imageUrl.length);
 
-                            await updateMenuItem(currentRestaurantId, editingItem.id, updateData);
-                            console.log('Ürün güncellendi:', formData);
-                            // Menüyü yeniden yükle
-                            await fetchRestaurantMenu(currentRestaurantId);
-                            alert(t('Ürün başarıyla güncellendi!'));
+                              await updateMenuItem(currentRestaurantId, editingItem.id, updateData);
+                              console.log('Ürün güncellendi:', formData);
+                              // Menüyü yeniden yükle
+                              await fetchRestaurantMenu(currentRestaurantId);
+                              alert(t('Ürün başarıyla güncellendi!'));
+                            }
+                          } catch (error) {
+                            console.error('Ürün güncellenirken hata:', error);
+                            alert(t('Ürün güncellenirken bir hata oluştu: ') + (error as any).message);
                           }
-                        } catch (error) {
-                          console.error('Ürün güncellenirken hata:', error);
-                          alert(t('Ürün güncellenirken bir hata oluştu: ') + (error as any).message);
-                        }
-                      } else {
-                        // Yeni ürün ekleme
-                        if (!formData.name || !formData.price || !formData.category) {
-                          alert(t('Lütfen ürün adı, fiyat ve kategori alanlarını doldurun!'));
-                          return;
-                        }
-
-                        try {
-                          if (currentRestaurantId) {
-                            const createData = {
-                              categoryId: formData.category,
-                              name: formData.name,
-                              description: formData.description,
-                              price: Number(formData.price),
-                              imageUrl: capturedImage || '/placeholder-food.jpg',
-                              order: items.length + 1,
-                              isAvailable: formData.isAvailable,
-                              isPopular: formData.isPopular,
-                              allergens: formData.allergens,
-                              kitchenStation: formData.kitchenStation
-                            };
-
-                            console.log('Create Data gönderiliyor:', createData);
-                            console.log('Alerjenler:', formData.allergens);
-                            console.log('Resim URL uzunluğu:', createData.imageUrl.length);
-
-                            await createMenuItem(currentRestaurantId, createData);
-                            console.log('Yeni ürün backend\'e kaydedildi:', formData);
-                            // Menüyü yeniden yükle
-                            await fetchRestaurantMenu(currentRestaurantId);
-                            alert(t('Ürün başarıyla eklendi!'));
+                        } else {
+                          // Yeni ürün ekleme
+                          if (!formData.name || !formData.price || !formData.category) {
+                            alert(t('Lütfen ürün adı, fiyat ve kategori alanlarını doldurun!'));
+                            return;
                           }
-                        } catch (error) {
-                          console.error('Ürün eklenirken hata:', error);
-                          alert(t('Ürün eklenirken bir hata oluştu: ') + (error as any).message);
-                        }
-                      }
 
-                      // Başarılı işlem sonrası temizlik
-                      setShowItemForm(false);
-                      setEditingItem(null);
-                      setCapturedImage(null);
-                      // Form resetle
-                      setFormData({
-                        name: '',
-                        description: '',
-                        price: '',
-                        category: '',
-                        subcategory: '',
-                        preparationTime: '',
-                        calories: '',
-                        ingredients: '',
-                        allergens: [] as string[],
-                        portion: '',
-                        isAvailable: true,
-                        isPopular: false,
+                          try {
+                            if (currentRestaurantId) {
+                              const createData = {
+                                categoryId: formData.category,
+                                name: formData.name,
+                                description: formData.description,
+                                price: Number(formData.price),
+                                imageUrl: capturedImage || '/placeholder-food.jpg',
+                                order: items.length + 1,
+                                isAvailable: formData.isAvailable,
+                                isPopular: formData.isPopular,
+                                allergens: formData.allergens,
+                                kitchenStation: formData.kitchenStation
+                              };
+
+                              console.log('Create Data gönderiliyor:', createData);
+                              console.log('Alerjenler:', formData.allergens);
+                              console.log('Resim URL uzunluğu:', createData.imageUrl.length);
+
+                              await createMenuItem(currentRestaurantId, createData);
+                              console.log('Yeni ürün backend\'e kaydedildi:', formData);
+                              // Menüyü yeniden yükle
+                              await fetchRestaurantMenu(currentRestaurantId);
+                              alert(t('Ürün başarıyla eklendi!'));
+                            }
+                          } catch (error) {
+                            console.error('Ürün eklenirken hata:', error);
+                            alert(t('Ürün eklenirken bir hata oluştu: ') + (error as any).message);
+                          }
+                        }
+
+                        // Başarılı işlem sonrası temizlik
+                        setShowItemForm(false);
+                        setEditingItem(null);
+                        setCapturedImage(null);
+                        // Form resetle
+                        setFormData({
+                          name: '',
+                          description: '',
+                          price: '',
+                          category: '',
+                          subcategory: '',
+                          preparationTime: '',
+                          calories: '',
+                          ingredients: '',
+                          allergens: [] as string[],
+                          portion: '',
+                          isAvailable: true,
+                          isPopular: false,
+                          kitchenStation: '',
+                          translations: {},
+                          variations: [],
+                          options: [],
+                          type: activeTab === 'combos' ? 'bundle' : 'single',
+                          bundleItems: []
+                        });
                         kitchenStation: '',
-                        translations: {}
-                      });
-                    }}
+                          translations: { }
+                        });
+                      }}
                     className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
+                    >
                     {editingItem ? <TranslatedText>Güncelle</TranslatedText> : <TranslatedText>Kaydet</TranslatedText>}
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+            </div>
+          )}
 
         {showCategoryForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
