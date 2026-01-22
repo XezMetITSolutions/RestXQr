@@ -122,7 +122,6 @@ const connectDB = async () => {
     // Then sync child tables
     await MenuCategory.sync();
     await MenuItem.sync();
-    await KitchenStation.sync();
     await VideoMenuItem.sync();
     await Event.sync();
     await InventoryItem.sync();

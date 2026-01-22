@@ -81,20 +81,17 @@ module.exports = (sequelize, DataTypes) => {
     },
     ingredients: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      comment: 'Comma-separated list of ingredients'
+      allowNull: true
     },
     allergens: {
       type: DataTypes.JSONB,
       allowNull: true,
-      defaultValue: [],
-      comment: 'Array of allergens: gluten, dairy, eggs, nuts, peanuts, soy, fish, shellfish'
+      defaultValue: []
     },
     portionSize: {
       type: DataTypes.STRING(100),
       allowNull: true,
-      field: 'portion_size',
-      comment: 'e.g., "250g", "1 portion", "Large"'
+      field: 'portion_size'
     },
     displayOrder: {
       type: DataTypes.INTEGER,
@@ -105,15 +102,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(100),
       allowNull: true
     },
-    ingredients: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    allergens: {
-      type: DataTypes.JSONB,
-      allowNull: true,
-      defaultValue: []
-    },
     portion: {
       type: DataTypes.STRING(50),
       allowNull: true
@@ -121,31 +109,26 @@ module.exports = (sequelize, DataTypes) => {
     kitchenStation: {
       type: DataTypes.STRING(50),
       allowNull: true,
-      field: 'kitchen_station',
-      comment: 'Kitchen station: izgara, makarna, soguk, tatli'
+      field: 'kitchen_station'
     },
     variations: {
       type: DataTypes.JSONB,
       allowNull: true,
-      defaultValue: [],
-      comment: 'Array of variations (e.g., small, large) with prices'
+      defaultValue: []
     },
     options: {
       type: DataTypes.JSONB,
       allowNull: true,
-      defaultValue: [],
-      comment: 'Array of option groups (e.g., spiciness) with choices'
+      defaultValue: []
     },
     type: {
       type: DataTypes.STRING(20),
-      defaultValue: 'single',
-      comment: 'Item type: single or bundle'
+      defaultValue: 'single'
     },
     bundleItems: {
       type: DataTypes.JSONB,
       defaultValue: [],
-      field: 'bundle_items',
-      comment: 'List of item IDs included in this bundle'
+      field: 'bundle_items'
     }
   }, {
     tableName: 'menu_items',

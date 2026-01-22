@@ -2652,21 +2652,15 @@ export default function MenuManagement() {
                           try {
                             if (currentRestaurantId) {
                               const updateData = {
-                                name: formData.name,
-                                description: formData.description,
+                                ...formData,
+                                categoryId: formData.category, // Map 'category' back to 'categoryId' for backend
                                 price: Number(formData.price),
-                                categoryId: formData.category,
-                                isAvailable: formData.isAvailable,
-                                isPopular: formData.isPopular,
-                                imageUrl: capturedImage || editingItem.imageUrl,
-                                allergens: formData.allergens,
-                                kitchenStation: formData.kitchenStation
+                                calories: formData.calories ? Number(formData.calories) : null,
+                                preparationTime: formData.preparationTime ? Number(formData.preparationTime) : null,
+                                imageUrl: capturedImage || editingItem.imageUrl
                               };
 
                               console.log('Update Data gönderiliyor:', updateData);
-                              console.log('Alerjenler:', formData.allergens);
-                              console.log('Resim URL uzunluğu:', updateData.imageUrl.length);
-
                               await updateMenuItem(currentRestaurantId, editingItem.id, updateData);
                               console.log('Ürün güncellendi:', formData);
                               // Menüyü yeniden yükle
@@ -2687,22 +2681,16 @@ export default function MenuManagement() {
                           try {
                             if (currentRestaurantId) {
                               const createData = {
-                                categoryId: formData.category,
-                                name: formData.name,
-                                description: formData.description,
+                                ...formData,
+                                categoryId: formData.category, // Map 'category' back to 'categoryId' for backend
                                 price: Number(formData.price),
+                                calories: formData.calories ? Number(formData.calories) : null,
+                                preparationTime: formData.preparationTime ? Number(formData.preparationTime) : null,
                                 imageUrl: capturedImage || '/placeholder-food.jpg',
-                                order: items.length + 1,
-                                isAvailable: formData.isAvailable,
-                                isPopular: formData.isPopular,
-                                allergens: formData.allergens,
-                                kitchenStation: formData.kitchenStation
+                                order: items.length + 1
                               };
 
                               console.log('Create Data gönderiliyor:', createData);
-                              console.log('Alerjenler:', formData.allergens);
-                              console.log('Resim URL uzunluğu:', createData.imageUrl.length);
-
                               await createMenuItem(currentRestaurantId, createData);
                               console.log('Yeni ürün backend\'e kaydedildi:', formData);
                               // Menüyü yeniden yükle
