@@ -46,7 +46,7 @@ const getDefaultPermissions = (role) => {
         id: 'kitchen_cancel_order',
         label: 'Sipariş İptal Etme',
         description: 'Siparişleri iptal edebilir',
-        enabled: true,
+        enabled: false,
         locked: false
       },
       {
@@ -176,7 +176,7 @@ const getDefaultPermissions = (role) => {
       }
     ];
   }
-  
+
   return [];
 };
 
@@ -195,7 +195,7 @@ const initializePermissions = (restaurantId) => {
 router.get('/:restaurantId', staffAuth, async (req, res) => {
   try {
     const { restaurantId } = req.params;
-    
+
     // Check if restaurant exists
     const restaurant = await Restaurant.findByPk(restaurantId);
     if (!restaurant) {
@@ -204,10 +204,10 @@ router.get('/:restaurantId', staffAuth, async (req, res) => {
         message: 'Restaurant not found'
       });
     }
-    
+
     // Initialize permissions if not exists
     initializePermissions(restaurantId);
-    
+
     res.json({
       success: true,
       permissions: permissionsStore[restaurantId]
@@ -226,14 +226,14 @@ router.get('/:restaurantId', staffAuth, async (req, res) => {
 router.get('/:restaurantId/:role', staffAuth, async (req, res) => {
   try {
     const { restaurantId, role } = req.params;
-    
+
     if (!['kitchen', 'waiter', 'cashier'].includes(role)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid role'
       });
     }
-    
+
     // Check if restaurant exists
     const restaurant = await Restaurant.findByPk(restaurantId);
     if (!restaurant) {
@@ -242,10 +242,10 @@ router.get('/:restaurantId/:role', staffAuth, async (req, res) => {
         message: 'Restaurant not found'
       });
     }
-    
+
     // Initialize permissions if not exists
     initializePermissions(restaurantId);
-    
+
     res.json({
       success: true,
       permissions: permissionsStore[restaurantId][role]
@@ -265,14 +265,14 @@ router.put('/:restaurantId', staffAuth, async (req, res) => {
   try {
     const { restaurantId } = req.params;
     const { permissions } = req.body;
-    
+
     if (!permissions || typeof permissions !== 'object') {
       return res.status(400).json({
         success: false,
         message: 'Invalid permissions data'
       });
     }
-    
+
     // Check if restaurant exists
     const restaurant = await Restaurant.findByPk(restaurantId);
     if (!restaurant) {
@@ -281,23 +281,23 @@ router.put('/:restaurantId', staffAuth, async (req, res) => {
         message: 'Restaurant not found'
       });
     }
-    
+
     // Initialize permissions if not exists
     initializePermissions(restaurantId);
-    
+
     // Update permissions
     if (permissions.kitchen) {
       permissionsStore[restaurantId].kitchen = permissions.kitchen;
     }
-    
+
     if (permissions.waiter) {
       permissionsStore[restaurantId].waiter = permissions.waiter;
     }
-    
+
     if (permissions.cashier) {
       permissionsStore[restaurantId].cashier = permissions.cashier;
     }
-    
+
     res.json({
       success: true,
       message: 'Permissions updated successfully'
@@ -317,21 +317,21 @@ router.put('/:restaurantId/:role', staffAuth, async (req, res) => {
   try {
     const { restaurantId, role } = req.params;
     const { permissions } = req.body;
-    
+
     if (!['kitchen', 'waiter', 'cashier'].includes(role)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid role'
       });
     }
-    
+
     if (!permissions || !Array.isArray(permissions)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid permissions data'
       });
     }
-    
+
     // Check if restaurant exists
     const restaurant = await Restaurant.findByPk(restaurantId);
     if (!restaurant) {
@@ -340,13 +340,13 @@ router.put('/:restaurantId/:role', staffAuth, async (req, res) => {
         message: 'Restaurant not found'
       });
     }
-    
+
     // Initialize permissions if not exists
     initializePermissions(restaurantId);
-    
+
     // Update permissions for the role
     permissionsStore[restaurantId][role] = permissions;
-    
+
     res.json({
       success: true,
       message: `${role} permissions updated successfully`
@@ -369,13 +369,13 @@ const hasPermission = async (staffId, permissionId) => {
     if (!staff) {
       return false;
     }
-    
+
     // Get role and restaurant
     const { role, restaurantId } = staff;
-    
+
     // Initialize permissions if not exists
     initializePermissions(restaurantId);
-    
+
     // Map roles to permission categories
     let permissionCategory;
     if (role === 'chef') permissionCategory = 'kitchen';
@@ -383,7 +383,7 @@ const hasPermission = async (staffId, permissionId) => {
     else if (role === 'cashier') permissionCategory = 'cashier';
     else if (role === 'manager' || role === 'admin') return true; // Managers and admins have all permissions
     else return false;
-    
+
     // Check if permission exists and is enabled
     const permission = permissionsStore[restaurantId][permissionCategory]?.find(p => p.id === permissionId);
     return permission?.enabled || false;
@@ -397,16 +397,16 @@ const hasPermission = async (staffId, permissionId) => {
 router.post('/check', async (req, res) => {
   try {
     const { staffId, permissionId } = req.body;
-    
+
     if (!staffId || !permissionId) {
       return res.status(400).json({
         success: false,
         message: 'staffId and permissionId are required'
       });
     }
-    
+
     const hasAccess = await hasPermission(staffId, permissionId);
-    
+
     res.json({
       success: true,
       hasPermission: hasAccess

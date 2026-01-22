@@ -258,7 +258,7 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       id: 'kitchen_cancel_order',
       label: t('Sipariş İptal Etme'),
       description: t('Siparişleri iptal edebilir'),
-      enabled: true,
+      enabled: false,
       locked: false
     },
     {
@@ -469,33 +469,33 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
     try {
       setLoadingPermissions(true);
       console.log(`Loading permissions for restaurant ${authenticatedRestaurant.id}...`);
-      
+
       // Get staff token or business token
       let authToken = localStorage.getItem('staff_token');
       if (!authToken) {
         // Fallback to business token if staff token is not available
         authToken = localStorage.getItem('business_token');
       }
-      
+
       if (!authToken) {
         console.error('Cannot load permissions: No authentication token found');
         return;
       }
-      
+
       console.log('Auth token found:', authToken.substring(0, 10) + '...');
-      
+
       // Make direct API call to ensure it works
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
-      
+
       // Get subdomain from hostname
       const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
       const subdomain = hostname.split('.')[0] || 'kroren';
       console.log('Using subdomain for API request:', subdomain);
-      
+
       // Ensure token is properly formatted
       const token = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
       console.log('Using authorization header:', token.substring(0, 15) + '...');
-      
+
       const response = await fetch(`${API_URL}/permissions/${authenticatedRestaurant.id}`, {
         method: 'GET',
         headers: {
@@ -504,23 +504,23 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
           'X-Subdomain': subdomain
         }
       });
-      
+
       // Log response status for debugging
       console.log('Permissions API response status:', response.status);
-      
+
       if (!response.ok) {
         console.error(`API error loading permissions: ${response.status}`);
         throw new Error(`API error: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('Permissions API response:', data);
-      
+
       if (!data.success) {
         console.error('API returned error:', data.message);
         throw new Error(data.message || 'Failed to load permissions');
       }
-      
+
       const allPermissions = data.permissions || { kitchen: [], waiter: [], cashier: [] };
       const cacheKey = `permissions_${authenticatedRestaurant.id}`;
       const cachedPermissions = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null;
@@ -651,16 +651,16 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       // Get staff token or business token
       console.log('🔍 DEBUG: Checking localStorage for tokens...');
       console.log('🔍 DEBUG: All localStorage keys:', Object.keys(localStorage));
-      
+
       let authToken = localStorage.getItem('staff_token');
       console.log('🔍 DEBUG: staff_token:', authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND');
-      
+
       if (!authToken) {
         // Fallback to business token if staff token is not available
         authToken = localStorage.getItem('business_token');
         console.log('🔍 DEBUG: business_token:', authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND');
       }
-      
+
       if (!authToken) {
         try {
           console.log('🔄 No token found, requesting bootstrap token...');
@@ -684,20 +684,20 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
         setSaveMessage(`${role} yetkileri kaydedilemedi: Oturum bilgisi eksik (Token bulunamadı)`);
         return;
       }
-      
+
       console.log('✅ Using auth token for save:', authToken.substring(0, 10) + '...');
 
       // Make direct API call to ensure it works
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
-      
+
       // Get subdomain from hostname
       const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
       const subdomain = hostname.split('.')[0] || 'kroren';
       console.log('Using subdomain for save API request:', subdomain);
-      
+
       const token = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
       console.log('Using authorization header for save:', token.substring(0, 15) + '...');
-      
+
       console.log('🚀 Making API request:', {
         url: `${API_URL}/permissions/${authenticatedRestaurant.id}/${roleKey}`,
         method: 'POST',
@@ -720,11 +720,11 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
           permissions: permissions
         })
       });
-      
+
       // Log response status for debugging
       console.log('📥 Save permissions API response status:', response.status);
       console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
-      
+
       const data = await response.json();
       console.log(`📥 API Response for ${roleKey} permissions:`, data);
 
@@ -743,7 +743,7 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
           };
           localStorage.setItem(cacheKey, JSON.stringify(nextCache));
         }
-        
+
         // Reload permissions to confirm changes were saved
         setTimeout(() => {
           loadPermissionsFromBackend();
