@@ -95,9 +95,16 @@ export default function AdminLogin() {
               twoFactorEnabled: data.data.user.twoFactorEnabled
             });
 
-            // Store tokens
+            // Store tokens and user for admin session
             localStorage.setItem('admin_access_token', data.data.accessToken);
             localStorage.setItem('admin_refresh_token', data.data.refreshToken);
+            localStorage.setItem('admin_user', JSON.stringify({
+              id: data.data.user.id,
+              email: data.data.user.email,
+              name: data.data.user.name,
+              role: data.data.user.role,
+              twoFactorEnabled: data.data.user.twoFactorEnabled
+            }));
 
             setLoginAttempts(0);
             localStorage.removeItem('admin_login_attempts');
@@ -145,9 +152,16 @@ export default function AdminLogin() {
             twoFactorEnabled: data.data.user.twoFactorEnabled
           });
 
-          // Store tokens
+          // Store tokens and user for admin session
           localStorage.setItem('admin_access_token', data.data.accessToken);
           localStorage.setItem('admin_refresh_token', data.data.refreshToken);
+          localStorage.setItem('admin_user', JSON.stringify({
+            id: data.data.user.id,
+            email: data.data.user.email,
+            name: data.data.user.name,
+            role: data.data.user.role,
+            twoFactorEnabled: data.data.user.twoFactorEnabled
+          }));
 
           setLoginAttempts(0);
           localStorage.removeItem('admin_login_attempts');
