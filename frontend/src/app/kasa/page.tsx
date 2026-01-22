@@ -63,6 +63,12 @@ export default function KasaPanel() {
   const [cardAmount, setCardAmount] = useState<string>('');
   const [activeSource, setActiveSource] = useState<'restoran' | 'online'>('restoran');
 
+  // Print Debug States
+  const [showDebugModal, setShowDebugModal] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<{ timestamp: string, message: string, type: string }[]>([]);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [printingOrderId, setPrintingOrderId] = useState<string>('');
+
   // Cash Pad States
   const [showCashPad, setShowCashPad] = useState(false);
   const [cashReceived, setCashReceived] = useState('');
@@ -471,6 +477,61 @@ export default function KasaPanel() {
     setSelectedOrder({ ...selectedOrder, items: updatedItems, totalAmount: newTotal });
   };
 
+  const handleManualPrint = async (orderId: string, showDebug = false) => {
+    try {
+      if (orderId.includes('grouped')) {
+        const groupedOrder = orders.find(o => o.id === orderId);
+        const tableOrders = groupedOrder?.originalOrders || [];
+        if (tableOrders.length === 0) return alert('Alt siparişler bulunamadı');
+
+        if (showDebug) {
+          setShowDebugModal(true);
+          setDebugLogs([{ timestamp: new Date().toISOString(), message: 'Gruplu sipariş yazdırılıyor...', type: 'info' }]);
+        }
+
+        for (const subOrder of tableOrders) {
+          await executePrintRequest(subOrder.id, showDebug);
+        }
+      } else {
+        await executePrintRequest(orderId, showDebug);
+      }
+    } catch (err) {
+      console.error('Print error:', err);
+      alert('Yazdırma isteği sırasında hata oluştu.');
+    }
+  };
+
+  const executePrintRequest = async (orderId: string, showDebug: boolean) => {
+    if (showDebug) {
+      setShowDebugModal(true);
+      setPrintingOrderId(orderId);
+      setIsPrinting(true);
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/orders/${orderId}/print`, {
+        method: 'POST'
+      });
+      const data = await response.json();
+
+      if (showDebug && data.steps) {
+        setDebugLogs(prev => [...prev, ...data.steps]);
+      }
+
+      if (data.success) {
+        if (!showDebug) alert('Yazıcıya gönderildi!');
+      } else {
+        if (!showDebug) alert('Yazdırma hatası: ' + data.message);
+      }
+    } catch (err: any) {
+      if (showDebug) {
+        setDebugLogs(prev => [...prev, { timestamp: new Date().toISOString(), message: 'Hata: ' + err.message, type: 'error' }]);
+      }
+    } finally {
+      if (showDebug) setIsPrinting(false);
+    }
+  };
+
   const getWaitInfo = (dateString: string) => {
     const diffMins = Math.floor((currentTime.getTime() - new Date(dateString).getTime()) / 60000);
     let color = 'text-green-600 bg-green-50';
@@ -710,6 +771,14 @@ export default function KasaPanel() {
                             <span className="text-xs">ONAYLA</span>
                           </button>
                         )}
+                        <button
+                          onClick={() => handleManualPrint(order.id, true)}
+                          className="py-4 px-3 bg-blue-500 text-white rounded-2xl font-black hover:bg-blue-600 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                          title="Debug Yazdırma"
+                        >
+                          <FaPrint />
+                          <span className="text-[10px]">DEBUG</span>
+                        </button>
                         <button
                           onClick={() => {
                             if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
@@ -1107,7 +1176,78 @@ export default function KasaPanel() {
               </div>
             </div>
           </div>
-        )}
-    </div>
+        )
+      }
+
+      {/* DEBUG MODAL */}
+      {
+        showDebugModal && (
+          <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-gray-900 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border border-gray-700">
+              <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-900/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-blue-500 rounded-2xl">
+                    <FaPrint className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-white">YAZICI DEBUG LOGLARI</h3>
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Sipariş: {printingOrderId.substring(0, 8)}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setShowDebugModal(false); setDebugLogs([]); }}
+                  className="p-3 hover:bg-gray-800 text-gray-400 hover:text-white rounded-2xl transition-all"
+                >
+                  <FaTimesCircle className="text-2xl" />
+                </button>
+              </div>
+
+              <div className="p-6 h-[400px] overflow-y-auto bg-black/50 custom-scrollbar font-mono text-sm">
+                <div className="space-y-2">
+                  {debugLogs.length === 0 && (
+                    <div className="text-gray-600 italic">Log bekleniyor...</div>
+                  )}
+                  {debugLogs.map((log, idx) => (
+                    <div key={idx} className={`p-3 rounded-xl border ${log.type === 'error' ? 'bg-red-900/20 border-red-900/50 text-red-400' :
+                      log.type === 'success' ? 'bg-green-900/20 border-green-900/50 text-green-400' :
+                        log.type === 'warning' ? 'bg-yellow-900/20 border-yellow-900/50 text-yellow-400' :
+                          'bg-blue-900/10 border-blue-900/30 text-blue-400'
+                      }`}>
+                      <div className="flex justify-between items-start gap-4">
+                        <span className="flex-1">{log.message}</span>
+                        <span className="text-[10px] opacity-40 whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {isPrinting && (
+                    <div className="flex items-center gap-3 p-3 text-blue-400 animate-pulse">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
+                      <span>Yazıcı işlemi devam ediyor...</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-6 bg-gray-900 border-t border-gray-800 flex gap-4">
+                <button
+                  onClick={() => handleManualPrint(printingOrderId, true)}
+                  disabled={isPrinting}
+                  className="flex-1 py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-2xl font-black transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <FaPrint /> TEKRAR DENE
+                </button>
+                <button
+                  onClick={() => { setShowDebugModal(false); setDebugLogs([]); }}
+                  className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black transition-all"
+                >
+                  KAPAT
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+    </div >
   );
 }
