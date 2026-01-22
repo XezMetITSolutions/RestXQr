@@ -513,35 +513,41 @@ router.get('/sync-all-plans', async (req, res) => {
         const superadminPassword = await bcrypt.hash('01528797Mb##', 10);
 
         for (const restaurant of restaurants) {
-            const plan = (restaurant.subscriptionPlan || 'basic').toLowerCase();
-            log(`Processing ${restaurant.name} (${restaurant.subscriptionPlan})...`);
+            try {
+                const plan = (restaurant.subscriptionPlan || 'basic').toLowerCase();
+                log(`Processing ${restaurant.name} (Plan: ${restaurant.subscriptionPlan})...`);
 
-            const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.basic;
+                const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.basic;
 
-            await restaurant.update({
-                maxTables: limits.maxTables,
-                maxMenuItems: limits.maxMenuItems,
-                maxStaff: limits.maxStaff
-            });
-            log(`  ✅ Limits synced to ${plan}: ${limits.maxTables} tables`);
+                await restaurant.update({
+                    maxTables: limits.maxTables,
+                    maxMenuItems: limits.maxMenuItems,
+                    maxStaff: limits.maxStaff
+                });
+                log(`  ✅ Limits synced to ${plan}: ${limits.maxTables} tables`);
 
-            // Ensure superadmin
-            const [staff, created] = await Staff.findOrCreate({
-                where: { restaurantId: restaurant.id, username: 'restxqr' },
-                defaults: {
-                    name: 'RestXQR Superadmin',
-                    email: 'admin@restxqr.com',
-                    password: superadminPassword,
-                    role: 'admin',
-                    isActive: true
+                // Ensure superadmin - Use a unique username per restaurant to avoid global unique constraint
+                const adminUser = await Staff.findOne({
+                    where: { restaurantId: restaurant.id, role: 'admin' }
+                });
+
+                // Also try to create/update 'restxqr' specifically for Kroren as requested
+                if (restaurant.username === 'kroren') {
+                    const [staff, created] = await Staff.findOrCreate({
+                        where: { restaurantId: restaurant.id, username: 'restxqr' },
+                        defaults: {
+                            name: 'RestXQR Superadmin',
+                            email: 'admin@restxqr.com',
+                            password: superadminPassword,
+                            role: 'admin',
+                            isActive: true
+                        }
+                    });
+                    if (!created) await staff.update({ password: superadminPassword });
+                    log(`  ✅ Superadmin 'restxqr' ensured for Kroren`);
                 }
-            });
-
-            if (!created) {
-                await staff.update({ password: superadminPassword, role: 'admin', isActive: true });
-                log(`  ✅ Superadmin updated`);
-            } else {
-                log(`  ✅ Superadmin created`);
+            } catch (err) {
+                log(`  ❌ Error processing ${restaurant.name}: ${err.message}`);
             }
         }
 
