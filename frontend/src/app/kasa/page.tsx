@@ -502,17 +502,23 @@ export default function KasaPanel() {
   };
 
   const executePrintRequest = async (orderId: string, showDebug: boolean) => {
+    const targetUrl = `${API_URL}/orders/${orderId}/print`;
     if (showDebug) {
       setShowDebugModal(true);
       setPrintingOrderId(orderId);
       setIsPrinting(true);
-      setDebugLogs(prev => [...prev, { timestamp: new Date().toISOString(), message: 'Sunucuya bağlanılıyor...', type: 'info' }]);
+      setDebugLogs(prev => [...prev, { timestamp: new Date().toISOString(), message: `Sunucuya bağlanılıyor: ${targetUrl}`, type: 'info' }]);
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 saniye timeout
+
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/print`, {
-        method: 'POST'
+      const response = await fetch(targetUrl, {
+        method: 'POST',
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       const data = await response.json();
 
       if (showDebug && data.steps) {
@@ -525,8 +531,10 @@ export default function KasaPanel() {
         if (!showDebug) alert('Yazdırma hatası: ' + data.message);
       }
     } catch (err: any) {
+      clearTimeout(timeoutId);
       if (showDebug) {
-        setDebugLogs(prev => [...prev, { timestamp: new Date().toISOString(), message: 'Hata: ' + err.message, type: 'error' }]);
+        const errorMsg = err.name === 'AbortError' ? 'İstek zaman aşımına uğradı (15s)' : 'Bağlantı hatası: ' + err.message;
+        setDebugLogs(prev => [...prev, { timestamp: new Date().toISOString(), message: errorMsg, type: 'error' }]);
       }
     } finally {
       if (showDebug) setIsPrinting(false);
