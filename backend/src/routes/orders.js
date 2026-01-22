@@ -399,7 +399,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // OPTIONS preflight isteği için (CORS)
-router.options('/:id', (req, res) => {
+router.options('*', (req, res) => {
   res.sendStatus(200);
 });
 
@@ -711,9 +711,11 @@ router.post('/:id/print', async (req, res) => {
           codePage: 'CP857'
         });
 
-        log(`${stationId} yazıcısına bağlanılıyor...`);
+        log(`${stationId} yazıcısına bağlanılıyor (Hızlı kontrol)...`);
 
-        // Yazdır
+        // Yazdır - isPrinterConnected hanging durumuna karşı timeout ekleyebiliriz ama 
+        // printerService içindeki timeout'a güvenebiliriz. Bir adım daha log ekleyelim.
+        log(`İşlem başlatıldı: ${stationId}`);
         const printResult = await printerService.printOrderAdvanced(stationId, {
           orderNumber: order.id.substring(0, 8),
           tableNumber: order.tableNumber || 'Paket',
