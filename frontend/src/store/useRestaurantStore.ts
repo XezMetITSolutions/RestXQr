@@ -274,17 +274,19 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         name: typeof data.name === 'string' ? data.name : data.name?.tr || '',
         description: typeof data.description === 'string' ? data.description : data.description?.tr || '',
         price: parseFloat(data.price),
-        image: data.image,
+        imageUrl: data.imageUrl || data.image,
         displayOrder: data.order || data.displayOrder || 0,
         isAvailable: data.isAvailable !== undefined ? data.isAvailable : true,
         isPopular: data.isPopular || false,
         preparationTime: data.preparationTime || null,
         calories: data.calories || null,
         allergens: data.allergens || [],
-        ingredients: data.ingredients || [],
+        ingredients: Array.isArray(data.ingredients) ? data.ingredients.join(', ') : (data.ingredients || null),
         kitchenStation: data.kitchenStation || null,
         type: data.type || 'single',
-        bundleItems: data.bundleItems || []
+        bundleItems: data.bundleItems || [],
+        variations: data.variations || [],
+        options: data.options || []
       };
 
       console.log('🚀 Creating menu item:', { restaurantId, backendData });
@@ -378,11 +380,15 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         displayOrder: data.order || data.displayOrder,
         isAvailable: data.isAvailable,
         isPopular: data.isPopular,
+        preparationTime: data.preparationTime || null,
+        calories: data.calories || null,
         allergens: data.allergens || [],
-        ingredients: data.ingredients || [],
+        ingredients: Array.isArray(data.ingredients) ? data.ingredients.join(', ') : (data.ingredients || null),
         kitchenStation: data.kitchenStation || null,
         type: data.type || 'single',
-        bundleItems: data.bundleItems || []
+        bundleItems: data.bundleItems || [],
+        variations: data.variations || [],
+        options: data.options || []
       };
 
       const response = await apiService.updateMenuItem(restaurantId, itemId, backendData);
