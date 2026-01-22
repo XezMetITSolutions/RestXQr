@@ -493,4 +493,70 @@ router.get('/table-info', async (req, res) => {
     }
 });
 
+// GET /api/admin-fix/sync-all-plans - Sync all restaurant plans and limits
+router.get('/sync-all-plans', async (req, res) => {
+    let logs = [];
+    const log = (msg) => logs.push(msg);
+
+    try {
+        const { Restaurant, Staff } = require('../models');
+        const bcrypt = require('bcryptjs');
+        const restaurants = await Restaurant.findAll();
+
+        const PLAN_LIMITS = {
+            basic: { maxTables: 10, maxMenuItems: 50, maxStaff: 3 },
+            premium: { maxTables: 25, maxMenuItems: 150, maxStaff: 10 },
+            corporate: { maxTables: 100, maxMenuItems: 500, maxStaff: 50 },
+            enterprise: { maxTables: 999, maxMenuItems: 999, maxStaff: 999 }
+        };
+
+        const superadminPassword = await bcrypt.hash('01528797Mb##', 10);
+
+        for (const restaurant of restaurants) {
+            log(`Processing ${restaurant.name} (${restaurant.subscriptionPlan})...`);
+
+            const limits = PLAN_LIMITS[restaurant.subscriptionPlan] || PLAN_LIMITS.basic;
+
+            await restaurant.update({
+                maxTables: limits.maxTables,
+                maxMenuItems: limits.maxMenuItems,
+                maxStaff: limits.maxStaff
+            });
+            log(`  ✅ Limits synced: ${limits.maxTables} tables, ${limits.maxMenuItems} items, ${limits.maxStaff} staff`);
+
+            // Ensure superadmin
+            const [staff, created] = await Staff.findOrCreate({
+                where: { restaurantId: restaurant.id, username: 'restxqr' },
+                defaults: {
+                    name: 'RestXQR Superadmin',
+                    email: 'admin@restxqr.com',
+                    password: superadminPassword,
+                    role: 'admin',
+                    isActive: true
+                }
+            });
+
+            if (!created) {
+                await staff.update({ password: superadminPassword, role: 'admin', isActive: true });
+                log(`  ✅ Superadmin updated`);
+            } else {
+                log(`  ✅ Superadmin created`);
+            }
+        }
+
+        res.send(`
+            <div style="font-family: monospace; padding: 20px; background: #f0f0f0;">
+                <h1>Plan & Superadmin Sync Results</h1>
+                <ul>
+                    ${logs.map(l => `<li>${l}</li>`).join('')}
+                </ul>
+                <h2>Done! 🚀</h2>
+            </div>
+        `);
+    } catch (error) {
+        log(`Fatal Error: ${error.message}`);
+        res.status(500).json({ logs, error: error.message });
+    }
+});
+
 module.exports = router;
