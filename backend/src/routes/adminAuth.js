@@ -170,11 +170,11 @@ router.post('/verify-2fa', async (req, res) => {
         let usedBackupCode = false;
 
         console.log('Encrypted secret exists:', !!adminUser.two_factor_secret);
-        
+
         // Decrypt the secret first
         const decryptedSecret = decrypt(adminUser.two_factor_secret);
         console.log('Decrypted secret exists:', !!decryptedSecret);
-        
+
         // Try TOTP first
         isValid = twoFactorAuth.verifyToken(decryptedSecret, token);
         console.log('TOTP verification result:', isValid);
@@ -183,7 +183,7 @@ router.post('/verify-2fa', async (req, res) => {
         if (!isValid && token.length > 6) {
             const bcrypt = require('bcrypt');
             const backupCodes = adminUser.backup_codes || [];
-            
+
             // Check if token matches any hashed backup code
             for (let i = 0; i < backupCodes.length; i++) {
                 const isMatch = await bcrypt.compare(token.toUpperCase(), backupCodes[i]);
@@ -203,7 +203,9 @@ router.post('/verify-2fa', async (req, res) => {
             await adminUser.incrementLoginAttempts();
             return res.status(401).json({
                 success: false,
-                message: 'Geçersiz doğrulama kodu'
+                message: 'Geçersiz doğrulama kodu',
+                serverTime: new Date().toISOString(),
+                serverTimestamp: Math.floor(Date.now() / 1000)
             });
         }
 

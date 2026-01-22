@@ -125,13 +125,13 @@ export default function Admin2FADebug() {
           localStorage.setItem('admin_access_token', data.data.accessToken);
           localStorage.setItem('admin_refresh_token', data.data.refreshToken);
           localStorage.setItem('admin_user', JSON.stringify(data.data.user));
-          
+
           setLoginResult({
             success: true,
             message: '✅ Giriş başarılı! Token kaydedildi.',
             data: data
           });
-          
+
           // Reload token info
           loadTokenInfo();
         }
@@ -244,16 +244,17 @@ export default function Admin2FADebug() {
     try {
       // Use tempUserId from login response if available, otherwise use localStorage
       const userId = tempUserId || tokenInfo?.user?.id;
-      
+
       if (!userId) {
-        setCodeTestResult({ 
-          success: false, 
-          message: 'Önce yukarıdaki "Hızlı Giriş" bölümünden giriş yapın' 
+        setCodeTestResult({
+          success: false,
+          message: 'Önce yukarıdaki "Hızlı Giriş" bölümünden giriş yapın'
         });
         return;
       }
 
       console.log('Testing auth code with userId:', userId);
+      console.log('Token being sent:', authCode);
 
       const response = await fetch(`${API_URL}/api/admin/auth/verify-2fa`, {
         method: 'POST',
@@ -267,6 +268,7 @@ export default function Admin2FADebug() {
       });
 
       const data = await response.json();
+      console.log('2FA API Response:', data);
 
       if (response.ok && data.success) {
         setCodeTestResult({
@@ -279,6 +281,7 @@ export default function Admin2FADebug() {
           success: false,
           message: `❌ Kod yanlış: ${data.message || 'Bilinmeyen hata'}`,
           error: data.error,
+          serverTime: data.serverTime,
           data: data
         });
       }
@@ -353,13 +356,12 @@ export default function Admin2FADebug() {
                   {loading ? 'Kapatılıyor...' : '🚨 2FA Kapat (Acil)'}
                 </button>
               </div>
-              
+
               {loginResult && (
-                <div className={`mt-4 p-4 rounded-lg border ${
-                  loginResult.success 
-                    ? 'bg-green-50 border-green-200' 
+                <div className={`mt-4 p-4 rounded-lg border ${loginResult.success
+                    ? 'bg-green-50 border-green-200'
                     : 'bg-yellow-50 border-yellow-200'
-                }`}>
+                  }`}>
                   <div className="flex items-start">
                     {loginResult.success ? (
                       <FaCheckCircle className="text-green-600 text-xl mr-3 mt-1" />
@@ -367,9 +369,8 @@ export default function Admin2FADebug() {
                       <FaTimesCircle className="text-yellow-600 text-xl mr-3 mt-1" />
                     )}
                     <div className="flex-1">
-                      <p className={`font-semibold ${
-                        loginResult.success ? 'text-green-900' : 'text-yellow-900'
-                      }`}>
+                      <p className={`font-semibold ${loginResult.success ? 'text-green-900' : 'text-yellow-900'
+                        }`}>
                         {loginResult.message}
                       </p>
                       {loginResult.data && (
@@ -388,11 +389,10 @@ export default function Admin2FADebug() {
               )}
 
               {disableResult && (
-                <div className={`mt-4 p-4 rounded-lg border ${
-                  disableResult.success 
-                    ? 'bg-green-50 border-green-200' 
+                <div className={`mt-4 p-4 rounded-lg border ${disableResult.success
+                    ? 'bg-green-50 border-green-200'
                     : 'bg-red-50 border-red-200'
-                }`}>
+                  }`}>
                   <div className="flex items-start">
                     {disableResult.success ? (
                       <FaCheckCircle className="text-green-600 text-xl mr-3 mt-1" />
@@ -400,9 +400,8 @@ export default function Admin2FADebug() {
                       <FaTimesCircle className="text-red-600 text-xl mr-3 mt-1" />
                     )}
                     <div className="flex-1">
-                      <p className={`font-semibold ${
-                        disableResult.success ? 'text-green-900' : 'text-red-900'
-                      }`}>
+                      <p className={`font-semibold ${disableResult.success ? 'text-green-900' : 'text-red-900'
+                        }`}>
                         {disableResult.message}
                       </p>
                       {disableResult.error && (
@@ -520,13 +519,12 @@ export default function Admin2FADebug() {
                   {loading ? 'Test Ediliyor...' : 'Kodu Test Et'}
                 </button>
               </div>
-              
+
               {codeTestResult && (
-                <div className={`mt-4 p-4 rounded-lg border ${
-                  codeTestResult.success 
-                    ? 'bg-green-50 border-green-200' 
+                <div className={`mt-4 p-4 rounded-lg border ${codeTestResult.success
+                    ? 'bg-green-50 border-green-200'
                     : 'bg-red-50 border-red-200'
-                }`}>
+                  }`}>
                   <div className="flex items-start">
                     {codeTestResult.success ? (
                       <FaCheckCircle className="text-green-600 text-xl mr-3 mt-1" />
@@ -534,9 +532,8 @@ export default function Admin2FADebug() {
                       <FaTimesCircle className="text-red-600 text-xl mr-3 mt-1" />
                     )}
                     <div className="flex-1">
-                      <p className={`font-semibold ${
-                        codeTestResult.success ? 'text-green-900' : 'text-red-900'
-                      }`}>
+                      <p className={`font-semibold ${codeTestResult.success ? 'text-green-900' : 'text-red-900'
+                        }`}>
                         {codeTestResult.message}
                       </p>
                       {codeTestResult.error && (
@@ -606,9 +603,8 @@ export default function Admin2FADebug() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold font-mono text-sm">{endpoint}</span>
                       <div className="flex items-center gap-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          result.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${result.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
                           {result.status}
                         </span>
                         <span className="text-xs text-gray-500">{new Date(result.timestamp).toLocaleTimeString()}</span>
