@@ -53,6 +53,20 @@ class PrinterService {
     }
 
     /**
+     * Yerel IP kontrolü
+     */
+    isLocalIP(ip) {
+        if (!ip) return false;
+        // 192.168.x.x, 10.x.x.x, 172.16-31.x.x, 127.0.0.1, localhost
+        const ipStr = String(ip);
+        return ipStr.startsWith('192.168.') ||
+            ipStr.startsWith('10.') ||
+            ipStr.startsWith('127.0.0.1') ||
+            ipStr === 'localhost' ||
+            (ipStr.startsWith('172.') && parseInt(ipStr.split('.')[1]) >= 16 && parseInt(ipStr.split('.')[1]) <= 31);
+    }
+
+    /**
      * Metni yazıcının desteklediği karakterlere çevir
      */
     encodeText(text, codePage = 'CP857') {
@@ -162,6 +176,18 @@ class PrinterService {
         if (!stationConfig || !stationConfig.enabled || !stationConfig.ip) {
             console.log(`⚠️ ${station} yazıcısı devre dışı veya IP tanımlı değil`);
             return { success: false, error: 'Printer not configured' };
+        }
+
+        // Cloud ortamında yerel IP kontrolü
+        const isCloud = process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
+        if (isCloud && this.isLocalIP(stationConfig.ip)) {
+            console.log(`ℹ️ [CLOUD] Yerel IP tespiti: ${stationConfig.ip}. Bulut sunucusu yerel ağdaki yazıcıya doğrudan erişemez.`);
+            return {
+                success: false,
+                error: `Yazıcı yerel bir IP adresine sahip (${stationConfig.ip}). Bulut sunucu doğrudan bağlanamaz. Lütfen 'Yerel Köprü' (Local Bridge) kullanın.`,
+                isLocalIP: true,
+                ip: stationConfig.ip
+            };
         }
 
         try {
@@ -326,6 +352,17 @@ class PrinterService {
             return {
                 connected: false,
                 error: 'Printer not configured'
+            };
+        }
+
+        // Cloud ortamında yerel IP kontrolü
+        const isCloud = process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
+        if (isCloud && this.isLocalIP(stationConfig.ip)) {
+            return {
+                connected: false,
+                error: `Yerel IP tespiti (${stationConfig.ip}). Bulut üzerinden kontrol edilemez.`,
+                isLocalIP: true,
+                ip: stationConfig.ip
             };
         }
 

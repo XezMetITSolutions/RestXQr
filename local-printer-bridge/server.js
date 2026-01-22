@@ -147,6 +147,63 @@ app.post('/test/:ip', async (req, res) => {
             console.error("Execute error:", execError);
             throw new Error("Printer execution failed: " + execError.message);
         }
+    } catch (error) {
+        console.error("Print error:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Generic print endpoint for orders
+app.post('/print/:ip', async (req, res) => {
+    const { ip } = req.params;
+    const { orderNumber, tableNumber, items } = req.body;
+
+    console.log(`Received PRINT request for ${ip} (Order: ${orderNumber})`);
+
+    try {
+        const printer = new ThermalPrinter({
+            type: PrinterTypes.EPSON,
+            interface: `tcp://${ip}:9100`,
+            characterSet: CharacterSet.PC857_TURKISH,
+            removeSpecialCharacters: false,
+            lineCharacter: '-',
+            options: { timeout: 5000 }
+        });
+
+        const isConnected = await printer.isPrinterConnected();
+        if (!isConnected) throw new Error("Printer unreachable");
+
+        // Format Kitchen Receipt
+        printer.alignCenter();
+        printer.setTextDoubleHeight();
+        printer.bold(true);
+        printer.println(encodeText(`MASA ${tableNumber || '?'}`));
+        printer.bold(false);
+        printer.setTextNormal();
+        printer.println(new Date().toLocaleString('tr-TR'));
+        printer.println(`Siparis No: ${orderNumber}`);
+        printer.drawLine();
+        printer.newLine();
+
+        printer.alignLeft();
+        for (const item of items) {
+            printer.bold(true);
+            printer.println(encodeText(`${item.quantity}x ${item.name}`));
+            printer.bold(false);
+            if (item.notes) {
+                printer.println(encodeText(`   NOT: ${item.notes}`));
+            }
+            printer.newLine();
+        }
+
+        printer.drawLine();
+        printer.alignCenter();
+        printer.println("Afiyet Olsun!");
+        printer.cut();
+
+        await printer.execute();
+        console.log(`✅ Printed Order ${orderNumber} to ${ip}`);
+        res.json({ success: true });
 
     } catch (error) {
         console.error("Print error:", error);

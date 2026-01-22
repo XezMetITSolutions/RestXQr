@@ -101,6 +101,8 @@ export default function OrderPrinterTestPage() {
         }
     };
 
+    const BRIDGE_URL = 'http://localhost:3005';
+
     const approveOrder = async () => {
         if (!orderId) {
             alert('Önce sipariş oluşturun');
@@ -122,11 +124,46 @@ export default function OrderPrinterTestPage() {
             const approveData = await approveResponse.json();
 
             if (approveData.success) {
+                const printResults = approveData.data.printResults || [];
+                let bridgeMessage = '';
+                let bridgeSuccess = false;
+
+                // Her bir yazdırma sonucunu kontrol et
+                for (const result of printResults) {
+                    if (!result.success && result.isLocalIP) {
+                        console.log(`🖨️ Bulut üzerinden yazılamadı (Yerel IP: ${result.ip}). Yerel köprü deneniyor...`);
+
+                        try {
+                            const bridgeRes = await fetch(`${BRIDGE_URL}/print/${result.ip}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    orderNumber: orderId.substring(0, 8),
+                                    tableNumber: tableNumber,
+                                    items: result.stationItems
+                                })
+                            });
+                            const bridgeData = await bridgeRes.json();
+                            if (bridgeData.success) {
+                                bridgeSuccess = true;
+                                bridgeMessage = `✅ Yerel yazıcıdan başarıyla yazdırıldı! (${result.ip})`;
+                            } else {
+                                bridgeMessage = `❌ Yerel köprü yazdırma hatası: ${bridgeData.error}`;
+                            }
+                        } catch (bridgeErr) {
+                            bridgeMessage = `❌ Yerel köprüye bağlanılamadı. (localhost:3005 çalışıyor mu?)`;
+                        }
+                    }
+                }
+
                 setResult({
                     success: true,
-                    message: '✅ Sipariş onaylandı! Yazıcıdan fiş çıkmalı (192.168.1.13)',
+                    message: bridgeSuccess
+                        ? '✅ Sipariş onaylandı ve yerel yazıcıdan yazdırıldı!'
+                        : (bridgeMessage || '✅ Sipariş onaylandı! (Bulut üzerinden gönderildi)'),
                     orderId,
-                    printed: true
+                    printed: true,
+                    bridgeMessage
                 });
             } else {
                 setResult({
@@ -291,8 +328,8 @@ export default function OrderPrinterTestPage() {
                     {/* Result */}
                     {result && (
                         <div className={`rounded-lg p-4 ${result.success
-                                ? 'bg-green-50 border border-green-200'
-                                : 'bg-red-50 border border-red-200'
+                            ? 'bg-green-50 border border-green-200'
+                            : 'bg-red-50 border border-red-200'
                             }`}>
                             <div className="flex items-start gap-3">
                                 {result.success ? (
@@ -318,7 +355,7 @@ export default function OrderPrinterTestPage() {
                                         <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
                                             <p className="text-sm font-bold text-yellow-800">🖨️ Yazıcı Kontrolü:</p>
                                             <p className="text-xs text-yellow-700 mt-1">
-                                                192.168.1.13 IP'sindeki yazıcıdan fiş çıktı mı kontrol edin!
+                                                {result.bridgeMessage || `192.168.1.13 IP'sindeki yazıcıdan fiş çıktı mı kontrol edin!`}
                                             </p>
                                         </div>
                                     )}

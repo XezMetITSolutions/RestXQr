@@ -448,6 +448,7 @@ router.put('/:id', async (req, res) => {
           timestamp: new Date().toISOString()
         });
         console.log(`✅ Sipariş ${id} onaylandı ve bildirim gönderildi.`);
+        let printResults = [];
 
         // YAZICI ÇIKTISI: Sipariş onaylandığında otomatik yazdır
         try {
@@ -509,10 +510,20 @@ router.put('/:id', async (req, res) => {
                 } else {
                   console.error(`❌ ${stationId} (${printerConfig.ip}) yazdırma hatası:`, printResult.error);
                 }
+
+                printResults.push({
+                  stationId,
+                  success: printResult.success,
+                  error: printResult.error,
+                  isLocalIP: printResult.isLocalIP,
+                  ip: printerConfig.ip,
+                  stationItems
+                });
               } else {
                 console.log(`⚠️ ${stationId} istasyonu için yazıcı yapılandırılmamış`);
               }
             }
+            order.printResults = printResults; // Geçici olarak ekle
           }
         } catch (printError) {
           console.error('❌ Yazdırma hatası:', printError);
