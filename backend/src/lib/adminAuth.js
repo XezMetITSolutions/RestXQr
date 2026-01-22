@@ -79,7 +79,8 @@ function encrypt(text) {
     if (!text) return null;
 
     const iv = crypto.randomBytes(16);
-    const key = Buffer.from(ENCRYPTION_KEY.slice(0, 64), 'hex');
+    // Use SHA-256 to ensure the key is always 32 bytes, regardless of the input string
+    const key = crypto.createHash('sha256').update(ENCRYPTION_KEY).digest();
     const cipher = crypto.createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
 
     let encrypted = cipher.update(text, 'utf8', 'hex');
@@ -97,7 +98,8 @@ function decrypt(encryptedText) {
     const parts = encryptedText.split(':');
     const iv = Buffer.from(parts[0], 'hex');
     const encrypted = parts[1];
-    const key = Buffer.from(ENCRYPTION_KEY.slice(0, 64), 'hex');
+    // Use SHA-256 to ensure the key is always 32 bytes
+    const key = crypto.createHash('sha256').update(ENCRYPTION_KEY).digest();
 
     const decipher = crypto.createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
 
