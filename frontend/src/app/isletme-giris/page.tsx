@@ -88,6 +88,20 @@ export default function IsletmeGirisPage() {
     };
 
     loadRestaurantInfo();
+
+    // Süper admin girişi kontrolü
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('superadmin') === 'true') {
+        setUsername('restxqr');
+        setPassword('01528797Mb##');
+        // Otomatik girişi biraz geciktir (form dolsun diye)
+        setTimeout(() => {
+          const loginBtn = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+          if (loginBtn) loginBtn.click();
+        }, 500);
+      }
+    }
   }, [t]);
 
   const handleLogin = async (e: React.FormEvent) => {

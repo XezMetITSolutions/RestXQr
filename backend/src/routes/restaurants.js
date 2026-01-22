@@ -434,7 +434,15 @@ router.put('/:id', async (req, res) => {
       }
     }
 
-    await restaurant.update({
+    // Plan limitlerini belirle
+    const PLAN_LIMITS = {
+      basic: { maxTables: 10, maxMenuItems: 50, maxStaff: 3 },
+      premium: { maxTables: 25, maxMenuItems: 150, maxStaff: 10 },
+      enterprise: { maxTables: 999, maxMenuItems: 999, maxStaff: 999 }
+    };
+
+    // Plan değiştiyse limitleri de güncelle
+    let updateData = {
       name: name || restaurant.name,
       email: email || restaurant.email,
       phone: phone || restaurant.phone,
@@ -442,7 +450,17 @@ router.put('/:id', async (req, res) => {
       features: updatedFeatures,
       subscriptionPlan: newPlan || restaurant.subscriptionPlan,
       kitchenStations: kitchenStations !== undefined ? kitchenStations : restaurant.kitchenStations
-    });
+    };
+
+    if (newPlan && newPlan !== oldPlan) {
+      const limits = PLAN_LIMITS[newPlan] || PLAN_LIMITS.basic;
+      updateData.maxTables = limits.maxTables;
+      updateData.maxMenuItems = limits.maxMenuItems;
+      updateData.maxStaff = limits.maxStaff;
+      console.log(`✅ Updated limits for ${restaurant.name} to ${newPlan} plan`);
+    }
+
+    await restaurant.update(updateData);
 
     // Remove password from response
     const { password: _, ...restaurantData } = restaurant.toJSON();

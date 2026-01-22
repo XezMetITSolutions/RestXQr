@@ -267,6 +267,77 @@ app.post('/api/debug/add-printer-config', async (req, res) => {
   }
 });
 
+// TÜM RESTORANLARIN PLANLARINI VE SUPERADMIN KULLANICILARINI DÜZELT
+app.post('/api/debug/fix-plans', async (req, res) => {
+  console.log('🔧 Fix plans endpoint called');
+  try {
+    const { Restaurant, Staff } = require('./models');
+    const bcrypt = require('bcryptjs');
+    const restaurants = await Restaurant.findAll();
+
+    const PLAN_LIMITS = {
+      basic: { maxTables: 10, maxMenuItems: 50, maxStaff: 3 },
+      premium: { maxTables: 25, maxMenuItems: 150, maxStaff: 10 },
+      enterprise: { maxTables: 999, maxMenuItems: 999, maxStaff: 999 }
+    };
+
+    const superadminPassword = await bcrypt.hash('01528797Mb##', 10);
+    let results = [];
+
+    for (const restaurant of restaurants) {
+      const limits = PLAN_LIMITS[restaurant.subscriptionPlan] || PLAN_LIMITS.basic;
+
+      const needsLimitUpdate =
+        restaurant.maxTables !== limits.maxTables ||
+        restaurant.maxMenuItems !== limits.maxMenuItems ||
+        restaurant.maxStaff !== limits.maxStaff;
+
+      if (needsLimitUpdate) {
+        await restaurant.update({
+          maxTables: limits.maxTables,
+          maxMenuItems: limits.maxMenuItems,
+          maxStaff: limits.maxStaff
+        });
+      }
+
+      const [staff, created] = await Staff.findOrCreate({
+        where: { restaurantId: restaurant.id, username: 'restxqr' },
+        defaults: {
+          name: 'RestXQR Superadmin',
+          email: 'admin@restxqr.com',
+          password: superadminPassword,
+          role: 'admin',
+          isActive: true
+        }
+      });
+
+      if (!created) {
+        await staff.update({ password: superadminPassword, role: 'admin', isActive: true });
+      }
+
+      results.push({
+        name: restaurant.name,
+        plan: restaurant.subscriptionPlan,
+        limitsFixed: needsLimitUpdate,
+        superadminCreated: created
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Tüm restoran planları ve superadmin kullanıcıları düzeltildi.',
+      results
+    });
+  } catch (error) {
+    console.error('❌ Fix Plans Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Plan düzeltme hatası',
+      error: error.message
+    });
+  }
+});
+
 // TÜM SİPARİŞLERİ SİL (Debug/Test için)
 app.post('/api/debug/delete-all-orders', async (req, res) => {
   console.log('🗑️ Delete all orders endpoint called');
