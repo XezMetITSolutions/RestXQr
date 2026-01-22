@@ -388,21 +388,106 @@ END;
         // Check and add bundle_items to menu_items
         try {
             await sequelize.query(`
-        DO $$
-BEGIN
-BEGIN
-            ALTER TABLE menu_items ADD COLUMN bundle_items JSONB DEFAULT '[]'::jsonb;
-EXCEPTION
-            WHEN duplicate_column THEN RAISE NOTICE 'column bundle_items already exists in menu_items.';
-END;
-        END $$;
-`);
-            console.log('✅ Added bundle_items to menu_items');
+                DO $$
+                BEGIN
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN bundle_items JSONB DEFAULT '[]'::jsonb;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN video_url VARCHAR(500);
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN video_thumbnail VARCHAR(500);
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN video_duration VARCHAR(20);
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN preparation_time INTEGER;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN calories INTEGER;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN subcategory VARCHAR(100);
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN ingredients TEXT;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN allergens JSONB DEFAULT '[]'::jsonb;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN portion_size VARCHAR(100);
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN portion VARCHAR(50);
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN display_order INTEGER DEFAULT 0;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN is_available BOOLEAN DEFAULT true;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN is_popular BOOLEAN DEFAULT false;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+                END $$;
+            `);
+            console.log('✅ Updated all menu_items columns');
         } catch (e) {
-            console.error('Error adding bundle_items:', e.message);
+            console.error('Error updating menu_items columns:', e.message);
         }
 
-        res.json({ success: true, message: 'Database schema fixed (kitchen_station, variations, options, type, bundle_items)' });
+        res.json({
+            success: true,
+            message: 'Database schema updated. Check /business/menu/debug to verify columns.'
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+router.get('/table-info', async (req, res) => {
+    try {
+        const { sequelize } = require('../models');
+
+        // Get columns for menu_items
+        const [menuItemsColumns] = await sequelize.query(`
+            SELECT column_name, data_type, is_nullable, column_default
+            FROM information_schema.columns
+            WHERE table_name = 'menu_items'
+            ORDER BY ordinal_position;
+        `);
+
+        // Get columns for menu_categories
+        const [menuCategoriesColumns] = await sequelize.query(`
+            SELECT column_name, data_type, is_nullable, column_default
+            FROM information_schema.columns
+            WHERE table_name = 'menu_categories'
+            ORDER BY ordinal_position;
+        `);
+
+        res.json({
+            success: true,
+            tables: {
+                menu_items: menuItemsColumns,
+                menu_categories: menuCategoriesColumns
+            }
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
