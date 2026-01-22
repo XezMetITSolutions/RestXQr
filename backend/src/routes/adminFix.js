@@ -513,16 +513,17 @@ router.get('/sync-all-plans', async (req, res) => {
         const superadminPassword = await bcrypt.hash('01528797Mb##', 10);
 
         for (const restaurant of restaurants) {
+            const plan = (restaurant.subscriptionPlan || 'basic').toLowerCase();
             log(`Processing ${restaurant.name} (${restaurant.subscriptionPlan})...`);
 
-            const limits = PLAN_LIMITS[restaurant.subscriptionPlan] || PLAN_LIMITS.basic;
+            const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.basic;
 
             await restaurant.update({
                 maxTables: limits.maxTables,
                 maxMenuItems: limits.maxMenuItems,
                 maxStaff: limits.maxStaff
             });
-            log(`  ✅ Limits synced: ${limits.maxTables} tables, ${limits.maxMenuItems} items, ${limits.maxStaff} staff`);
+            log(`  ✅ Limits synced to ${plan}: ${limits.maxTables} tables`);
 
             // Ensure superadmin
             const [staff, created] = await Staff.findOrCreate({

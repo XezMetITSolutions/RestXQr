@@ -453,7 +453,7 @@ router.put('/:id', async (req, res) => {
     };
 
     if (newPlan && newPlan !== oldPlan) {
-      const limits = PLAN_LIMITS[newPlan] || PLAN_LIMITS.basic;
+      const limits = PLAN_LIMITS[newPlan.toLowerCase()] || PLAN_LIMITS.basic;
       updateData.maxTables = limits.maxTables;
       updateData.maxMenuItems = limits.maxMenuItems;
       updateData.maxStaff = limits.maxStaff;
