@@ -506,6 +506,7 @@ export default function KasaPanel() {
       setShowDebugModal(true);
       setPrintingOrderId(orderId);
       setIsPrinting(true);
+      setDebugLogs(prev => [...prev, { timestamp: new Date().toISOString(), message: 'Sunucuya bağlanılıyor...', type: 'info' }]);
     }
 
     try {
