@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { 
-  FaPlus, 
-  FaSearch, 
+import {
+  FaPlus,
+  FaSearch,
   FaGlobe,
   FaCrown,
   FaUsers,
@@ -38,7 +38,11 @@ export default function RestaurantsManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+  // API URL'i normalize et
+  const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+  const API_URL = (rawApiUrl.startsWith('http') ? rawApiUrl : `https://${rawApiUrl}`)
+    .replace(/\/+$/, '')
+    .concat(rawApiUrl.endsWith('/api') || rawApiUrl.endsWith('/api/') ? '' : '/api');
 
   // Restoranları yükle
   useEffect(() => {
@@ -49,22 +53,33 @@ export default function RestaurantsManagement() {
     try {
       setLoading(true);
       const accessToken = localStorage.getItem('admin_access_token');
-      
+
       if (!accessToken) {
         router.push('/admin/login');
         return;
       }
-      
+
       const response = await fetch(`${API_URL}/admin/dashboard/restaurants`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
         }
       });
+
+      if (response.status === 401) {
+        console.warn('Unauthorized access, redirecting to login...');
+        localStorage.removeItem('admin_access_token');
+        localStorage.removeItem('admin_user');
+        router.push('/admin/login');
+        return;
+      }
+
       const data = await response.json();
-      
+
       if (data.success && data.data) {
         setRestaurants(data.data);
+      } else {
+        console.error('API Error:', data.message);
       }
     } catch (error) {
       console.error('Restoranlar yüklenemedi:', error);
@@ -268,11 +283,10 @@ export default function RestaurantsManagement() {
                 {/* Status */}
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm text-gray-600">Durum:</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    restaurant.isActive 
-                      ? 'bg-green-100 text-green-700' 
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${restaurant.isActive
+                      ? 'bg-green-100 text-green-700'
                       : 'bg-gray-100 text-gray-700'
-                  }`}>
+                    }`}>
                     {restaurant.isActive ? 'Aktif' : 'Pasif'}
                   </span>
                 </div>

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { 
-  FaStore, 
+import {
+  FaStore,
   FaCheckCircle,
   FaDatabase,
   FaChartLine
@@ -33,30 +33,43 @@ export default function AdminDashboard() {
   });
   const [loading, setLoading] = useState(true);
 
+  // API URL'i normalize et
+  const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+  const API_URL = (rawApiUrl.startsWith('http') ? rawApiUrl : `https://${rawApiUrl}`)
+    .replace(/\/+$/, '')
+    .concat(rawApiUrl.endsWith('/api') || rawApiUrl.endsWith('/api/') ? '' : '/api');
+
   useEffect(() => {
     const adminUser = localStorage.getItem('admin_user');
     const accessToken = localStorage.getItem('admin_access_token');
-    
+
     if (!adminUser || !accessToken) {
       router.push('/admin/login');
       return;
     }
-    
+
     fetchDashboardData(accessToken);
   }, [router]);
 
   const fetchDashboardData = async (token: string) => {
     try {
       console.log('Fetching dashboard stats...');
-      const response = await fetch('https://masapp-backend.onrender.com/api/admin/dashboard/stats', {
+      const response = await fetch(`${API_URL}/admin/dashboard/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      
+
       console.log('Dashboard stats response status:', response.status);
-      
+
+      if (response.status === 401) {
+        localStorage.removeItem('admin_access_token');
+        localStorage.removeItem('admin_user');
+        router.push('/admin/login');
+        return;
+      }
+
       if (response.ok) {
         const data = await response.json();
         console.log('Dashboard stats data:', data);
@@ -127,7 +140,7 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-xl shadow-sm p-6 border">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-gray-800">Son Eklenen Restoranlar</h3>
-              <button 
+              <button
                 onClick={() => router.push('/admin/restaurants')}
                 className="text-blue-600 text-sm hover:underline font-medium"
               >
@@ -147,11 +160,10 @@ export default function AdminDashboard() {
                         <p className="text-sm text-gray-500">{restaurant.subdomain}</p>
                       </div>
                     </div>
-                    <span className={`px-4 py-2 rounded-full text-xs font-semibold ${
-                      restaurant.status === 'active' 
-                        ? 'bg-green-100 text-green-800 border border-green-200' 
+                    <span className={`px-4 py-2 rounded-full text-xs font-semibold ${restaurant.status === 'active'
+                        ? 'bg-green-100 text-green-800 border border-green-200'
                         : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                    }`}>
+                      }`}>
                       {restaurant.status === 'active' ? 'Aktif' : 'Beklemede'}
                     </span>
                   </div>
