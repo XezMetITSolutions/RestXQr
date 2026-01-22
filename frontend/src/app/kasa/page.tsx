@@ -307,8 +307,15 @@ export default function KasaPanel() {
           return response.json();
         });
 
-        await Promise.all(updatePromises);
+        const responses = await Promise.all(updatePromises);
         console.log('✅ Tüm masa ödemeleri güncellendi');
+
+        // Baskı sonuçlarını kontrol et
+        for (let i = 0; i < responses.length; i++) {
+          if (responses[i].data?.printResults) {
+            await handlePrintFailover(responses[i], tableOrders[i].id, false);
+          }
+        }
 
         fetchOrders(); // Refresh to get improved data
 
@@ -376,6 +383,12 @@ export default function KasaPanel() {
 
       if (data.success) {
         console.log('✅ Ödeme başarıyla tamamlandı');
+
+        // Baskı sonuçlarını kontrol et
+        if (data.data?.printResults) {
+          await handlePrintFailover(data, orderId, false);
+        }
+
         fetchOrders();
 
         if (isPartial && remaining > 0.05) {
@@ -501,6 +514,78 @@ export default function KasaPanel() {
     }
   };
 
+  const handlePrintFailover = async (data: any, orderId: string, showDebug: boolean) => {
+    const BRIDGE_URL = 'http://localhost:3005';
+    let bridgeSuccessCount = 0;
+    let localTasks = 0;
+
+    const printResults = data.results || (data.data?.printResults) || [];
+
+    if (printResults.length > 0) {
+      for (const result of printResults) {
+        if (!result.success && result.isLocalIP) {
+          localTasks++;
+          if (showDebug) {
+            setDebugLogs(prev => [...prev, {
+              timestamp: new Date().toISOString(),
+              message: `🖨️ Bulut üzerinden yazılamadı (Yerel IP: ${result.ip}). Yerel köprü deneniyor...`,
+              type: 'info'
+            }]);
+          }
+
+          try {
+            const bridgeRes = await fetch(`${BRIDGE_URL}/print/${result.ip}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderNumber: orderId.substring(0, 8),
+                tableNumber: data.order?.tableNumber || data.data?.tableNumber || '?',
+                items: result.stationItems
+              })
+            });
+            const bridgeData = await bridgeRes.json();
+            if (bridgeData.success) {
+              bridgeSuccessCount++;
+              if (showDebug) {
+                setDebugLogs(prev => [...prev, {
+                  timestamp: new Date().toISOString(),
+                  message: `✅ Yerel yazıcıdan başarıyla yazdırıldı! (${result.ip})`,
+                  type: 'success'
+                }]);
+              }
+            } else {
+              if (showDebug) {
+                setDebugLogs(prev => [...prev, {
+                  timestamp: new Date().toISOString(),
+                  message: `❌ Yerel köprü hatası: ${bridgeData.error}`,
+                  type: 'error'
+                }]);
+              }
+            }
+          } catch (bridgeErr: any) {
+            if (showDebug) {
+              setDebugLogs(prev => [...prev, {
+                timestamp: new Date().toISOString(),
+                message: `❌ Yerel köprüye bağlanılamadı. Port 3005 açık mı?`,
+                type: 'error'
+              }]);
+            }
+          }
+        }
+      }
+    }
+
+    if (localTasks > 0) {
+      if (bridgeSuccessCount === localTasks) {
+        if (!showDebug) alert('✅ Yazıcıya yerel köprü üzerinden başarıyla gönderildi!');
+      } else {
+        if (!showDebug) alert('❌ Bazı yazıcılara gönderilemedi. Yerel köprü açık mı?');
+      }
+    } else if (!data.success) {
+      if (!showDebug) alert('Yazdırma hatası: ' + (data.message || 'Bilinmeyen hata'));
+    }
+  };
+
   const executePrintRequest = async (orderId: string, showDebug: boolean) => {
     const targetUrl = `${API_URL}/orders/${orderId}/print`;
     if (showDebug) {
@@ -525,11 +610,7 @@ export default function KasaPanel() {
         setDebugLogs(prev => [...prev, ...data.steps]);
       }
 
-      if (data.success) {
-        if (!showDebug) alert('Yazıcıya gönderildi!');
-      } else {
-        if (!showDebug) alert('Yazdırma hatası: ' + data.message);
-      }
+      await handlePrintFailover(data, orderId, showDebug);
     } catch (err: any) {
       clearTimeout(timeoutId);
       if (showDebug) {
@@ -754,19 +835,27 @@ export default function KasaPanel() {
                                     console.error('Alt siparişler bulunamadı');
                                     return;
                                   }
-                                  await Promise.all(tableOrders.map(to =>
-                                    fetch(`${API_URL}/orders/${to.id}`, {
+                                  await Promise.all(tableOrders.map(async (to) => {
+                                    const response = await fetch(`${API_URL}/orders/${to.id}`, {
                                       method: 'PUT',
                                       headers: { 'Content-Type': 'application/json' },
                                       body: JSON.stringify({ approved: true })
-                                    })
-                                  ));
+                                    });
+                                    const data = await response.json();
+                                    if (data.data?.printResults) {
+                                      await handlePrintFailover(data, to.id, false);
+                                    }
+                                  }));
                                 } else {
-                                  await fetch(`${API_URL}/orders/${order.id}`, {
+                                  const response = await fetch(`${API_URL}/orders/${order.id}`, {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ approved: true })
                                   });
+                                  const data = await response.json();
+                                  if (data.data?.printResults) {
+                                    await handlePrintFailover(data, order.id, false);
+                                  }
                                 }
                                 fetchOrders();
                               } catch (err) {

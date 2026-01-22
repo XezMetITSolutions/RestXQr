@@ -606,6 +606,70 @@ router.put('/:id', async (req, res) => {
       }
     }
 
+    // ÖDEME ÇIKTISI: Ödeme tamamlandığında otomatik yazdır
+    if (status === 'completed' && previousStatus !== 'completed') {
+      try {
+        console.log(`🖨️ Ödeme tamamlandı, yazdırılıyor: Sipariş ${order.id}`);
+        const printerService = require('../services/printerService');
+        const printResults = [];
+
+        const orderItems = await OrderItem.findAll({
+          where: { orderId: order.id },
+          include: [{
+            model: MenuItem,
+            as: 'menuItem',
+            attributes: ['name', 'kitchenStation']
+          }]
+        });
+
+        // İstasyonlara göre grupla
+        const itemsByStation = {};
+        for (const item of orderItems) {
+          const station = item.menuItem?.kitchenStation || 'default';
+          if (!itemsByStation[station]) itemsByStation[station] = [];
+          itemsByStation[station].push({
+            name: item.menuItem?.name || 'Ürün',
+            quantity: item.quantity,
+            notes: (item.notes || '') + ' (ÖDEME ALINDI)'
+          });
+        }
+
+        for (const [stationId, stationItems] of Object.entries(itemsByStation)) {
+          const printerConfig = restaurant.printerConfig ? restaurant.printerConfig[stationId] : null;
+
+          if (printerConfig && printerConfig.enabled && printerConfig.ip) {
+            printerService.addOrUpdateStation(stationId, {
+              name: stationId,
+              ip: printerConfig.ip,
+              port: printerConfig.port || 9100,
+              enabled: true,
+              type: require('node-thermal-printer').PrinterTypes.EPSON,
+              characterSet: require('node-thermal-printer').CharacterSet.PC857_TURKISH,
+              codePage: 'CP857'
+            });
+
+            const printResult = await printerService.printOrderAdvanced(stationId, {
+              orderNumber: order.id.substring(0, 8),
+              tableNumber: order.tableNumber || 'Paket',
+              items: stationItems
+            });
+
+            printResults.push({
+              stationId,
+              success: printResult.success,
+              error: printResult.error,
+              isLocalIP: printResult.isLocalIP,
+              ip: printerConfig.ip,
+              stationItems
+            });
+          }
+        }
+        order.printResults = printResults;
+      } catch (printError) {
+        console.error('❌ Ödeme sonrası yazdırma hatası:', printError);
+      }
+    }
+
     // Items değiştiyse güncelle
     if (items && Array.isArray(items)) {
       // Mevcut order items'ları sil
@@ -739,7 +803,14 @@ router.post('/:id/print', async (req, res) => {
           results.push({ stationId, success: true });
         } else {
           log(`${stationId} (${printerConfig.ip}) yazdırma hatası: ${printResult.error}`, 'error');
-          results.push({ stationId, success: false, error: printResult.error });
+          results.push({
+            stationId,
+            success: false,
+            error: printResult.error,
+            isLocalIP: printResult.isLocalIP,
+            ip: printerConfig.ip,
+            stationItems
+          });
         }
       } else {
         log(`${stationId} istasyonu için aktif yazıcı bulunamadı (enabled: ${printerConfig?.enabled}, ip: ${printerConfig?.ip})`, 'warning');
