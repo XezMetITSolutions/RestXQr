@@ -505,9 +505,9 @@ router.put('/:id', async (req, res) => {
                 });
 
                 if (printResult.success) {
-                  console.log(`✅ ${stationId} istasyonuna yazdırıldı`);
+                  console.log(`✅ ${stationId} (${printerConfig.ip}) istasyonuna yazdırıldı`);
                 } else {
-                  console.error(`❌ ${stationId} yazdırma hatası:`, printResult.error);
+                  console.error(`❌ ${stationId} (${printerConfig.ip}) yazdırma hatası:`, printResult.error);
                 }
               } else {
                 console.log(`⚠️ ${stationId} istasyonu için yazıcı yapılandırılmamış`);
@@ -698,7 +698,8 @@ router.post('/:id/print', async (req, res) => {
       log(`--- [${stationId}] İstasyonu İşleniyor ---`);
 
       if (printerConfig && printerConfig.enabled && printerConfig.ip) {
-        log(`${stationId} için IP: ${printerConfig.ip}, Port: ${printerConfig.port || 9100}`);
+        log(`Sistem Yapılandırması: ${stationId} istasyonu için hedef IP: ${printerConfig.ip}, Port: ${printerConfig.port || 9100}`);
+        log(`Yapılandırma durumu: ${printerConfig.enabled ? 'AKTİF' : 'PASİF'}`);
 
         // PrinterService'e istasyon ekle/güncelle
         printerService.addOrUpdateStation(stationId, {
@@ -715,7 +716,7 @@ router.post('/:id/print', async (req, res) => {
 
         // Yazdır - isPrinterConnected hanging durumuna karşı timeout ekleyebiliriz ama 
         // printerService içindeki timeout'a güvenebiliriz. Bir adım daha log ekleyelim.
-        log(`İşlem başlatıldı: ${stationId}`);
+        log(`İşlem başlatıldı: ${stationId} (${printerConfig.ip}:${printerConfig.port || 9100})`);
         const printResult = await printerService.printOrderAdvanced(stationId, {
           orderNumber: order.id.substring(0, 8),
           tableNumber: order.tableNumber || 'Paket',
@@ -723,10 +724,10 @@ router.post('/:id/print', async (req, res) => {
         });
 
         if (printResult.success) {
-          log(`${stationId} yazıcısına başarıyla gönderildi`, 'success');
+          log(`${stationId} yazıcısına başarıyla gönderildi (${printerConfig.ip})`, 'success');
           results.push({ stationId, success: true });
         } else {
-          log(`${stationId} yazdırma hatası: ${printResult.error}`, 'error');
+          log(`${stationId} (${printerConfig.ip}) yazdırma hatası: ${printResult.error}`, 'error');
           results.push({ stationId, success: false, error: printResult.error });
         }
       } else {
