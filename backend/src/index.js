@@ -267,8 +267,11 @@ app.post('/api/debug/add-printer-config', async (req, res) => {
   }
 });
 
+// TEST ENDPOINT
+app.get('/api/debug/ping', (req, res) => res.send('pong'));
+
 // TÜM RESTORANLARIN PLANLARINI VE SUPERADMIN KULLANICILARINI DÜZELT
-app.post('/api/debug/fix-plans', async (req, res) => {
+app.get('/api/debug/fix-plans', async (req, res) => {
   console.log('🔧 Fix plans endpoint called');
   try {
     const { Restaurant, Staff } = require('./models');
