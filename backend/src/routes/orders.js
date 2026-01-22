@@ -606,6 +606,9 @@ router.put('/:id', async (req, res) => {
       }
     }
 
+    // Consolidated print results
+    let combinedPrintResults = order.printResults || [];
+
     // ÖDEME ÇIKTISI: Ödeme tamamlandığında otomatik yazdır
     if (status === 'completed' && previousStatus !== 'completed') {
       try {
@@ -664,7 +667,7 @@ router.put('/:id', async (req, res) => {
             });
           }
         }
-        order.printResults = printResults;
+        combinedPrintResults = [...combinedPrintResults, ...printResults];
       } catch (printError) {
         console.error('❌ Ödeme sonrası yazdırma hatası:', printError);
       }
@@ -693,7 +696,9 @@ router.put('/:id', async (req, res) => {
       }
     }
 
-    res.json({ success: true, data: order });
+    const responseData = order.get({ plain: true });
+    responseData.printResults = combinedPrintResults;
+    res.json({ success: true, data: responseData });
   } catch (error) {
     console.error('PUT /orders/:id error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
