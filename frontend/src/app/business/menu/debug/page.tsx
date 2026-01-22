@@ -180,35 +180,138 @@ export default function MenuDebugPage() {
                     {/* Logs and Actions */}
                     <div className="space-y-6">
                         <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                            <h3 className="text-lg font-semibold mb-4 text-blue-400">Teşhis ve Günlükler</h3>
-                            <div className="bg-black/40 rounded-lg p-4 h-[500px] overflow-y-auto font-mono text-sm border border-gray-800">
-                                {testLog.length === 0 ? (
-                                    <p className="text-gray-600 italic">Eylem bekleniyor...</p>
-                                ) : (
-                                    testLog.map((log, i) => (
-                                        <div key={i} className={`mb-1 ${log.includes('❌') ? 'text-red-400' : log.includes('✅') ? 'text-green-400' : 'text-gray-400'}`}>
-                                            {log}
-                                        </div>
-                                    ))
-                                )}
+                            <h3 className="text-lg font-semibold mb-4 text-blue-400">API Test Araçları</h3>
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={async () => {
+                                            addLog('🚀 Yeni ürün oluşturma testi başlıyor...');
+                                            try {
+                                                // Get first restaurant and category to make it easy
+                                                const resResp = await fetch(`${API_BASE}/restaurants`);
+                                                const resData = await resResp.json();
+                                                const restaurantId = resData.data?.[0]?.id;
+
+                                                if (!restaurantId) {
+                                                    addLog('❌ Hata: Veritabanında restoran bulunamadı.');
+                                                    return;
+                                                }
+
+                                                const catResp = await fetch(`${API_BASE}/restaurants/${restaurantId}/menu/categories`);
+                                                const catData = await catResp.json();
+                                                const categoryId = catData.data?.[0]?.id;
+
+                                                if (!categoryId) {
+                                                    addLog('❌ Hata: Restoranda kategori bulunamadı.');
+                                                    return;
+                                                }
+
+                                                const testData = {
+                                                    categoryId,
+                                                    name: 'Debug Test Ürünü ' + Math.floor(Math.random() * 1000),
+                                                    price: 99.99,
+                                                    description: 'Bu bir debug test ürünüdür.',
+                                                    isAvailable: true,
+                                                    isPopular: false,
+                                                    variations: [],
+                                                    options: []
+                                                };
+
+                                                addLog(`📡 Gönderilen veri: ${JSON.stringify(testData, null, 2)}`);
+
+                                                const response = await fetch(`${API_BASE}/restaurants/${restaurantId}/menu/items`, {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify(testData)
+                                                });
+
+                                                const result = await response.json();
+                                                if (response.ok) {
+                                                    addLog(`✅ Başarılı! Ürün ID: ${result.data.id}`);
+                                                } else {
+                                                    addLog(`❌ Hata (${response.status}): ${result.message || 'Bilinmeyen hata'}`);
+                                                    if (result.error) addLog(`Detay: ${result.error}`);
+                                                    if (result.stack) console.error('Stack Trace:', result.stack);
+                                                }
+                                            } catch (err: any) {
+                                                addLog(`❌ Ağ Hatası: ${err.message}`);
+                                            }
+                                        }}
+                                        className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-500 rounded-lg transition-all font-semibold"
+                                    >
+                                        🚀 Basit Ürün Ekle (Test)
+                                    </button>
+
+                                    <button
+                                        onClick={async () => {
+                                            addLog('🚀 Karmaşık ürün (Varyasyonlu) oluşturma testi...');
+                                            try {
+                                                const resResp = await fetch(`${API_BASE}/restaurants`);
+                                                const resData = await resResp.json();
+                                                const restaurantId = resData.data?.[0]?.id;
+                                                const catResp = await fetch(`${API_BASE}/restaurants/${restaurantId}/menu/categories`);
+                                                const catData = await catResp.json();
+                                                const categoryId = catData.data?.[0]?.id;
+
+                                                const testData = {
+                                                    categoryId,
+                                                    name: 'Varyasyonlu Test Ürünü',
+                                                    price: 150,
+                                                    variations: [{ name: 'Büyük', price: 180 }, { name: 'Küçük', price: 120 }],
+                                                    options: [{ name: 'Acı', values: ['Az', 'Çok'] }],
+                                                    allergens: ['Gluten'],
+                                                    kitchenStation: 'izgara'
+                                                };
+
+                                                addLog(`📡 Gönderilen veri: ${JSON.stringify(testData, null, 2)}`);
+
+                                                const response = await fetch(`${API_BASE}/restaurants/${restaurantId}/menu/items`, {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify(testData)
+                                                });
+
+                                                const result = await response.json();
+                                                if (response.ok) {
+                                                    addLog(`✅ Başarılı! Ürün ID: ${result.data.id}`);
+                                                } else {
+                                                    addLog(`❌ Hata (${response.status}): ${result.message || result.error}`);
+                                                }
+                                            } catch (err: any) {
+                                                addLog(`❌ Ağ Hatası: ${err.message}`);
+                                            }
+                                        }}
+                                        className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg transition-all font-semibold"
+                                    >
+                                        ✨ Karmaşık Ürün Ekle
+                                    </button>
+                                </div>
+
+                                <div className="pt-4 border-t border-gray-800">
+                                    <h4 className="text-sm font-semibold text-gray-400 mb-2">Günlükler</h4>
+                                    <div className="bg-black/40 rounded-lg p-4 h-[350px] overflow-y-auto font-mono text-xs border border-gray-800">
+                                        {testLog.length === 0 ? (
+                                            <p className="text-gray-600 italic">Eylem bekleniyor...</p>
+                                        ) : (
+                                            testLog.map((log, i) => (
+                                                <div key={i} className={`mb-2 pb-2 border-b border-gray-800/50 ${log.includes('❌') ? 'text-red-400' : log.includes('✅') ? 'text-green-400' : 'text-gray-400'}`}>
+                                                    {log}
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl p-6">
-                            <h3 className="text-lg font-semibold mb-2 text-blue-300">İpucu</h3>
+                            <h3 className="text-lg font-semibold mb-2 text-blue-300">Teşhis İpucu</h3>
                             <p className="text-sm text-blue-200/70 leading-relaxed">
-                                Eğer "Internal Server Error" alıyorsanız, genellikle sevk edilen veri ile veritabanı sütunları arasında uyumsuzluk vardır.
-                                Yukarıdaki tabloda <strong>HAYIR</strong> olarak işaretlenen sütunların (ve varsayılan değeri olmayanların)
-                                mutlaka gönderilmesi gerekir.
+                                Eğer "Internal Server Error" alıyorsanız, günlüklerdeki hata mesajına bakın.
+                                <br />- <strong>"column X does not exist"</strong>: Veritabanı sütunları eksik (Eksik Sütunları Ekle butonunu kullanın).
+                                <br />- <strong>"invalid input syntax for type numeric"</strong>: Fiyat veya sayısal alanda geçersiz veri var.
+                                <br />- <strong>"check constraint X"</strong>: Veritabanı kısıtlamalarına takılan bir veri var.
                             </p>
-                            <div className="mt-4 pt-4 border-t border-blue-500/20">
-                                <p className="text-sm font-semibold text-blue-300 mb-2">Sık Karşılaşılan Sorunlar:</p>
-                                <ul className="text-xs text-blue-200/60 list-disc list-inside space-y-1">
-                                    <li>JSON alanlarına (variations, options) geçersiz veri gönderilmesi</li>
-                                    <li>Sayısal beklenen alanlara (price) metin gönderilmesi</li>
-                                    <li>Modelde tanımlı ama veritabanında olmayan sütunlar</li>
-                                </ul>
-                            </div>
                         </div>
                     </div>
                 </div>
