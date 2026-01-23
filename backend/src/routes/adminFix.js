@@ -519,36 +519,45 @@ router.get('/sync-all-plans', async (req, res) => {
 
                 const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.basic;
 
-                await restaurant.update({
+                // Use direct update to avoid instance validation issues
+                await Restaurant.update({
                     maxTables: limits.maxTables,
                     maxMenuItems: limits.maxMenuItems,
                     maxStaff: limits.maxStaff
-                });
-                log(`  ✅ Limits synced to ${plan}: ${limits.maxTables} tables`);
-
-                // Ensure superadmin - Use a unique username per restaurant to avoid global unique constraint
-                const adminUser = await Staff.findOne({
-                    where: { restaurantId: restaurant.id, role: 'admin' }
+                }, {
+                    where: { id: restaurant.id }
                 });
 
-                // Also try to create/update 'restxqr' specifically for Kroren as requested
+                log(`  ✅ Limits synced to ${plan}: ${limits.maxTables} tables, ${limits.maxMenuItems} items, ${limits.maxStaff} staff`);
+
+                // Ensure superadmin for Kroren
                 if (restaurant.username === 'kroren') {
-                    const [staff, created] = await Staff.findOrCreate({
-                        where: { restaurantId: restaurant.id, username: 'restxqr' },
-                        defaults: {
-                            name: 'RestXQR Superadmin',
-                            email: 'admin@restxqr.com',
-                            password: superadminPassword,
-                            role: 'admin',
-                            isActive: true
-                        }
-                    });
-                    if (!created) await staff.update({ password: superadminPassword });
-                    log(`  ✅ Superadmin 'restxqr' ensured for Kroren`);
+                    const superadminData = {
+                        name: 'RestXQR Superadmin',
+                        email: 'admin@restxqr.com',
+                        password: superadminPassword,
+                        role: 'admin',
+                        status: 'active'
+                    };
+
+                    const existingStaff = await Staff.findOne({ where: { username: 'restxqr' } });
+                    if (existingStaff) {
+                        await existingStaff.update({ ...superadminData, restaurantId: restaurant.id });
+                        log(`  ✅ Superadmin 'restxqr' updated and moved to Kroren`);
+                    } else {
+                        await Staff.create({ ...superadminData, username: 'restxqr', restaurantId: restaurant.id });
+                        log(`  ✅ Superadmin 'restxqr' created for Kroren`);
+                    }
                 }
             } catch (err) {
                 console.error(`Error processing ${restaurant.name}:`, err);
-                log(`  ❌ Error processing ${restaurant.name}: ${err.message} ${err.errors ? JSON.stringify(err.errors) : ''}`);
+                let detail = err.message;
+                if (err.errors) {
+                    detail += ' - ' + JSON.stringify(err.errors.map(e => ({ path: e.path, message: e.message })));
+                } else {
+                    detail += ' (no detail available)';
+                }
+                log(`  ❌ Error processing ${restaurant.name}: ${detail}`);
             }
         }
 
