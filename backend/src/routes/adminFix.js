@@ -547,7 +547,8 @@ router.get('/sync-all-plans', async (req, res) => {
                     log(`  ✅ Superadmin 'restxqr' ensured for Kroren`);
                 }
             } catch (err) {
-                log(`  ❌ Error processing ${restaurant.name}: ${err.message}`);
+                console.error(`Error processing ${restaurant.name}:`, err);
+                log(`  ❌ Error processing ${restaurant.name}: ${err.message} ${err.errors ? JSON.stringify(err.errors) : ''}`);
             }
         }
 
