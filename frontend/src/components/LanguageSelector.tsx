@@ -46,15 +46,12 @@ export default function LanguageSelector({ enabledLanguages }: LanguageSelectorP
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredLanguages = enabledLanguages
+  const filteredLanguages = (enabledLanguages && enabledLanguages.length > 1)
     ? languageList.filter(l => {
-      // Find the code that maps to this language name
       const shortCode = Object.keys(languageMap).find(key => languageMap[key] === l.code);
       return shortCode && enabledLanguages.includes(shortCode);
     })
-    : languageList;
-
-  if (filteredLanguages.length <= 1) return null;
+    : languageList; // If only one or no languages enabled, show all available ones
 
   return (
     <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
