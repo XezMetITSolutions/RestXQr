@@ -49,6 +49,7 @@ export default function KasaPanel() {
   const [restaurantId, setRestaurantId] = useState<string>('');
   const [restaurantName, setRestaurantName] = useState<string>('');
   const [staffRole, setStaffRole] = useState<string>('');
+  const [staffUser, setStaffUser] = useState<any>(null); // New state to avoid hydration issues
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [undoStack, setUndoStack] = useState<Order[]>([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -76,12 +77,11 @@ export default function KasaPanel() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
-  // Yetki kontrolü
+  // Yetki kontrolü (State-based to prevent hydration errors)
   const hasPermission = (permissionId: string) => {
-    if (typeof window === 'undefined') return false;
-    const user = localStorage.getItem('staff_user');
-    if (!user) return false;
-    const staffUser = JSON.parse(user);
+    if (!staffUser) return false;
+
+    // Admin/Manager/Owner always has full access
     if (['admin', 'manager', 'restaurant_owner'].includes(staffUser.role)) return true;
 
     if (!staffUser.permissions || !Array.isArray(staffUser.permissions)) return false;
@@ -129,6 +129,7 @@ export default function KasaPanel() {
 
       const parsedUser = JSON.parse(user);
       setStaffRole(parsedUser.role || '');
+      setStaffUser(parsedUser); // Update state for permissions logic
 
       // Sadece kasiyer, yöneticiler veya özel izni olanlar erişebilir
       const hasAccess =
