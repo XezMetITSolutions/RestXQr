@@ -284,7 +284,9 @@ router.put('/:restaurantId', staffAuth, async (req, res) => {
     await initializePermissions(restaurant);
 
     // Update permissions in settings
-    const currentPermissions = restaurant.settings.permissions || {};
+    // Create a new object to ensure Sequelize detects the change
+    const settings = JSON.parse(JSON.stringify(restaurant.settings || {}));
+    const currentPermissions = settings.permissions || {};
 
     if (permissions.kitchen) {
       currentPermissions.kitchen = permissions.kitchen;
@@ -298,7 +300,8 @@ router.put('/:restaurantId', staffAuth, async (req, res) => {
       currentPermissions.cashier = permissions.cashier;
     }
 
-    restaurant.settings.permissions = currentPermissions;
+    settings.permissions = currentPermissions;
+    restaurant.settings = settings;
     restaurant.changed('settings', true);
     await restaurant.save();
 
@@ -349,10 +352,14 @@ router.put('/:restaurantId/:role', staffAuth, async (req, res) => {
     await initializePermissions(restaurant);
 
     // Update permissions for the role
-    const currentPermissions = restaurant.settings.permissions || {};
-    currentPermissions[role] = permissions;
+    // Create a new object to ensure Sequelize detects the change
+    const settings = JSON.parse(JSON.stringify(restaurant.settings || {}));
+    const currentPermissions = settings.permissions || {};
 
-    restaurant.settings.permissions = currentPermissions;
+    currentPermissions[role] = permissions;
+    settings.permissions = currentPermissions;
+
+    restaurant.settings = settings;
     restaurant.changed('settings', true);
     await restaurant.save();
 
