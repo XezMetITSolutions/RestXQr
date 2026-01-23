@@ -52,27 +52,22 @@ function MenuPageContent() {
   const [sessionKey, setSessionKey] = useState<string | null>(null);
   const [clientId, setClientId] = useState<string | null>(null);
   const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
-  const [imageCacheVersion, setImageCacheVersion] = useState<number>(Date.now());
+  const [imageCacheVersion, setImageCacheVersion] = useState<number>(0);
   const [orderingAllowed, setOrderingAllowed] = useState<boolean>(false);
   const [token, setToken] = useState<string>('');
 
-  // Subdomain'den restaurant bulma - Demo için Aksaray restoranını kullan
-  const getCurrentRestaurant = () => {
-    if (typeof window === 'undefined') return null;
+
+
+  const currentRestaurant = (typeof window !== 'undefined') ? (() => {
     const hostname = window.location.hostname;
     const subdomain = hostname.split('.')[0];
     const mainDomains = ['localhost', 'www', 'guzellestir', 'restxqr'];
 
-    // Ana domain veya demo için Aksaray restoranını kullan
     if (mainDomains.includes(subdomain)) {
       return restaurants.find((r: any) => r.username === 'aksaray');
     }
-
-    // Subdomain'e göre restoran bul
     return restaurants.find((r: any) => r.username === subdomain);
-  };
-
-  const currentRestaurant = getCurrentRestaurant();
+  })() : null;
 
   // Use settings from currentRestaurant if available (fetched from backend), 
   // otherwise fallback to localSettings (for backward compatibility/demo)
@@ -400,6 +395,7 @@ function MenuPageContent() {
   // Fetch data on mount
   useEffect(() => {
     setIsClient(true);
+    setImageCacheVersion(Date.now()); // Set version on client to avoid hydration mismatch
     // Restaurants yoksa fetch et
     if (restaurants.length === 0) {
       fetchRestaurants();
