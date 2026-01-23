@@ -561,6 +561,10 @@ router.get('/sync-all-plans', async (req, res) => {
             }
         }
 
+        if (req.query.json === 'true') {
+            return res.json({ success: true, logs });
+        }
+
         res.send(`
             <div style="font-family: monospace; padding: 20px; background: #f0f0f0;">
                 <h1>Plan & Superadmin Sync Results</h1>
