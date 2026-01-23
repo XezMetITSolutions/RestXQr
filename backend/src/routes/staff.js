@@ -594,6 +594,17 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    // Generate JWT token for staff
+    const jwt = require('jsonwebtoken');
+    const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
+    const token = jwt.sign(
+      { id: staff.id, role: staff.role, type: 'staff', restaurantId: staff.restaurantId },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    console.log('✅ Staff JWT token generated');
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -604,7 +615,8 @@ router.post('/login', async (req, res) => {
         permissions: staff.permissions || {},
         restaurantId: staff.restaurantId,
         restaurantName: restaurantInfo.name,
-        restaurantUsername: restaurantInfo.username
+        restaurantUsername: restaurantInfo.username,
+        token: token
       }
     });
   } catch (error) {
