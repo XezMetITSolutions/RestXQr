@@ -756,8 +756,55 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
     router.push('/login');
   };
 
+  const showDebugInfo = () => {
+    const staffToken = localStorage.getItem('staff_token');
+    const restaurantToken = localStorage.getItem('restaurant_token');
+    const businessToken = localStorage.getItem('business_token');
+    // Match the priority in api.ts
+    const activeToken = restaurantToken || businessToken || staffToken;
+
+    let decoded: any = {};
+    try {
+      if (activeToken) {
+        const parts = activeToken.split('.');
+        if (parts.length === 3) {
+          decoded = JSON.parse(atob(parts[1]));
+        } else {
+          decoded = { error: 'Invalid JWT Format' };
+        }
+      }
+    } catch (e: any) { decoded = { error: 'Parse Error: ' + e.message }; }
+
+    const info = `
+DEBUG INFO:
+----------------
+Restaurant ID: ${authenticatedRestaurant?.id}
+Subdomain: ${window.location.hostname.split('.')[0]}
+
+TOKENS IN STORAGE:
+[Owner] restaurant_token: ${restaurantToken ? 'PRESENT' : 'MISSING'}
+[Staff] staff_token: ${staffToken ? 'PRESENT' : 'MISSING'}
+[Business] business_token: ${businessToken ? 'PRESENT' : 'MISSING'}
+
+ACTIVE TOKEN (Used for Request):
+Source: ${restaurantToken ? 'Owner (Correct)' : (businessToken ? 'Business' : (staffToken ? 'Staff (Incorrect for Settings)' : 'None'))}
+Role in Token: ${decoded.role || 'Unknown'}
+ID in Token: ${decoded.id || 'Unknown'}
+
+Note: Valid Owner token must be present to update settings.
+    `;
+    alert(info);
+    console.log(info);
+  };
+
   const content = (
     <div className={`${isEmbedded ? '' : 'p-4 sm:p-6 lg:p-8'}`}>
+      <div className="mb-4 flex justify-end">
+        <button onClick={showDebugInfo} className="text-xs bg-gray-800 text-white px-3 py-1 rounded hover:bg-gray-700 flex items-center gap-2">
+          <FaExclamationTriangle /> Debug Auth
+        </button>
+      </div>
+
       {/* Save Status Message */}
       {saveStatus && (
         <div className={`mb-6 p-4 rounded-lg ${saveStatus === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
