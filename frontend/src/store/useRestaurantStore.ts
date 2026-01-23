@@ -37,6 +37,8 @@ interface RestaurantState {
   updateMenuItem: (restaurantId: string, itemId: string, data: any) => Promise<any>;
   deleteMenuItem: (restaurantId: string, itemId: string) => Promise<boolean>;
   fetchRestaurantMenu: (restaurantId: string) => Promise<any>;
+  fetchOrders: (restaurantId: string) => Promise<any>;
+  fetchAllOrders: (restaurantId: string) => Promise<any>;
 
   // Menu Actions (for backward compatibility)
   setCategories: (categories: MenuCategory[]) => void;
@@ -507,6 +509,52 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         error: error instanceof Error ? error.message : 'Menü yüklenemedi',
         loading: false
       });
+      throw error;
+    }
+  },
+
+  fetchOrders: async (restaurantId: string) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await apiService.getOrders(restaurantId);
+      if (response.success && Array.isArray(response.data)) {
+        const orders = response.data;
+        set({
+          orders,
+          activeOrders: orders.filter((o: any) =>
+            ['pending', 'confirmed', 'preparing', 'ready', 'served'].includes(o.status)
+          ),
+          loading: false
+        });
+        return orders;
+      }
+      set({ loading: false });
+      return [];
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Siparişler yüklenemedi', loading: false });
+      throw error;
+    }
+  },
+
+  fetchAllOrders: async (restaurantId: string) => {
+    // This is essentially the same as fetchOrders but explicitly for the dashboard summary
+    set({ loading: true, error: null });
+    try {
+      const response = await apiService.getOrders(restaurantId);
+      if (response.success && Array.isArray(response.data)) {
+        set({ orders: response.data, loading: false });
+        // Also update active orders
+        set((state) => ({
+          activeOrders: response.data.filter((o: any) =>
+            ['pending', 'confirmed', 'preparing', 'ready', 'served'].includes(o.status)
+          )
+        }));
+        return response.data;
+      }
+      set({ loading: false });
+      return [];
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Siparişler yüklenemedi', loading: false });
       throw error;
     }
   },

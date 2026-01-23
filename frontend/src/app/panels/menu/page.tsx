@@ -22,17 +22,17 @@ function MenuPageContent() {
   const cartItems = useCartStore(state => state.items);
   const tableNumber = useCartStore(state => state.tableNumber);
   const setTableNumber = useCartStore(state => state.setTableNumber);
-  
+
   // Restaurant store - backend'den gerçek veriler
-  const { 
-    restaurants, 
-    categories, 
-    menuItems, 
-    fetchRestaurants, 
+  const {
+    restaurants,
+    categories,
+    menuItems,
+    fetchRestaurants,
     fetchRestaurantMenu,
-    loading 
+    loading
   } = useRestaurantStore();
-  
+
   // Local states
   const [activeCategory, setActiveCategory] = useState('popular');
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
@@ -48,29 +48,29 @@ function MenuPageContent() {
   const [tokenMessage, setTokenMessage] = useState('');
   const primary = settings.branding.primaryColor;
   const secondary = settings.branding.secondaryColor || settings.branding.primaryColor;
-  
+
   // Subdomain'den restaurant bulma - Demo için Aksaray restoranını kullan
   const getCurrentRestaurant = () => {
     if (typeof window === 'undefined') return null;
     const hostname = window.location.hostname;
     const subdomain = hostname.split('.')[0];
     const mainDomains = ['localhost', 'www', 'guzellestir'];
-    
+
     // Demo sayfası için Aksaray restoranını kullan
     if (mainDomains.includes(subdomain) || hostname.includes('restxqr.com')) {
       return restaurants.find((r: any) => r.username === 'aksaray');
     }
-    
+
     return restaurants.find((r: any) => r.username === subdomain);
   };
 
   const currentRestaurant = getCurrentRestaurant();
 
   // Restaurant'a göre kategoriler ve ürünler filtreleme
-  const items = currentRestaurant?.id 
+  const items = currentRestaurant?.id
     ? menuItems.filter((item: any) => item.restaurantId === currentRestaurant.id)
     : [];
-  const filteredCategories = currentRestaurant?.id 
+  const filteredCategories = currentRestaurant?.id
     ? categories.filter((cat: any) => cat.restaurantId === currentRestaurant.id)
     : [];
 
@@ -78,20 +78,20 @@ function MenuPageContent() {
   useEffect(() => {
     const detectTableAndToken = async () => {
       if (typeof window === 'undefined') return;
-      
+
       const urlParams = new URLSearchParams(window.location.search);
       const tableParam = urlParams.get('table');
       const tokenParam = urlParams.get('token');
-      
+
       // Token varsa doğrula
       if (tokenParam) {
         try {
           const response = await apiService.verifyQRToken(tokenParam);
-          
+
           if (response.success && response.data?.isActive) {
             setTokenValid(true);
             setTokenMessage('QR kod geçerli. Menüye erişebilirsiniz.');
-            
+
             // Token'ı sessionStorage'a kaydet
             sessionStorage.setItem('qr_token', tokenParam);
             console.log('✅ Token doğrulandı:', tokenParam);
@@ -136,17 +136,17 @@ function MenuPageContent() {
           return;
         }
       }
-      
+
       // Masa numarası kontrolü
       if (tableParam) {
         const tableNum = parseInt(tableParam);
-        
+
         if (!isNaN(tableNum) && tableNum > 0) {
           // Token varsa masa numarasını ayarla (QR kod ile geldiğinde)
           if (tokenParam) {
             setTableNumber(tableNum);
           }
-          
+
           // Token yoksa yeni QR token oluştur (eski sistem için)
           if (!tokenParam) {
             try {
@@ -160,16 +160,16 @@ function MenuPageContent() {
                     duration: 2 // 2 saat
                   })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                   console.log('Masa oturumu başlatıldı:', {
                     masa: tableNum,
                     token: data.data.token,
                     süre: '2 saat'
                   });
-                  
+
                   // Token'ı sessionStorage'a kaydet (sayfa yenilenirse tekrar oluşturma)
                   sessionStorage.setItem('qr-session-token', data.data.token);
                 }
@@ -181,7 +181,7 @@ function MenuPageContent() {
         }
       }
     };
-    
+
     detectTableAndToken();
   }, [setTableNumber, currentRestaurant]);
 
@@ -203,7 +203,7 @@ function MenuPageContent() {
         sessionStorage.setItem('menuVisitedOnce', '1');
         setTimeout(() => setShowSplash(false), 1600);
       }
-    } catch {}
+    } catch { }
   }, [restaurants.length, currentRestaurant?.id, fetchRestaurants, fetchRestaurantMenu]);
 
   // Update search placeholder based on language
@@ -252,7 +252,7 @@ function MenuPageContent() {
 
   // Get language code for menu data
   const language = currentLanguage === 'Turkish' ? 'tr' : 'en';
-  
+
   // Get menu categories (backend format)
   const menuCategories = [
     { id: 'popular', name: currentLanguage === 'Turkish' ? 'Popüler' : 'Popular' },
@@ -264,7 +264,7 @@ function MenuPageContent() {
 
   // Get subcategories for active category
   const activeSubcategories = activeCategory === 'popular' ? [] : getSubcategoriesByParent(activeCategory);
-  
+
   // Get filtered items
   let filteredItems = activeCategory === 'popular'
     ? getPopularItems()
@@ -277,7 +277,7 @@ function MenuPageContent() {
       const itemName = typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || '');
       const itemDesc = typeof item.description === 'string' ? item.description : (item.description?.tr || item.description?.en || '');
       return itemName.toLowerCase().includes(search.toLowerCase()) ||
-             itemDesc.toLowerCase().includes(search.toLowerCase());
+        itemDesc.toLowerCase().includes(search.toLowerCase());
     });
   }
 
@@ -336,7 +336,7 @@ function MenuPageContent() {
               <p className="text-gray-600 mb-4">{tokenMessage}</p>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                 <p className="text-sm text-yellow-800">
-                  Bu QR kod ödeme tamamlandıktan sonra geçersiz hale gelir. 
+                  Bu QR kod ödeme tamamlandıktan sonra geçersiz hale gelir.
                   Yeni bir QR kod tarayarak menüye erişebilirsiniz.
                 </p>
               </div>
@@ -365,7 +365,7 @@ function MenuPageContent() {
                 <img src={settings.branding.logo} alt="Logo" className="h-20 w-20 object-contain rounded-md shadow-sm" />
               ) : (
                 <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'var(--brand-primary)' }}>
-                  {(settings.basicInfo.name || 'Işletme').slice(0,1)}
+                  {(settings.basicInfo.name || 'Işletme').slice(0, 1)}
                 </div>
               )}
             </div>
@@ -403,9 +403,9 @@ function MenuPageContent() {
                 <TranslatedText>Menü</TranslatedText>
               </h1>
               {tableNumber && (
-              <div className="ml-2 px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
-                <TranslatedText>Masa</TranslatedText> #{tableNumber}
-              </div>
+                <div className="ml-2 px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
+                  <TranslatedText>Masa</TranslatedText> #{tableNumber}
+                </div>
               )}
             </div>
           </div>
@@ -425,45 +425,83 @@ function MenuPageContent() {
         {/* Anlık Duyurular Slider */}
         <div className="px-3 mb-4">
           <div className="relative overflow-hidden rounded-lg shadow-lg">
-            <div className="flex animate-slide">
-              <div className="min-w-full text-white p-3 bg-brand-gradient">
-                <div className="flex items-center">
-                  <span className="text-lg mr-2">🎉</span>
-                  <div>
-                    <div className="font-semibold text-sm">
-                      <TranslatedText>{settings.basicInfo.dailySpecialTitle || 'Bugüne Özel!'}</TranslatedText>
-                    </div>
-                    <div className="text-xs opacity-90">
-                      <TranslatedText>{settings.basicInfo.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}</TranslatedText>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="min-w-full text-white p-3 bg-brand-gradient">
-                <div className="flex items-center">
-                  <span className="text-lg mr-2">🍲</span>
-                  <div>
-                    <div className="font-semibold text-sm">
-                      <TranslatedText>{settings.basicInfo.soupOfDayTitle || 'Günün Çorbası'}</TranslatedText>
-                    </div>
-                    <div className="text-xs opacity-90">
-                      <TranslatedText>{settings.basicInfo.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}</TranslatedText>
+            <div
+              className="flex animate-dynamic-slide"
+              style={{
+                width: `${Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2) * 100}%`
+              }}
+            >
+              {(settings.basicInfo.menuSpecialContents && settings.basicInfo.menuSpecialContents.length > 0) ? (
+                settings.basicInfo.menuSpecialContents.map((content: any, idx: number) => (
+                  <div key={content.id || idx} className="w-full text-white p-3 bg-brand-gradient">
+                    <div className="flex items-center">
+                      <span className="text-lg mr-2">{content.emoji || '🎉'}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-sm truncate">
+                          <TranslatedText>{content.title}</TranslatedText>
+                        </div>
+                        <div className="text-xs opacity-90 truncate">
+                          <TranslatedText>{content.description}</TranslatedText>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                ))
+              ) : (
+                <>
+                  <div className="w-full text-white p-3 bg-brand-gradient">
+                    <div className="flex items-center">
+                      <span className="text-lg mr-2">🎉</span>
+                      <div>
+                        <div className="font-semibold text-sm">
+                          <TranslatedText>{settings.basicInfo.dailySpecialTitle || 'Bugüne Özel!'}</TranslatedText>
+                        </div>
+                        <div className="text-xs opacity-90">
+                          <TranslatedText>{settings.basicInfo.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}</TranslatedText>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-full text-white p-3 bg-brand-gradient">
+                    <div className="flex items-center">
+                      <span className="text-lg mr-2">🍲</span>
+                      <div>
+                        <div className="font-semibold text-sm">
+                          <TranslatedText>{settings.basicInfo.soupOfDayTitle || 'Günün Çorbası'}</TranslatedText>
+                        </div>
+                        <div className="text-xs opacity-90">
+                          <TranslatedText>{settings.basicInfo.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}</TranslatedText>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
 
         <style jsx>{`
-          @keyframes slide {
-            0%, 45% { transform: translateX(0); }
-            50%, 95% { transform: translateX(-100%); }
-            100% { transform: translateX(0); }
+          @keyframes dynamic-slide {
+            ${(() => {
+            const count = Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2);
+            if (count <= 1) return '0% { transform: translateX(0); } 100% { transform: translateX(0); }';
+
+            let keyframes = '';
+            const step = 100 / count;
+            for (let i = 0; i < count; i++) {
+              const start = i * step;
+              const end = (i + 1) * step - 5; // Stay for most of the time
+              const nextStart = (i + 1) * step;
+
+              keyframes += `${start}%, ${end}% { transform: translateX(-${(i * 100) / count}%); }\n`;
+            }
+            keyframes += `100% { transform: translateX(0); }`;
+            return keyframes;
+          })()}
           }
-          .animate-slide {
-            animation: slide 8s infinite;
+          .animate-dynamic-slide {
+            animation: dynamic-slide ${Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2) * 4}s infinite ease-in-out;
           }
         `}</style>
 
@@ -473,11 +511,10 @@ function MenuPageContent() {
             {menuCategories.map((category) => (
               <button
                 key={category.id}
-                className={`px-3 py-1.5 rounded-full whitespace-nowrap text-dynamic-sm ${
-                  activeCategory === category.id
+                className={`px-3 py-1.5 rounded-full whitespace-nowrap text-dynamic-sm ${activeCategory === category.id
                     ? 'btn-gradient'
                     : 'bg-brand-surface text-gray-700'
-                }`}
+                  }`}
                 onClick={() => handleCategoryChange(category.id)}
               >
                 {category.name}
@@ -495,12 +532,12 @@ function MenuPageContent() {
               <div key={item.id} className="bg-white rounded-lg shadow-sm border p-3 flex">
                 <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
                   <Image
-                    src={item.imageUrl ? 
-                      (item.imageUrl.startsWith('http') ? 
-                        item.imageUrl : 
-                        `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}`) 
-                      : '/placeholder-food.jpg'} 
-                    alt={typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Menu item')} 
+                    src={item.imageUrl ?
+                      (item.imageUrl.startsWith('http') ?
+                        item.imageUrl :
+                        `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}`)
+                      : '/placeholder-food.jpg'}
+                    alt={typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Menu item')}
                     width={80}
                     height={80}
                     className="object-cover w-full h-full rounded-lg"
@@ -531,7 +568,7 @@ function MenuPageContent() {
                       ))}
                     </div>
                   )}
-                  
+
                   {/* Debug: Allergens */}
                   {process.env.NODE_ENV === 'development' && item.allergens && (
                     <div className="text-xs text-gray-400">
@@ -568,17 +605,17 @@ function MenuPageContent() {
             <div className="grid grid-cols-1 gap-3">
               {/* WiFi Info */}
               {settings.basicInfo.showWifiInMenu && (
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
-                <div className="flex items-center">
-                  <span className="text-lg mr-3">📶</span>
-                  <span className="text-sm font-medium text-gray-700">
-                    <TranslatedText>WiFi Şifresi</TranslatedText>
-                  </span>
-                </div>
+                <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
+                  <div className="flex items-center">
+                    <span className="text-lg mr-3">📶</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      <TranslatedText>WiFi Şifresi</TranslatedText>
+                    </span>
+                  </div>
                   <span className="text-sm font-bold px-2 py-1 rounded" style={{ color: 'var(--brand-strong)', backgroundColor: 'var(--brand-surface)' }}>
                     {settings.basicInfo.wifiPassword || 'restoran2024'}
                   </span>
-              </div>
+                </div>
               )}
               {/* Google Review Button */}
               <a
@@ -600,37 +637,37 @@ function MenuPageContent() {
               </a>
               {/* Working Hours */}
               {settings.basicInfo.showHoursInMenu && (
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
-                <div className="flex items-center">
-                  <span className="text-lg mr-3">🕒</span>
-                  <span className="text-sm font-medium text-gray-700">
-                    <TranslatedText>Çalışma Saatleri</TranslatedText>
-                  </span>
-                </div>
+                <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
+                  <div className="flex items-center">
+                    <span className="text-lg mr-3">🕒</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      <TranslatedText>Çalışma Saatleri</TranslatedText>
+                    </span>
+                  </div>
                   <span className="text-sm font-bold" style={{ color: 'var(--brand-strong)' }}>
                     {settings.basicInfo.workingHours || '09:00 - 23:00'}
                   </span>
-              </div>
+                </div>
               )}
               {/* Instagram Button */}
               {settings.basicInfo.showInstagramInMenu && (
-              <a
+                <a
                   href={settings.basicInfo.instagram || "https://instagram.com/restoranadi"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-tone3"
-                style={{ textDecoration: 'none' }}
-              >
-                <div className="flex items-center">
-                  <span className="text-lg mr-3">📱</span>
-                  <span className="text-sm font-medium text-gray-800">
-                    <TranslatedText>Instagram'da Takip Et</TranslatedText>
-                  </span>
-                </div>
-                <button className="text-sm font-bold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-primary">
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-tone3"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <div className="flex items-center">
+                    <span className="text-lg mr-3">📱</span>
+                    <span className="text-sm font-medium text-gray-800">
+                      <TranslatedText>Instagram'da Takip Et</TranslatedText>
+                    </span>
+                  </div>
+                  <button className="text-sm font-bold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-primary">
                     @{settings.basicInfo.instagram?.replace('https://instagram.com/', '').replace('https://www.instagram.com/', '') || 'restoranadi'}
-                </button>
-              </a>
+                  </button>
+                </a>
               )}
             </div>
           </div>

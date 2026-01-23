@@ -825,45 +825,83 @@ function MenuPageContent() {
         {/* Anlık Duyurular Slider */}
         <div className="px-3 mb-4">
           <div className="relative overflow-hidden rounded-lg shadow-lg">
-            <div className="flex animate-slide">
-              <div className="min-w-full text-white p-3 bg-brand-gradient">
-                <div className="flex items-center">
-                  <span className="text-lg mr-2">🎉</span>
-                  <div>
-                    <div className="font-semibold text-sm">
-                      <TranslatedText>{settings.basicInfo.dailySpecialTitle || 'Bugüne Özel!'}</TranslatedText>
-                    </div>
-                    <div className="text-xs opacity-90">
-                      <TranslatedText>{settings.basicInfo.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}</TranslatedText>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="min-w-full text-white p-3 bg-brand-gradient">
-                <div className="flex items-center">
-                  <span className="text-lg mr-2">🍲</span>
-                  <div>
-                    <div className="font-semibold text-sm">
-                      <TranslatedText>{settings.basicInfo.soupOfDayTitle || 'Günün Çorbası'}</TranslatedText>
-                    </div>
-                    <div className="text-xs opacity-90">
-                      <TranslatedText>{settings.basicInfo.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}</TranslatedText>
+            <div
+              className="flex animate-dynamic-slide"
+              style={{
+                width: `${Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2) * 100}%`
+              }}
+            >
+              {(settings.basicInfo.menuSpecialContents && settings.basicInfo.menuSpecialContents.length > 0) ? (
+                settings.basicInfo.menuSpecialContents.map((content: any, idx: number) => (
+                  <div key={content.id || idx} className="w-full text-white p-3 bg-brand-gradient">
+                    <div className="flex items-center">
+                      <span className="text-lg mr-2">{content.emoji || '🎉'}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-sm truncate">
+                          <TranslatedText>{content.title}</TranslatedText>
+                        </div>
+                        <div className="text-xs opacity-90 truncate">
+                          <TranslatedText>{content.description}</TranslatedText>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                ))
+              ) : (
+                <>
+                  <div className="w-full text-white p-3 bg-brand-gradient">
+                    <div className="flex items-center">
+                      <span className="text-lg mr-2">🎉</span>
+                      <div>
+                        <div className="font-semibold text-sm">
+                          <TranslatedText>{settings.basicInfo.dailySpecialTitle || 'Bugüne Özel!'}</TranslatedText>
+                        </div>
+                        <div className="text-xs opacity-90">
+                          <TranslatedText>{settings.basicInfo.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}</TranslatedText>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-full text-white p-3 bg-brand-gradient">
+                    <div className="flex items-center">
+                      <span className="text-lg mr-2">🍲</span>
+                      <div>
+                        <div className="font-semibold text-sm">
+                          <TranslatedText>{settings.basicInfo.soupOfDayTitle || 'Günün Çorbası'}</TranslatedText>
+                        </div>
+                        <div className="text-xs opacity-90">
+                          <TranslatedText>{settings.basicInfo.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}</TranslatedText>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
 
         <style jsx>{`
-          @keyframes slide {
-            0%, 45% { transform: translateX(0); }
-            50%, 95% { transform: translateX(-100%); }
-            100% { transform: translateX(0); }
+          @keyframes dynamic-slide {
+            ${(() => {
+            const count = Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2);
+            if (count <= 1) return '0% { transform: translateX(0); } 100% { transform: translateX(0); }';
+
+            let keyframes = '';
+            const step = 100 / count;
+            for (let i = 0; i < count; i++) {
+              const start = i * step;
+              const end = (i + 1) * step - 5; // Stay for most of the time
+              const nextStart = (i + 1) * step;
+
+              keyframes += `${start}%, ${end}% { transform: translateX(-${(i * 100) / count}%); }\n`;
+            }
+            keyframes += `100% { transform: translateX(0); }`;
+            return keyframes;
+          })()}
           }
-          .animate-slide {
-            animation: slide 8s infinite;
+          .animate-dynamic-slide {
+            animation: dynamic-slide ${Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2) * 4}s infinite ease-in-out;
           }
         `}</style>
 

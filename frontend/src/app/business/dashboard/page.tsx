@@ -45,6 +45,9 @@ function BusinessDashboardContent() {
     orders,
     activeOrders,
     fetchRestaurantMenu,
+    fetchOrders,
+    fetchCurrentRestaurant,
+    currentRestaurant,
     loading: restaurantLoading
   } = useRestaurantStore();
 
@@ -72,12 +75,14 @@ function BusinessDashboardContent() {
     initializeAuth();
   }, [initializeAuth]);
 
-  // Restaurant menüsünü yükle
+  // Restaurant verilerini yükle
   useEffect(() => {
     if (authenticatedRestaurant?.id) {
       fetchRestaurantMenu(authenticatedRestaurant.id);
+      fetchOrders(authenticatedRestaurant.id);
+      fetchCurrentRestaurant(authenticatedRestaurant.id);
     }
-  }, [authenticatedRestaurant?.id, fetchRestaurantMenu]);
+  }, [authenticatedRestaurant?.id, fetchRestaurantMenu, fetchOrders, fetchCurrentRestaurant]);
 
   // Giriş yapan kişinin adını al
   const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || 'Kullanıcı';
@@ -320,7 +325,12 @@ function BusinessDashboardContent() {
     totalMenuItems: menuItems.length,
     activeCategories: categories.length,
     totalWaiters: 0, // TODO: Personel sistemi eklendiğinde
-    activeTables: 0 // TODO: Masa sistemi eklendiğinde
+    activeTables: activeOrders.reduce((acc, order) => {
+      if (order.tableNumber && !acc.includes(order.tableNumber)) {
+        acc.push(order.tableNumber);
+      }
+      return acc;
+    }, [] as number[]).length
   };
 
   return (
@@ -462,7 +472,7 @@ function BusinessDashboardContent() {
                   </div>
                 </div>
                 <h3 className="text-4xl font-black bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent mb-2">
-                  {authenticatedRestaurant?.tableCount || 0}
+                  {currentRestaurant?.tableCount || authenticatedRestaurant?.tableCount || 0}
                 </h3>
                 <p className="text-gray-600 text-lg font-bold"><TranslatedText>Toplam Masa</TranslatedText></p>
                 <div className="mt-4 flex items-center text-sm text-orange-600 font-bold">

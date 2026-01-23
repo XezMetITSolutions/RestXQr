@@ -13,8 +13,8 @@ const PhonePreview: React.FC<PhonePreviewProps> = ({ settings: propSettings, cla
   // Store'dan settings'i al, propSettings varsa onu kullan
   const storeSettings = useBusinessSettingsStore(state => state.settings);
   const settings = propSettings || storeSettings;
-  
-  const { basicInfo = {}, branding = {} } = settings;
+
+  const { basicInfo = {} as BusinessSettings['basicInfo'], branding = {} as BusinessSettings['branding'] } = settings;
 
   // Renk hesaplamaları
   const getBackgroundColor = () => {
@@ -60,7 +60,7 @@ const PhonePreview: React.FC<PhonePreviewProps> = ({ settings: propSettings, cla
     const primaryColor = branding?.primaryColor || '#F97316';
     const secondaryColor = branding?.secondaryColor || '#FB923C';
     const accentColor = getAccentColor();
-    
+
     switch (branding?.headerStyle) {
       case 'gradient':
         return {
@@ -106,85 +106,96 @@ const PhonePreview: React.FC<PhonePreviewProps> = ({ settings: propSettings, cla
               </div>
             </div>
 
-             {/* Header - Menü Başlığı */}
-             <div className="px-4 py-3 flex items-center justify-between" style={{ ...getHeaderStyle() }}>
-               <div className="flex items-center gap-2">
-                 <button className="p-1">
-                   <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                   </svg>
-                 </button>
-                 <h1 
-                   className="text-lg font-bold"
-                   style={{ 
-                     color: getTextColor(),
-                     fontFamily: branding?.fontFamily || 'Poppins'
-                   }}
-                 >
-                   Menü
-                 </h1>
-                 <span 
-                   className="px-2 py-1 bg-gray-200 text-xs rounded-full"
-                   style={{ 
-                     color: getSecondaryTextColor(),
-                     fontFamily: branding?.fontFamily || 'Poppins'
-                   }}
-                 >
-                   Masa #5
-                 </span>
-               </div>
-               <button 
-                 className="px-3 py-1 bg-white text-xs rounded-full border flex items-center gap-1"
-                 style={{ 
-                   color: getTextColor(),
-                   fontFamily: branding?.fontFamily || 'Poppins'
-                 }}
-               >
-                 TR
-                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                 </svg>
-               </button>
-             </div>
+            {/* Header - Menü Başlığı */}
+            <div className="px-4 py-3 flex items-center justify-between" style={{ ...getHeaderStyle() }}>
+              <div className="flex items-center gap-2">
+                <button className="p-1">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <h1
+                  className="text-lg font-bold"
+                  style={{
+                    color: getTextColor(),
+                    fontFamily: branding?.fontFamily || 'Poppins'
+                  }}
+                >
+                  Menü
+                </h1>
+                <span
+                  className="px-2 py-1 bg-gray-200 text-xs rounded-full"
+                  style={{
+                    color: getSecondaryTextColor(),
+                    fontFamily: branding?.fontFamily || 'Poppins'
+                  }}
+                >
+                  Masa #5
+                </span>
+              </div>
+              <button
+                className="px-3 py-1 bg-white text-xs rounded-full border flex items-center gap-1"
+                style={{
+                  color: getTextColor(),
+                  fontFamily: branding?.fontFamily || 'Poppins'
+                }}
+              >
+                TR
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
 
-             {/* Arama Çubuğu */}
-             <div className="px-4 py-3 bg-white border-b">
-               <div className="relative">
-                 <input
-                   type="text"
-                   placeholder="Menüde ara..."
-                   className="w-full px-4 py-2 bg-gray-50 rounded-lg text-sm border-0 focus:ring-2 focus:ring-purple-500"
-                   style={{ 
-                     fontFamily: branding?.fontFamily || 'Poppins',
-                     color: getTextColor()
-                   }}
-                 />
-                 <svg className="absolute right-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                 </svg>
-               </div>
-             </div>
+            {/* Arama Çubuğu */}
+            <div className="px-4 py-3 bg-white border-b">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Menüde ara..."
+                  className="w-full px-4 py-2 bg-gray-50 rounded-lg text-sm border-0 focus:ring-2 focus:ring-purple-500"
+                  style={{
+                    fontFamily: branding?.fontFamily || 'Poppins',
+                    color: getTextColor()
+                  }}
+                />
+                <svg className="absolute right-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
 
-             {/* Özel Teklif Banner */}
-             <div 
-               className="mx-4 my-3 p-3 rounded-lg text-white"
-               style={{ 
-                 background: `linear-gradient(135deg, ${branding?.primaryColor || '#F97316'}, ${branding?.secondaryColor || '#FB923C'})`,
-                 fontFamily: branding?.fontFamily || 'Poppins'
-               }}
-             >
-               <div className="flex items-center gap-3">
-                 <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                   </svg>
-                 </div>
-                 <div>
-                   <div className="font-bold text-sm">Bugüne Özel!</div>
-                   <div className="text-xs opacity-90">Tüm tatlılarda %20 indirim - Sadece bugün geçerli</div>
-                 </div>
-               </div>
-             </div>
+            {/* Özel Teklif Banner */}
+            <div
+              className="mx-4 my-3 p-3 rounded-lg text-white"
+              style={{
+                background: `linear-gradient(135deg, ${branding?.primaryColor || '#F97316'}, ${branding?.secondaryColor || '#FB923C'})`,
+                fontFamily: branding?.fontFamily || 'Poppins'
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-lg">
+                  {(basicInfo.menuSpecialContents && basicInfo.menuSpecialContents.length > 0)
+                    ? (basicInfo.menuSpecialContents[0].emoji || '🎉')
+                    : '🎉'
+                  }
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-bold text-sm truncate">
+                    {(basicInfo.menuSpecialContents && basicInfo.menuSpecialContents.length > 0)
+                      ? (basicInfo.menuSpecialContents[0].title || 'Bugüne Özel!')
+                      : (basicInfo.dailySpecialTitle || 'Bugüne Özel!')
+                    }
+                  </div>
+                  <div className="text-xs opacity-90 truncate">
+                    {(basicInfo.menuSpecialContents && basicInfo.menuSpecialContents.length > 0)
+                      ? (basicInfo.menuSpecialContents[0].description || 'Özel indirimleri kaçırmayın')
+                      : (basicInfo.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli')
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Kategori Tabları */}
             <div className="px-4 py-2 bg-white border-b">
@@ -192,12 +203,11 @@ const PhonePreview: React.FC<PhonePreviewProps> = ({ settings: propSettings, cla
                 {['Popüler', 'Başlangıçlar', 'Ana Yemekler', 'Tatlılar', 'İçecekler'].map((category, index) => (
                   <button
                     key={category}
-                    className={`px-3 py-2 text-sm rounded-full whitespace-nowrap ${
-                      index === 0 
-                        ? 'bg-orange-500 text-white' 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                    style={{ 
+                    className={`px-3 py-2 text-sm rounded-full whitespace-nowrap ${index === 0
+                      ? 'bg-orange-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    style={{
                       fontFamily: branding?.fontFamily || 'Poppins',
                       backgroundColor: index === 0 ? branding?.primaryColor || '#F97316' : undefined
                     }}
@@ -209,7 +219,7 @@ const PhonePreview: React.FC<PhonePreviewProps> = ({ settings: propSettings, cla
             </div>
 
             {/* Menü İçeriği */}
-            <div 
+            <div
               className="flex-1 px-4 py-4 overflow-y-auto"
               style={{ backgroundColor: getBackgroundColor() }}
             >
@@ -220,56 +230,56 @@ const PhonePreview: React.FC<PhonePreviewProps> = ({ settings: propSettings, cla
                   <div className="relative w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0">
                     <div className="w-full h-full bg-gradient-to-br from-orange-200 to-red-200 rounded-lg flex items-center justify-center">
                       <svg className="w-8 h-8 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                       </svg>
                     </div>
                     <div className="absolute -top-1 -left-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                       <span className="text-white text-xs font-bold">★</span>
                     </div>
                   </div>
-                  
+
                   {/* Menü Öğesi Bilgileri */}
                   <div className="flex-1">
                     <div className="flex justify-between items-start mb-1">
-                      <h3 
+                      <h3
                         className={`font-semibold ${getFontSize()}`}
-                        style={{ 
+                        style={{
                           color: getTextColor(),
                           fontFamily: branding?.fontFamily || 'Poppins'
                         }}
                       >
                         Bruschetta
                       </h3>
-                      <div 
+                      <div
                         className="text-sm font-bold"
                         style={{ color: branding?.primaryColor || '#F97316' }}
                       >
                         45 ₺
                       </div>
                     </div>
-                    
-                    <p 
+
+                    <p
                       className="text-xs text-gray-600 mb-2"
-                      style={{ 
+                      style={{
                         fontFamily: branding?.fontFamily || 'Poppins'
                       }}
                     >
                       Sarımsaklı, zeytinyağlı ve domatesli kızarmış ekmek.
                     </p>
-                    
+
                     <div className="flex items-center gap-2 mb-3">
-                      <span 
+                      <span
                         className="px-2 py-1 bg-pink-100 text-pink-600 text-xs rounded-full"
                         style={{ fontFamily: branding?.fontFamily || 'Poppins' }}
                       >
                         Gluten
                       </span>
                     </div>
-                    
+
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         className="flex-1 px-3 py-2 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-1"
-                        style={{ 
+                        style={{
                           fontFamily: branding?.fontFamily || 'Poppins',
                           color: getTextColor()
                         }}
@@ -279,9 +289,9 @@ const PhonePreview: React.FC<PhonePreviewProps> = ({ settings: propSettings, cla
                         </svg>
                         Detayları Gör
                       </button>
-                      <button 
+                      <button
                         className="px-4 py-2 text-xs rounded-lg text-white flex items-center gap-1"
-                        style={{ 
+                        style={{
                           backgroundColor: branding.primaryColor,
                           fontFamily: branding?.fontFamily || 'Poppins'
                         }}
@@ -301,24 +311,24 @@ const PhonePreview: React.FC<PhonePreviewProps> = ({ settings: propSettings, cla
                 <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 
+                      <h3
                         className={`font-semibold mb-1 ${getFontSize()}`}
-                        style={{ 
+                        style={{
                           color: getTextColor(),
                           fontFamily: branding?.fontFamily || 'Poppins'
                         }}
                       >
                         Izgara Tavuk
                       </h3>
-                      <p 
+                      <p
                         className="text-xs mb-2 text-gray-600"
-                        style={{ 
+                        style={{
                           fontFamily: branding?.fontFamily || 'Poppins'
                         }}
                       >
                         Marine edilmiş tavuk göğsü ızgarada pişirilerek servis edilir.
                       </p>
-                      <div 
+                      <div
                         className="text-sm font-bold"
                         style={{ color: branding?.primaryColor || '#F97316' }}
                       >
@@ -331,24 +341,24 @@ const PhonePreview: React.FC<PhonePreviewProps> = ({ settings: propSettings, cla
                 <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 
+                      <h3
                         className={`font-semibold mb-1 ${getFontSize()}`}
-                        style={{ 
+                        style={{
                           color: getTextColor(),
                           fontFamily: branding?.fontFamily || 'Poppins'
                         }}
                       >
                         Köfte Tabağı
                       </h3>
-                      <p 
+                      <p
                         className="text-xs mb-2 text-gray-600"
-                        style={{ 
+                        style={{
                           fontFamily: branding?.fontFamily || 'Poppins'
                         }}
                       >
                         Ev yapımı köfte, pilav ve salata ile servis edilir.
                       </p>
-                      <div 
+                      <div
                         className="text-sm font-bold"
                         style={{ color: branding?.primaryColor || '#F97316' }}
                       >
@@ -363,24 +373,24 @@ const PhonePreview: React.FC<PhonePreviewProps> = ({ settings: propSettings, cla
             {/* Alt Navigasyon */}
             <div className="bg-white border-t px-4 py-2">
               <div className="flex justify-around">
-                <button 
+                <button
                   className="flex flex-col items-center gap-1 py-2"
                   style={{ color: branding.primaryColor }}
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 2h18a1 1 0 011 1v18a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zm1 2v16h16V4H4z"/>
+                    <path d="M3 2h18a1 1 0 011 1v18a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zm1 2v16h16V4H4z" />
                   </svg>
                   <span className="text-xs font-medium" style={{ fontFamily: branding?.fontFamily || 'Poppins' }}>Menü</span>
                 </button>
                 <button className="flex flex-col items-center gap-1 py-2 text-gray-400">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
                   </svg>
                   <span className="text-xs" style={{ fontFamily: branding?.fontFamily || 'Poppins' }}>Sepet</span>
                 </button>
                 <button className="flex flex-col items-center gap-1 py-2 text-gray-400">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 00-15 0v5h5l-5 5-5-5h5v-5a7.5 7.5 0 0115 0v5z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 00-15 0v5h5l-5 5-5-5h5v-5a7.5 7.5 0 0115 0v5z" />
                   </svg>
                   <span className="text-xs" style={{ fontFamily: branding?.fontFamily || 'Poppins' }}>Garson Çağır</span>
                 </button>
