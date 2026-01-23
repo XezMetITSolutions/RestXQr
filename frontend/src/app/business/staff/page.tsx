@@ -138,10 +138,12 @@ export default function StaffPage() {
           const response = await apiService.getStaff(restaurantId);
           if (response?.data && Array.isArray(response.data)) {
             console.log('✅ Fresh staff data loaded:', response.data.length);
-            setStaff(response.data);
-            setFilteredStaff(response.data);
+            // Adminleri filtrele
+            const nonAdminStaff = response.data.filter((s: any) => s.role !== 'admin');
+            setStaff(nonAdminStaff);
+            setFilteredStaff(nonAdminStaff);
             // Cache'i güncelle
-            localStorage.setItem('business_staff', JSON.stringify(response.data));
+            localStorage.setItem('business_staff', JSON.stringify(nonAdminStaff));
           }
         } catch (error) {
           console.error('❌ Error loading staff from backend:', error);
@@ -157,7 +159,8 @@ export default function StaffPage() {
 
   // Filtreleme ve arama
   useEffect(() => {
-    let filtered = [...staff];
+    // Her zaman adminleri filtrele
+    let filtered = staff.filter(member => member.role !== 'admin');
 
     // Rol filtresi
     if (roleFilter !== 'all') {
@@ -239,8 +242,8 @@ export default function StaffPage() {
     }
   };
 
-  // Tüm personeli dahil et (admin dahil)
-  const operationalStaff = staff;
+  // Tüm personeli dahil et (admin hariç)
+  const operationalStaff = staff.filter(s => s.role !== 'admin');
 
   const stats = {
     total: operationalStaff.length,

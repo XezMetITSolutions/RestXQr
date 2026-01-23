@@ -85,7 +85,10 @@ router.get('/restaurant/:restaurantId', async (req, res) => {
     }
 
     const staff = await Staff.findAll({
-      where: { restaurantId },
+      where: {
+        restaurantId,
+        role: { [Op.ne]: 'admin' } // Adminleri getirme
+      },
       order: [['createdAt', 'DESC']]
     });
 
@@ -238,8 +241,10 @@ router.post('/restaurant/:restaurantId', async (req, res) => {
 
     // Verify restaurant exists
     console.log('🔍 Looking for restaurant:', restaurantId);
+    console.time('staff-creation-checks');
     const restaurant = await Restaurant.findByPk(restaurantId);
     if (!restaurant) {
+      console.timeEnd('staff-creation-checks');
       console.log('❌ Restaurant not found:', restaurantId);
       return res.status(404).json({
         success: false,
@@ -249,10 +254,20 @@ router.post('/restaurant/:restaurantId', async (req, res) => {
 
     console.log('✅ Restaurant found:', restaurant.name);
 
+    // Plan limiti ve Email kontrolünü paralel yap
+    const [currentStaffCount, existingStaff] = await Promise.all([
+      Staff.count({ where: { restaurantId } }),
+      Staff.findOne({
+        where: {
+          restaurantId,
+          email: email
+        }
+      })
+    ]);
+    console.timeEnd('staff-creation-checks');
+
     // Plan limiti kontrolü - Maksimum personel sayısı
     const maxStaff = restaurant.maxStaff || 3;
-    const currentStaffCount = await Staff.count({ where: { restaurantId } });
-
     if (currentStaffCount >= maxStaff) {
       console.error(`❌ Staff limit exceeded: ${currentStaffCount} >= ${maxStaff}`);
       return res.status(403).json({
@@ -264,14 +279,6 @@ router.post('/restaurant/:restaurantId', async (req, res) => {
       });
     }
 
-    // Check if email already exists for this restaurant
-    const existingStaff = await Staff.findOne({
-      where: {
-        restaurantId,
-        email: email
-      }
-    });
-
     if (existingStaff) {
       console.log('❌ Email already exists:', email);
       return res.status(400).json({
@@ -280,7 +287,8 @@ router.post('/restaurant/:restaurantId', async (req, res) => {
       });
     }
 
-    console.log('✅ Email is unique, creating staff...');
+    console.log('✅ All checks passed, creating staff...');
+    console.time('staff-db-insert');
 
     const staff = await Staff.create({
       restaurantId,
@@ -293,6 +301,7 @@ router.post('/restaurant/:restaurantId', async (req, res) => {
       status: 'active'
     });
 
+    console.timeEnd('staff-db-insert');
     console.log('✅ Staff created successfully:', staff.id);
 
     res.status(201).json({
