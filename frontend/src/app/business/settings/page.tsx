@@ -90,10 +90,11 @@ function SettingsPageContent() {
     { code: 'zh', label: '中文', flag: '🇨🇳', description: getStatic('Çince menü') }
   ];
 
-  // Sayfa yüklendiğinde auth'u initialize et
+  // Sayfa yüklendiğinde auth'u initialize et ve ayarları çek
   useEffect(() => {
     initializeAuth();
-  }, [initializeAuth]);
+    fetchSettings();
+  }, [initializeAuth, fetchSettings]);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({});
@@ -149,7 +150,9 @@ function SettingsPageContent() {
     toggleSection,
     setLoading,
     exportSettings,
-    validateSubdomain
+    validateSubdomain,
+    fetchSettings,
+    saveSettings
   } = useBusinessSettingsStore();
 
   // Popüler emojiler listesi
@@ -387,13 +390,13 @@ function SettingsPageContent() {
     console.log(`💾 ${section} ayarları kaydediliyor...`);
 
     try {
-      // Zustand persist otomatik olarak localStorage'a kaydedecek
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      // Backend'e kaydet
+      await saveSettings();
       console.log(`✅ ${section} ayarları kaydedildi`);
+      alert(getStatic('Ayarlar başarıyla kaydedildi.'));
     } catch (error) {
       console.error('❌ Kaydetme hatası:', error);
+      alert(getStatic('Ayarlar kaydedilirken bir hata oluştu.'));
     } finally {
       setLoading(false);
     }
@@ -404,9 +407,13 @@ function SettingsPageContent() {
     console.log(`💾 ${fieldName} alanı kaydediliyor:`, value);
 
     try {
-      // Store'u güncelle - persist otomatik olarak localStorage'a kaydedecek
-      updateBasicInfo({ [fieldName]: value });
+      // Store'u güncelle
+      if (fieldName in settings.basicInfo) {
+        updateBasicInfo({ [fieldName]: value });
+      }
 
+      // Backend'e kaydet
+      await saveSettings();
       console.log(`✅ ${fieldName} alanı kaydedildi`);
     } catch (error) {
       console.error('❌ Alan kaydetme hatası:', error);

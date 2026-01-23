@@ -588,6 +588,18 @@ class ApiService {
     });
   }
 
+  // Settings endpoints
+  async getSettings() {
+    return this.request<any>('/settings');
+  }
+
+  async updateSettings(settings: any) {
+    return this.request<any>('/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    });
+  }
+
   async callWaiter(data: { restaurantId: string; tableNumber: number; type: string; message: string }) {
     return this.request<any>('/waiter/call', {
       method: 'POST',

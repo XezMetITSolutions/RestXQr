@@ -43,7 +43,12 @@ function MenuPageContent() {
   const [toastVisible, setToastVisible] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [searchPlaceholder, setSearchPlaceholder] = useState('Menüde ara...');
-  const { settings } = useBusinessSettingsStore();
+  const { settings: localSettings } = useBusinessSettingsStore();
+
+  // Use settings from currentRestaurant if available (fetched from backend), 
+  // otherwise fallback to localSettings (for backward compatibility/demo)
+  const settings = currentRestaurant?.settings || localSettings;
+
   const [showSplash, setShowSplash] = useState(false);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [tokenMessage, setTokenMessage] = useState('');

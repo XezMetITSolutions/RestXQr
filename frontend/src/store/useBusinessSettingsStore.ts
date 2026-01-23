@@ -41,7 +41,13 @@ interface BusinessSettingsState {
   exportSettings: () => void;
   importSettings: (settings: BusinessSettings) => void;
   validateSubdomain: (subdomain: string) => Promise<boolean>;
+
+  // Backend Sync Actions
+  fetchSettings: () => Promise<void>;
+  saveSettings: () => Promise<void>;
 }
+
+import { apiService } from '@/services/api';
 
 const defaultSettings: BusinessSettings = {
   basicInfo: {
@@ -586,6 +592,43 @@ export const useBusinessSettingsStore = create<BusinessSettingsState>()(
         const isAvailable = !takenSubdomains.includes(subdomain.toLowerCase());
 
         return isValid && isAvailable;
+      },
+
+      fetchSettings: async () => {
+        set({ isLoading: true });
+        try {
+          const response = await apiService.getSettings();
+          if (response.success && response.data) {
+            // Backend'den gelen verileri mevcut settings ile birleştir
+            set((state) => ({
+              settings: {
+                ...state.settings,
+                ...response.data
+              },
+              isLoading: false
+            }));
+            console.log('✅ Settings fetched from backend');
+          }
+        } catch (error) {
+          console.error('❌ Error fetching settings:', error);
+          set({ isLoading: false });
+        }
+      },
+
+      saveSettings: async () => {
+        set({ isLoading: true });
+        try {
+          const { settings } = get();
+          const response = await apiService.updateSettings(settings);
+          if (response.success) {
+            console.log('✅ Settings saved to backend');
+          }
+          set({ isLoading: false });
+        } catch (error) {
+          console.error('❌ Error saving settings:', error);
+          set({ isLoading: false });
+          throw error;
+        }
       }
     }),
     {
