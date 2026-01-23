@@ -103,16 +103,16 @@ export default function LoginPage() {
 
         // Save business token to localStorage
         if (response.data.token) {
-          const token = response.data.token.startsWith('Bearer ') 
-            ? response.data.token 
+          const token = response.data.token.startsWith('Bearer ')
+            ? response.data.token
             : `Bearer ${response.data.token}`;
           console.log('✅ Saving business_token to localStorage:', token.substring(0, 30) + '...');
           localStorage.setItem('business_token', token);
         } else {
           console.warn('⚠️ No token in response.data, checking response.token...');
           if ((response as any).token) {
-            const token = (response as any).token.startsWith('Bearer ') 
-              ? (response as any).token 
+            const token = (response as any).token.startsWith('Bearer ')
+              ? (response as any).token
               : `Bearer ${(response as any).token}`;
             console.log('✅ Saving business_token from response.token:', token.substring(0, 30) + '...');
             localStorage.setItem('business_token', token);
@@ -140,7 +140,7 @@ export default function LoginPage() {
       // 2) Personel (staff) login fallback
       try {
         const currentSubdomain = subdomain || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
-        const staffResp = await apiService.staffLogin(username, password, currentSubdomain);
+        const staffResp = await apiService.staffLogin({ username, password, subdomain: currentSubdomain });
 
         if (staffResp.success && staffResp.data) {
           const staff = staffResp.data as any;

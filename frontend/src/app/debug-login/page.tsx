@@ -56,7 +56,7 @@ export default function DebugLoginPage() {
     setStaffResult(null);
     try {
       const sd = subdomain || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
-      const res = await apiService.staffLogin(staffUsername, staffPassword, sd);
+      const res = await apiService.staffLogin({ username: staffUsername, password: staffPassword, subdomain: sd });
       setStaffResult(res);
     } catch (e: any) {
       setStaffResult({ error: true, message: e?.message || 'Login failed' });

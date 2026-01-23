@@ -22,7 +22,7 @@ export default function BusinessLoginPage() {
   useEffect(() => {
     const savedUsername = localStorage.getItem('rememberedUsername');
     const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
-    
+
     if (savedUsername && savedRememberMe) {
       setUsername(savedUsername);
       setRememberMe(true);
@@ -32,10 +32,10 @@ export default function BusinessLoginPage() {
       const hostname = window.location.hostname;
       const currentSubdomain = hostname.split('.')[0];
       const mainDomains = ['localhost', 'www', 'restxqr'];
-      
+
       if (!mainDomains.includes(currentSubdomain) && hostname.includes('.')) {
         setSubdomain(currentSubdomain);
-        
+
         const restaurantData: Record<string, any> = {
           'aksaray': {
             name: 'Aksaray Restaurant',
@@ -68,7 +68,7 @@ export default function BusinessLoginPage() {
             logo: '☕'
           }
         };
-        
+
         setRestaurantInfo(restaurantData[currentSubdomain] || {
           name: `${currentSubdomain.charAt(0).toUpperCase() + currentSubdomain.slice(1)} Restaurant`,
           description: 'İşletme Paneli',
@@ -82,9 +82,9 @@ export default function BusinessLoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
+
     console.log('🔐 Attempting login:', { username, subdomain });
-    
+
     try {
       // Restaurant login
       const response = await apiService.login({ username, password });
@@ -108,16 +108,16 @@ export default function BusinessLoginPage() {
       throw new Error('Login failed');
     } catch (error: any) {
       console.warn('⚠️ Business login failed, trying staff login...', error?.message);
-      
+
       // Staff login fallback
       try {
         const currentSubdomain = subdomain || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
-        const staffResp = await apiService.staffLogin(username, password, currentSubdomain);
-        
+        const staffResp = await apiService.staffLogin({ username, password, subdomain: currentSubdomain });
+
         if (staffResp.success && staffResp.data) {
           const staff = staffResp.data as any;
           const role = (staff.role || '').toLowerCase();
-          
+
           const roleToPath: Record<string, string> = {
             cashier: '/business/cashier',
             kasiyer: '/business/cashier',
@@ -134,7 +134,7 @@ export default function BusinessLoginPage() {
           try {
             const storageKey = `${role || 'staff'}_staff`;
             sessionStorage.setItem(storageKey, JSON.stringify(staff));
-          } catch {}
+          } catch { }
 
           const target = roleToPath[role] || '/business/dashboard';
           router.push(target);
@@ -155,7 +155,7 @@ export default function BusinessLoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%239C92AC%22%20fill-opacity%3D%220.1%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%224%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
-      
+
       {/* Floating Elements */}
       <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
       <div className="absolute top-40 right-20 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>

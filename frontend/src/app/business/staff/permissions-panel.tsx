@@ -454,8 +454,8 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       // Get staff token or business token
       let authToken = localStorage.getItem('staff_token');
       if (!authToken) {
-        // Fallback to business token if staff token is not available
-        authToken = localStorage.getItem('business_token');
+        // Fallback to restaurant_token or business_token
+        authToken = localStorage.getItem('restaurant_token') || localStorage.getItem('business_token');
       }
 
       if (!authToken) {
@@ -568,8 +568,9 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
       const subdomain = hostname.split('.')[0] || 'kroren';
       const staffToken = localStorage.getItem('staff_token');
+      const restaurantToken = localStorage.getItem('restaurant_token');
       const businessToken = localStorage.getItem('business_token');
-      const authToken = staffToken || businessToken;
+      const authToken = staffToken || restaurantToken || businessToken;
       if (!authToken) return;
       const token = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
 
@@ -637,9 +638,9 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       console.log('🔍 DEBUG: staff_token:', authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND');
 
       if (!authToken) {
-        // Fallback to business token if staff token is not available
-        authToken = localStorage.getItem('business_token');
-        console.log('🔍 DEBUG: business_token:', authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND');
+        // Fallback to restaurant_token or business_token
+        authToken = localStorage.getItem('restaurant_token') || localStorage.getItem('business_token');
+        console.log('🔍 DEBUG: restaurant_token/business_token:', authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND');
       }
 
       if (!authToken) {

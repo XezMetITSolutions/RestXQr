@@ -147,7 +147,7 @@ export default function IsletmeGirisPage() {
       // Staff login fallback
       try {
         const currentSubdomain = subdomain || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
-        const staffResp = await apiService.staffLogin(username, password, currentSubdomain);
+        const staffResp = await apiService.staffLogin({ username, password, subdomain: currentSubdomain });
 
         if (staffResp.success && staffResp.data) {
           // Token'ı localStorage'a kaydet (API istekleri için)

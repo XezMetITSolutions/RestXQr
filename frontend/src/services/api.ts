@@ -27,7 +27,8 @@ class ApiService {
       // Staff token VEYA restaurant token al (business dashboard için)
       const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
       const restaurantToken = typeof window !== 'undefined' ? localStorage.getItem('restaurant_token') : null;
-      const authToken = staffToken || restaurantToken;
+      const businessToken = typeof window !== 'undefined' ? localStorage.getItem('business_token') : null;
+      const authToken = staffToken || restaurantToken || businessToken;
 
       // Log if token is missing
       if (!authToken && !endpoint.includes('/login')) {
@@ -62,7 +63,7 @@ class ApiService {
         url,
         subdomain,
         hasToken: !!authToken,
-        tokenType: staffToken ? 'staff_token' : (restaurantToken ? 'restaurant_token' : 'none'),
+        tokenType: staffToken ? 'staff_token' : (restaurantToken ? 'restaurant_token' : (businessToken ? 'business_token' : 'none')),
         hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
         headers: { ...headers, Authorization: authToken ? 'Bearer [HIDDEN]' : undefined }
       });
@@ -146,7 +147,6 @@ class ApiService {
 
   async createMenuItem(restaurantId: string, data: any) {
     console.log('API - createMenuItem çağrıldı:', { restaurantId, data });
-    console.log('API - Gönderilen resim URL uzunluğu:', data.imageUrl?.length || 0);
     return this.request<any>(`/restaurants/${restaurantId}/menu/items`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -155,7 +155,6 @@ class ApiService {
 
   async updateMenuItem(restaurantId: string, itemId: string, data: any) {
     console.log('API - updateMenuItem çağrıldı:', { restaurantId, itemId, data });
-    console.log('API - Gönderilen resim URL uzunluğu:', data.imageUrl?.length || 0);
     return this.request<any>(`/restaurants/${restaurantId}/menu/items/${itemId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -168,6 +167,23 @@ class ApiService {
     });
   }
 
+  // Order endpoints
+  async getOrders(restaurantId: string, status?: string) {
+    const params = new URLSearchParams({ restaurantId });
+    if (status) params.append('status', status);
+    return this.request<any>(`/orders?${params.toString()}`);
+  }
+
+  async getOrderById(orderId: string) {
+    return this.request<any>(`/orders/${orderId}`);
+  }
+
+  async createOrder(orderData: any) {
+    return this.request<any>('/orders', {
+      method: 'POST',
+      body: JSON.stringify(orderData),
+    });
+  }
 
   async updateOrderStatus(orderId: string, status: string) {
     return this.request<any>(`/orders/${orderId}`, {
@@ -176,28 +192,18 @@ class ApiService {
     });
   }
 
-  async getOrderById(orderId: string) {
-    return this.request<any>(`/orders/${orderId}`);
-  }
-
   // Authentication endpoints
   async login(credentials: { username: string; password: string }) {
-    console.log('🔐 Login attempt:', {
-      username: credentials.username,
-      hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
-      subdomain: typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : 'server'
-    });
-
     return this.request<any>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
   }
 
-  async staffLogin(username: string, password: string, subdomain: string) {
+  async staffLogin(credentials: { username: string; password: string; subdomain?: string }) {
     return this.request<any>('/staff/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password, subdomain }),
+      body: JSON.stringify(credentials),
     });
   }
 
@@ -261,97 +267,7 @@ class ApiService {
 
   // Staff endpoints
   async getStaff(restaurantId: string) {
-    try {
-      console.log('Getting staff for restaurant:', restaurantId);
-
-      // Get staff token OR restaurant token (for business dashboard)
-      const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
-      const restaurantToken = typeof window !== 'undefined' ? localStorage.getItem('restaurant_token') : null;
-      const authToken = staffToken || restaurantToken;
-
-      if (!authToken) {
-        console.error('No authentication token found (staff_token or restaurant_token)');
-        throw new Error('Authentication token is missing');
-      }
-
-      console.log('Using token type:', staffToken ? 'staff_token' : 'restaurant_token');
-
-      // Get subdomain directly
-      const subdomain = typeof window !== 'undefined'
-        ? window.location.hostname.split('.')[0]
-        : 'kroren';
-
-      // Make direct fetch request with error handling
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
-      const url = `${API_URL}/staff/restaurant/${restaurantId}`;
-
-      console.log('Making staff API request to:', url);
-
-      // Ensure token is properly formatted
-      const token = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
-
-      try {
-        // First attempt with standard headers
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Authorization': token,
-            'Content-Type': 'application/json',
-            'X-Subdomain': subdomain
-          }
-        });
-
-        console.log('Staff API response status:', response.status);
-
-        if (response.ok) {
-          const data = await response.json();
-
-          // Cache successful response in localStorage
-          if (typeof window !== 'undefined' && data?.data) {
-            try {
-              localStorage.setItem('business_staff', JSON.stringify(data.data));
-              console.log('Staff data cached in localStorage');
-            } catch (cacheError) {
-              console.warn('Failed to cache staff data:', cacheError);
-            }
-          }
-
-          return data;
-        } else {
-          // If response is not OK, try to get error details
-          try {
-            const errorData = await response.json();
-            console.error('Staff API error details:', errorData);
-            throw new Error(errorData.message || `API error: ${response.status}`);
-          } catch (jsonError) {
-            // If can't parse JSON, throw generic error
-            throw new Error(`API error: ${response.status}`);
-          }
-        }
-      } catch (fetchError) {
-        console.error('Staff API fetch error:', fetchError);
-
-        // Try to load from localStorage as fallback
-        if (typeof window !== 'undefined') {
-          const savedStaff = localStorage.getItem('business_staff');
-          if (savedStaff) {
-            console.log('Using cached staff data from localStorage');
-            try {
-              const parsedStaff = JSON.parse(savedStaff);
-              return { success: true, data: parsedStaff };
-            } catch (parseError) {
-              console.error('Error parsing cached staff data:', parseError);
-            }
-          }
-        }
-
-        // If no cached data or parsing failed, rethrow the original error
-        throw fetchError;
-      }
-    } catch (error) {
-      console.error('Error in getStaff:', error);
-      throw error;
-    }
+    return this.request<any[]>(`/staff/restaurant/${restaurantId}`);
   }
 
   async createStaff(restaurantId: string, staffData: any) {
@@ -374,7 +290,6 @@ class ApiService {
     });
   }
 
-
   // Admin endpoints
   async getAllRestaurantUsers() {
     return this.request<any>(`/restaurants/users/all`);
@@ -391,43 +306,6 @@ class ApiService {
         currentPassword,
         newPassword
       })
-    });
-  }
-
-
-  // Order endpoints
-  async getOrders(restaurantId: string, status?: string) {
-    const params = new URLSearchParams({ restaurantId });
-    if (status) params.append('status', status);
-    return this.request<any>(`/orders?${params.toString()}`);
-  }
-
-  async createOrder(orderData: {
-    restaurantId: string;
-    tableNumber?: number;
-    customerName?: string;
-    items: Array<{
-      menuItemId?: string;
-      id?: string;
-      name?: string;
-      quantity: number;
-      unitPrice?: number;
-      price?: number;
-      notes?: string;
-    }>;
-    notes?: string;
-    orderType?: string;
-  }) {
-    return this.request<any>('/orders', {
-      method: 'POST',
-      body: JSON.stringify(orderData),
-    });
-  }
-
-  async updateOrderStatus(orderId: string, status: string) {
-    return this.request<any>(`/orders/${orderId}`, {
-      method: 'PUT',
-      body: JSON.stringify({ status }),
     });
   }
 
@@ -672,36 +550,6 @@ class ApiService {
     return this.request<any>(`/inventory/${id}`, {
       method: 'DELETE',
     });
-  }
-
-  // Staff Login
-  async staffLogin(credentials: { username: string; password: string }) {
-    return this.request<any>('/staff/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    });
-  }
-
-  // QR Token endpoints
-  async generateQRToken(data: { restaurantId: string; tableNumber: number; duration?: number }) {
-    return this.request<any>('/qr/generate', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async getRestaurantQRTokens(restaurantId: string) {
-    return this.request<any[]>(`/qr/restaurant/${restaurantId}/tables`);
-  }
-
-  async deactivateQRToken(token: string) {
-    return this.request<any>(`/qr/deactivate/${token}`, {
-      method: 'DELETE',
-    });
-  }
-
-  async verifyQRToken(token: string) {
-    return this.request<any>(`/qr/verify/${token}`);
   }
 
   // Session management for real-time cart
