@@ -138,6 +138,22 @@ export default function GarsonPanel() {
     checkAuth();
   }, [router, API_URL]);
 
+  // Yetki kontrolü fonksiyonu
+  const hasPermission = (permissionId: string) => {
+    // Debug: Eğer staffUser yoksa false
+    if (!staffUser) return false;
+
+    // Yönetici/Admin/Sahip her yetkiye sahiptir
+    if (['admin', 'manager', 'restaurant_owner'].includes(staffUser.role)) return true;
+
+    // Yetki listesi yoksa veya boşsa
+    if (!staffUser.permissions || !Array.isArray(staffUser.permissions)) return false;
+
+    // Yetkiyi bul ve durumunu döndür
+    const permission = staffUser.permissions.find((p: any) => p.id === permissionId);
+    return permission ? permission.enabled : false;
+  };
+
   // Menu items'ları çek
   const fetchMenuItems = async () => {
     if (!restaurantId) return;
@@ -639,7 +655,7 @@ export default function GarsonPanel() {
 
                 {/* Action Buttons */}
                 <div className={`grid gap-2 ${order.id.includes('grouped') ? 'grid-cols-5' : 'grid-cols-4'}`}>
-                  {order.id.includes('grouped') && (
+                  {(order.id.includes('grouped') || hasPermission('waiter_view_orders')) && (
                     <button
                       onClick={() => {
                         setSelectedOrder(order);
@@ -650,60 +666,72 @@ export default function GarsonPanel() {
                       📋 Detay
                     </button>
                   )}
-                  <button
-                    onClick={() => {
-                      if (order.id.includes('grouped')) {
-                        // Gruplu sipariş için tüm siparişleri tamamla
-                        const tableOrders = orders.filter(o => o.tableNumber === order.tableNumber);
-                        tableOrders.forEach(tableOrder => {
-                          updateOrderStatus(tableOrder.id, 'completed');
-                        });
-                      } else {
-                        updateOrderStatus(order.id, 'completed');
-                      }
-                    }}
-                    className="py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-xs transition-colors"
-                  >
-                    ✓ Servis Et
-                  </button>
-                  <button
-                    onClick={() => {
-                      setOrderToChangeTable(order);
-                      setNewTableNumber(order.tableNumber.toString());
-                      setShowTableModal(true);
-                    }}
-                    className="py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs transition-colors"
-                  >
-                    🔄 Masa Değiştir
-                  </button>
-                  <button
-                    onClick={() => {
-                      setOrderToEdit(order);
-                      fetchMenuItems();
-                      setShowEditModal(true);
-                    }}
-                    className="py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-bold text-xs transition-colors"
-                  >
-                    ✏️ Düzenle
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm('Bu siparişi iptal etmek istediğinizden emin misiniz?')) {
+
+                  {hasPermission('waiter_mark_completed') && (
+                    <button
+                      onClick={() => {
                         if (order.id.includes('grouped')) {
-                          // Gruplu sipariş için tüm siparişleri iptal et
+                          // Gruplu sipariş için tüm siparişleri tamamla
                           const tableOrders = orders.filter(o => o.tableNumber === order.tableNumber);
                           tableOrders.forEach(tableOrder => {
-                            updateOrderStatus(tableOrder.id, 'cancelled');
+                            updateOrderStatus(tableOrder.id, 'completed');
                           });
                         } else {
-                          updateOrderStatus(order.id, 'cancelled');
+                          updateOrderStatus(order.id, 'completed');
                         }
-                      }
-                    }}
-                    className="py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-xs transition-colors"
-                  >
-                    ❌ İptal Et
-                  </button>
+                      }}
+                      className="py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-xs transition-colors"
+                    >
+                      ✓ Servis Et
+                    </button>
+                  )}
+
+                  {hasPermission('waiter_edit_order') && (
+                    <button
+                      onClick={() => {
+                        setOrderToChangeTable(order);
+                        setNewTableNumber(order.tableNumber.toString());
+                        setShowTableModal(true);
+                      }}
+                      className="py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs transition-colors"
+                    >
+                      🔄 Masa Değiştir
+                    </button>
+                  )}
+
+                  {hasPermission('waiter_edit_order') && (
+                    <button
+                      onClick={() => {
+                        setOrderToEdit(order);
+                        fetchMenuItems();
+                        setShowEditModal(true);
+                      }}
+                      className="py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-bold text-xs transition-colors"
+                    >
+                      ✏️ Düzenle
+                    </button>
+                  )}
+
+                  {hasPermission('waiter_cancel_order') && (
+                    <button
+                      onClick={() => {
+                        if (confirm('Bu siparişi iptal etmek istediğinizden emin misiniz?')) {
+                          if (order.id.includes('grouped')) {
+                            // Gruplu sipariş için tüm siparişleri iptal et
+                            const tableOrders = orders.filter(o => o.tableNumber === order.tableNumber);
+                            tableOrders.forEach(tableOrder => {
+                              updateOrderStatus(tableOrder.id, 'cancelled');
+                            });
+                          } else {
+                            updateOrderStatus(order.id, 'cancelled');
+                          }
+                        }
+                      }}
+                      className="py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-xs transition-colors"
+                    >
+                      ❌ İptal Et
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
