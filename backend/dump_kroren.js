@@ -8,8 +8,8 @@ async function dump() {
         const itemsRes = await fetch(`${API_BASE}/restaurants/${KROREN_RESTAURANT_ID}/menu/items`);
         const itemsData = await itemsRes.json();
         console.log(JSON.stringify({
-            categories: catData.data.map(c => ({ id: c.id, name: c.name })),
-            items: itemsData.data.map(i => ({ id: i.id, name: i.name, categoryId: i.categoryId, price: i.price }))
+            categories: catData.data.map(c => ({ id: c.id, name: c.name, kitchenStation: c.kitchenStation })),
+            items: itemsData.data.map(i => ({ id: i.id, name: i.name, categoryId: i.categoryId, price: i.price, station: i.kitchenStation }))
         }, null, 2));
     } catch (error) {
         console.error(error);

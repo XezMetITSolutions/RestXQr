@@ -2617,7 +2617,7 @@ export default function MenuManagement() {
                                     const formData = new FormData();
                                     formData.append('image', file);
 
-                                    const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
+                                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/upload/image`, {
                                       method: 'POST',
                                       body: formData,
                                     });
@@ -2684,7 +2684,7 @@ export default function MenuManagement() {
 
                                     console.log('📡 API URL:', process.env.NEXT_PUBLIC_API_URL);
 
-                                    const response = await fetch(`https://masapp-backend.onrender.com/api/upload/image`, {
+                                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/upload/image`, {
                                       method: 'POST',
                                       body: formData,
                                     });
@@ -2773,7 +2773,7 @@ export default function MenuManagement() {
                           <p className="text-sm font-medium text-gray-700 mb-2"><TranslatedText>Seçilen Fotoğraf:</TranslatedText></p>
                           <div className="relative inline-block">
                             <img
-                              src={capturedImage.startsWith('http') ? capturedImage : `https://masapp-backend.onrender.com${capturedImage}`}
+                              src={capturedImage.startsWith('http') ? capturedImage : `${(process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '')}${capturedImage}`}
                               alt="Ürün fotoğrafı önizleme"
                               className="w-32 h-32 object-cover rounded-lg border"
                             />

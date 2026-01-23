@@ -209,6 +209,14 @@ router.put('/:restaurantId/menu/categories/:categoryId', async (req, res) => {
       kitchenStation: kitchenStation !== undefined ? kitchenStation : category.kitchenStation
     });
 
+    // If kitchenStation is updated, update all items in this category
+    if (kitchenStation !== undefined) {
+      await MenuItem.update(
+        { kitchenStation },
+        { where: { categoryId: category.id } }
+      );
+    }
+
     res.json({
       success: true,
       data: category
@@ -409,7 +417,7 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       allergens: allergens || [],
       portion: portion || null,
       portionSize: portion || null,
-      kitchenStation: kitchenStation || null,
+      kitchenStation: kitchenStation || category.kitchenStation || null,
       variations: req.body.variations || [],
       options: req.body.options || [],
       type: req.body.type || 'single',
