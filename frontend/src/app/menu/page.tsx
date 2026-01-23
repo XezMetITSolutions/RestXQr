@@ -1035,16 +1035,16 @@ function MenuPageContent() {
                   href={settings.basicInfo.googleReviewLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-white hover:bg-gray-50"
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-white hover:bg-gray-50 gap-3"
                   style={{ textDecoration: 'none', borderLeftColor: 'var(--brand-primary)' }}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center w-full sm:w-auto">
                     <span className="text-lg mr-3">⭐</span>
                     <span className="text-sm font-medium text-gray-800">
                       <TranslatedText>Google'da Değerlendir</TranslatedText>
                     </span>
                   </div>
-                  <button className="text-xs font-semibold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-secondary">
+                  <button className="w-full sm:w-auto text-xs font-semibold px-3 py-2 rounded-lg shadow group-hover:scale-105 transition btn-secondary text-center">
                     <TranslatedText>Yorum Yap</TranslatedText>
                   </button>
                 </a>
