@@ -54,6 +54,18 @@ function CartPageContent() {
     if (typeof window !== 'undefined') {
       const storedSessionKey = sessionStorage.getItem('session_key');
       const storedClientId = sessionStorage.getItem('client_id');
+      const storedQrToken = sessionStorage.getItem('qr_token');
+
+      // URL'deki token ile karşılaştır (extra güvenlik)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
+
+      if (urlToken && storedQrToken && urlToken !== storedQrToken) {
+        console.log('🧹 Token mismatch detected in cart, clearing stale order data.');
+        localStorage.removeItem('pending_order_id');
+        localStorage.removeItem('pending_order_items');
+      }
+
       if (storedSessionKey && storedClientId) {
         setSessionKey(storedSessionKey);
         setClientId(storedClientId);

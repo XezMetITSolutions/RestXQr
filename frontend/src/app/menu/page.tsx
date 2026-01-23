@@ -100,8 +100,11 @@ function MenuPageContent() {
             // Yeni QR okutulduysa sepeti temizle
             const storedToken = sessionStorage.getItem('qr_token');
             if (storedToken !== tokenParam) {
-              console.log('🧹 Yeni QR oturumu başlatılıyor, sepet temizleniyor.');
+              console.log('🧹 Yeni QR oturumu başlatılıyor, sepet ve eski sipariş bilgileri temizleniyor.');
               clearCart();
+              // Eski sipariş bilgilerini temizle (Masa değişikliği veya yeni müşteri durumu)
+              localStorage.removeItem('pending_order_id');
+              localStorage.removeItem('pending_order_items');
             }
 
             setTokenValid(true);
@@ -747,23 +750,7 @@ function MenuPageContent() {
       )}
       <Toast message="Ürün sepete eklendi!" visible={toastVisible} onClose={() => setToastVisible(false)} />
       <main className="min-h-screen pb-20 overflow-x-hidden">
-        {/* Notice Banner */}
-        {!orderingAllowed && (
-          <div className="bg-yellow-100 border-b border-yellow-200 py-2 px-4 text-center fixed top-0 left-0 right-0 z-30">
-            <p className="text-yellow-800 text-sm font-medium">
-              <span className="mr-1">⚠️</span>
-              <TranslatedText>Sadece menü görüntüleme modu aktif. Sipariş vermek için masa QR kodunu okutun.</TranslatedText>
-            </p>
-          </div>
-        )}
-        {orderingAllowed && (
-          <div className="bg-green-100 border-b border-green-200 py-2 px-4 text-center fixed top-0 left-0 right-0 z-30">
-            <p className="text-green-800 text-sm font-medium">
-              <span className="mr-1">✅</span>
-              <span>Sipariş verme modu aktif</span>
-            </p>
-          </div>
-        )}
+        {/* Sipariş verme modu banner'ı kaldırıldı user isteği üzerine */}
 
         {/* Header */}
         <header className="bg-white shadow-sm fixed top-0 mt-9 left-0 right-0 z-20">
