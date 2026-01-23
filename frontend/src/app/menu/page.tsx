@@ -923,7 +923,11 @@ function MenuPageContent() {
         <div className="container mx-auto px-3 py-2 max-w-full">
           <div className="grid grid-cols-1 gap-3 max-w-full">
             {filteredItems.map((item: any) => (
-              <div key={item.id} className="bg-white rounded-lg shadow-sm border p-3 flex max-w-full">
+              <div
+                key={item.id}
+                className="bg-white rounded-lg shadow-sm border p-3 flex max-w-full cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]"
+                onClick={() => openModal(item)}
+              >
                 <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
                   <Image
                     src={item.imageUrl ?
@@ -951,60 +955,33 @@ function MenuPageContent() {
                     </div>
                   )}
                 </div>
-                <div className="ml-3 flex-grow min-w-0">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-semibold text-dynamic-sm truncate">{typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün')}</h3>
-                    <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: primary }}>{item.price} ₺</span>
-                  </div>
-                  <p className="text-xs text-gray-600 line-clamp-2 mb-2 break-words">
-                    {typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || '')}
-                  </p>
-
-                  {/* Allergens */}
-                  {item.allergens && item.allergens.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {item.allergens.slice(0, 3).map((allergen: any, i: number) => (
-                        <span key={i} className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-full">
-                          {typeof allergen === 'string' ? allergen : (allergen[language as keyof typeof allergen] || allergen.tr || allergen.en)}
-                        </span>
-                      ))}
+                <div className="ml-3 flex-grow min-w-0 flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-semibold text-dynamic-sm truncate">{typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün')}</h3>
+                      <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: primary }}>{item.price} ₺</span>
                     </div>
-                  )}
+                    <p className="text-xs text-gray-600 line-clamp-2 mb-2 break-words">
+                      {typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || '')}
+                    </p>
 
-                  {/* Debug: Allergens */}
-                  {process.env.NODE_ENV === 'development' && item.allergens && (
-                    <div className="text-xs text-gray-400">
-                      Debug: {JSON.stringify(item.allergens)}
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center">
-                    <button
-                      onClick={() => openModal(item)}
-                      className="text-xs flex items-center"
-                      style={{ color: primary }}
-                    >
-                      <FaInfo className="mr-1" size={10} />
-                      <TranslatedText>Detayları Gör</TranslatedText>
-                    </button>
-                    {orderingAllowed ? (
-                      <button
-                        className="btn btn-secondary py-1 px-3 text-xs rounded flex items-center"
-                        onClick={() => addToCart(item)}
-                      >
-                        <FaPlus className="mr-1" size={10} />
-                        <TranslatedText>Sepete Ekle</TranslatedText>
-                      </button>
-                    ) : (
-                      <button
-                        className="btn py-1 px-3 text-xs rounded flex items-center bg-gray-300 text-gray-600 cursor-not-allowed"
-                        disabled
-                        title="Sipariş vermek için masa QR kodunu okutun"
-                      >
-                        <FaPlus className="mr-1" size={10} />
-                        <TranslatedText>Sipariş Kapalı</TranslatedText>
-                      </button>
+                    {/* Allergens */}
+                    {item.allergens && item.allergens.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-1">
+                        {item.allergens.slice(0, 3).map((allergen: any, i: number) => (
+                          <span key={i} className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-full">
+                            {typeof allergen === 'string' ? allergen : (allergen[language as keyof typeof allergen] || allergen.tr || allergen.en)}
+                          </span>
+                        ))}
+                      </div>
                     )}
+                  </div>
+
+                  <div className="flex justify-end mt-1">
+                    <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                      <FaPlus size={8} />
+                      <TranslatedText>Detaylar & Ekle</TranslatedText>
+                    </span>
                   </div>
                 </div>
               </div>
