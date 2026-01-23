@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
+const jwt = require('jsonwebtoken');
 
 // Safe model import with fallback
 let Staff, Restaurant, MenuCategory, MenuItem;
@@ -595,15 +596,28 @@ router.post('/login', async (req, res) => {
     }
 
     // Generate JWT token for staff
-    const jwt = require('jsonwebtoken');
-    const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
-    const token = jwt.sign(
-      { id: staff.id, role: staff.role, type: 'staff', restaurantId: staff.restaurantId },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    let token = null;
+    try {
+      const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 
-    console.log('✅ Staff JWT token generated');
+      console.log('🔐 Generating token for staff:', staff.id);
+
+      token = jwt.sign(
+        {
+          id: staff.id,
+          role: staff.role,
+          type: 'staff',
+          restaurantId: staff.restaurantId
+        },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+      console.log('✅ Staff JWT token generated successfully');
+    } catch (tokenError) {
+      console.error('❌ Error generating JWT token:', tokenError);
+      // Don't crash the request, but log the error. 
+      // The frontend will see successful login but missing token, which is handled
+    }
 
     res.json({
       success: true,
