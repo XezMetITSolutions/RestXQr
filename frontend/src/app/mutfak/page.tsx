@@ -569,6 +569,24 @@ export default function MutfakPanel() {
     return groupedByTable.map(tableOrders => createGroupedOrder(tableOrders));
   })();
 
+  // Yetki kontrolü fonksiyonu
+  const hasPermission = (permissionId: string) => {
+    const user = localStorage.getItem('staff_user');
+    if (!user) return false;
+    const staffUser = JSON.parse(user);
+
+    // Yönetici/Admin/Sahip her yetkiye sahiptir
+    if (['admin', 'manager', 'restaurant_owner', 'chef'].includes(staffUser.role)) return true; // Chef default full access? Maybe check permissions if role is chef but limited?
+    // Actually, 'chef' role should also respect permissions if we want granular control.
+    // The previous implementation for Waiter allowed 'waiter' role full access? No, it checked permissions if not admin/manager.
+    // Let's stick to admin/manager bypass. Regular chef should check permissions.
+    if (['admin', 'manager', 'restaurant_owner'].includes(staffUser.role)) return true;
+
+    if (!staffUser.permissions || !Array.isArray(staffUser.permissions)) return false;
+    const permission = staffUser.permissions.find((p: any) => p.id === permissionId);
+    return permission ? permission.enabled : false;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -587,12 +605,14 @@ export default function MutfakPanel() {
           </div>
 
           <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4 w-full md:w-auto">
-            <button
-              onClick={handleMenuManagement}
-              className="flex-1 md:flex-none px-3 md:px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500 transition-colors text-sm md:text-base whitespace-nowrap"
-            >
-              + Menü Yönetimi
-            </button>
+            {hasPermission('kitchen_edit_menu') && (
+              <button
+                onClick={handleMenuManagement}
+                className="flex-1 md:flex-none px-3 md:px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500 transition-colors text-sm md:text-base whitespace-nowrap"
+              >
+                + Menü Yönetimi
+              </button>
+            )}
             <div className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg text-xs md:text-sm cursor-pointer hover:bg-gray-50 whitespace-nowrap">
               TR Türkçe ↓
             </div>

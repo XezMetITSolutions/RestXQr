@@ -465,7 +465,7 @@ export default function KasaPanel() {
   };
 
   const applyTreat = (index: number) => {
-    if (!selectedOrder || (staffRole !== 'manager' && staffRole !== 'admin')) return;
+    if (!selectedOrder || !hasPermission('cashier_apply_discount')) return;
     saveToUndo(selectedOrder);
     const updatedItems = [...selectedOrder.items];
     updatedItems[index] = { ...updatedItems[index], price: 0, notes: (updatedItems[index].notes || '') + ' (İkram)' };
@@ -474,7 +474,7 @@ export default function KasaPanel() {
   };
 
   const applyGeneralDiscount = (val: number, type: 'percent' | 'amount') => {
-    if (!selectedOrder || (staffRole !== 'manager' && staffRole !== 'admin')) return;
+    if (!selectedOrder || !hasPermission('cashier_apply_discount')) return;
     saveToUndo(selectedOrder);
     let discount = type === 'percent' ? Number(selectedOrder.totalAmount) * (val / 100) : val;
     setSelectedOrder({ ...selectedOrder, discountAmount: discount, discountReason: `${val}${type === 'percent' ? '%' : '₺'} İndirim` });
@@ -829,10 +829,13 @@ export default function KasaPanel() {
                         )}
                       </div>
                       <div className="flex gap-3 mt-6">
-                        <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
-                          ÖDEME AL
-                        </button>
-                        {order.approved === false && (
+                        {hasPermission('cashier_process_payment') && (
+                          <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
+                            ÖDEME AL
+                          </button>
+                        )}
+
+                        {order.approved === false && hasPermission('cashier_approve_orders') && (
                           <button
                             onClick={async () => {
                               try {
@@ -884,61 +887,65 @@ export default function KasaPanel() {
                           <FaPrint />
                           <span className="text-[10px]">DEBUG</span>
                         </button>
-                        <button
-                          onClick={() => {
-                            if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
-                              if (order.id.includes('grouped')) {
-                                const tableOrders = order.originalOrders || [];
-                                const tableNumber = order.tableNumber;
-                                if (tableOrders.length === 0) {
-                                  alert('Alt siparişler bulunamadı');
-                                  return;
-                                }
 
-                                Promise.all(tableOrders.map(async (tableOrder) => {
-                                  try {
-                                    const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
-                                      method: 'DELETE',
-                                      headers: { 'Accept': 'application/json' }
-                                    });
-                                    return response.ok;
-                                  } catch (error) {
-                                    console.error(`Sipariş silme hatası: ${tableOrder.id}`, error);
-                                    return false;
+                        {hasPermission('cashier_reject_orders') && (
+                          <button
+                            onClick={() => {
+                              if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
+                                if (order.id.includes('grouped')) {
+                                  // Simplified deletion logic
+                                  const tableOrders = order.originalOrders || [];
+                                  const tableNumber = order.tableNumber;
+                                  if (tableOrders.length === 0) {
+                                    alert('Alt siparişler bulunamadı');
+                                    return;
                                   }
-                                })).then(results => {
-                                  const allSuccessful = results.every(result => result === true);
-                                  if (allSuccessful) {
-                                    alert(`Masa ${tableNumber} için tüm siparişler başarıyla silindi`);
-                                  } else {
-                                    alert(`Masa ${tableNumber} için bazı siparişler silinemedi. Lütfen sayfayı yenileyip tekrar deneyin.`);
-                                  }
-                                  fetchOrders();
-                                });
-                              } else {
-                                fetch(`${API_URL}/orders/${order.id}`, {
-                                  method: 'DELETE',
-                                  headers: { 'Accept': 'application/json' }
-                                }).then(response => {
-                                  if (response.ok) {
-                                    alert('Sipariş başarıyla silindi');
+
+                                  Promise.all(tableOrders.map(async (tableOrder) => {
+                                    try {
+                                      const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
+                                        method: 'DELETE',
+                                        headers: { 'Accept': 'application/json' }
+                                      });
+                                      return response.ok;
+                                    } catch (error) {
+                                      console.error(`Sipariş silme hatası: ${tableOrder.id}`, error);
+                                      return false;
+                                    }
+                                  })).then(results => {
+                                    const allSuccessful = results.every(result => result === true);
+                                    if (allSuccessful) {
+                                      alert(`Masa ${tableNumber} için tüm siparişler başarıyla silindi`);
+                                    } else {
+                                      alert(`Masa ${tableNumber} için bazı siparişler silinemedi. Lütfen sayfayı yenileyip tekrar deneyin.`);
+                                    }
                                     fetchOrders();
-                                  } else {
-                                    alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
+                                  });
+                                } else {
+                                  fetch(`${API_URL}/orders/${order.id}`, {
+                                    method: 'DELETE',
+                                    headers: { 'Accept': 'application/json' }
+                                  }).then(response => {
+                                    if (response.ok) {
+                                      alert('Sipariş başarıyla silindi');
+                                      fetchOrders();
+                                    } else {
+                                      alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
+                                      fetchOrders();
+                                    }
+                                  }).catch(error => {
+                                    console.error('Sipariş silme hatası:', error);
+                                    alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
                                     fetchOrders();
-                                  }
-                                }).catch(error => {
-                                  console.error('Sipariş silme hatası:', error);
-                                  alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
-                                  fetchOrders();
-                                });
+                                  });
+                                }
                               }
-                            }
-                          }}
-                          className="py-4 px-3 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all shadow-lg active:scale-95"
-                        >
-                          <FaTrash />
-                        </button>
+                            }}
+                            className="py-4 px-3 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all shadow-lg active:scale-95"
+                          >
+                            <FaTrash />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -996,7 +1003,7 @@ export default function KasaPanel() {
                           </div>
 
                           <div className="flex gap-1">
-                            {paymentTab === 'full' && (staffRole === 'manager' || staffRole === 'admin') &&
+                            {paymentTab === 'full' && hasPermission('cashier_apply_discount') &&
                               <button onClick={(e) => { e.stopPropagation(); applyTreat(idx); }} className="p-1.5 bg-orange-100 text-orange-600 rounded hover:bg-orange-200"><FaUtensils size={12} /></button>
                             }
                             {paymentTab === 'full' &&
