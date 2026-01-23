@@ -262,6 +262,14 @@ export default function StaffPage() {
     if (!name) { alert(t('Ad Soyad zorunludur.')); return; }
     if (!email) { alert(t('E-posta zorunludur.')); return; }
 
+    // Departmanı role göre otomatik ata
+    const roleToDepartment: Record<string, string> = {
+      waiter: 'service',
+      chef: 'kitchen',
+      cashier: 'finance',
+      manager: 'management'
+    };
+
     const now = new Date();
     const newMember: any = {
       id: Date.now(),
@@ -269,7 +277,7 @@ export default function StaffPage() {
       email: email,
       phone: newStaff.phone.trim(),
       role: newStaff.role,
-      department: newStaff.department,
+      department: roleToDepartment[newStaff.role] || 'service',
       startDate: now.toISOString().slice(0, 10),
       status: 'active',
       lastLogin: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
@@ -360,7 +368,7 @@ export default function StaffPage() {
           email: selectedStaff.email,
           phone: selectedStaff.phone,
           role: selectedStaff.role,
-          department: selectedStaff.department,
+          department: roleToDepartment[selectedStaff.role] || 'service',
           notes: selectedStaff.notes,
           status: selectedStaff.status,
           username: selectedStaff.username
@@ -657,9 +665,7 @@ export default function StaffPage() {
 
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <p className="text-sm text-gray-600">
-                              {getDepartmentText(member.department)}
-                            </p>
+                            {/* Departman bilgisi gizlendi - tek rol yeterli */}
                           </div>
 
                           <button
@@ -924,7 +930,7 @@ export default function StaffPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                           <TranslatedText>Rol *</TranslatedText>
@@ -938,22 +944,6 @@ export default function StaffPage() {
                           <option value="chef">{t('Aşçı')}</option>
                           <option value="cashier">{t('Kasiyer')}</option>
                           {/* Yönetici seçeneği kaldırıldı - sadece operasyonel personel */}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                          <TranslatedText>Departman</TranslatedText>
-                        </label>
-                        <select
-                          value={newStaff.department}
-                          onChange={(e) => setNewStaff({ ...newStaff, department: e.target.value })}
-                          className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
-                        >
-                          <option value="service">{t('Servis')}</option>
-                          <option value="kitchen">{t('Mutfak')}</option>
-                          <option value="finance">{t('Mali İşler')}</option>
-                          <option value="management">{t('Yönetim')}</option>
                         </select>
                       </div>
                     </div>
@@ -1038,7 +1028,7 @@ export default function StaffPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <TranslatedText>Rol *</TranslatedText>
