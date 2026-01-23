@@ -574,7 +574,7 @@ router.post('/login', async (req, res) => {
     // Restaurant bilgisini ayrı sorgu ile getir (include kaynaklı 500 hatalarını önler)
     let restaurantInfo = undefined;
     try {
-      const r = await Restaurant.findByPk(staff.restaurantId, { attributes: ['id', 'name', 'username'] });
+      const r = await Restaurant.findByPk(staff.restaurantId, { attributes: ['id', 'name', 'username', 'settings'] });
       restaurantInfo = r;
     } catch (e) {
       console.warn('⚠️ Restaurant fetch failed for staff login:', e?.message);
@@ -628,7 +628,7 @@ router.post('/login', async (req, res) => {
         id: staff.id,
         name: staff.name,
         role: staff.role,
-        permissions: staff.permissions || {},
+        permissions: (restaurantInfo.settings?.permissions?.[staff.role]) || staff.permissions || [],
         restaurantId: staff.restaurantId,
         restaurantName: restaurantInfo.name,
         restaurantUsername: restaurantInfo.username,
