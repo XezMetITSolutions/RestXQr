@@ -44,6 +44,12 @@ function MenuPageContent() {
   const [isClient, setIsClient] = useState(false);
   const [searchPlaceholder, setSearchPlaceholder] = useState('Menüde ara...');
   const { settings } = useBusinessSettingsStore();
+
+  // Debug: settings kontrolü
+  useEffect(() => {
+    console.log('Menu page - settings.menuSettings.language:', settings.menuSettings.language);
+    console.log('Menu page - full settings:', settings);
+  }, [settings]);
   const [showSplash, setShowSplash] = useState(false);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [tokenMessage, setTokenMessage] = useState('');
