@@ -170,6 +170,10 @@ export default function MenuManagement() {
   const [showBulkTranslateModal, setShowBulkTranslateModal] = useState(false);
   const [selectedBulkLanguages, setSelectedBulkLanguages] = useState<string[]>([]);
 
+  // Quick Edit States
+  const [quickEditItem, setQuickEditItem] = useState<any>(null);
+  const [quickEditData, setQuickEditData] = useState({ name: '', price: '', category: '', kitchenStation: '' });
+
 
 
 
@@ -458,6 +462,40 @@ export default function MenuManagement() {
         console.error('Ürün silinirken hata:', error);
         alert('Ürün silinirken bir hata oluştu');
       }
+    }
+  };
+
+  // Quick Edit Handlers
+  const handleQuickEdit = (item: any) => {
+    setQuickEditItem(item);
+    setQuickEditData({
+      name: item.name || '',
+      price: item.price.toString(),
+      category: item.categoryId || '',
+      kitchenStation: item.kitchenStation || ''
+    });
+  };
+
+  const handleQuickEditSave = async () => {
+    if (!quickEditItem || !currentRestaurantId) return;
+
+    try {
+      await updateMenuItem(currentRestaurantId, quickEditItem.id, {
+        name: quickEditData.name,
+        price: parseFloat(quickEditData.price),
+        categoryId: quickEditData.category,
+        kitchenStation: quickEditData.kitchenStation,
+        description: quickEditItem.description,
+        imageUrl: quickEditItem.imageUrl || quickEditItem.image,
+        isAvailable: quickEditItem.isAvailable,
+        isPopular: quickEditItem.isPopular
+      });
+
+      setQuickEditItem(null);
+      await fetchRestaurantMenu(currentRestaurantId);
+    } catch (error) {
+      console.error('Quick edit error:', error);
+      alert('Güncellem hatası: ' + (error as Error).message);
     }
   };
 
@@ -1463,8 +1501,15 @@ export default function MenuManagement() {
                               {item.isAvailable !== false ? <TranslatedText>Mevcut</TranslatedText> : <TranslatedText>Tükendi</TranslatedText>}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium relative">
                             <div className="flex flex-wrap gap-2">
+                              <button
+                                onClick={() => handleQuickEdit(item)}
+                                className="text-orange-600 hover:text-orange-900"
+                                title={t('Hızlı Düzenle')}
+                              >
+                                <FaMagic />
+                              </button>
                               <button
                                 onClick={() => handleViewTranslations(item)}
                                 className="text-blue-600 hover:text-blue-900"
@@ -1487,6 +1532,97 @@ export default function MenuManagement() {
                                 <FaTrash />
                               </button>
                             </div>
+
+                            {/* Quick Edit Dropdown */}
+                            {quickEditItem?.id === item.id && (
+                              <div className="absolute right-0 top-full mt-2 bg-white border shadow-2xl rounded-lg p-4 z-50 w-80">
+                                <div className="flex justify-between items-center mb-3">
+                                  <h4 className="font-bold text-sm">{t('Hızlı Düzenle')}</h4>
+                                  <button
+                                    onClick={() => setQuickEditItem(null)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                  >
+                                    <FaTimes />
+                                  </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                                      {t('Ürün Adı')}
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={quickEditData.name}
+                                      onChange={(e) => setQuickEditData({ ...quickEditData, name: e.target.value })}
+                                      className="w-full px-2 py-1 text-sm border rounded"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                                      {t('Fiyat (₺)')}
+                                    </label>
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      value={quickEditData.price}
+                                      onChange={(e) => setQuickEditData({ ...quickEditData, price: e.target.value })}
+                                      className="w-full px-2 py-1 text-sm border rounded"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                                      {t('Kategori')}
+                                    </label>
+                                    <select
+                                      value={quickEditData.category}
+                                      onChange={(e) => setQuickEditData({ ...quickEditData, category: e.target.value })}
+                                      className="w-full px-2 py-1 text-sm border rounded"
+                                    >
+                                      <option value="">{t('Kategori Seçin')}</option>
+                                      {categories.map(cat => (
+                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                                      {t('Mutfak İstasyonu')}
+                                    </label>
+                                    <select
+                                      value={quickEditData.kitchenStation}
+                                      onChange={(e) => setQuickEditData({ ...quickEditData, kitchenStation: e.target.value })}
+                                      className="w-full px-2 py-1 text-sm border rounded"
+                                    >
+                                      <option value="">{t('İstasyon Seçin')}</option>
+                                      {stations.map(station => (
+                                        <option key={station.id} value={station.name.toLowerCase()}>
+                                          {station.emoji} {station.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+
+                                  <div className="flex gap-2 pt-2">
+                                    <button
+                                      onClick={() => setQuickEditItem(null)}
+                                      className="flex-1 px-3 py-1.5 text-sm border rounded hover:bg-gray-50"
+                                    >
+                                      {t('İptal')}
+                                    </button>
+                                    <button
+                                      onClick={handleQuickEditSave}
+                                      className="flex-1 px-3 py-1.5 text-sm bg-orange-600 text-white rounded hover:bg-orange-700"
+                                    >
+                                      {t('Kaydet')}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}
