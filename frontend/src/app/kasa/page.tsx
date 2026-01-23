@@ -76,7 +76,24 @@ export default function KasaPanel() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
+  // Yetki kontrolü
+  const hasPermission = (permissionId: string) => {
+    if (typeof window === 'undefined') return false;
+    const user = localStorage.getItem('staff_user');
+    if (!user) return false;
+    const staffUser = JSON.parse(user);
+    if (['admin', 'manager', 'restaurant_owner'].includes(staffUser.role)) return true;
+
+    if (!staffUser.permissions || !Array.isArray(staffUser.permissions)) return false;
+    const permission = staffUser.permissions.find((p: any) => p.id === permissionId);
+    return permission ? permission.enabled : false;
+  };
+
   const openCashPad = () => {
+    if (!hasPermission('cashier_process_payment')) {
+      alert('Ödeme alma yetkiniz yok!');
+      return;
+    }
     if (!selectedOrder) return;
     let amount = 0;
     if (paymentTab === 'partial') {

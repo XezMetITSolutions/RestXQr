@@ -571,6 +571,7 @@ export default function MutfakPanel() {
 
   // Yetki kontrolü fonksiyonu
   const hasPermission = (permissionId: string) => {
+    if (typeof window === 'undefined') return false;
     const user = localStorage.getItem('staff_user');
     if (!user) return false;
     const staffUser = JSON.parse(user);

@@ -681,6 +681,7 @@ app.use('/api/translate', require('./routes/translate')); // Translation service
 app.use('/api/sessions', require('./routes/sessions')); // Session management for real-time cart
 app.use('/api/settings', require('./routes/settings')); // Restaurant settings management
 app.use('/api/permissions', require('./routes/permissions').router); // Role-based permissions management
+app.use('/api/sync', require('./routes/sync')); // Menu synchronization
 // File upload routes - Cloudinary ile kalıcı depolama
 const multer = require('multer');
 const { uploadToCloudinary } = require('./lib/cloudinary');
