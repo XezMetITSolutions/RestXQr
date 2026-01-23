@@ -306,14 +306,23 @@ function CartPageContent() {
       const orderData = {
         restaurantId,
         tableNumber: tableNumber || undefined,
-        items: (items || []).map(item => ({
-          menuItemId: item.itemId || item.id,
-          name: typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün'),
-          quantity: item.quantity,
-          unitPrice: item.price,
-          price: item.price,
-          notes: item.notes || ''
-        })),
+        items: (items || []).map(item => {
+          // Varyasyon bilgisini nota ekle
+          let itemNote = item.notes || '';
+          if (item.variant) {
+            const variantInfo = `Seçim: ${item.variant.name}`;
+            itemNote = itemNote ? `${itemNote} | ${variantInfo}` : variantInfo;
+          }
+
+          return {
+            menuItemId: item.itemId || item.id,
+            name: typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün'),
+            quantity: item.quantity,
+            unitPrice: item.price, // Varyasyonlu fiyat zaten item.price içindedir
+            price: item.price,
+            notes: itemNote
+          };
+        }),
         notes: `Ödeme yöntemi: ${(!settings.paymentSettings.allowCardPayment && !settings.paymentSettings.allowCashPayment) ? 'Kasada Ödeme' :
           (paymentMethod === 'cash' ? 'nakit' : paymentMethod)
           }, Bahşiş: ${tipAmount}₺, Bağış: ${donationAmount}₺`,
