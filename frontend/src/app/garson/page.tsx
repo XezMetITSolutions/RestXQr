@@ -543,43 +543,7 @@ export default function GarsonPanel() {
           </button>
         </div>
 
-        {/* Müşteri İstekleri Section */}
-        {calls.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-2 h-6 bg-red-500 rounded-full animate-pulse"></div>
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                🔔 Müşteri İstekleri
-                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{calls.length}</span>
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {calls.map((call) => (
-                <div key={call.id} className="bg-white border-l-4 border-red-500 rounded-xl p-4 shadow-lg flex items-center justify-between">
-                  <div>
-                    <div className="text-lg font-bold text-gray-900 mb-1">Masa {call.tableNumber}</div>
-                    <div className="text-sm font-medium text-red-600 flex items-center gap-1">
-                      {call.type === 'water' && '💧 Su İsteği'}
-                      {call.type === 'bill' && '💰 Hesap İsteği'}
-                      {call.type === 'clean' && '🧹 Masa Temizliği'}
-                      {call.type === 'help' && '🤝 Yardım Talebi'}
-                      {call.type === 'custom' && `📝 ${call.message}`}
-                    </div>
-                    <div className="text-[10px] text-gray-400 mt-1">
-                      {new Date(call.createdAt).toLocaleTimeString('tr-TR')}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => resolveCall(call.id)}
-                    className="bg-green-100 text-green-700 hover:bg-green-200 p-3 rounded-xl transition-colors"
-                  >
-                    <FaCheckCircle size={20} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {/* Orders Grid */}
         {loading ? (
@@ -595,146 +559,186 @@ export default function GarsonPanel() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredOrders.map((order) => (
-              <div key={order.id} className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all border-2 border-transparent hover:border-yellow-400">
-                {/* Order Header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <div className="text-lg font-bold text-gray-900">Masa {order.tableNumber}</div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <FaClock size={10} />
-                      <span>{formatTime(order.created_at)}</span>
+            {filteredOrders.map((order) => {
+              const activeCall = calls.find(c => c.tableNumber === order.tableNumber);
+              return (
+                <div key={order.id} className={`bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all border-2 ${activeCall
+                  ? (activeCall.type === 'bill' ? 'border-red-500 ring-2 ring-red-200' : 'border-orange-500 ring-2 ring-orange-200')
+                  : 'border-transparent hover:border-yellow-400'
+                  }`}>
+                  {/* Order Header */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="text-lg font-bold text-gray-900">Masa {order.tableNumber}</div>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <FaClock size={10} />
+                        <span>{formatTime(order.created_at)}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-orange-600">₺{Number(order.totalAmount).toFixed(2)}</div>
+                      <div className="text-xs text-gray-500">{order.items.length} ürün</div>
+                      {order.id.includes('grouped') && (
+                        <div className="text-xs text-blue-600 font-semibold mt-1">📋 Birleşik Sipariş</div>
+                      )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-orange-600">₺{Number(order.totalAmount).toFixed(2)}</div>
-                    <div className="text-xs text-gray-500">{order.items.length} ürün</div>
-                    {order.id.includes('grouped') && (
-                      <div className="text-xs text-blue-600 font-semibold mt-1">📋 Birleşik Sipariş</div>
+
+                  {/* Order Items - Compact */}
+                  <div className="space-y-1 mb-3">
+                    {order.items.slice(0, 3).map((item: OrderItem, index: number) => (
+                      <div key={index} className="flex items-start gap-2 text-sm">
+                        <div className="w-6 h-6 bg-purple-100 text-purple-700 rounded flex items-center justify-center text-xs font-bold mt-0.5">
+                          {item.quantity}x
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-gray-700">{item.name}</div>
+                          {item.notes && (
+                            <div className="text-xs text-purple-600 italic mt-0.5">• {item.notes}</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {order.items.length > 3 && (
+                      <div className="text-xs text-gray-500 pl-8">+{order.items.length - 3} ürün daha</div>
+                    )}
+                  </div>
+
+                  {/* Service Calls & Payment Info */}
+                  {(() => {
+                    const activeCall = calls.find(c => c.tableNumber === order.tableNumber);
+
+                    if (activeCall) {
+                      return (
+                        <div className={`mb-3 flex items-center justify-between p-3 rounded-xl animate-pulse ${activeCall.type === 'bill' ? 'bg-red-100 border-2 border-red-400 text-red-800' : 'bg-orange-100 border-2 border-orange-400 text-orange-800'
+                          }`}>
+                          <div className="flex items-center gap-2">
+                            <FaBell className={activeCall.type === 'bill' ? 'text-red-600' : 'text-orange-600'} />
+                            <span className="font-bold text-sm">
+                              {activeCall.type === 'bill' ? 'HESAP İSTİYOR' :
+                                activeCall.type === 'water' ? 'SU İSTİYOR' :
+                                  activeCall.type === 'clean' ? 'TEMİZLİK' :
+                                    activeCall.type === 'custom' ? `NOT: ${activeCall.message}` : 'GARSON'}
+                            </span>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              resolveCall(activeCall.id);
+                            }}
+                            className="bg-white px-3 py-1 rounded-lg text-xs font-bold shadow-sm hover:scale-105 transition-transform"
+                          >
+                            ✓ Tamamla
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    // Default Payment Info if no call
+                    if ((order as any).paymentInfo) {
+                      return (
+                        <div className="mb-2 flex items-start gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                          <FaMoneyBillWave className="text-green-600 mt-0.5" size={12} />
+                          <div className="text-xs text-green-800 font-medium">
+                            {(order as any).paymentInfo.replace('Ödeme yöntemi: ', '').split(',')[0]}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
+                  {/* Customer Requests - Food Related Notes Only */}
+                  {order.notes && order.notes.trim() && (
+                    <div className="mb-3 flex items-start gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <FaBell className="text-yellow-600 mt-0.5" size={12} />
+                      <div className="text-xs text-yellow-800 font-medium">{order.notes}</div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className={`grid gap-2 ${order.id.includes('grouped') ? 'grid-cols-5' : 'grid-cols-4'}`}>
+                    {(order.id.includes('grouped') || hasPermission('waiter_view_orders')) && (
+                      <button
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setShowModal(true);
+                        }}
+                        className="py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-bold text-xs transition-colors"
+                      >
+                        📋 Detay
+                      </button>
+                    )}
+
+                    {hasPermission('waiter_mark_completed') && (
+                      <button
+                        onClick={() => {
+                          if (order.id.includes('grouped')) {
+                            // Gruplu sipariş için tüm siparişleri tamamla
+                            const tableOrders = orders.filter(o => o.tableNumber === order.tableNumber);
+                            tableOrders.forEach(tableOrder => {
+                              updateOrderStatus(tableOrder.id, 'completed');
+                            });
+                          } else {
+                            updateOrderStatus(order.id, 'completed');
+                          }
+                        }}
+                        className="py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-xs transition-colors"
+                      >
+                        ✓ Servis Et
+                      </button>
+                    )}
+
+                    {hasPermission('waiter_edit_order') && (
+                      <button
+                        onClick={() => {
+                          setOrderToChangeTable(order);
+                          setNewTableNumber(order.tableNumber.toString());
+                          setShowTableModal(true);
+                        }}
+                        className="py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs transition-colors"
+                      >
+                        🔄 Masa Değiştir
+                      </button>
+                    )}
+
+                    {hasPermission('waiter_edit_order') && (
+                      <button
+                        onClick={() => {
+                          setOrderToEdit(order);
+                          fetchMenuItems();
+                          setShowEditModal(true);
+                        }}
+                        className="py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-bold text-xs transition-colors"
+                      >
+                        ✏️ Düzenle
+                      </button>
+                    )}
+
+                    {hasPermission('waiter_cancel_order') && (
+                      <button
+                        onClick={() => {
+                          if (confirm('Bu siparişi iptal etmek istediğinizden emin misiniz?')) {
+                            if (order.id.includes('grouped')) {
+                              // Gruplu sipariş için tüm siparişleri iptal et
+                              const tableOrders = orders.filter(o => o.tableNumber === order.tableNumber);
+                              tableOrders.forEach(tableOrder => {
+                                updateOrderStatus(tableOrder.id, 'cancelled');
+                              });
+                            } else {
+                              updateOrderStatus(order.id, 'cancelled');
+                            }
+                          }
+                        }}
+                        className="py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-xs transition-colors"
+                      >
+                        ❌ İptal Et
+                      </button>
                     )}
                   </div>
                 </div>
-
-                {/* Order Items - Compact */}
-                <div className="space-y-1 mb-3">
-                  {order.items.slice(0, 3).map((item: OrderItem, index: number) => (
-                    <div key={index} className="flex items-start gap-2 text-sm">
-                      <div className="w-6 h-6 bg-purple-100 text-purple-700 rounded flex items-center justify-center text-xs font-bold mt-0.5">
-                        {item.quantity}x
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-gray-700">{item.name}</div>
-                        {item.notes && (
-                          <div className="text-xs text-purple-600 italic mt-0.5">• {item.notes}</div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {order.items.length > 3 && (
-                    <div className="text-xs text-gray-500 pl-8">+{order.items.length - 3} ürün daha</div>
-                  )}
-                </div>
-
-                {/* Payment Info */}
-                {(order as any).paymentInfo && (
-                  <div className="mb-2 flex items-start gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                    <FaMoneyBillWave className="text-green-600 mt-0.5" size={12} />
-                    <div className="text-xs text-green-800 font-medium">
-                      {(order as any).paymentInfo.replace('Ödeme yöntemi: ', '').split(',')[0]}
-                    </div>
-                  </div>
-                )}
-
-                {/* Customer Requests - Food Related Notes Only */}
-                {order.notes && order.notes.trim() && (
-                  <div className="mb-3 flex items-start gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <FaBell className="text-yellow-600 mt-0.5" size={12} />
-                    <div className="text-xs text-yellow-800 font-medium">{order.notes}</div>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className={`grid gap-2 ${order.id.includes('grouped') ? 'grid-cols-5' : 'grid-cols-4'}`}>
-                  {(order.id.includes('grouped') || hasPermission('waiter_view_orders')) && (
-                    <button
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setShowModal(true);
-                      }}
-                      className="py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-bold text-xs transition-colors"
-                    >
-                      📋 Detay
-                    </button>
-                  )}
-
-                  {hasPermission('waiter_mark_completed') && (
-                    <button
-                      onClick={() => {
-                        if (order.id.includes('grouped')) {
-                          // Gruplu sipariş için tüm siparişleri tamamla
-                          const tableOrders = orders.filter(o => o.tableNumber === order.tableNumber);
-                          tableOrders.forEach(tableOrder => {
-                            updateOrderStatus(tableOrder.id, 'completed');
-                          });
-                        } else {
-                          updateOrderStatus(order.id, 'completed');
-                        }
-                      }}
-                      className="py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-xs transition-colors"
-                    >
-                      ✓ Servis Et
-                    </button>
-                  )}
-
-                  {hasPermission('waiter_edit_order') && (
-                    <button
-                      onClick={() => {
-                        setOrderToChangeTable(order);
-                        setNewTableNumber(order.tableNumber.toString());
-                        setShowTableModal(true);
-                      }}
-                      className="py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs transition-colors"
-                    >
-                      🔄 Masa Değiştir
-                    </button>
-                  )}
-
-                  {hasPermission('waiter_edit_order') && (
-                    <button
-                      onClick={() => {
-                        setOrderToEdit(order);
-                        fetchMenuItems();
-                        setShowEditModal(true);
-                      }}
-                      className="py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-bold text-xs transition-colors"
-                    >
-                      ✏️ Düzenle
-                    </button>
-                  )}
-
-                  {hasPermission('waiter_cancel_order') && (
-                    <button
-                      onClick={() => {
-                        if (confirm('Bu siparişi iptal etmek istediğinizden emin misiniz?')) {
-                          if (order.id.includes('grouped')) {
-                            // Gruplu sipariş için tüm siparişleri iptal et
-                            const tableOrders = orders.filter(o => o.tableNumber === order.tableNumber);
-                            tableOrders.forEach(tableOrder => {
-                              updateOrderStatus(tableOrder.id, 'cancelled');
-                            });
-                          } else {
-                            updateOrderStatus(order.id, 'cancelled');
-                          }
-                        }
-                      }}
-                      className="py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-xs transition-colors"
-                    >
-                      ❌ İptal Et
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

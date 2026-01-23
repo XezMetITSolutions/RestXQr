@@ -821,11 +821,11 @@ function MenuPageContent() {
             <div
               className="flex animate-dynamic-slide"
               style={{
-                width: `${Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2) * 100}%`
+                width: `${Math.max((currentRestaurant?.basicInfo?.menuSpecialContents?.length || settings.basicInfo.menuSpecialContents?.length || 2), 2) * 100}%`
               }}
             >
-              {(settings.basicInfo.menuSpecialContents && settings.basicInfo.menuSpecialContents.length > 0) ? (
-                settings.basicInfo.menuSpecialContents.map((content: any, idx: number) => (
+              {(currentRestaurant?.basicInfo?.menuSpecialContents?.length > 0 || settings.basicInfo.menuSpecialContents?.length > 0) ? (
+                (currentRestaurant?.basicInfo?.menuSpecialContents || settings.basicInfo.menuSpecialContents).map((content: any, idx: number) => (
                   <div key={content.id || idx} className="w-full text-white p-3 bg-brand-gradient">
                     <div className="flex items-center">
                       <span className="text-lg mr-2">{content.emoji || '🎉'}</span>
@@ -877,7 +877,8 @@ function MenuPageContent() {
         <style jsx>{`
           @keyframes dynamic-slide {
             ${(() => {
-            const count = Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2);
+            const contents = currentRestaurant?.basicInfo?.menuSpecialContents || settings.basicInfo.menuSpecialContents || [];
+            const count = Math.max(contents.length || 2, 2);
             if (count <= 1) return '0% { transform: translateX(0); } 100% { transform: translateX(0); }';
 
             let keyframes = '';
@@ -894,7 +895,7 @@ function MenuPageContent() {
           })()}
           }
           .animate-dynamic-slide {
-            animation: dynamic-slide ${Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2) * 4}s infinite ease-in-out;
+            animation: dynamic-slide ${Math.max((currentRestaurant?.basicInfo?.menuSpecialContents?.length || settings.basicInfo.menuSpecialContents?.length || 2), 2) * 4}s infinite ease-in-out;
           }
         `}</style>
 
@@ -1029,25 +1030,58 @@ function MenuPageContent() {
                   </span>
                 </div>
               )}
-              {/* Google Review Button */}
+              {/* Google Review Button - Desktop/Tablet */}
               {settings.basicInfo.showReviewInMenu && settings.basicInfo.googleReviewLink && (
-                <a
-                  href={settings.basicInfo.googleReviewLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-white hover:bg-gray-50 gap-3"
-                  style={{ textDecoration: 'none', borderLeftColor: 'var(--brand-primary)' }}
-                >
-                  <div className="flex items-center w-full sm:w-auto">
-                    <span className="text-lg mr-3">⭐</span>
-                    <span className="text-sm font-medium text-gray-800">
-                      <TranslatedText>Google'da Değerlendir</TranslatedText>
-                    </span>
-                  </div>
-                  <button className="w-full sm:w-auto text-xs font-semibold px-3 py-2 rounded-lg shadow group-hover:scale-105 transition btn-secondary text-center">
-                    <TranslatedText>Yorum Yap</TranslatedText>
-                  </button>
-                </a>
+                <div className="hidden sm:block">
+                  <a
+                    href={settings.basicInfo.googleReviewLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-white hover:bg-gray-50"
+                    style={{ textDecoration: 'none', borderLeftColor: 'var(--brand-primary)' }}
+                  >
+                    <div className="flex items-center">
+                      <span className="text-lg mr-3">⭐</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        <TranslatedText>Google'da Değerlendir</TranslatedText>
+                      </span>
+                    </div>
+                    <button className="text-xs font-semibold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-secondary">
+                      <TranslatedText>Yorum Yap</TranslatedText>
+                    </button>
+                  </a>
+                </div>
+              )}
+
+              {/* Google Review Button - Mobile (Special Design) */}
+              {settings.basicInfo.showReviewInMenu && settings.basicInfo.googleReviewLink && (
+                <div className="block sm:hidden my-4">
+                  <a
+                    href={settings.basicInfo.googleReviewLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative overflow-hidden block rounded-xl shadow-lg transform transition active:scale-95"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-90 z-0"></div>
+                    <div className="absolute -right-6 -top-6 bg-white opacity-10 rounded-full w-24 h-24 z-0"></div>
+                    <div className="absolute -left-6 -bottom-6 bg-white opacity-10 rounded-full w-20 h-20 z-0"></div>
+
+                    <div className="relative z-10 p-4 flex items-center justify-between text-white">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-2xl">⭐</span>
+                          <span className="font-bold text-lg"><TranslatedText>Bizi Değerlendir!</TranslatedText></span>
+                        </div>
+                        <span className="text-xs opacity-90"><TranslatedText>Deneyimini Google'da paylaş</TranslatedText></span>
+                      </div>
+                      <div className="bg-white text-blue-600 rounded-full p-2 shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </a>
+                </div>
               )}
               {/* Working Hours */}
               {settings.basicInfo.showHoursInMenu && (

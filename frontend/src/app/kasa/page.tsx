@@ -750,12 +750,9 @@ export default function KasaPanel() {
                 return (
                   <div
                     key={order.id}
-                    className={`bg-white rounded-3xl shadow-xl overflow-hidden border-2 transition-all group ${tableCall
-                      ? (tableCall.type === 'bill' ? 'border-red-500 shadow-red-100 ring-2 ring-red-100' : 'border-orange-500 shadow-orange-100 ring-2 ring-orange-100')
-                      : 'border-transparent hover:border-green-500'
-                      }`}
+                    className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 transition-all group border-transparent hover:border-green-500"
                   >
-                    <div className={`p-5 flex justify-between items-center border-b ${tableCall ? (tableCall.type === 'bill' ? 'bg-red-50' : 'bg-orange-50') : 'bg-gray-50'}`}>
+                    <div className="p-5 flex justify-between items-center border-b bg-gray-50">
                       <div className="flex items-center gap-3">
                         <div className={`w-12 h-12 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg ${order.tableNumber != null ? 'bg-green-500 shadow-green-100' : 'bg-purple-500 shadow-purple-100'}`}>
                           {order.tableNumber != null ? order.tableNumber : (order.orderType === 'dine_in' ? '?' : 'WEB')}
@@ -770,22 +767,7 @@ export default function KasaPanel() {
                                     order.notes?.toLowerCase().includes('trendyol') ? 'TRENDYOL YEMEK' : 'DIŞ SİPARİŞ'
                               ))}
                           </div>
-                          {tableCall ? (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                resolveCall(tableCall.id);
-                              }}
-                              className={`mt-1 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 animate-pulse transition-transform hover:scale-105 ${tableCall.type === 'bill' ? 'bg-red-500 text-white shadow-md shadow-red-200' : 'bg-orange-500 text-white shadow-md shadow-orange-200'
-                                }`}
-                            >
-                              <FaBell className="animate-bounce" />
-                              {tableCall.type === 'bill' ? 'HESAP İSTİYOR' : tableCall.type === 'water' ? 'SU İSTİYOR' : tableCall.type === 'clean' ? 'TEMİZLİK' : 'GARSON'}
-                              <FaCheckCircle className="ml-1" />
-                            </button>
-                          ) : (
-                            <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
-                          )}
+                          <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
                         </div>
                       </div>
                       <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${order.status === 'pending' ? 'text-yellow-600 bg-yellow-50' :
