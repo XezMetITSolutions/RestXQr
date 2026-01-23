@@ -33,47 +33,19 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
     const detectUserLanguage = async () => {
       try {
-        // TODO: Backend'den user preferences çek
-        // const userPrefs = await apiService.getUserPreferences();
-        // if (userPrefs.success && userPrefs.data.language) {
-        //   setCurrentLanguage(userPrefs.data.language);
-        //   return;
-        // }
-
-        // Geçici: localStorage fallback (TODO: remove when backend ready)
+        // Only use saved preference in localStorage
         const savedLanguage = localStorage.getItem('masapp-language');
         if (savedLanguage && Object.keys(supportedLanguages).includes(savedLanguage)) {
           setCurrentLanguage(savedLanguage);
           return;
         }
 
-        // Check browser language
-        if (typeof navigator !== 'undefined' && navigator.language) {
-          const browserLang = navigator.language.toLowerCase();
-          console.log('Browser language detected:', browserLang);
-
-          if (browserLang.startsWith('de')) {
-            console.log('Setting language to German based on browser settings');
-            setCurrentLanguage('German');
-            localStorage.setItem('masapp-language', 'German');
-            return;
-          }
-        }
-
-        // If no saved preference, detect from IP location
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        const detectedLanguage = await detectLanguageFromLocation(data.country_code);
-
-        setCurrentLanguage(detectedLanguage);
-        // TODO: Backend'e kaydet
-        // await apiService.updateUserPreferences({ language: detectedLanguage });
-        localStorage.setItem('masapp-language', detectedLanguage); // Geçici fallback
+        // Always default to Turkish for new visitors
+        setCurrentLanguage('Turkish');
+        localStorage.setItem('masapp-language', 'Turkish');
       } catch (error) {
         console.error('Language detection failed:', error);
-        // Fallback to Turkish
         setCurrentLanguage('Turkish');
-        localStorage.setItem('masapp-language', 'Turkish'); // Geçici fallback
       }
     };
 

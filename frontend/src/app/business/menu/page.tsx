@@ -1701,6 +1701,13 @@ export default function MenuManagement() {
                           </span>
                           <div className="flex gap-2">
                             <button
+                              onClick={() => handleQuickEdit(item)}
+                              className="p-2 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded-lg"
+                              title={t('Hızlı Düzenle')}
+                            >
+                              <FaMagic className="text-sm" />
+                            </button>
+                            <button
                               onClick={() => handleViewTranslations(item)}
                               className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg"
                               title={t('Çevirileri Gör')}
@@ -1723,6 +1730,78 @@ export default function MenuManagement() {
                             </button>
                           </div>
                         </div>
+
+                        {/* Mobile Quick Edit Form */}
+                        {quickEditItem?.id === item.id && (
+                          <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-orange-200">
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="font-bold text-xs text-orange-800 uppercase tracking-wider">{t('Hızlı Düzenle')}</span>
+                              <button onClick={() => setQuickEditItem(null)} className="text-gray-400"><FaTimes size={14} /></button>
+                            </div>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">{t('Ürün Adı')}</label>
+                                <input
+                                  type="text"
+                                  value={quickEditData.name}
+                                  onChange={(e) => setQuickEditData({ ...quickEditData, name: e.target.value })}
+                                  className="w-full px-2 py-1.5 text-sm border rounded bg-white"
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">{t('Fiyat (₺)')}</label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={quickEditData.price}
+                                    onChange={(e) => setQuickEditData({ ...quickEditData, price: e.target.value })}
+                                    className="w-full px-2 py-1.5 text-sm border rounded bg-white"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">{t('İstasyon')}</label>
+                                  <select
+                                    value={quickEditData.kitchenStation}
+                                    onChange={(e) => setQuickEditData({ ...quickEditData, kitchenStation: e.target.value })}
+                                    className="w-full px-2 py-1.5 text-sm border rounded bg-white"
+                                  >
+                                    <option value="">{t('Seçin')}</option>
+                                    {stations.map(station => (
+                                      <option key={station.id} value={station.name.toLowerCase()}>{station.name}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">{t('Kategori')}</label>
+                                <select
+                                  value={quickEditData.category}
+                                  onChange={(e) => setQuickEditData({ ...quickEditData, category: e.target.value })}
+                                  className="w-full px-2 py-1.5 text-sm border rounded bg-white"
+                                >
+                                  {categories.map(cat => (
+                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="flex gap-2 mt-2">
+                                <button
+                                  onClick={() => setQuickEditItem(null)}
+                                  className="flex-1 py-2 text-sm font-medium border rounded bg-white shadow-sm"
+                                >
+                                  {t('İptal')}
+                                </button>
+                                <button
+                                  onClick={handleQuickEditSave}
+                                  className="flex-1 py-2 text-sm font-bold bg-orange-600 text-white rounded shadow-sm hover:bg-orange-700"
+                                >
+                                  {t('Kaydet')}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -57,31 +57,23 @@ export default function LanguageSelector({ enabledLanguages }: LanguageSelectorP
   if (filteredLanguages.length <= 1) return null;
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-center gap-2 px-3 py-1 text-sm font-bold rounded-xl bg-white shadow border border-gray-200 text-gray-800 hover:bg-gray-50 focus:outline-none min-w-[50px]"
-        style={{ minWidth: 50 }}
-      >
-        <span>{languageList.find(l => l.code === currentLanguage)?.label || 'TR'}</span>
-        <svg width="10" height="10" viewBox="0 0 20 20" fill="none"><path d="M6 8L10 12L14 8" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      </button>
-      {isOpen && (
-        <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 min-w-[120px] z-50 overflow-hidden flex flex-col py-2">
-          {filteredLanguages.map(lang => (
-            <button
-              key={lang.code}
-              onClick={() => {
-                setLanguage(lang.code);
-                setIsOpen(false);
-              }}
-              className={`px-4 py-2 text-sm font-bold text-left transition-colors rounded-none ${currentLanguage === lang.code ? 'bg-orange-100 text-orange-700' : 'hover:bg-gray-50 text-gray-800'}`}
-            >
-              {lang.label}
-            </button>
-          ))}
-        </div>
-      )}
+    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+      {filteredLanguages.map(lang => (
+        <button
+          key={lang.code}
+          onClick={() => setLanguage(lang.code)}
+          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all border shadow-sm ${currentLanguage === lang.code
+            ? 'bg-orange-600 text-white border-orange-600'
+            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+            }`}
+        >
+          {lang.label}
+        </button>
+      ))}
+      <style jsx>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 }

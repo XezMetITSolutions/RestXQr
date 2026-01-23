@@ -759,7 +759,7 @@ function MenuPageContent() {
         {/* Sipariş verme modu banner'ı kaldırıldı user isteği üzerine */}
 
         {/* Header */}
-        <header className="bg-white shadow-sm fixed top-0 mt-9 left-0 right-0 z-20">
+        <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-20">
           <div className="container mx-auto px-3 py-3 flex justify-between items-center">
             <div className="flex items-center">
               <h1 className="text-dynamic-lg font-bold text-primary">
