@@ -60,6 +60,9 @@ function GarsonCagirContent() {
       const storedRestaurant = localStorage.getItem('currentRestaurant');
       let currentRestaurantId: string = '';
 
+      const storedTable = localStorage.getItem('tableNumber');
+      let currentTable: number | null = null;
+
       if (storedTable) {
         currentTable = parseInt(storedTable);
         setTableNumber(currentTable);
