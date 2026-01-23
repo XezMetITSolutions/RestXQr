@@ -58,7 +58,7 @@ function MenuPageContent() {
 
 
 
-  const currentRestaurant = (typeof window !== 'undefined') ? (() => {
+  const currentRestaurant = isClient ? (() => {
     const hostname = window.location.hostname;
     const subdomain = hostname.split('.')[0];
     const mainDomains = ['localhost', 'www', 'guzellestir', 'restxqr'];
@@ -720,6 +720,14 @@ function MenuPageContent() {
     );
   }
 
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <>
       <SetBrandColor />
@@ -822,11 +830,11 @@ function MenuPageContent() {
             <div
               className="flex animate-dynamic-slide"
               style={{
-                width: `${Math.max((currentRestaurant?.basicInfo?.menuSpecialContents?.length || settings.basicInfo.menuSpecialContents?.length || 2), 2) * 100}%`
+                width: `${Math.max((settings?.basicInfo?.menuSpecialContents?.length || 2), 2) * 100}%`
               }}
             >
-              {(currentRestaurant?.basicInfo?.menuSpecialContents?.length > 0 || settings.basicInfo.menuSpecialContents?.length > 0) ? (
-                (currentRestaurant?.basicInfo?.menuSpecialContents || settings.basicInfo.menuSpecialContents).map((content: any, idx: number) => (
+              {(settings?.basicInfo?.menuSpecialContents?.length > 0) ? (
+                (settings.basicInfo.menuSpecialContents).map((content: any, idx: number) => (
                   <div key={content.id || idx} className="w-full text-white p-3 bg-brand-gradient">
                     <div className="flex items-center">
                       <span className="text-lg mr-2">{content.emoji || '🎉'}</span>
@@ -848,10 +856,10 @@ function MenuPageContent() {
                       <span className="text-lg mr-2">🎉</span>
                       <div>
                         <div className="font-semibold text-sm">
-                          <TranslatedText>{settings.basicInfo.dailySpecialTitle || 'Bugüne Özel!'}</TranslatedText>
+                          <TranslatedText>{settings?.basicInfo?.dailySpecialTitle || 'Bugüne Özel!'}</TranslatedText>
                         </div>
                         <div className="text-xs opacity-90">
-                          <TranslatedText>{settings.basicInfo.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}</TranslatedText>
+                          <TranslatedText>{settings?.basicInfo?.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}</TranslatedText>
                         </div>
                       </div>
                     </div>
@@ -861,10 +869,10 @@ function MenuPageContent() {
                       <span className="text-lg mr-2">🍲</span>
                       <div>
                         <div className="font-semibold text-sm">
-                          <TranslatedText>{settings.basicInfo.soupOfDayTitle || 'Günün Çorbası'}</TranslatedText>
+                          <TranslatedText>{settings?.basicInfo?.soupOfDayTitle || 'Günün Çorbası'}</TranslatedText>
                         </div>
                         <div className="text-xs opacity-90">
-                          <TranslatedText>{settings.basicInfo.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}</TranslatedText>
+                          <TranslatedText>{settings?.basicInfo?.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}</TranslatedText>
                         </div>
                       </div>
                     </div>
@@ -878,7 +886,7 @@ function MenuPageContent() {
         <style jsx>{`
           @keyframes dynamic-slide {
             ${(() => {
-            const contents = currentRestaurant?.basicInfo?.menuSpecialContents || settings.basicInfo.menuSpecialContents || [];
+            const contents = settings?.basicInfo?.menuSpecialContents || [];
             const count = Math.max(contents.length || 2, 2);
             if (count <= 1) return '0% { transform: translateX(0); } 100% { transform: translateX(0); }';
 
@@ -896,7 +904,7 @@ function MenuPageContent() {
           })()}
           }
           .animate-dynamic-slide {
-            animation: dynamic-slide ${Math.max((currentRestaurant?.basicInfo?.menuSpecialContents?.length || settings.basicInfo.menuSpecialContents?.length || 2), 2) * 4}s infinite ease-in-out;
+            animation: dynamic-slide ${Math.max((settings?.basicInfo?.menuSpecialContents?.length || 2), 2) * 4}s infinite ease-in-out;
           }
         `}</style>
 
