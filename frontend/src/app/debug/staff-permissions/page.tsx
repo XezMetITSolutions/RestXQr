@@ -231,6 +231,34 @@ export default function StaffPermissionsDebug() {
         }
     };
 
+    const fixSchema = async () => {
+        if (typeof window === 'undefined') return;
+        const confirmFix = window.confirm('This will attempt to add missing columns (permissions) to the staff table. Continue?');
+        if (!confirmFix) return;
+
+        addLog('=== FIXING DATABASE SCHEMA ===', 'warn');
+
+        try {
+            const response = await fetch(`${API_URL}/staff/fix-schema`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            addLog(`Response status: ${response.status}`, response.ok ? 'success' : 'error');
+
+            const data = await response.json();
+            addLog(`Result: ${data.message}`, data.success ? 'success' : 'error');
+
+            if (data.success && data.action === 'added_column') {
+                alert('Database schema fixed! Please try login again.');
+            }
+        } catch (e: any) {
+            addLog(`Fix schema error: ${e.message}`, 'error');
+        }
+    };
+
     const clearAllTokens = () => {
         localStorage.removeItem('staff_token');
         localStorage.removeItem('restaurant_token');
@@ -266,6 +294,9 @@ export default function StaffPermissionsDebug() {
                     </button>
                     <button onClick={testStaffAPI} className="bg-orange-700 px-3 py-2 rounded hover:bg-orange-600 flex items-center gap-2">
                         <FaServer /> Test Staff API
+                    </button>
+                    <button onClick={fixSchema} className="bg-purple-700 px-3 py-2 rounded hover:bg-purple-600 flex items-center gap-2 border border-purple-500 shadow-lg shadow-purple-900/50">
+                        <FaDatabase /> 🛠️ Fix Database Schema
                     </button>
                     <button onClick={clearAllTokens} className="bg-red-700 px-3 py-2 rounded hover:bg-red-600">
                         Clear All Tokens
@@ -334,9 +365,9 @@ export default function StaffPermissionsDebug() {
                     <div className="h-64 overflow-y-auto space-y-1 text-xs">
                         {logs.map((log, i) => (
                             <div key={i} className={`font-mono ${log.type === 'error' ? 'text-red-400' :
-                                    log.type === 'success' ? 'text-green-400' :
-                                        log.type === 'warn' ? 'text-yellow-400' :
-                                            'text-gray-400'
+                                log.type === 'success' ? 'text-green-400' :
+                                    log.type === 'warn' ? 'text-yellow-400' :
+                                        'text-gray-400'
                                 }`}>
                                 <span className="text-gray-600">{log.time}</span> {log.msg}
                             </div>
