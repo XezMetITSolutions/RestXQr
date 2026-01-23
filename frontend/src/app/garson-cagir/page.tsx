@@ -14,24 +14,49 @@ function GarsonCagirContent() {
   const [tableNumber, setTableNumber] = useState<number | null>(null);
   const [restaurantId, setRestaurantId] = useState<string>('');
   const [cartCount, setCartCount] = useState(0);
-  const [primary, setPrimary] = useState('#10b981');
+  const [primary, setPrimary] = useState('#F97316'); // ORANGE as requested
 
   const [specialRequest, setSpecialRequest] = useState('');
   const [activeRequests, setActiveRequests] = useState<any[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showDebugButton, setShowDebugButton] = useState(false);
+  const [token, setToken] = useState<string>('');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
   useEffect(() => {
     setIsClient(true);
 
+    // Parse URL params first to ensure we catch the token
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
+      const urlTable = urlParams.get('table');
+
+      if (urlToken) {
+        setToken(urlToken);
+        sessionStorage.setItem('qr_token', urlToken);
+      } else {
+        const storedToken = sessionStorage.getItem('qr_token');
+        if (storedToken) setToken(storedToken);
+      }
+
+      if (urlTable) {
+        const tNum = parseInt(urlTable);
+        setTableNumber(tNum);
+        localStorage.setItem('tableNumber', urlTable);
+      }
+    }
+
     // Get data from localStorage
     if (typeof window !== 'undefined') {
-      const storedTable = localStorage.getItem('tableNumber');
-      const storedRestaurant = localStorage.getItem('currentRestaurant');
+      // Use logic above for tableNumber, fallback to storage
+      if (!tableNumber) {
+        const storedTable = localStorage.getItem('tableNumber');
+        if (storedTable) setTableNumber(parseInt(storedTable));
+      }
 
-      let currentTable: number | null = null;
+      const storedRestaurant = localStorage.getItem('currentRestaurant');
       let currentRestaurantId: string = '';
 
       if (storedTable) {
@@ -245,7 +270,7 @@ function GarsonCagirContent() {
       <header className="sticky top-0 z-40 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
           <Link
-            href="/menu"
+            href={`/menu?token=${token}&table=${tableNumber}`}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <FaArrowLeft size={20} className="text-gray-700" />
@@ -409,11 +434,11 @@ function GarsonCagirContent() {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 shadow-lg z-50">
         <div className="container mx-auto flex justify-around">
-          <Link href="/menu" className="flex flex-col items-center" style={{ color: primary }}>
+          <Link href={`/menu?token=${token}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
             <FaUtensils className="mb-0.5" size={16} />
             <span className="text-[10px]"><TranslatedText>Menü</TranslatedText></span>
           </Link>
-          <Link href="/cart" className="flex flex-col items-center" style={{ color: primary }}>
+          <Link href={`/cart?token=${token}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
             <div className="relative">
               <FaShoppingCart className="mb-0.5" size={16} />
               {isClient && cartCount > 0 && (

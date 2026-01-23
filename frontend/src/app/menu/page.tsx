@@ -776,7 +776,7 @@ function MenuPageContent() {
             <div className="flex items-center gap-2">
               <LanguageSelector enabledLanguages={settings.menuSettings.language} />
               {orderingAllowed ? (
-                <Link href="/cart" className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <Link href={`/cart?token=${typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') || sessionStorage.getItem('qr_token') : ''}&table=${tableNumber}`} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
                   <FaShoppingCart className="text-xl" style={{ color: primary }} />
                   {cartItems.length > 0 && (
                     <span className="absolute -top-1 -right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" style={{ backgroundColor: primary }}>
@@ -1084,12 +1084,12 @@ function MenuPageContent() {
         {/* Bottom Navigation */}
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 shadow-lg z-30">
           <div className="container mx-auto flex justify-around max-w-full px-2">
-            <Link href="/menu" className="flex flex-col items-center" style={{ color: primary }}>
+            <Link href={`/menu?token=${typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') || sessionStorage.getItem('qr_token') : ''}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
               <FaUtensils className="mb-0.5" size={16} />
               <span className="text-[10px]"><TranslatedText>Menü</TranslatedText></span>
             </Link>
             {orderingAllowed ? (
-              <Link href="/cart" className="flex flex-col items-center" style={{ color: primary }}>
+              <Link href={`/cart?token=${typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') || sessionStorage.getItem('qr_token') : ''}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
                 <div className="relative">
                   <FaShoppingCart className="mb-0.5" size={16} />
                   {isClient && cartCount > 0 && (
@@ -1114,7 +1114,7 @@ function MenuPageContent() {
               </div>
             )}
             {orderingAllowed ? (
-              <Link href="/garson-cagir" className="flex flex-col items-center" style={{ color: primary }}>
+              <Link href={`/garson-cagir?token=${typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') || sessionStorage.getItem('qr_token') : ''}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
                 <FaBell className="mb-0.5" size={16} />
                 <span className="text-[10px]"><TranslatedText>Garson Çağır</TranslatedText></span>
               </Link>

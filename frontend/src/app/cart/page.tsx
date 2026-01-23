@@ -44,6 +44,7 @@ function CartPageContent() {
   const [sessionKey, setSessionKey] = useState<string | null>(null);
   const [clientId, setClientId] = useState<string | null>(null);
   const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
+  const [token, setToken] = useState<string>('');
 
   const primary = settings.branding.primaryColor;
 
@@ -59,6 +60,12 @@ function CartPageContent() {
       // URL'deki token ile karşılaştır (extra güvenlik)
       const urlParams = new URLSearchParams(window.location.search);
       const urlToken = urlParams.get('token');
+
+      if (urlToken) {
+        setToken(urlToken);
+      } else if (storedQrToken) {
+        setToken(storedQrToken);
+      }
 
       if (urlToken && storedQrToken && urlToken !== storedQrToken) {
         console.log('🧹 Token mismatch detected in cart, clearing stale order data.');
@@ -417,7 +424,7 @@ function CartPageContent() {
         <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-20">
           <div className="container mx-auto px-3 py-3 flex justify-between items-center">
             <div className="flex items-center">
-              <Link href="/menu" className="mr-2">
+              <Link href={`/menu?token=${token}&table=${tableNumber}`} className="mr-2">
                 <FaArrowLeft size={16} />
               </Link>
               <h1 className="text-dynamic-lg font-bold text-primary">
@@ -445,7 +452,7 @@ function CartPageContent() {
           {pendingOrderId && (
             <div className="mb-6">
               <Link
-                href="/menu"
+                href={`/menu?token=${token}&table=${tableNumber}`}
                 className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95"
                 style={{ backgroundColor: primary }}
               >
@@ -598,7 +605,7 @@ function CartPageContent() {
                 <TranslatedText>Menüden ürün ekleyerek başlayın</TranslatedText>
               </p>
               <Link
-                href="/menu"
+                href={`/menu?token=${token}&table=${tableNumber}`}
                 className="btn btn-primary px-6 py-3 rounded-lg"
               >
                 <TranslatedText>Menüye Git</TranslatedText>
@@ -797,7 +804,7 @@ function CartPageContent() {
         {/* Bottom Navigation */}
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 shadow-lg">
           <div className="container mx-auto flex justify-around">
-            <Link href="/menu" className="flex flex-col items-center" style={{ color: primary }}>
+            <Link href={`/menu?token=${token}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
               <FaUtensils className="mb-0.5" size={16} />
               <span className="text-[10px]"><TranslatedText>Menü</TranslatedText></span>
             </Link>
