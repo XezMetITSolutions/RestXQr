@@ -11,31 +11,32 @@ router.get('/local-price-list', (req, res) => {
         const filePath = path.join(__dirname, '../data/fiyat_listesi.json');
 
         if (!fs.existsSync(filePath)) {
-
-            if (!filePath) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'fiyat_listesi.json bulunamadı'
-                });
-            }
-
-            const rawData = fs.readFileSync(filePath, 'utf8');
-            const jsonData = JSON.parse(rawData);
-
-            res.json({
-                success: true,
-                data: jsonData
-            });
-
-        } catch (error) {
-            console.error('❌ Fiyat listesi okuma hatası:', error);
-            res.status(500).json({
+            console.error('❌ Fiyat listesi dosyası bulunamadı:', filePath);
+            return res.status(404).json({
                 success: false,
-                message: 'Dosya okuma hatası',
-                error: error.message
+                message: 'fiyat_listesi.json bulunamadı. (Searched: backend/src/data/fiyat_listesi.json)',
+                searchedPath: filePath
             });
         }
-    });
+
+        console.log('✅ Fiyat listesi okunuyor:', filePath);
+        const rawData = fs.readFileSync(filePath, 'utf8');
+        const jsonData = JSON.parse(rawData);
+
+        res.json({
+            success: true,
+            data: jsonData
+        });
+
+    } catch (error) {
+        console.error('❌ Fiyat listesi okuma hatası:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Dosya okuma hatası',
+            error: error.message
+        });
+    }
+});
 
 // POST /api/sync/batch-update
 router.post('/batch-update', async (req, res) => {
