@@ -415,7 +415,7 @@ export default function GarsonPanel() {
       notes: tableOrders.map(o => o.notes).filter(Boolean)
         .filter((note, index, arr) => arr.indexOf(note) === index)
         .filter(note => note && !note.includes('Ödeme yöntemi') && !note.includes('Debug Simülasyonu') && !note.includes('Bahşiş') && !note.includes('Bağış'))
-        .join(' | ') || (latestOrder.notes ? latestOrder.notes.replace(/Ödeme yöntemi:.*?(?:\||$)/g, '').replace(/Bahşiş:.*?(?:\||$)/g, '').replace(/Bağış:.*?(?:\||$)/g, '').replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:\s*[^,|]+(,\s*|\|\s*)?/gi, '').trim() : ''),
+        .join(' | ') || (latestOrder.notes ? latestOrder.notes.replace(/Ödeme yöntemi:[^|]*?(?:\||$)/g, '').replace(/Bahşiş:[^|]*?(?:\||$)/g, '').replace(/Bağış:[^|]*?(?:\||$)/g, '').replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:[^|]*?(?:\||$)/gi, '').trim() : ''),
       paymentInfo: tableOrders.map(o => o.notes).filter(Boolean).find(note => note && note.includes('Ödeme yöntemi')) || ''
     };
   };

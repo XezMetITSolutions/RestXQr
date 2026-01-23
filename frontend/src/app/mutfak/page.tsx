@@ -837,12 +837,7 @@ export default function MutfakPanel() {
                           >
                             👁 Detaylar
                           </button>
-                          <button
-                            onClick={() => deleteOrder(order.id)}
-                            className="px-4 md:px-6 py-3 md:py-4 bg-red-100 text-red-600 rounded-lg font-semibold hover:bg-red-200 transition-colors flex items-center gap-2 justify-center border border-red-200 text-sm md:text-base"
-                          >
-                            🗑️ Siparişi Sil
-                          </button>
+
                         </div>
                       </div>
                     </motion.div>
