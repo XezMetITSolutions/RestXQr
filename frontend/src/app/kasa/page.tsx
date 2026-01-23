@@ -215,6 +215,9 @@ export default function KasaPanel() {
 
           const tableNumberForId = latestOrder.tableNumber != null ? latestOrder.tableNumber : 'null';
 
+          // Check if ALL orders are approved. If any is not approved, the group is not approved.
+          const isGroupApproved = tableOrders.every(o => o.approved === true);
+
           return {
             ...latestOrder,
             items: allItems,
@@ -222,6 +225,7 @@ export default function KasaPanel() {
             paidAmount: totalPaidAmount,
             discountAmount: totalDiscountAmount,
             status: mostCriticalStatus,
+            approved: isGroupApproved, // Force approval check
             id: `table-${tableNumberForId}-grouped`,
             notes: tableOrders.map(o => o.notes).filter(Boolean).filter((note, index, arr) => arr.indexOf(note) === index).join(' | ') || latestOrder.notes,
             originalOrders: tableOrders
