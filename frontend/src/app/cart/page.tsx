@@ -28,8 +28,8 @@ import useRestaurantStore from '@/store/useRestaurantStore';
 function CartPageContent() {
   const { currentLanguage, translate } = useLanguage();
   const { items, tableNumber, removeItem, updateQuantity, clearCart, getMaxPreparationTime, addItem } = useCartStore();
-  const { settings } = useBusinessSettingsStore();
-  const { currentRestaurant } = useRestaurantStore();
+  const { restaurants, fetchRestaurants } = useRestaurantStore();
+  const { settings: localSettings } = useBusinessSettingsStore();
   const [isClient, setIsClient] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash' | 'donation' | 'tip'>('card');
   const [tipAmount, setTipAmount] = useState(0);
@@ -46,7 +46,19 @@ function CartPageContent() {
   const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
   const [token, setToken] = useState<string>('');
 
-  const primary = settings.branding.primaryColor;
+  const currentRestaurant = isClient ? (() => {
+    const hostname = window.location.hostname;
+    const subdomain = hostname.split('.')[0];
+    const mainDomains = ['localhost', 'www', 'guzellestir', 'restxqr'];
+
+    if (mainDomains.includes(subdomain)) {
+      return restaurants.find((r: any) => r.username === 'aksaray');
+    }
+    return restaurants.find((r: any) => r.username === subdomain);
+  })() : null;
+
+  const settings = (currentRestaurant?.settings || localSettings) as any;
+  const primary = settings?.branding?.primaryColor || '#F97316';
 
   useEffect(() => {
     setIsClient(true);
@@ -104,7 +116,31 @@ function CartPageContent() {
         }
       }
     }
-  }, []);
+
+    if (restaurants.length === 0) {
+      fetchRestaurants();
+    }
+  }, [fetchRestaurants, restaurants.length]);
+
+  // Sync payment method when settings change
+  useEffect(() => {
+    if (!isClient || !settings?.paymentSettings) return;
+
+    console.log('🔄 Cart Settings Updated:', {
+      restaurantId: currentRestaurant?.id,
+      restaurantName: currentRestaurant?.name,
+      allowCard: settings.paymentSettings.allowCardPayment,
+      allowCash: settings.paymentSettings.allowCashPayment
+    });
+
+    if (settings.paymentSettings.allowCardPayment) {
+      setPaymentMethod('card');
+    } else if (settings.paymentSettings.allowCashPayment) {
+      setPaymentMethod('cash');
+    } else {
+      setPaymentMethod('cash');
+    }
+  }, [isClient, settings?.paymentSettings?.allowCardPayment, settings?.paymentSettings?.allowCashPayment, currentRestaurant?.id]);
 
   // Aktif siparişleri çek (Geçmiş siparişler görünümü için)
   useEffect(() => {
