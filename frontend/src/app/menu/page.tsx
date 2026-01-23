@@ -45,10 +45,6 @@ function MenuPageContent() {
   const [searchPlaceholder, setSearchPlaceholder] = useState('Menüde ara...');
   const { settings: localSettings } = useBusinessSettingsStore();
 
-  // Use settings from currentRestaurant if available (fetched from backend), 
-  // otherwise fallback to localSettings (for backward compatibility/demo)
-  const settings = currentRestaurant?.settings || localSettings;
-
   const [showSplash, setShowSplash] = useState(false);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [tokenMessage, setTokenMessage] = useState('');
@@ -59,8 +55,6 @@ function MenuPageContent() {
   const [imageCacheVersion, setImageCacheVersion] = useState<number>(Date.now());
   const [orderingAllowed, setOrderingAllowed] = useState<boolean>(false);
   const [token, setToken] = useState<string>('');
-  const primary = settings.branding.primaryColor;
-  const secondary = settings.branding.secondaryColor || settings.branding.primaryColor;
 
   // Subdomain'den restaurant bulma - Demo için Aksaray restoranını kullan
   const getCurrentRestaurant = () => {
@@ -79,6 +73,12 @@ function MenuPageContent() {
   };
 
   const currentRestaurant = getCurrentRestaurant();
+
+  // Use settings from currentRestaurant if available (fetched from backend), 
+  // otherwise fallback to localSettings (for backward compatibility/demo)
+  const settings = (currentRestaurant?.settings || localSettings) as any;
+  const primary = settings?.branding?.primaryColor || '#F97316';
+  const secondary = settings?.branding?.secondaryColor || primary;
 
   // Restaurant'a göre kategoriler ve ürünler filtreleme
   const items = currentRestaurant?.id
