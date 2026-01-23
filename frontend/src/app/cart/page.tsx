@@ -80,10 +80,14 @@ function CartPageContent() {
       }
 
       // Initial payment method selection based on settings
+      // Eğer hiçbir ödeme yöntemi aktif değilse, kasada ödeme için default 'cash' kullan
       if (settings.paymentSettings.allowCardPayment) {
         setPaymentMethod('card');
       } else if (settings.paymentSettings.allowCashPayment) {
         setPaymentMethod('cash');
+      } else {
+        // Tüm ödeme yöntemleri kapalı - kasada ödeme modu
+        setPaymentMethod('cash'); // Backend'e gönderilirken 'Kasada Ödeme' olarak yorumlanacak
       }
 
       // Sipariş sonrası durumu yükle (localStorage'dan)

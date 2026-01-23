@@ -830,10 +830,10 @@ function MenuPageContent() {
                     <div className="flex items-center">
                       <span className="text-lg mr-2">{content.emoji || '🎉'}</span>
                       <div className="min-w-0 flex-1">
-                        <div className="font-semibold text-sm truncate">
+                        <div className="font-semibold text-sm line-clamp-1">
                           <TranslatedText>{content.title}</TranslatedText>
                         </div>
-                        <div className="text-xs opacity-90 truncate">
+                        <div className="text-xs opacity-90 line-clamp-2">
                           <TranslatedText>{content.description}</TranslatedText>
                         </div>
                       </div>
