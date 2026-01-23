@@ -84,6 +84,13 @@ export default function KasaPanel() {
     // Admin/Manager/Owner always has full access
     if (['admin', 'manager', 'restaurant_owner'].includes(staffUser.role)) return true;
 
+    // Cashier role should have default access to these critical functions
+    if (staffUser.role === 'cashier' && (
+      permissionId === 'cashier_process_payment' ||
+      permissionId === 'cashier_approve_orders' ||
+      permissionId === 'cashier_reject_orders'
+    )) return true;
+
     if (!staffUser.permissions || !Array.isArray(staffUser.permissions)) return false;
     const permission = staffUser.permissions.find((p: any) => p.id === permissionId);
     return permission ? permission.enabled : false;
