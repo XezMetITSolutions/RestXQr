@@ -459,36 +459,7 @@ export default function GarsonPanel() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={async () => {
-                  const debugData = {
-                    timestamp: new Date().toLocaleString('tr-TR'),
-                    restaurantId: restaurantId,
-                    restaurantName: restaurantName,
-                    API_URL: API_URL,
-                    callsCount: calls.length,
-                    calls: calls,
-                    staffUser: staffUser?.username
-                  };
-                  console.log('🐛 GARSON PANEL DEBUG:', debugData);
 
-                  // Fetch calls manually
-                  try {
-                    const url = `${API_URL}/waiter/calls?restaurantId=${restaurantId}`;
-                    console.log('🔄 Manuel çağrı fetch:', url);
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    console.log('📦 Fetch sonucu:', data);
-                    alert(`DEBUG:\n\nRestaurant ID: ${restaurantId}\nÇağrı Sayısı: ${calls.length}\nAPI Response: ${JSON.stringify(data, null, 2)}`);
-                  } catch (error) {
-                    console.error('❌ Debug fetch hatası:', error);
-                    alert(`DEBUG ERROR:\n${error}`);
-                  }
-                }}
-                className="bg-purple-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 mr-2"
-              >
-                🐛 DEBUG
-              </button>
               <button
                 onClick={() => {
                   localStorage.removeItem('staff_user');
@@ -1014,10 +985,7 @@ export default function GarsonPanel() {
               <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="font-semibold text-gray-800 mb-3">📋 Sipariş Bilgileri</h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Sipariş ID:</span>
-                    <span className="font-mono text-xs">{selectedOrder.id}</span>
-                  </div>
+
                   <div className="flex justify-between">
                     <span className="text-gray-600">Masa:</span>
                     <span className="font-semibold">{selectedOrder.tableNumber}</span>
@@ -1107,18 +1075,7 @@ export default function GarsonPanel() {
                       Hazır
                     </button>
                   )}
-                  {selectedOrder.status !== 'cancelled' && (
-                    <button
-                      onClick={() => {
-                        if (confirm('Bu siparişi iptal etmek istediğinizden emin misiniz?')) {
-                          updateOrderStatus(selectedOrder.id, 'cancelled');
-                        }
-                      }}
-                      className="py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors"
-                    >
-                      İptal Et
-                    </button>
-                  )}
+
                 </div>
               </div>
             </div>

@@ -878,14 +878,7 @@ export default function KasaPanel() {
                             <span className="text-xs">ONAYLA</span>
                           </button>
                         )}
-                        <button
-                          onClick={() => handleManualPrint(order.id, true)}
-                          className="py-4 px-3 bg-blue-500 text-white rounded-2xl font-black hover:bg-blue-600 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
-                          title="Debug Yazdırma"
-                        >
-                          <FaPrint />
-                          <span className="text-[10px]">DEBUG</span>
-                        </button>
+
 
                         {hasPermission('cashier_reject_orders') && (
                           <button
