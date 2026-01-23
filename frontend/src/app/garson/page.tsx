@@ -604,7 +604,7 @@ export default function GarsonPanel() {
                     )}
                   </div>
 
-                  {/* Service Calls & Payment Info */}
+                  {/* Service Calls Only */}
                   {(() => {
                     const activeCall = calls.find(c => c.tableNumber === order.tableNumber);
 
@@ -614,12 +614,19 @@ export default function GarsonPanel() {
                           }`}>
                           <div className="flex items-center gap-2">
                             <FaBell className={activeCall.type === 'bill' ? 'text-red-600' : 'text-orange-600'} />
-                            <span className="font-bold text-sm">
-                              {activeCall.type === 'bill' ? 'HESAP İSTİYOR' :
-                                activeCall.type === 'water' ? 'SU İSTİYOR' :
-                                  activeCall.type === 'clean' ? 'TEMİZLİK' :
-                                    activeCall.type === 'custom' ? `NOT: ${activeCall.message}` : 'GARSON'}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-sm">
+                                {activeCall.type === 'bill' ? 'HESAP İSTİYOR' :
+                                  activeCall.type === 'water' ? 'SU İSTİYOR' :
+                                    activeCall.type === 'clean' ? 'TEMİZLİK' :
+                                      activeCall.type === 'custom' ? 'MÜŞTERİ NOTU' : 'GARSON'}
+                              </span>
+                              {activeCall.message && (
+                                <span className="text-xs font-semibold opacity-90">
+                                  {activeCall.message}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <button
                             onClick={(e) => {
@@ -630,18 +637,6 @@ export default function GarsonPanel() {
                           >
                             ✓ Tamamla
                           </button>
-                        </div>
-                      );
-                    }
-
-                    // Default Payment Info if no call
-                    if ((order as any).paymentInfo) {
-                      return (
-                        <div className="mb-2 flex items-start gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                          <FaMoneyBillWave className="text-green-600 mt-0.5" size={12} />
-                          <div className="text-xs text-green-800 font-medium">
-                            {(order as any).paymentInfo.replace('Ödeme yöntemi: ', '').split(',')[0]}
-                          </div>
                         </div>
                       );
                     }
