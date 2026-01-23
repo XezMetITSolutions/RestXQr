@@ -51,7 +51,7 @@ import LanguageSelector from '@/components/LanguageSelector';
 import PhonePreview from '@/components/PhonePreview';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
-import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
+// import { useRestaurantSettings } from '@/hooks/useRestaurantSettings'; // Geçici olarak devre dışı - otomatik reset problemi
 
 
 import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
@@ -150,7 +150,7 @@ function SettingsPageContent() {
     setLoading,
     exportSettings,
     validateSubdomain
-  } = useRestaurantSettings(authenticatedRestaurant?.id);
+  } = useBusinessSettingsStore();
 
   // Popüler emojiler listesi
   const popularEmojis = ['⭐', '🎉', '🍲', '🍕', '🍔', '🍟', '🌮', '🌯', '🥗', '🍝', '🍜', '🍱', '🍣', '🍤', '🍗', '🍖', '🥩', '🍳', '🥘', '🍲', '🥣', '🍨', '🍧', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🥤', '🍹', '🍸', '🍷', '🍺', '☕', '🥛', '💯', '🔥', '✨', '🎊', '🎈', '🎁', '🏆', '🥇', '💎', '🌟', '💫', '🎯', '🎪'];

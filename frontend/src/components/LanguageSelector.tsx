@@ -46,21 +46,15 @@ export default function LanguageSelector({ enabledLanguages }: LanguageSelectorP
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // enabledLanguages'i küçük harfe çevir ve debug et
+  // enabledLanguages'i küçük harfe çevir
   const normalizedEnabledLanguages = enabledLanguages?.map(lang => lang.toLowerCase()) || [];
-  console.log('LanguageSelector - original enabledLanguages:', enabledLanguages);
-  console.log('LanguageSelector - normalized enabledLanguages:', normalizedEnabledLanguages);
 
   const filteredLanguages = (normalizedEnabledLanguages && normalizedEnabledLanguages.length > 0)
     ? languageList.filter(l => {
       const shortCode = Object.keys(languageMap).find(key => languageMap[key] === l.code);
-      const isIncluded = shortCode && normalizedEnabledLanguages.includes(shortCode);
-      console.log(`Language ${l.code} (${shortCode}): ${isIncluded}`);
-      return isIncluded;
+      return shortCode && normalizedEnabledLanguages.includes(shortCode);
     })
     : languageList; // If no languages enabled, show all available ones
-
-  console.log('filteredLanguages:', filteredLanguages);
 
   return (
     <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
