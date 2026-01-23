@@ -25,10 +25,12 @@ class ApiService {
         : null;
 
       // Staff token VEYA restaurant token al (business dashboard için)
+      // PRIORITY FIX: Prefer restaurant_token/business_token over staff_token
+      // This prevents a stale/invalid staff_token from blocking a valid owner session
       const staffToken = typeof window !== 'undefined' ? localStorage.getItem('staff_token') : null;
       const restaurantToken = typeof window !== 'undefined' ? localStorage.getItem('restaurant_token') : null;
       const businessToken = typeof window !== 'undefined' ? localStorage.getItem('business_token') : null;
-      const authToken = staffToken || restaurantToken || businessToken;
+      const authToken = restaurantToken || businessToken || staffToken;
 
       // Log if token is missing
       if (!authToken && !endpoint.includes('/login')) {
