@@ -68,8 +68,14 @@ export default function MutfakPanel() {
 
       const parsedUser = JSON.parse(user);
 
-      // Sadece aşçı ve yöneticiler erişebilir
-      if (parsedUser.role !== 'chef' && parsedUser.role !== 'manager' && parsedUser.role !== 'admin') {
+      // Sadece aşçı, yöneticiler veya özel izni olanlar erişebilir
+      const hasAccess =
+        parsedUser.role === 'chef' ||
+        parsedUser.role === 'manager' ||
+        parsedUser.role === 'admin' ||
+        parsedUser.permissions?.canAccessKitchenPanel === true;
+
+      if (!hasAccess) {
         alert('Bu panele erişim yetkiniz yok!');
         router.push('/staff-login');
         return;

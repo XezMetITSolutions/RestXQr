@@ -62,7 +62,7 @@ export default function StaffPage() {
     generateStaffCredentials
   } = useBusinessSettingsStore();
   // Feature flag: per-staff panel credentials (keep code but disable UI by default)
-  const individualStaffPanelsEnabled = false;
+  const [individualStaffPanelsEnabled, setIndividualStaffPanelsEnabled] = useState(true);
   const [staff, setStaff] = useState<any[]>([]);
   const [filteredStaff, setFilteredStaff] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -1271,75 +1271,97 @@ export default function StaffPage() {
                     </div>
 
                     {/* Panel Erişim Bilgileri */}
+                    {/* Panel Erişim Yetkileri */}
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-800 mb-3"><TranslatedText>Panel Erişim Bilgileri</TranslatedText></h4>
-                      <div className="space-y-3 text-sm text-gray-700">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p><strong><TranslatedText>Garson Paneli</TranslatedText>:</strong></p>
-                            <p className="font-mono text-xs text-blue-600">garson.{settings.basicInfo.subdomain}.com</p>
+                      <h4 className="font-semibold text-gray-800 mb-3"><TranslatedText>Panel Giriş Yetkileri</TranslatedText></h4>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                              <FaUser size={16} />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-800"><TranslatedText>Garson Paneli Girişi</TranslatedText></p>
+                              <p className="text-xs text-gray-500"><TranslatedText>Garson paneline giriş yapabilir</TranslatedText></p>
+                            </div>
                           </div>
                           <button
-                            onClick={() => {
-                              const url = `https://garson.${settings.basicInfo.subdomain}.com`;
-                              navigator.clipboard.writeText(url);
-                              alert(t('URL kopyalandı!'));
+                            onClick={async () => {
+                              const currentPerms = selectedStaff.permissions || {};
+                              const newPerms = { ...currentPerms, canAccessWaiterPanel: !currentPerms.canAccessWaiterPanel };
+                              const updatedStaff = { ...selectedStaff, permissions: newPerms };
+                              setSelectedStaff(updatedStaff);
+                              try {
+                                await apiService.updateStaff(selectedStaff.id, { permissions: newPerms });
+                                setStaff(staff.map(s => s.id === selectedStaff.id ? updatedStaff : s));
+                              } catch (err) {
+                                console.error('Error updating permissions:', err);
+                                alert(t('Yetki güncellenirken hata oluştu'));
+                              }
                             }}
-                            className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
-                            title={t('Kopyala')}
+                            className={`w-12 h-6 rounded-full transition-colors relative ${selectedStaff.permissions?.canAccessWaiterPanel ? 'bg-green-500' : 'bg-gray-300'}`}
                           >
-                            <FaCopy size={12} />
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedStaff.permissions?.canAccessWaiterPanel ? 'left-7' : 'left-1'}`}></div>
                           </button>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p><strong><TranslatedText>Kasa Paneli</TranslatedText>:</strong></p>
-                            <p className="font-mono text-xs text-blue-600">kasa.{settings.basicInfo.subdomain}.com</p>
+
+                        <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-100">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-green-100 text-green-600 rounded-lg">
+                              <FaMoneyBillWave size={16} />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-800"><TranslatedText>Kasa Paneli Girişi</TranslatedText></p>
+                              <p className="text-xs text-gray-500"><TranslatedText>Kasa paneline giriş yapabilir</TranslatedText></p>
+                            </div>
                           </div>
                           <button
-                            onClick={() => {
-                              const url = `https://kasa.${settings.basicInfo.subdomain}.com`;
-                              navigator.clipboard.writeText(url);
-                              alert(t('URL kopyalandı!'));
+                            onClick={async () => {
+                              const currentPerms = selectedStaff.permissions || {};
+                              const newPerms = { ...currentPerms, canAccessCashierPanel: !currentPerms.canAccessCashierPanel };
+                              const updatedStaff = { ...selectedStaff, permissions: newPerms };
+                              setSelectedStaff(updatedStaff);
+                              try {
+                                await apiService.updateStaff(selectedStaff.id, { permissions: newPerms });
+                                setStaff(staff.map(s => s.id === selectedStaff.id ? updatedStaff : s));
+                              } catch (err) {
+                                console.error('Error updating permissions:', err);
+                                alert(t('Yetki güncellenirken hata oluştu'));
+                              }
                             }}
-                            className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
-                            title={t('Kopyala')}
+                            className={`w-12 h-6 rounded-full transition-colors relative ${selectedStaff.permissions?.canAccessCashierPanel ? 'bg-green-500' : 'bg-gray-300'}`}
                           >
-                            <FaCopy size={12} />
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedStaff.permissions?.canAccessCashierPanel ? 'left-7' : 'left-1'}`}></div>
                           </button>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p><strong><TranslatedText>Mutfak Paneli</TranslatedText>:</strong></p>
-                            <p className="font-mono text-xs text-blue-600">mutfak.{settings.basicInfo.subdomain}.com</p>
+
+                        <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-100">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                              <FaUtensils size={16} />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-800"><TranslatedText>Mutfak Paneli Girişi</TranslatedText></p>
+                              <p className="text-xs text-gray-500"><TranslatedText>Mutfak paneline giriş yapabilir</TranslatedText></p>
+                            </div>
                           </div>
                           <button
-                            onClick={() => {
-                              const url = `https://mutfak.${settings.basicInfo.subdomain}.com`;
-                              navigator.clipboard.writeText(url);
-                              alert(t('URL kopyalandı!'));
+                            onClick={async () => {
+                              const currentPerms = selectedStaff.permissions || {};
+                              const newPerms = { ...currentPerms, canAccessKitchenPanel: !currentPerms.canAccessKitchenPanel };
+                              const updatedStaff = { ...selectedStaff, permissions: newPerms };
+                              setSelectedStaff(updatedStaff);
+                              try {
+                                await apiService.updateStaff(selectedStaff.id, { permissions: newPerms });
+                                setStaff(staff.map(s => s.id === selectedStaff.id ? updatedStaff : s));
+                              } catch (err) {
+                                console.error('Error updating permissions:', err);
+                                alert(t('Yetki güncellenirken hata oluştu'));
+                              }
                             }}
-                            className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
-                            title={t('Kopyala')}
+                            className={`w-12 h-6 rounded-full transition-colors relative ${selectedStaff.permissions?.canAccessKitchenPanel ? 'bg-green-500' : 'bg-gray-300'}`}
                           >
-                            <FaCopy size={12} />
-                          </button>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p><strong><TranslatedText>Yönetici Paneli</TranslatedText>:</strong></p>
-                            <p className="font-mono text-xs text-blue-600">yonetici.{settings.basicInfo.subdomain}.com</p>
-                          </div>
-                          <button
-                            onClick={() => {
-                              const url = `https://yonetici.${settings.basicInfo.subdomain}.com`;
-                              navigator.clipboard.writeText(url);
-                              alert(t('URL kopyalandı!'));
-                            }}
-                            className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
-                            title={t('Kopyala')}
-                          >
-                            <FaCopy size={12} />
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedStaff.permissions?.canAccessKitchenPanel ? 'left-7' : 'left-1'}`}></div>
                           </button>
                         </div>
                       </div>

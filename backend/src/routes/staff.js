@@ -362,6 +362,7 @@ router.put('/:staffId', async (req, res) => {
     if (phone !== undefined) staff.phone = phone;
     if (role) staff.role = role;
     if (status) staff.status = status;
+    if (req.body.permissions !== undefined) staff.permissions = req.body.permissions;
 
     await staff.save();
 
@@ -600,6 +601,7 @@ router.post('/login', async (req, res) => {
         id: staff.id,
         name: staff.name,
         role: staff.role,
+        permissions: staff.permissions || {},
         restaurantId: staff.restaurantId,
         restaurantName: restaurantInfo.name,
         restaurantUsername: restaurantInfo.username

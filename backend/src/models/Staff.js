@@ -55,7 +55,11 @@ module.exports = (sequelize, DataTypes) => {
         isIn: [['active', 'inactive', 'suspended']]
       }
     },
-    
+    permissions: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: {}
+    },
   }, {
     tableName: 'staff',
     timestamps: true,
@@ -76,7 +80,7 @@ module.exports = (sequelize, DataTypes) => {
     ]
   });
 
-  Staff.associate = function(models) {
+  Staff.associate = function (models) {
     // Staff belongs to Restaurant
     Staff.belongsTo(models.Restaurant, {
       foreignKey: 'restaurantId',

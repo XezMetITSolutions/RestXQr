@@ -7,15 +7,7 @@ const router = express.Router();
 const { Restaurant, Staff } = require('../models');
 const staffAuth = require('../middleware/staffAuth');
 
-// Permissions storage (production'da veritabanına taşınmalı)
-// Bu örnek için in-memory storage kullanıyoruz
-const permissionsStore = {
-  // restaurantId: {
-  //   kitchen: [{ id, label, description, enabled, locked }],
-  //   waiter: [{ id, label, description, enabled, locked }],
-  //   cashier: [{ id, label, description, enabled, locked }]
-  // }
-};
+// Permissions are now stored persistently in Restaurant.settings.permissions
 
 // Default permissions for each role
 const getDefaultPermissions = (role) => {
@@ -181,14 +173,20 @@ const getDefaultPermissions = (role) => {
 };
 
 // Helper function to initialize permissions for a restaurant
-const initializePermissions = (restaurantId) => {
-  if (!permissionsStore[restaurantId]) {
-    permissionsStore[restaurantId] = {
+const initializePermissions = async (restaurant) => {
+  if (!restaurant.settings) restaurant.settings = {};
+
+  if (!restaurant.settings.permissions) {
+    restaurant.settings.permissions = {
       kitchen: getDefaultPermissions('kitchen'),
       waiter: getDefaultPermissions('waiter'),
       cashier: getDefaultPermissions('cashier')
     };
+    // Save the initialized permissions
+    restaurant.changed('settings', true);
+    await restaurant.save();
   }
+  return restaurant.settings.permissions;
 };
 
 // GET /api/permissions/:restaurantId - Get all permissions for a restaurant
@@ -206,11 +204,11 @@ router.get('/:restaurantId', staffAuth, async (req, res) => {
     }
 
     // Initialize permissions if not exists
-    initializePermissions(restaurantId);
+    const permissions = await initializePermissions(restaurant);
 
     res.json({
       success: true,
-      permissions: permissionsStore[restaurantId]
+      permissions: permissions
     });
   } catch (error) {
     console.error('Error fetching permissions:', error);
@@ -244,11 +242,11 @@ router.get('/:restaurantId/:role', staffAuth, async (req, res) => {
     }
 
     // Initialize permissions if not exists
-    initializePermissions(restaurantId);
+    const allPermissions = await initializePermissions(restaurant);
 
     res.json({
       success: true,
-      permissions: permissionsStore[restaurantId][role]
+      permissions: allPermissions[role] || []
     });
   } catch (error) {
     console.error('Error fetching role permissions:', error);
@@ -283,20 +281,26 @@ router.put('/:restaurantId', staffAuth, async (req, res) => {
     }
 
     // Initialize permissions if not exists
-    initializePermissions(restaurantId);
+    await initializePermissions(restaurant);
 
-    // Update permissions
+    // Update permissions in settings
+    const currentPermissions = restaurant.settings.permissions || {};
+
     if (permissions.kitchen) {
-      permissionsStore[restaurantId].kitchen = permissions.kitchen;
+      currentPermissions.kitchen = permissions.kitchen;
     }
 
     if (permissions.waiter) {
-      permissionsStore[restaurantId].waiter = permissions.waiter;
+      currentPermissions.waiter = permissions.waiter;
     }
 
     if (permissions.cashier) {
-      permissionsStore[restaurantId].cashier = permissions.cashier;
+      currentPermissions.cashier = permissions.cashier;
     }
+
+    restaurant.settings.permissions = currentPermissions;
+    restaurant.changed('settings', true);
+    await restaurant.save();
 
     res.json({
       success: true,
@@ -342,10 +346,15 @@ router.put('/:restaurantId/:role', staffAuth, async (req, res) => {
     }
 
     // Initialize permissions if not exists
-    initializePermissions(restaurantId);
+    await initializePermissions(restaurant);
 
     // Update permissions for the role
-    permissionsStore[restaurantId][role] = permissions;
+    const currentPermissions = restaurant.settings.permissions || {};
+    currentPermissions[role] = permissions;
+
+    restaurant.settings.permissions = currentPermissions;
+    restaurant.changed('settings', true);
+    await restaurant.save();
 
     res.json({
       success: true,
@@ -373,19 +382,28 @@ const hasPermission = async (staffId, permissionId) => {
     // Get role and restaurant
     const { role, restaurantId } = staff;
 
+    // Get permissions from restaurant settings
+    const restaurant = await Restaurant.findByPk(restaurantId);
+    if (!restaurant) return false;
+
     // Initialize permissions if not exists
-    initializePermissions(restaurantId);
+    const allPermissions = await initializePermissions(restaurant);
 
     // Map roles to permission categories
     let permissionCategory;
-    if (role === 'chef') permissionCategory = 'kitchen';
+    if (role === 'chef' || role === 'kitchen') permissionCategory = 'kitchen';
     else if (role === 'waiter') permissionCategory = 'waiter';
     else if (role === 'cashier') permissionCategory = 'cashier';
     else if (role === 'manager' || role === 'admin') return true; // Managers and admins have all permissions
     else return false;
 
-    // Check if permission exists and is enabled
-    const permission = permissionsStore[restaurantId][permissionCategory]?.find(p => p.id === permissionId);
+    // Check staff-specific overrides first
+    if (staff.permissions && staff.permissions[permissionId] !== undefined) {
+      return staff.permissions[permissionId];
+    }
+
+    // Fallback to role-based permissions
+    const permission = allPermissions[permissionCategory]?.find(p => p.id === permissionId);
     return permission?.enabled || false;
   } catch (error) {
     console.error('Error checking permission:', error);

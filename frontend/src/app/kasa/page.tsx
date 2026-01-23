@@ -113,7 +113,14 @@ export default function KasaPanel() {
       const parsedUser = JSON.parse(user);
       setStaffRole(parsedUser.role || '');
 
-      if (parsedUser.role !== 'cashier' && parsedUser.role !== 'manager' && parsedUser.role !== 'admin') {
+      // Sadece kasiyer, yöneticiler veya özel izni olanlar erişebilir
+      const hasAccess =
+        parsedUser.role === 'cashier' ||
+        parsedUser.role === 'manager' ||
+        parsedUser.role === 'admin' ||
+        parsedUser.permissions?.canAccessCashierPanel === true;
+
+      if (!hasAccess) {
         alert('Bu panele erişim yetkiniz yok!');
         router.push('/staff-login');
         return;

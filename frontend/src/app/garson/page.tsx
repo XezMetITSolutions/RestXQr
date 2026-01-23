@@ -70,8 +70,14 @@ export default function GarsonPanel() {
       const parsedUser = JSON.parse(user);
       setStaffUser(parsedUser);
 
-      // Sadece garson ve yöneticiler erişebilir
-      if (parsedUser.role !== 'waiter' && parsedUser.role !== 'manager' && parsedUser.role !== 'admin') {
+      // Sadece garson, yöneticiler veya özel izni olanlar erişebilir
+      const hasAccess =
+        parsedUser.role === 'waiter' ||
+        parsedUser.role === 'manager' ||
+        parsedUser.role === 'admin' ||
+        parsedUser.permissions?.canAccessWaiterPanel === true;
+
+      if (!hasAccess) {
         alert('Bu panele erişim yetkiniz yok!');
         router.push('/staff-login');
         return;
