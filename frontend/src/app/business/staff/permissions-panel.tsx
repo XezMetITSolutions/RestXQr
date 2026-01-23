@@ -451,11 +451,11 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       setLoadingPermissions(true);
       console.log(`Loading permissions for restaurant ${authenticatedRestaurant.id}...`);
 
-      // Get staff token or business token
-      let authToken = localStorage.getItem('staff_token');
+      // Get restaurant token or business token FIRST
+      let authToken = localStorage.getItem('restaurant_token');
       if (!authToken) {
-        // Fallback to restaurant_token or business_token
-        authToken = localStorage.getItem('restaurant_token') || localStorage.getItem('business_token');
+        // Fallback to business_token or staff_token
+        authToken = localStorage.getItem('business_token') || localStorage.getItem('staff_token');
       }
 
       if (!authToken) {
@@ -634,13 +634,13 @@ export default function PermissionsPanel({ isEmbedded = false }: { isEmbedded?: 
       console.log('🔍 DEBUG: Checking localStorage for tokens...');
       console.log('🔍 DEBUG: All localStorage keys:', Object.keys(localStorage));
 
-      let authToken = localStorage.getItem('staff_token');
-      console.log('🔍 DEBUG: staff_token:', authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND');
+      let authToken = localStorage.getItem('restaurant_token');
+      console.log('🔍 DEBUG: restaurant_token:', authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND');
 
       if (!authToken) {
-        // Fallback to restaurant_token or business_token
-        authToken = localStorage.getItem('restaurant_token') || localStorage.getItem('business_token');
-        console.log('🔍 DEBUG: restaurant_token/business_token:', authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND');
+        // Fallback to business_token or staff_token
+        authToken = localStorage.getItem('business_token') || localStorage.getItem('staff_token');
+        console.log('🔍 DEBUG: business/staff token:', authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND');
       }
 
       if (!authToken) {
