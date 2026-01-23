@@ -48,7 +48,8 @@ export default function ProductSyncPage() {
             const jsonData = await jsonRes.json();
 
             if (!jsonData.success) {
-                alert('Fiyat listesi dosyası okunamadı: ' + jsonData.message);
+                alert('Fiyat listesi hatası: ' + (jsonData.message || 'Bilinmeyen hata') +
+                    (jsonData.searchedPath ? `\n(Path: ${jsonData.searchedPath})` : ''));
                 setLoading(false);
                 return;
             }

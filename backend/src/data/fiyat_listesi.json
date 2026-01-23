@@ -1,0 +1,250 @@
+{
+  "fiyat_listesi": [
+    {
+      "urun_adi": "Dana etli ramen牛肉拉面",
+      "fiyat": 248.0,
+      "para_birimi": "TL",
+      "alternatif": {
+        "urun_adi": "Ramen küçük",
+        "fiyat": 228.0,
+        "para_birimi": "TL"
+      }
+    },
+    {
+      "urun_adi": "Hoxan 4lü",
+      "fiyat": 398.0,
+      "para_birimi": "TL",
+      "alternatif": {
+        "urun_adi": "Hoxan 2'li",
+        "fiyat": 199.0,
+        "para_birimi": "TL"
+      }
+    },
+    {
+      "urun_adi": "Ganbian makarnası 干煸炒面",
+      "fiyat": 398.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Tavuk noodle 鸡肉炒面",
+      "fiyat": 328.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Uygur mantı 薄皮包子",
+      "fiyat": 398.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Dana döş ramen 红烧牛腩面",
+      "fiyat": 328.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Balık sushi 金枪鱼寿司（紫菜卷）",
+      "fiyat": 378.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Acılı lokum tavuk 辣子鸡",
+      "fiyat": 428.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Guyro lagmen 过油肉拌面",
+      "fiyat": 428.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Haşlanmış mantı 水饺",
+      "fiyat": 358.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Dana etli rojamo 牛肉肉夹馍",
+      "fiyat": 298.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Dapanji 大盘鸡",
+      "fiyat": 558.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Erişte salatası 凉皮",
+      "fiyat": 178.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Dana noodle 牛肉炒面",
+      "fiyat": 368.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Coca cola",
+      "fiyat": 68.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Portakallı tavuk 橙皮鸡",
+      "fiyat": 428.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Su 水",
+      "fiyat": 30.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Sebzeli noodle 蔬菜",
+      "fiyat": 298.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Sebze sushi 蔬菜寿司（紫菜卷）",
+      "fiyat": 278.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Coca cola zero",
+      "fiyat": 68.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Tavuk noodle 鸡肉炒面",
+      "fiyat": 328.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Özel soslu dana 烧汁牛肉",
+      "fiyat": 728.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Tatlı Buharda Mantı(2 adet)",
+      "fiyat": 188.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Pirinç keki 年糕",
+      "fiyat": 158.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Acılı haşlanmış dana 水煮牛肉",
+      "fiyat": 1.328,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Guyro 铁板牛肉",
+      "fiyat": 728.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Ice tea şeftali",
+      "fiyat": 68.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Özel soslu tofu 烧汁豆腐",
+      "fiyat": 388.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Kızartma tofu 红烧豆腐",
+      "fiyat": 388.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "karides krekleri 虾片",
+      "fiyat": 148.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Dana etli sushi 牛肉寿司（紫菜卷）",
+      "fiyat": 378.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Patates kavurması 酸辣土豆丝",
+      "fiyat": 258.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Ice tea mango",
+      "fiyat": 68.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Acılı tofu 麻婆豆腐",
+      "fiyat": 398.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Sebzeli noodle 蔬菜",
+      "fiyat": 298.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Beyaz pilav 米饭",
+      "fiyat": 128.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Sprite",
+      "fiyat": 68.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Ice tea lemon",
+      "fiyat": 68.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Pırasalı dana葱爆牛肉",
+      "fiyat": 728.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Sade ekmek 馒头",
+      "fiyat": 48.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Sade soda苏打",
+      "fiyat": 40.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Limonlu soda 柠檬苏打水",
+      "fiyat": 40.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Fanta",
+      "fiyat": 68.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "50 gram dana eti 牛肉50克",
+      "fiyat": 198.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Sığır eti salatası 凉拌牛肉",
+      "fiyat": 858.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Elmalı soda 苹果苏打水",
+      "fiyat": 40.0,
+      "para_birimi": "TL"
+    },
+    {
+      "urun_adi": "Çay yumurtası 茶叶蛋",
+      "fiyat": 38.0,
+      "para_birimi": "TL"
+    }
+  ],
+  "toplam_urun": 47
+}

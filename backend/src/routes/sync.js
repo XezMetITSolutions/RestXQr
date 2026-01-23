@@ -7,45 +7,35 @@ const { MenuItem } = require('../models');
 // GET /api/sync/local-price-list
 router.get('/local-price-list', (req, res) => {
     try {
-        const possiblePaths = [
-            path.join(__dirname, '../../../fiyat_listesi.json'),
-            path.join(__dirname, '../../fiyat_listesi.json'),
-            path.join(process.cwd(), 'fiyat_listesi.json'),
-            path.join(process.cwd(), '../fiyat_listesi.json')
-        ];
+        // In production, we expect the file to be in backend/src/data
+        const filePath = path.join(__dirname, '../data/fiyat_listesi.json');
 
-        let filePath = null;
-        for (const p of possiblePaths) {
-            if (fs.existsSync(p)) {
-                filePath = p;
-                break;
+        if (!fs.existsSync(filePath)) {
+
+            if (!filePath) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'fiyat_listesi.json bulunamadı'
+                });
             }
-        }
 
-        if (!filePath) {
-            return res.status(404).json({
+            const rawData = fs.readFileSync(filePath, 'utf8');
+            const jsonData = JSON.parse(rawData);
+
+            res.json({
+                success: true,
+                data: jsonData
+            });
+
+        } catch (error) {
+            console.error('❌ Fiyat listesi okuma hatası:', error);
+            res.status(500).json({
                 success: false,
-                message: 'fiyat_listesi.json bulunamadı'
+                message: 'Dosya okuma hatası',
+                error: error.message
             });
         }
-
-        const rawData = fs.readFileSync(filePath, 'utf8');
-        const jsonData = JSON.parse(rawData);
-
-        res.json({
-            success: true,
-            data: jsonData
-        });
-
-    } catch (error) {
-        console.error('❌ Fiyat listesi okuma hatası:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Dosya okuma hatası',
-            error: error.message
-        });
-    }
-});
+    });
 
 // POST /api/sync/batch-update
 router.post('/batch-update', async (req, res) => {
