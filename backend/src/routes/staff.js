@@ -813,87 +813,75 @@ router.post('/restore-restaurants', async (req, res) => {
         coverImage: null,
         status: 'active'
       },
-      status: 'active'
-      },
-  {
-    name: 'Test Restoran',
-      username: 'testuser',
+      {
+        name: 'Test Restoran',
+        username: 'testuser',
         email: 'test@test.com',
-          password: '123456', // Password eklendi
-            phone: '+90 555 345 6789',
-              address: 'Test, İstanbul',
-                description: 'Test restoranı',
-                  logo: null,
-                    coverImage: null,
-                      status: 'active'
-  }
-    ];
-
-  // ... (rest of restore-restaurants logic would follow, but keeping context focused)
-
-  // Instead of replacing the long restore-restaurants logic which I can't see fully to match,
-  // I will append the NEW endpoint after the last visible endpoint I assume is near end of file or simply insert it before module.exports or after another route.
-  // Wait, the previous view showed line 800 was inside 'restaurants' array.
-  // I should append the new route at the END of the file, before module.exports using view_file to find the end properly.
-
-  // Let me ABORT this specific replacement and first find the end of the file to append cleanly.
-  // The previous view ended at line 800 inside an array.
-  {
-    name: 'Kroren',
-      username: 'kroren',
+        password: '123456',
+        phone: '+90 555 345 6789',
+        address: 'Test, İstanbul',
+        description: 'Test restoranı',
+        logo: null,
+        coverImage: null,
+        status: 'active'
+      },
+      {
+        name: 'Kroren',
+        username: 'kroren',
         email: 'kroren@kroren.com',
-          password: '123456',
-            phone: '+90 555 456 7890',
-              address: 'Kroren, İstanbul',
-                description: 'Kroren Restoranı',
-                  logo: null,
-                    coverImage: null,
-                      status: 'active'
-  }
+        password: '123456',
+        phone: '+90 555 456 7890',
+        address: 'Kroren, İstanbul',
+        description: 'Kroren Restoranı',
+        logo: null,
+        coverImage: null,
+        status: 'active'
+      }
     ];
 
-  const createdRestaurants = [];
 
-  for (const restaurantData of restaurants) {
-    try {
-      // Mevcut restaurant'ı kontrol et
-      const existingRestaurant = await Restaurant.findOne({
-        where: { username: restaurantData.username }
-      });
+    const createdRestaurants = [];
 
-      if (existingRestaurant) {
-        console.log(`✅ Restaurant already exists: ${restaurantData.name}`);
-        createdRestaurants.push(existingRestaurant);
-      } else {
-        const restaurant = await Restaurant.create(restaurantData);
-        console.log(`✅ Restaurant created: ${restaurant.name} (${restaurant.id})`);
-        createdRestaurants.push(restaurant);
+    for (const restaurantData of restaurants) {
+      try {
+        // Mevcut restaurant'ı kontrol et
+        const existingRestaurant = await Restaurant.findOne({
+          where: { username: restaurantData.username }
+        });
+
+        if (existingRestaurant) {
+          console.log(`✅ Restaurant already exists: ${restaurantData.name}`);
+          createdRestaurants.push(existingRestaurant);
+        } else {
+          const restaurant = await Restaurant.create(restaurantData);
+          console.log(`✅ Restaurant created: ${restaurant.name} (${restaurant.id})`);
+          createdRestaurants.push(restaurant);
+        }
+      } catch (error) {
+        console.error(`❌ Error creating restaurant ${restaurantData.name}:`, error);
       }
-    } catch (error) {
-      console.error(`❌ Error creating restaurant ${restaurantData.name}:`, error);
     }
+
+    console.log('✅ Restaurant restoration completed');
+
+    res.json({
+      success: true,
+      message: 'Restaurants restored successfully',
+      data: createdRestaurants
+    });
+  } catch (error) {
+    console.error('❌ Error restoring restaurants:', error);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Error restoring restaurants',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
-
-  console.log('✅ Restaurant restoration completed');
-
-  res.json({
-    success: true,
-    message: 'Restaurants restored successfully',
-    data: createdRestaurants
-  });
-} catch (error) {
-  console.error('❌ Error restoring restaurants:', error);
-  console.error('Error details:', {
-    message: error.message,
-    name: error.name,
-    stack: error.stack
-  });
-  res.status(500).json({
-    success: false,
-    message: 'Error restoring restaurants',
-    error: process.env.NODE_ENV === 'development' ? error.message : undefined
-  });
-}
 });
 
 // POST /api/staff/create-hazal - Create Hazal staff manually
