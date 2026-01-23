@@ -60,7 +60,6 @@ import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 function SettingsPageContent() {
   const router = useRouter();
   const { currentLanguage } = useLanguage();
-  const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
 
   const getStatic = (text: string) => {
     const langCode = currentLanguage === 'German' ? 'de' :
@@ -90,8 +89,43 @@ function SettingsPageContent() {
     { code: 'zh', label: '中文', flag: '🇨🇳', description: getStatic('Çince menü') }
   ];
 
+  const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
+  const {
+    settings,
+    accountInfo,
+    stats,
+    isLoading,
+    activeTab,
+    expandedSections,
+    updateSettings,
+    updateBasicInfo,
+    updateBranding,
+    updateStaffCredentials,
+    generateStaffCredentials,
+    updateMenuSettings,
+    updatePaymentSettings,
+    updateTechnicalSettings,
+    updateCustomerExperience,
+    updateNotificationSettings,
+    updateIntegrations,
+    updateSecuritySettings,
+    updateBackupSettings,
+    updatePrinterSettings,
+    updateAccountInfo,
+    setActiveTab,
+    toggleSection,
+    setLoading,
+    exportSettings,
+    validateSubdomain,
+    fetchSettings,
+    saveSettings
+  } = useBusinessSettingsStore();
+
+  const [isClient, setIsClient] = useState(false);
+
   // Sayfa yüklendiğinde auth'u initialize et ve ayarları çek
   useEffect(() => {
+    setIsClient(true);
     initializeAuth();
     fetchSettings();
   }, [initializeAuth, fetchSettings]);
@@ -124,36 +158,6 @@ function SettingsPageContent() {
     };
   }, [showEmojiPicker]);
 
-  // Restaurant-specific settings kullan
-  const {
-    settings,
-    accountInfo,
-    stats,
-    isLoading,
-    activeTab,
-    expandedSections,
-    updateBasicInfo,
-    updateBranding,
-    updateStaffCredentials,
-    generateStaffCredentials,
-    updateMenuSettings,
-    updatePaymentSettings,
-    updateTechnicalSettings,
-    updateCustomerExperience,
-    updateNotificationSettings,
-    updateIntegrations,
-    updateSecuritySettings,
-    updateBackupSettings,
-    updatePrinterSettings,
-    updateAccountInfo,
-    setActiveTab,
-    toggleSection,
-    setLoading,
-    exportSettings,
-    validateSubdomain,
-    fetchSettings,
-    saveSettings
-  } = useBusinessSettingsStore();
 
   // Popüler emojiler listesi
   const popularEmojis = ['⭐', '🎉', '🍲', '🍕', '🍔', '🍟', '🌮', '🌯', '🥗', '🍝', '🍜', '🍱', '🍣', '🍤', '🍗', '🍖', '🥩', '🍳', '🥘', '🍲', '🥣', '🍨', '🍧', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🥤', '🍹', '🍸', '🍷', '🍺', '☕', '🥛', '💯', '🔥', '✨', '🎊', '🎈', '🎁', '🏆', '🥇', '💎', '🌟', '💫', '🎯', '🎪'];
@@ -478,6 +482,14 @@ function SettingsPageContent() {
     { id: 'printer', name: getStatic('Yazıcı Ayarları'), icon: FaPrint }
     // Ödeme & Abonelik, Entegrasyonlar, Bildirimler - Kaldırıldı
   ];
+
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
