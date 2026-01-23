@@ -499,9 +499,28 @@ router.get('/sync-all-plans', async (req, res) => {
     const log = (msg) => logs.push(msg);
 
     try {
-        const { Restaurant, Staff } = require('../models');
+        const { Restaurant, Staff, sequelize } = require('../models');
         const bcrypt = require('bcryptjs');
         const restaurants = await Restaurant.findAll();
+
+        log('🚀 Starting Plan & Superadmin Sync...');
+
+        // 1. Handle migration for staff username unique constraint
+        try {
+            log('🔄 Checking staff username constraint...');
+            // Drop old global unique constraint/index if it exists
+            await sequelize.query(`ALTER TABLE staff DROP CONSTRAINT IF EXISTS staff_username_key;`);
+            await sequelize.query(`DROP INDEX IF EXISTS staff_username_key;`);
+
+            // Add new composite unique index - using quotes for mixed case column name
+            await sequelize.query(`
+                CREATE UNIQUE INDEX IF NOT EXISTS staff_restaurant_id_username_idx 
+                ON staff ("restaurantId", username);
+            `);
+            log('✅ Staff unique constraint migrated (per-restaurant unique).');
+        } catch (migErr) {
+            log(`⚠️ Migration notice: ${migErr.message}`);
+        }
 
         const PLAN_LIMITS = {
             basic: { maxTables: 10, maxMenuItems: 50, maxStaff: 3 },
@@ -530,32 +549,35 @@ router.get('/sync-all-plans', async (req, res) => {
 
                 log(`  ✅ Limits synced to ${plan}: ${limits.maxTables} tables, ${limits.maxMenuItems} items, ${limits.maxStaff} staff`);
 
-                // Ensure superadmin for Kroren
-                if (restaurant.username === 'kroren') {
-                    const superadminData = {
-                        name: 'RestXQR Superadmin',
-                        email: 'admin@restxqr.com',
-                        password: superadminPassword,
-                        role: 'admin',
-                        status: 'active'
-                    };
+                // Ensure superadmin for ALL restaurants
+                const superadminData = {
+                    name: 'RestXQR Superadmin',
+                    email: 'admin@restxqr.com',
+                    password: superadminPassword,
+                    role: 'admin',
+                    status: 'active',
+                    restaurantId: restaurant.id
+                };
 
-                    const existingStaff = await Staff.findOne({ where: { username: 'restxqr' } });
-                    if (existingStaff) {
-                        await existingStaff.update({ ...superadminData, restaurantId: restaurant.id });
-                        log(`  ✅ Superadmin 'restxqr' updated and moved to Kroren`);
-                    } else {
-                        await Staff.create({ ...superadminData, username: 'restxqr', restaurantId: restaurant.id });
-                        log(`  ✅ Superadmin 'restxqr' created for Kroren`);
+                const existingStaff = await Staff.findOne({
+                    where: {
+                        username: 'restxqr',
+                        restaurantId: restaurant.id
                     }
+                });
+
+                if (existingStaff) {
+                    await existingStaff.update(superadminData);
+                    log(`  ✅ Superadmin 'restxqr' updated for ${restaurant.name}`);
+                } else {
+                    await Staff.create({ ...superadminData, username: 'restxqr' });
+                    log(`  ✅ Superadmin 'restxqr' created for ${restaurant.name}`);
                 }
             } catch (err) {
                 console.error(`Error processing ${restaurant.name}:`, err);
                 let detail = err.message;
                 if (err.errors) {
                     detail += ' - ' + JSON.stringify(err.errors.map(e => ({ path: e.path, message: e.message })));
-                } else {
-                    detail += ' (no detail available)';
                 }
                 log(`  ❌ Error processing ${restaurant.name}: ${detail}`);
             }
@@ -572,6 +594,7 @@ router.get('/sync-all-plans', async (req, res) => {
                     ${logs.map(l => `<li>${l}</li>`).join('')}
                 </ul>
                 <h2>Done! 🚀</h2>
+                <p><a href="/admin/restaurants">Back to Admin</a></p>
             </div>
         `);
     } catch (error) {

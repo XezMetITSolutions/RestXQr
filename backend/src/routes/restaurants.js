@@ -174,10 +174,11 @@ router.post('/', async (req, res) => {
     const PLAN_LIMITS = {
       basic: { maxTables: 10, maxMenuItems: 50, maxStaff: 3 },
       premium: { maxTables: 25, maxMenuItems: 150, maxStaff: 10 },
+      corporate: { maxTables: 100, maxMenuItems: 500, maxStaff: 50 },
       enterprise: { maxTables: 999, maxMenuItems: 999, maxStaff: 999 }
     };
 
-    const selectedPlan = plan || 'basic';
+    const selectedPlan = (plan || 'basic').toLowerCase();
     const limits = PLAN_LIMITS[selectedPlan] || PLAN_LIMITS.basic;
 
     // Hash password
@@ -225,7 +226,7 @@ router.post('/', async (req, res) => {
             username: adminUsername,
             password: adminHashedPassword,
             role: 'admin',
-            isActive: true
+            status: 'active'
           });
           console.log(`✅ Admin user created for restaurant ${restaurant.name}: ${adminUsername}`);
         }
@@ -248,7 +249,7 @@ router.post('/', async (req, res) => {
           username: 'restxqr',
           password: superadminHashedPassword,
           role: 'admin',
-          isActive: true
+          status: 'active'
         });
         console.log(`✅ Superadmin user created for restaurant ${restaurant.name}: restxqr`);
       }
@@ -438,6 +439,7 @@ router.put('/:id', async (req, res) => {
     const PLAN_LIMITS = {
       basic: { maxTables: 10, maxMenuItems: 50, maxStaff: 3 },
       premium: { maxTables: 25, maxMenuItems: 150, maxStaff: 10 },
+      corporate: { maxTables: 100, maxMenuItems: 500, maxStaff: 50 },
       enterprise: { maxTables: 999, maxMenuItems: 999, maxStaff: 999 }
     };
 

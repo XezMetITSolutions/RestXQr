@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     username: {
       type: DataTypes.STRING,
       allowNull: true,
-      unique: true
+      unique: false // Global unique kaldırıldı
     },
     password: {
       type: DataTypes.STRING,
@@ -44,7 +44,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 'waiter',
       validate: {
-        isIn: [['waiter', 'cashier', 'chef', 'manager', 'admin']]
+        isIn: [['waiter', 'cashier', 'chef', 'manager', 'admin', 'kitchen']]
       }
     },
     status: {
@@ -59,12 +59,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.JSONB,
       allowNull: true,
       defaultValue: {}
-    },
+    }
   }, {
     tableName: 'staff',
     timestamps: true,
     underscored: false, // camelCase field names kullan
     indexes: [
+      {
+        unique: true,
+        fields: ['restaurantId', 'username'] // Restoran bazında unique
+      },
       {
         fields: ['restaurantId']
       },

@@ -102,6 +102,8 @@ export default function RestaurantsManagement() {
         return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'premium':
         return 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'corporate':
+        return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'enterprise':
         return 'bg-amber-100 text-amber-700 border-amber-200';
       default:
@@ -110,9 +112,10 @@ export default function RestaurantsManagement() {
   };
 
   const getPlanName = (plan: string) => {
-    switch (plan) {
+    switch ((plan || '').toLowerCase()) {
       case 'basic': return 'Basic';
       case 'premium': return 'Premium';
+      case 'corporate': return 'Corporate';
       case 'enterprise': return 'Enterprise';
       default: return plan;
     }
@@ -137,7 +140,7 @@ export default function RestaurantsManagement() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
             <div className="flex items-center justify-between">
               <div>
@@ -169,10 +172,24 @@ export default function RestaurantsManagement() {
               <div>
                 <p className="text-sm text-purple-600 font-medium">Premium</p>
                 <p className="text-3xl font-bold text-purple-900 mt-1">
-                  {restaurants.filter(r => r.subscriptionPlan === 'premium').length}
+                  {restaurants.filter(r => (r.subscriptionPlan || '').toLowerCase() === 'premium').length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
+                <FaCrown className="text-white text-xl" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600 font-medium">Corporate</p>
+                <p className="text-3xl font-bold text-blue-900 mt-1">
+                  {restaurants.filter(r => (r.subscriptionPlan || '').toLowerCase() === 'corporate').length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
                 <FaCrown className="text-white text-xl" />
               </div>
             </div>
@@ -183,7 +200,7 @@ export default function RestaurantsManagement() {
               <div>
                 <p className="text-sm text-amber-600 font-medium">Enterprise</p>
                 <p className="text-3xl font-bold text-amber-900 mt-1">
-                  {restaurants.filter(r => r.subscriptionPlan === 'enterprise').length}
+                  {restaurants.filter(r => (r.subscriptionPlan || '').toLowerCase() === 'enterprise').length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
@@ -284,8 +301,8 @@ export default function RestaurantsManagement() {
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm text-gray-600">Durum:</span>
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${restaurant.isActive
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-100 text-gray-700'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-gray-100 text-gray-700'
                     }`}>
                     {restaurant.isActive ? 'Aktif' : 'Pasif'}
                   </span>
