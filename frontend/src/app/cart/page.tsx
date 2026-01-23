@@ -59,7 +59,8 @@ function CartPageContent() {
 
       // URL'deki token ile karşılaştır (extra güvenlik)
       const urlParams = new URLSearchParams(window.location.search);
-      const urlToken = urlParams.get('token');
+      // Check both 'token' and 't'
+      const urlToken = urlParams.get('token') || urlParams.get('t');
 
       if (urlToken) {
         setToken(urlToken);

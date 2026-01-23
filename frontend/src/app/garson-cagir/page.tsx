@@ -30,7 +30,8 @@ function GarsonCagirContent() {
     // Parse URL params first to ensure we catch the token
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const urlToken = urlParams.get('token');
+      // Check both 'token' and 't'
+      const urlToken = urlParams.get('token') || urlParams.get('t');
       const urlTable = urlParams.get('table');
 
       if (urlToken) {
