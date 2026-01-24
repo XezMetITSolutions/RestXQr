@@ -60,6 +60,7 @@ export default function QRCodesPage() {
   const [selectedQRCodes, setSelectedQRCodes] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const [visibleCount, setVisibleCount] = useState(30);
 
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
 
@@ -165,6 +166,11 @@ export default function QRCodesPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  useEffect(() => {
+    // Reset pagination when list changes
+    setVisibleCount(30);
+  }, [qrCodes.length]);
+
   // Helper: reload from backend and persist to store
   const reloadQRCodes = async () => {
     try {
@@ -175,7 +181,6 @@ export default function QRCodesPage() {
 
       setLoading(true);
       const res = await apiService.getRestaurantQRTokens(authenticatedRestaurant.id);
-      console.log('Backend QR response:', res);
 
       if (res?.success && Array.isArray(res.data)) {
         const mapped: QRCodeData[] = res.data.map((t: any) => {
@@ -183,45 +188,24 @@ export default function QRCodesPage() {
           // Eğer backend'den qrUrl gelmiyorsa, frontend'de doğru subdomain ile oluştur
           const restaurantSlug = authenticatedRestaurant.username;
 
-          console.log('🔍 Processing QR token:', {
-            tableNumber: t.tableNumber,
-            backendQrUrl: t.qrUrl,
-            restaurantSlug: restaurantSlug,
-            token: t.token?.substring(0, 20) + '...'
-          });
-
           // Backend'den gelen qrUrl'i öncelikli kullan
           let backendQrUrl = t.qrUrl;
 
           // Eğer backend'den qrUrl gelmemişse veya yanlış subdomain içeriyorsa, düzelt
           if (!backendQrUrl) {
             if (!restaurantSlug) {
-              console.error('❌ Cannot create QR URL without restaurant username');
               backendQrUrl = '';
             } else {
               backendQrUrl = `https://${restaurantSlug}.restxqr.com/menu/?t=${t.token}&table=${t.tableNumber}`;
-              console.warn('⚠️ Backend qrUrl missing, created in frontend:', backendQrUrl);
             }
           } else if (backendQrUrl.includes('aksaray.restxqr.com') && restaurantSlug && restaurantSlug !== 'aksaray') {
             // Backend yanlış subdomain göndermişse düzelt
-            console.warn('⚠️ Backend sent wrong subdomain, fixing:', {
-              oldUrl: backendQrUrl,
-              correctSubdomain: restaurantSlug
-            });
             backendQrUrl = backendQrUrl.replace('aksaray.restxqr.com', `${restaurantSlug}.restxqr.com`);
-            console.log('✅ Fixed URL:', backendQrUrl);
           }
 
           // QR kod resmi için URL'yi QR code generator API'ye gönder
           // QuickChart API kullanarak QR kod resmi oluştur
-          const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(backendQrUrl)}`;
-
-          console.log('QR Code generated:', {
-            tableNumber: t.tableNumber,
-            qrUrl: backendQrUrl,
-            qrImageUrl,
-            token: t.token
-          });
+          const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=${encodeURIComponent(backendQrUrl)}`;
 
           return {
             id: t.id,
@@ -240,7 +224,6 @@ export default function QRCodesPage() {
           };
         });
 
-        console.log('Mapped QR codes:', mapped);
         setQRCodes(mapped);
       } else {
         // Backend'de QR kod yoksa store'u temizle
@@ -689,7 +672,7 @@ export default function QRCodesPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {qrCodes.map((qrCode) => {
+                  {qrCodes.slice(0, visibleCount).map((qrCode) => {
                     const isSelected = selectedQRCodes.has(qrCode.id);
                     const floorInfo = findFloorForTable(qrCode.tableNumber);
                     return (
@@ -772,6 +755,17 @@ export default function QRCodesPage() {
                       </div>
                     )
                   })}
+                </div>
+              )}
+
+              {qrCodes.length > visibleCount && (
+                <div className="flex justify-center mt-6">
+                  <button
+                    onClick={() => setVisibleCount((c) => c + 30)}
+                    className="px-4 py-2 rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  >
+                    <TranslatedText>Daha Fazla Göster</TranslatedText>
+                  </button>
                 </div>
               )}
             </div>
