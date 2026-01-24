@@ -5,6 +5,31 @@ const { Op } = Sequelize;
 const { Order, OrderItem, Restaurant, MenuItem, MenuCategory, QRToken } = require('../models');
 const waiterCalls = require('../lib/waiterStore');
 
+const resolveDrinkStationForTable = (restaurant, tableNumber, menuItemCategoryId) => {
+  try {
+    const cfg = restaurant?.settings?.drinkStationRouting;
+    if (!cfg?.drinkCategoryId || !Array.isArray(cfg?.floors) || cfg.floors.length === 0) return null;
+    if (!tableNumber) return null;
+    if (!menuItemCategoryId) return null;
+
+    const drinkCategoryId = String(cfg.drinkCategoryId);
+    if (String(menuItemCategoryId) !== drinkCategoryId) return null;
+
+    const t = Number(tableNumber);
+    if (!Number.isFinite(t)) return null;
+
+    const match = cfg.floors.find((f) => {
+      const start = Number(f.startTable);
+      const end = Number(f.endTable);
+      return Number.isFinite(start) && Number.isFinite(end) && t >= start && t <= end;
+    });
+
+    return match?.stationId || null;
+  } catch (e) {
+    return null;
+  }
+};
+
 // DEBUG ROUTE: Get last 10 orders from ANY restaurant
 router.get('/debug/all', async (req, res) => {
   try {
@@ -111,6 +136,8 @@ router.get('/', async (req, res) => {
       order: [['created_at', 'DESC']]
     });
 
+    const restaurantForRouting = await Restaurant.findByPk(actualRestaurantId);
+
     // Attach items (join OrderItem -> MenuItem) and normalize shape for frontends
     const orderIds = orders.map(o => o.id);
     const items = await OrderItem.findAll({
@@ -134,7 +161,13 @@ router.get('/', async (req, res) => {
     const orderIdToItems = new Map();
     for (const it of items) {
       const list = orderIdToItems.get(it.orderId) || [];
-      const itemStation = it.menuItem?.kitchenStation || it.menuItem?.category?.kitchenStation || 'default';
+      const orderForItem = orders.find(o => o.id === it.orderId);
+      const drinkStation = resolveDrinkStationForTable(
+        restaurantForRouting,
+        orderForItem?.tableNumber,
+        it.menuItem?.categoryId
+      );
+      const itemStation = drinkStation || it.menuItem?.kitchenStation || it.menuItem?.category?.kitchenStation || 'default';
 
       list.push({
         id: it.menuItemId || it.id,
@@ -462,14 +495,19 @@ router.put('/:id', async (req, res) => {
               include: [{
                 model: MenuItem,
                 as: 'menuItem',
-                attributes: ['name', 'kitchenStation']
+                attributes: ['name', 'kitchenStation', 'categoryId']
               }]
             });
 
             // İstasyonlara göre grupla
             const itemsByStation = {};
             for (const item of orderItems) {
-              const station = item.menuItem?.kitchenStation || 'default';
+              const drinkStation = resolveDrinkStationForTable(
+                restaurant,
+                order.tableNumber,
+                item.menuItem?.categoryId
+              );
+              const station = drinkStation || item.menuItem?.kitchenStation || 'default';
               if (!itemsByStation[station]) {
                 itemsByStation[station] = [];
               }
@@ -616,19 +654,33 @@ router.put('/:id', async (req, res) => {
         const printerService = require('../services/printerService');
         const printResults = [];
 
+        const restaurant = await Restaurant.findByPk(order.restaurantId);
+        if (!restaurant || !restaurant.printerConfig) {
+          console.warn('⚠️ Restaurant or printerConfig not found for payment print');
+          combinedPrintResults = [...combinedPrintResults, ...printResults];
+          const responseData = order.get({ plain: true });
+          responseData.printResults = combinedPrintResults;
+          return res.json({ success: true, data: responseData });
+        }
+
         const orderItems = await OrderItem.findAll({
           where: { orderId: order.id },
           include: [{
             model: MenuItem,
             as: 'menuItem',
-            attributes: ['name', 'kitchenStation']
+            attributes: ['name', 'kitchenStation', 'categoryId']
           }]
         });
 
         // İstasyonlara göre grupla
         const itemsByStation = {};
         for (const item of orderItems) {
-          const station = item.menuItem?.kitchenStation || 'default';
+          const drinkStation = resolveDrinkStationForTable(
+            restaurant,
+            order.tableNumber,
+            item.menuItem?.categoryId
+          );
+          const station = drinkStation || item.menuItem?.kitchenStation || 'default';
           if (!itemsByStation[station]) itemsByStation[station] = [];
           itemsByStation[station].push({
             name: item.menuItem?.name || 'Ürün',
@@ -745,7 +797,7 @@ router.post('/:id/print', async (req, res) => {
       include: [{
         model: MenuItem,
         as: 'menuItem',
-        attributes: ['name', 'kitchenStation']
+        attributes: ['name', 'kitchenStation', 'categoryId']
       }]
     });
 
@@ -754,7 +806,12 @@ router.post('/:id/print', async (req, res) => {
     // İstasyonlara göre grupla
     const itemsByStation = {};
     for (const item of orderItems) {
-      const station = item.menuItem?.kitchenStation || 'default';
+      const drinkStation = resolveDrinkStationForTable(
+        restaurant,
+        order.tableNumber,
+        item.menuItem?.categoryId
+      );
+      const station = drinkStation || item.menuItem?.kitchenStation || 'default';
       if (!itemsByStation[station]) {
         itemsByStation[station] = [];
       }

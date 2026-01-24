@@ -30,7 +30,8 @@ export default function QRCodesPage() {
   const router = useRouter();
   const { translate: t, currentLanguage } = useLanguage();
   const { authenticatedRestaurant, isAuthenticated, logout, initializeAuth } = useAuthStore();
-  const { settings } = useRestaurantSettings(authenticatedRestaurant?.id);
+  const settingsStore = useRestaurantSettings(authenticatedRestaurant?.id);
+  const { settings } = settingsStore;
   const { qrCodes, setQRCodes, clearQRCodes } = useQRStore();
 
   const getStatic = (text: string) => {
@@ -60,6 +61,54 @@ export default function QRCodesPage() {
   const [selectAll, setSelectAll] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
+  const [menuCategories, setMenuCategories] = useState<any[]>([]);
+
+  // Drink routing config (stored in restaurant settings)
+  const [drinkCategoryId, setDrinkCategoryId] = useState('');
+  const [useManualRanges, setUseManualRanges] = useState(false);
+  const [floorConfigs, setFloorConfigs] = useState<
+    Array<{ name: string; tableCount: number; drinkStationId: string; startTable?: number; endTable?: number }>
+  >([
+    { name: '1. Kat', tableCount: 10, drinkStationId: '' }
+  ]);
+
+  const getFloorRangePreview = (idx: number) => {
+    if (useManualRanges) {
+      const start = Number(floorConfigs[idx]?.startTable);
+      const end = Number(floorConfigs[idx]?.endTable);
+      if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
+        return `${start}-${end}`;
+      }
+      return '-';
+    }
+
+    let cursor = 1;
+    for (let i = 0; i < floorConfigs.length; i++) {
+      const count = Number(floorConfigs[i]?.tableCount) || 0;
+      const start = cursor;
+      const end = count > 0 ? cursor + count - 1 : cursor - 1;
+      if (i === idx) {
+        return count > 0 ? `${start}-${end}` : '-';
+      }
+      cursor = cursor + count;
+    }
+    return '-';
+  };
+
+  const findFloorForTable = (tableNumber?: number) => {
+    const t = Number(tableNumber);
+    if (!Number.isFinite(t)) return null;
+    const cfg = (settings as any)?.drinkStationRouting;
+    const floors = Array.isArray(cfg?.floors) ? cfg.floors : [];
+    const match = floors.find((f: any) => Number(f.startTable) <= t && t <= Number(f.endTable));
+    if (!match) return null;
+    return {
+      name: match.name,
+      startTable: match.startTable,
+      endTable: match.endTable
+    };
+  };
+
   // Initialize auth on mount
   useEffect(() => {
     initializeAuth();
@@ -72,6 +121,44 @@ export default function QRCodesPage() {
       return;
     }
   }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        if (!authenticatedRestaurant?.id) return;
+        const res = await apiService.getRestaurantMenu(authenticatedRestaurant.id);
+        if (res?.success && res.data?.categories) {
+          setMenuCategories(res.data.categories);
+        }
+      } catch (e) {
+        console.error('Failed to load menu categories:', e);
+      }
+    };
+
+    loadCategories();
+  }, [authenticatedRestaurant?.id]);
+
+  useEffect(() => {
+    // Load existing routing settings into the modal defaults
+    const cfg = (settings as any)?.drinkStationRouting;
+    if (cfg?.drinkCategoryId && !drinkCategoryId) {
+      setDrinkCategoryId(cfg.drinkCategoryId);
+    }
+    if (Array.isArray(cfg?.floors) && cfg.floors.length > 0) {
+      // map stored floors to editable floor configs (tableCount derived from range)
+      const mapped = cfg.floors.map((f: any, idx: number) => ({
+        name: f.name || `${idx + 1}. Kat`,
+        tableCount: Number(f.tableCount || ((Number(f.endTable) - Number(f.startTable) + 1) || 0)) || 0,
+        drinkStationId: f.stationId || '',
+        startTable: f.startTable,
+        endTable: f.endTable
+      }));
+      setFloorConfigs(mapped);
+      // If stored floors have explicit ranges, default to manual range mode
+      setUseManualRanges(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings]);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -219,8 +306,73 @@ export default function QRCodesPage() {
       setCreating(true);
       const tokens: string[] = [];
 
+      const hasFloorSetup = Array.isArray(floorConfigs) && floorConfigs.length > 0 && floorConfigs.some(f => Number(f.tableCount) > 0);
+      const totalTables = hasFloorSetup
+        ? (useManualRanges
+          ? Math.max(
+            0,
+            ...floorConfigs
+              .map((f) => Number(f.endTable))
+              .filter((n) => Number.isFinite(n))
+          )
+          : floorConfigs.reduce((sum, f) => sum + (Number(f.tableCount) || 0), 0))
+        : tableCount;
+
+      if (hasFloorSetup) {
+        // Persist routing settings
+        let cursor = 1;
+        const routingFloors = floorConfigs
+          .filter(f => {
+            if (useManualRanges) {
+              const s = Number(f.startTable);
+              const e = Number(f.endTable);
+              return Number.isFinite(s) && Number.isFinite(e) && e >= s;
+            }
+            return Number(f.tableCount) > 0;
+          })
+          .map((f) => {
+            if (useManualRanges) {
+              const startTable = Number(f.startTable);
+              const endTable = Number(f.endTable);
+              const count = endTable - startTable + 1;
+              return {
+                name: f.name,
+                tableCount: count,
+                startTable,
+                endTable,
+                stationId: f.drinkStationId
+              };
+            }
+
+            const count = Number(f.tableCount) || 0;
+            const startTable = cursor;
+            const endTable = cursor + count - 1;
+            cursor = endTable + 1;
+            return {
+              name: f.name,
+              tableCount: count,
+              startTable,
+              endTable,
+              stationId: f.drinkStationId
+            };
+          });
+
+        settingsStore.updateSettings({
+          drinkStationRouting: {
+            drinkCategoryId: drinkCategoryId || null,
+            floors: routingFloors
+          }
+        } as any);
+
+        try {
+          await settingsStore.saveSettings();
+        } catch (e) {
+          console.error('Failed to save drink station routing settings:', e);
+        }
+      }
+
       // Her masa için token oluştur
-      for (let i = 1; i <= tableCount; i++) {
+      for (let i = 1; i <= totalTables; i++) {
         try {
           const response = await apiService.generateQRToken({
             restaurantId: authenticatedRestaurant.id,
@@ -244,7 +396,7 @@ export default function QRCodesPage() {
       await reloadQRCodes();
       setShowCreateModal(false);
 
-      showToast(`${tableCount} ${getStatic('adet QR kod başarıyla oluşturuldu!')}`, 'success');
+      showToast(`${totalTables} ${getStatic('adet QR kod başarıyla oluşturuldu!')}`, 'success');
     } catch (error) {
       console.error('QR kod oluşturma hatası:', error);
       showToast(getStatic('QR kod oluşturulurken hata oluştu'), 'error');
@@ -329,7 +481,7 @@ export default function QRCodesPage() {
 
     try {
       const selectedCount = selectedQRCodes.size;
-      for (const qrId of selectedQRCodes) {
+      for (const qrId of Array.from(selectedQRCodes)) {
         const qrCode = qrCodes.find(qr => qr.id === qrId);
         if (qrCode?.token) {
           await apiService.deactivateQRToken(qrCode.token);
@@ -540,6 +692,7 @@ export default function QRCodesPage() {
                   {qrCodes.map((qrCode) => {
                     console.log('Rendering QR Code:', qrCode);
                     const isSelected = selectedQRCodes.has(qrCode.id);
+                    const floorInfo = findFloorForTable(qrCode.tableNumber);
                     return (
                       <div key={qrCode.id} className={`border rounded-lg p-4 hover:shadow-lg transition-shadow ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
                         <div className="flex items-start justify-between mb-2">
@@ -568,6 +721,11 @@ export default function QRCodesPage() {
                           )}
                           <h3 className="font-semibold text-gray-900"><TranslatedText>Masa</TranslatedText> {qrCode.tableNumber} <TranslatedText>- QR Menü</TranslatedText></h3>
                           <p className="text-sm text-gray-600"><TranslatedText>Masa</TranslatedText> {qrCode.tableNumber} <TranslatedText>için QR kod</TranslatedText></p>
+                          {floorInfo && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              <TranslatedText>Kat</TranslatedText>: {floorInfo.name} ({floorInfo.startTable}-{floorInfo.endTable})
+                            </p>
+                          )}
                         </div>
 
                         <div className="space-y-2">
@@ -632,6 +790,158 @@ export default function QRCodesPage() {
             </div>
 
             <div className="space-y-4">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <TranslatedText>İçecek Kategorisi</TranslatedText>
+                  </label>
+                  <select
+                    value={drinkCategoryId}
+                    onChange={(e) => setDrinkCategoryId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">{getStatic('Kategori Seçin')}</option>
+                    {menuCategories
+                      .slice()
+                      .sort((a, b) => String(a?.name || '').localeCompare(String(b?.name || '')))
+                      .map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <TranslatedText>Katlara Göre İçecek İstasyonu</TranslatedText>
+                  </label>
+
+                  <label className="flex items-center gap-2 text-sm text-gray-700 mb-2">
+                    <input
+                      type="checkbox"
+                      checked={useManualRanges}
+                      onChange={(e) => setUseManualRanges(e.target.checked)}
+                    />
+                    <TranslatedText>Aralıkları manuel seç (Start-End)</TranslatedText>
+                  </label>
+
+                  <div className="space-y-2">
+                    {floorConfigs.map((f, idx) => (
+                      <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                        <input
+                          type="text"
+                          value={f.name}
+                          onChange={(e) => {
+                            const next = [...floorConfigs];
+                            next[idx] = { ...next[idx], name: e.target.value };
+                            setFloorConfigs(next);
+                          }}
+                          className="col-span-4 px-3 py-2 border border-gray-300 rounded-lg"
+                          placeholder={getStatic('Örn: 1. Kat')}
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          value={f.tableCount}
+                          onChange={(e) => {
+                            const next = [...floorConfigs];
+                            next[idx] = { ...next[idx], tableCount: parseInt(e.target.value) || 0 };
+                            setFloorConfigs(next);
+                          }}
+                          className="col-span-3 px-3 py-2 border border-gray-300 rounded-lg"
+                          disabled={useManualRanges}
+                        />
+
+                        {useManualRanges ? (
+                          <>
+                            <input
+                              type="number"
+                              min="1"
+                              value={f.startTable ?? ''}
+                              onChange={(e) => {
+                                const next = [...floorConfigs];
+                                next[idx] = { ...next[idx], startTable: parseInt(e.target.value) || 0 };
+                                setFloorConfigs(next);
+                              }}
+                              className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg"
+                              placeholder="Start"
+                            />
+                            <input
+                              type="number"
+                              min="1"
+                              value={f.endTable ?? ''}
+                              onChange={(e) => {
+                                const next = [...floorConfigs];
+                                next[idx] = { ...next[idx], endTable: parseInt(e.target.value) || 0 };
+                                setFloorConfigs(next);
+                              }}
+                              className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg"
+                              placeholder="End"
+                            />
+                          </>
+                        ) : (
+                          <div className="col-span-4 text-xs text-gray-600">
+                            <span className="font-semibold">{getFloorRangePreview(idx)}</span>
+                          </div>
+                        )}
+
+                        <select
+                          value={f.drinkStationId}
+                          onChange={(e) => {
+                            const next = [...floorConfigs];
+                            next[idx] = { ...next[idx], drinkStationId: e.target.value };
+                            setFloorConfigs(next);
+                          }}
+                          className="col-span-4 px-3 py-2 border border-gray-300 rounded-lg"
+                        >
+                          <option value="">{getStatic('İstasyon Seçin')}</option>
+                          {(authenticatedRestaurant?.kitchenStations || [])
+                            .slice()
+                            .sort((a, b) => (a.order || 0) - (b.order || 0))
+                            .map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.emoji ? `${s.emoji} ` : ''}{s.name}
+                              </option>
+                            ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = floorConfigs.filter((_, i) => i !== idx);
+                            setFloorConfigs(next.length ? next : [{ name: '1. Kat', tableCount: 0, drinkStationId: '' }]);
+                          }}
+                          className="col-span-1 px-2 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    ))}
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFloorConfigs([...floorConfigs, { name: `${floorConfigs.length + 1}. Kat`, tableCount: 0, drinkStationId: '' }])}
+                        className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        <TranslatedText>Kat Ekle</TranslatedText>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFloorConfigs([{ name: '1. Kat', tableCount: tableCount, drinkStationId: '' }])}
+                        className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        <TranslatedText>Sıfırla</TranslatedText>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    <TranslatedText>Örnek:</TranslatedText> 1. Kat = 18 masa, 2. Kat = 24 masa → Masa 1-18 ve 19-42 otomatik hesaplanır.
+                  </p>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <TranslatedText>Masa Sayısı</TranslatedText>

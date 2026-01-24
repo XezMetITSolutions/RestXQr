@@ -18,25 +18,25 @@ export function useRestaurantSettings(restaurantId: string | undefined) {
         //   store.updateAccountInfo(response.data.accountInfo || {});
         //   return;
         // }
-        
-        console.log(`⏳ Settings API not implemented yet, using defaults for restaurant ${restaurantId}`);
+
+        await store.fetchSettings();
+        return;
       } catch (error) {
         console.error('❌ Failed to load settings from backend:', error);
       }
-      
+
       // Default settings (fallback)
-      store.updateSettings({
-        businessName: 'Restoran Adı',
-        businessType: 'restaurant',
-        currency: 'TRY',
-        timezone: 'Europe/Istanbul',
-        language: 'tr',
-        theme: 'light'
+      store.updateBasicInfo({
+        name: 'Restoran Adı',
+        businessType: 'restaurant'
+      });
+      store.updateMenuSettings({
+        defaultLanguage: 'tr'
       });
     };
     
     loadSettings();
-  }, [restaurantId]);
+  }, [restaurantId, store]);
   
   // Settings değiştiğinde backend'e kaydet (debounced)
   useEffect(() => {
@@ -46,7 +46,7 @@ export function useRestaurantSettings(restaurantId: string | undefined) {
       try {
         // TODO: Backend API endpoint eklendiğinde aktif et
         // await apiService.updateRestaurantSettings(restaurantId, store.settings);
-        console.log(`⏳ Settings API not implemented yet for restaurant ${restaurantId}`);
+        await store.saveSettings();
       } catch (error) {
         console.error('❌ Failed to save settings:', error);
       }
@@ -54,7 +54,7 @@ export function useRestaurantSettings(restaurantId: string | undefined) {
     
     const timeoutId = setTimeout(saveSettings, 1000);
     return () => clearTimeout(timeoutId);
-  }, [restaurantId, store.settings]);
+  }, [restaurantId, store, store.settings]);
   
   return store;
 }
