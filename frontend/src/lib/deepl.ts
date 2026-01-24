@@ -20,7 +20,7 @@ interface TranslateOptions {
 export async function translateWithDeepL({
   text,
   targetLanguage,
-  sourceLanguage = 'TR',
+  sourceLanguage = 'tr',
   apiKey
 }: TranslateOptions): Promise<string> {
   if (!text) return '';
