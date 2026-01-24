@@ -2051,7 +2051,7 @@ export default function MenuManagement() {
 
                       <div className="mt-4">
                         <p className="text-sm text-gray-500 mb-4">
-                          {items.filter(i => i.kitchenStation === station.name.toLowerCase()).length} <TranslatedText>ürün</TranslatedText>
+                          {items.filter(i => i.kitchenStation === station.id || i.kitchenStation === station.name.toLowerCase()).length} <TranslatedText>ürün</TranslatedText>
                         </p>
 
                         <div className="flex gap-2">
