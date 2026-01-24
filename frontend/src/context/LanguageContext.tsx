@@ -77,7 +77,8 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         'English': 'English',
         'German': 'German',
         'Arabic': 'Arabic',
-        'Russian': 'Russian'
+        'Russian': 'Russian',
+        'Chinese': 'Chinese'
       };
 
       const apiLanguage = languageMap[currentLanguage] || 'English';

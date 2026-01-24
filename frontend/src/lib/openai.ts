@@ -46,7 +46,8 @@ export async function translateText(text: string, targetLanguage: string): Promi
     'Russian': 'RU',
     'French': 'FR',
     'Spanish': 'ES',
-    'Italian': 'IT'
+    'Italian': 'IT',
+    'Chinese': 'ZH'
   };
 
   const targetLangCode = langMap[targetLanguage];
@@ -108,6 +109,9 @@ export async function detectLanguageFromLocation(countryCode: string): Promise<s
     'RU': 'Russian',
     'BY': 'Russian',
     'KZ': 'Russian',
+    'CN': 'Chinese',
+    'HK': 'Chinese',
+    'TW': 'Chinese',
   };
 
   return languageMap[countryCode] || 'English';
@@ -119,4 +123,5 @@ export const supportedLanguages = {
   'English': { code: 'en', name: 'English', flag: '🇺🇸' },
   'Arabic': { code: 'ar', name: 'العربية', flag: '🇸🇦' },
   'Russian': { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  'Chinese': { code: 'zh', name: '中文', flag: '🇨🇳' },
 };

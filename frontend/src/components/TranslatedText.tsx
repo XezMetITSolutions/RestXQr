@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 
 export const staticDictionary: { [key: string]: { [key: string]: string } } = {
-  'Menü': { 'en': 'Menu', 'de': 'Menü', 'tr': 'Menü', 'ar': 'قائمة', 'ru': 'Меню', 'fr': 'Menu', 'es': 'Menú', 'it': 'Menu' },
-  'Sepet': { 'en': 'Cart', 'de': 'Warenkorb', 'tr': 'Sepet', 'ar': 'سلة', 'ru': 'Корзина', 'fr': 'Panier', 'es': 'Carrito', 'it': 'Carrello' },
+  'Menü': { 'en': 'Menu', 'de': 'Menü', 'tr': 'Menü', 'ar': 'قائمة', 'ru': 'Меню', 'fr': 'Menu', 'es': 'Menú', 'it': 'Menu', 'zh': '菜单' },
+  'Sepet': { 'en': 'Cart', 'de': 'Warenkorb', 'tr': 'Sepet', 'ar': 'سلة', 'ru': 'Корзина', 'fr': 'Panier', 'es': 'Carrito', 'it': 'Carrello', 'zh': '购物车' },
   'Garson Çağır': { 'en': 'Call Waiter', 'de': 'Kellner rufen', 'tr': 'Garson Çağır', 'ar': 'نداء النادل', 'ru': 'Вызов официанта', 'fr': 'Appeler serveur', 'es': 'Llamar camarero', 'it': 'Chiama cameriere' },
   'Detayları Gör': { 'en': 'View Details', 'de': 'Details', 'tr': 'Detayları Gör', 'ar': 'عرض التفاصيل', 'ru': 'Подробнее', 'fr': 'Voir détails', 'es': 'Ver detalles', 'it': 'Vedi dettagli' },
   'Sepete Ekle': { 'en': 'Add to Cart', 'de': 'In den Warenkorb', 'tr': 'Sepete Ekle', 'ar': 'أضف إلى السلة', 'ru': 'В корзину', 'fr': 'Ajouter', 'es': 'Añadir', 'it': 'Aggiungi' },
-  'Popüler': { 'en': 'Popular', 'de': 'Beliebt', 'tr': 'Popüler', 'ar': 'شائع', 'ru': 'Популярное', 'fr': 'Populaire', 'es': 'Popular', 'it': 'Popolare' },
+  'Popüler': { 'en': 'Popular', 'de': 'Beliebt', 'tr': 'Popüler', 'ar': 'شائع', 'ru': 'Популярное', 'fr': 'Populaire', 'es': 'Popular', 'it': 'Popolare', 'zh': '热门' },
   'Menüde ara...': { 'en': 'Search menu...', 'de': 'Menü durchsuchen...', 'tr': 'Menüde ara...', 'ar': 'بحث في القائمة...', 'ru': 'Поиск по меню...', 'fr': 'Rechercher...', 'es': 'Buscar...', 'it': 'Cerca...' },
   'WiFi Şifresi': { 'en': 'WiFi Password', 'de': 'WLAN-Passwort', 'tr': 'WiFi Şifresi', 'ar': 'كلمة مرور WiFi', 'ru': 'Пароль WiFi', 'fr': 'Mot de passe WiFi', 'es': 'Contraseña WiFi', 'it': 'Password WiFi' },
   "Google'da Değerlendir": { 'en': 'Rate on Google', 'de': 'Auf Google bewerten', 'tr': "Google'da Değerlendir", 'ar': 'قيم على جوجل', 'ru': 'Оценить в Google', 'fr': 'Évaluer sur Google', 'es': 'Calificar en Google', 'it': 'Valuta su Google' },
@@ -30,7 +30,7 @@ export const staticDictionary: { [key: string]: { [key: string]: string } } = {
   'Ara Toplam': { 'en': 'Subtotal', 'de': 'Zwischensumme', 'tr': 'Ara Toplam', 'ar': 'المجموع الفرعي', 'ru': 'Подитог', 'fr': 'Sous-total', 'es': 'Subtotal', 'it': 'Totale parziale' },
   'Bahşiş': { 'en': 'Tip', 'de': 'Gesamt', 'tr': 'Bahşiş', 'ar': 'بقشيش', 'ru': 'Чаевые', 'fr': 'Pourboire', 'es': 'Propina', 'it': 'Mancia' },
   'Bağış': { 'en': 'Donation', 'de': 'Spende', 'tr': 'Bağış', 'ar': 'تبرع', 'ru': 'Пожертвование', 'fr': 'Don', 'es': 'Donación', 'it': 'Donazione' },
-  'Toplam': { 'en': 'Total', 'de': 'Gesamt', 'tr': 'Toplam', 'ar': 'المجموع', 'ru': 'Итого', 'fr': 'Total', 'es': 'Total', 'it': 'Totale' },
+  'Toplam': { 'en': 'Total', 'de': 'Gesamt', 'tr': 'Toplam', 'ar': 'المجموع', 'ru': 'Итого', 'fr': 'Total', 'es': 'Total', 'it': 'Totale', 'zh': '总计' },
   'Ödemeyi Tamamla': { 'en': 'Complete Payment', 'de': 'Zahlung abschließen', 'tr': 'Ödemeyi Tamamla', 'ar': 'إتمام الدفع', 'ru': 'Завершить оплату', 'fr': 'Payer', 'es': 'Completar pago', 'it': 'Completa pagamento' },
   'Ödeme Onayı': { 'en': 'Payment Confirmation', 'de': 'Zahlungsbestätigung', 'tr': 'Ödeme Onayı', 'ar': 'تأكيد الدفع', 'ru': 'Подтверждение оплаты', 'fr': 'Confirmation de paiement', 'es': 'Confirmación de pago', 'it': 'Conferma pagamento' },
   'Toplam Tutar:': { 'en': 'Total Amount:', 'de': 'Gesamtbetrag:', 'tr': 'Toplam Tutar:', 'ar': 'المبلغ الإجمالي:', 'ru': 'Общая сумма:', 'fr': 'Montant total :', 'es': 'Importe total:', 'it': 'Importo totale:' },
@@ -1204,7 +1204,8 @@ export function useTranslation() {
             (currentLanguage === 'Russian' ? 'ru' :
               (currentLanguage === 'French' ? 'fr' :
                 (currentLanguage === 'Spanish' ? 'es' :
-                  (currentLanguage === 'Italian' ? 'it' : 'en')))))));
+                  (currentLanguage === 'Italian' ? 'it' :
+                    (currentLanguage === 'Chinese' ? 'zh' : 'en'))))))));
 
     if (staticDictionary[text] && staticDictionary[text][langCode]) {
       return staticDictionary[text][langCode];
@@ -1243,7 +1244,8 @@ export default function TranslatedText({
               (currentLanguage === 'Russian' ? 'ru' :
                 (currentLanguage === 'French' ? 'fr' :
                   (currentLanguage === 'Spanish' ? 'es' :
-                    (currentLanguage === 'Italian' ? 'it' : 'en')))))));
+                    (currentLanguage === 'Italian' ? 'it' :
+                      (currentLanguage === 'Chinese' ? 'zh' : 'en'))))))));
 
       if (staticDictionary[children] && staticDictionary[children][langCode]) {
         // console.log(`Using static translation for "${children}": ${staticDictionary[children][langCode]}`);

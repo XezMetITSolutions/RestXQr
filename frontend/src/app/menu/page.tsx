@@ -573,11 +573,11 @@ function MenuPageContent() {
   }, [isClient, cartItems]);
 
   // Get language code for menu data
-  const language = currentLanguage === 'Turkish' ? 'tr' : (currentLanguage === 'German' ? 'de' : 'en');
+  const language = currentLanguage === 'Turkish' ? 'tr' : (currentLanguage === 'German' ? 'de' : (currentLanguage === 'Chinese' ? 'zh' : 'en'));
 
   // Get menu categories (backend format)
   const menuCategories = [
-    { id: 'popular', name: currentLanguage === 'Turkish' ? 'Popüler' : (currentLanguage === 'German' ? 'Beliebt' : 'Popular') },
+    { id: 'popular', name: currentLanguage === 'Turkish' ? 'Popüler' : (currentLanguage === 'German' ? 'Beliebt' : (currentLanguage === 'Chinese' ? '热门' : 'Popular')) },
     ...filteredCategories.map((cat: any) => ({
       id: cat.id,
       name: typeof cat.name === 'string' ? cat.name : (cat.name?.[language] || cat.name?.tr || cat.name?.en || 'Kategori')
