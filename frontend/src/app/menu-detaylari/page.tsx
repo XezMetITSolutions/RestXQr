@@ -2,12 +2,16 @@
 
 import React, { useEffect, useState } from 'react';
 import useRestaurantStore from '@/store/useRestaurantStore';
-import { FaGlobe, FaLanguage, FaUtensils } from 'react-icons/fa';
+import { FaGlobe, FaLanguage, FaUtensils, FaMagic, FaCheckCircle, FaSpinner } from 'react-icons/fa';
+import { translateWithDeepL } from '@/lib/deepl';
 
 export default function MenuDetailsPage() {
     const KROREN_RESTAURANT_ID = '37b0322a-e11f-4ef1-b108-83be310aaf4d';
-    const { menuItems, fetchRestaurantMenu, loading } = useRestaurantStore();
+    const { menuItems, fetchRestaurantMenu, updateMenuItem, loading } = useRestaurantStore();
     const [items, setItems] = useState<any[]>([]);
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [translationProgress, setTranslationProgress] = useState(0);
+    const [translationStatus, setTranslationStatus] = useState('');
 
     useEffect(() => {
         fetchRestaurantMenu(KROREN_RESTAURANT_ID);
@@ -18,6 +22,65 @@ export default function MenuDetailsPage() {
             setItems(menuItems.filter((i: any) => i.restaurantId === KROREN_RESTAURANT_ID));
         }
     }, [menuItems]);
+
+    const handleTranslateAll = async () => {
+        if (!confirm('Tüm menüyü DeepL ile tercüme etmek istediğinizden emin misiniz? Bu işlem biraz zaman alabilir.')) return;
+
+        setIsTranslating(true);
+        setTranslationProgress(0);
+        const totalItems = items.length;
+
+        try {
+            for (let i = 0; i < totalItems; i++) {
+                const item = items[i];
+                setTranslationStatus(`${item.name} çevriliyor... (${i + 1}/${totalItems})`);
+
+                // Temiz isim al (suffix varsa temizle)
+                let baseName = item.name;
+                if (baseName.includes(' - ')) baseName = baseName.split(' - ')[0];
+
+                const baseDesc = item.description && item.description !== 'Açıklama yok' ? item.description : '';
+
+                // DeepL ile çeviriler
+                const zhName = await translateWithDeepL({ text: baseName, targetLanguage: 'zh' });
+                const enName = await translateWithDeepL({ text: baseName, targetLanguage: 'en' });
+
+                const zhDesc = baseDesc ? await translateWithDeepL({ text: baseDesc, targetLanguage: 'zh' }) : '';
+                const enDesc = baseDesc ? await translateWithDeepL({ text: baseDesc, targetLanguage: 'en' }) : '';
+
+                // İstenen formatlar:
+                // TR: Türkce - Çinçe
+                // EN: İngilizce - Çinçe
+                // ZH: Çinçe
+                const trNameFinal = `${baseName} - ${zhName}`;
+                const enNameFinal = `${enName} - ${zhName}`;
+                const zhNameFinal = zhName;
+
+                const payload = {
+                    ...item,
+                    name: trNameFinal,
+                    translations: {
+                        ...(item.translations || {}),
+                        tr: { name: trNameFinal, description: baseDesc },
+                        en: { name: enNameFinal, description: enDesc },
+                        zh: { name: zhNameFinal, description: zhDesc }
+                    }
+                };
+
+                await updateMenuItem(KROREN_RESTAURANT_ID, item.id, payload);
+                setTranslationProgress(Math.round(((i + 1) / totalItems) * 100));
+            }
+            setTranslationStatus('Tüm çeviriler başarıyla tamamlandı!');
+            setTimeout(() => {
+                setIsTranslating(false);
+                fetchRestaurantMenu(KROREN_RESTAURANT_ID);
+            }, 2000);
+        } catch (error) {
+            console.error('Translation error:', error);
+            setTranslationStatus('Bir hata oluştu. Lütfen tekrar deneyin.');
+            setIsTranslating(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -42,12 +105,77 @@ export default function MenuDetailsPage() {
                         </h1>
                         <p className="text-slate-500 mt-1 font-medium">Tüm dillerdeki isim ve açıklamaların toplu görünümü</p>
                     </div>
-                    <div className="flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
-                        <FaGlobe className="text-indigo-600" />
-                        <span className="text-sm font-bold text-indigo-800">{items.length} Ürün Mevcut</span>
+                    <div className="flex flex-col md:flex-row items-center gap-3">
+                        <button
+                            onClick={handleTranslateAll}
+                            disabled={isTranslating}
+                            className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-lg ${isTranslating
+                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:scale-105 hover:shadow-indigo-200'
+                                }`}
+                        >
+                            {isTranslating ? (
+                                <FaSpinner className="animate-spin" />
+                            ) : (
+                                <FaMagic />
+                            )}
+                            DeepL ile Tümünü Çevir
+                        </button>
+                        <div className="flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
+                            <FaGlobe className="text-indigo-600" />
+                            <span className="text-sm font-bold text-indigo-800">{items.length} Ürün Mevcut</span>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {/* Progress Bar Overlay */}
+            {isTranslating && (
+                <div className="fixed bottom-8 right-8 z-50 animate-bounce-in">
+                    <div className="bg-white rounded-2xl shadow-2xl p-6 border border-slate-100 flex items-center gap-4 min-w-[320px]">
+                        <div className="relative flex-shrink-0">
+                            <svg className="w-12 h-12 transform -rotate-90">
+                                <circle
+                                    cx="24"
+                                    cy="24"
+                                    r="20"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                    fill="transparent"
+                                    className="text-slate-100"
+                                />
+                                <circle
+                                    cx="24"
+                                    cy="24"
+                                    r="20"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                    fill="transparent"
+                                    strokeDasharray={125.6}
+                                    strokeDashoffset={125.6 - (125.6 * translationProgress) / 100}
+                                    className="text-indigo-600 transition-all duration-500"
+                                />
+                            </svg>
+                            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+                                %{translationProgress}
+                            </span>
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                {translationProgress === 100 ? (
+                                    <FaCheckCircle className="text-green-500" />
+                                ) : (
+                                    <FaSpinner className="animate-spin text-indigo-600" />
+                                )}
+                                Menü Tercüme Ediliyor
+                            </p>
+                            <p className="text-[10px] text-slate-500 mt-0.5 truncate max-w-[200px]">
+                                {translationStatus}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Main Content */}
             <div className="container mx-auto px-4 py-8">
