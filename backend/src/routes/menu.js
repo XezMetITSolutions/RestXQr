@@ -335,7 +335,8 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       subcategory,
       portion,
       kitchenStation,
-      variants
+      variants,
+      translations
     } = req.body;
 
     console.log('Backend - imageUrl uzunluğu:', imageUrl?.length || 0);
@@ -421,7 +422,8 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       variations: req.body.variations || [],
       options: req.body.options || [],
       type: req.body.type || 'single',
-      bundleItems: req.body.bundleItems || []
+      bundleItems: req.body.bundleItems || [],
+      translations: translations || {}
     });
 
     console.log('Backend - Oluşturulan item:', {

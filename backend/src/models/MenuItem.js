@@ -129,6 +129,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.JSONB,
       defaultValue: [],
       field: 'bundle_items'
+    },
+    translations: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: {},
+      comment: 'Language translations keyed by language code (e.g., en, zh)'
     }
   }, {
     tableName: 'menu_items',

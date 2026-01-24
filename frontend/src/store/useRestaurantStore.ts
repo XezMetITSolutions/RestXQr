@@ -288,7 +288,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         type: data.type || 'single',
         bundleItems: data.bundleItems || [],
         variations: data.variations || [],
-        options: data.options || []
+        options: data.options || [],
+        translations: data.translations || {}
       };
 
       console.log('🚀 Creating menu item:', { restaurantId, backendData });
@@ -390,7 +391,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         type: data.type || 'single',
         bundleItems: data.bundleItems || [],
         variations: data.variations || [],
-        options: data.options || []
+        options: data.options || [],
+        translations: data.translations || {}
       };
 
       const response = await apiService.updateMenuItem(restaurantId, itemId, backendData);
@@ -507,6 +509,8 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
       console.error('❌ Fetch menu error:', error);
       set({
         error: error instanceof Error ? error.message : 'Menü yüklenemedi',
+        categories: [],
+        menuItems: [],
         loading: false
       });
       throw error;

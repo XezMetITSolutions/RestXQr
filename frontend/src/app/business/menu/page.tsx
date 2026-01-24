@@ -887,32 +887,48 @@ export default function MenuManagement() {
     setIsTranslatingItem(true);
     const updatedTranslations: any = { ...(formData.translations || {}) };
     try {
-      for (const lang of translationLanguages) {
-        if (formData.name) {
-          const translatedName = await translateWithDeepL({
-            text: formData.name,
-            targetLanguage: lang
-          });
-          updatedTranslations[lang] = {
-            ...(updatedTranslations[lang] || {}),
-            name: translatedName
-          };
-        }
-        if (formData.description) {
-          const translatedDescription = await translateWithDeepL({
-            text: formData.description,
-            targetLanguage: lang
-          });
-          updatedTranslations[lang] = {
-            ...(updatedTranslations[lang] || {}),
-            description: translatedDescription
-          };
-        }
+      // İstenen format:
+      // - TR: aynı kalsın (çeviri yok)
+      // - EN: "English - Chinese" + İngilizce açıklama
+      // - ZH: "Chinese" + Çince açıklama
+
+      const baseName = formData?.name || '';
+      const baseDescription = formData?.description || '';
+
+      const shouldDoEn = translationLanguages.includes('en');
+      const shouldDoZh = translationLanguages.includes('zh');
+
+      // EN formatı için ZH adı da gerektiğinden (English - Chinese), ikisini birlikte üret.
+      const zhName = shouldDoZh || shouldDoEn
+        ? await translateWithDeepL({ text: baseName, targetLanguage: 'zh' })
+        : '';
+      const enName = shouldDoEn
+        ? await translateWithDeepL({ text: baseName, targetLanguage: 'en' })
+        : '';
+
+      const zhDescription = (shouldDoZh && baseDescription)
+        ? await translateWithDeepL({ text: baseDescription, targetLanguage: 'zh' })
+        : '';
+      const enDescription = (shouldDoEn && baseDescription)
+        ? await translateWithDeepL({ text: baseDescription, targetLanguage: 'en' })
+        : '';
+
+      if (shouldDoEn) {
+        updatedTranslations.en = {
+          ...(updatedTranslations.en || {}),
+          name: `${enName || baseName} - ${zhName || baseName}`,
+          description: enDescription || baseDescription
+        };
       }
-      setFormData((prev) => ({
-        ...prev,
-        translations: updatedTranslations
-      }));
+
+      if (shouldDoZh) {
+        updatedTranslations.zh = {
+          ...(updatedTranslations.zh || {}),
+          name: zhName || baseName,
+          description: zhDescription || baseDescription
+        };
+      }
+
       setFormData((prev) => ({
         ...prev,
         translations: updatedTranslations
@@ -955,8 +971,9 @@ export default function MenuManagement() {
       return;
     }
 
-    // Modal açıldığında varsayılan olarak ayarlardaki dilleri seç
-    setSelectedBulkLanguages(translationLanguages);
+    // Modal açıldığında varsayılan olarak sadece EN + ZH seç
+    // TR her zaman aynı kalır ve çevrilmez.
+    setSelectedBulkLanguages(['en', 'zh'].filter((l) => translationLanguages.includes(l)));
     setShowBulkTranslateModal(true);
   };
 
@@ -983,27 +1000,46 @@ export default function MenuManagement() {
             let hasChanged = false;
 
             for (const lang of selectedBulkLanguages) {
-              // Eğer zaten bu dilde çeviri varsa ve name/description doluysa atlamayı düşünebiliriz
-              // ama kullanıcı "toplu çevir" dediyse muhtemelen güncellemek istiyordur.
+              // İstenen format:
+              // - TR: aynı kalsın (çeviri yok)
+              // - EN: "English - Chinese"
+              // - ZH: "Chinese"
+              // Açıklamalar: EN ve ZH açıklama
 
-              const translatedName = await translateWithDeepL({
-                text: item.name,
-                targetLanguage: lang
+              const baseName = item?.name || '';
+              const baseDescription = item?.description || '';
+
+              const zhName = await translateWithDeepL({
+                text: baseName,
+                targetLanguage: 'zh'
+              });
+              const enName = await translateWithDeepL({
+                text: baseName,
+                targetLanguage: 'en'
               });
 
-              let translatedDescription = '';
-              if (item.description) {
-                translatedDescription = await translateWithDeepL({
-                  text: item.description,
-                  targetLanguage: lang
-                });
+              const zhDescription = baseDescription
+                ? await translateWithDeepL({ text: baseDescription, targetLanguage: 'zh' })
+                : '';
+              const enDescription = baseDescription
+                ? await translateWithDeepL({ text: baseDescription, targetLanguage: 'en' })
+                : '';
+
+              if (lang === 'en') {
+                newTranslations.en = {
+                  name: `${enName || baseName} - ${zhName || baseName}`,
+                  description: enDescription || baseDescription
+                };
+                hasChanged = true;
               }
 
-              newTranslations[lang] = {
-                name: translatedName || item.name,
-                description: translatedDescription || item.description || ''
-              };
-              hasChanged = true;
+              if (lang === 'zh') {
+                newTranslations.zh = {
+                  name: zhName || baseName,
+                  description: zhDescription || baseDescription
+                };
+                hasChanged = true;
+              }
             }
 
             if (hasChanged) {
