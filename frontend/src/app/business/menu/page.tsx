@@ -161,6 +161,7 @@ export default function MenuManagement() {
   const [bulkPriceValue, setBulkPriceValue] = useState('');
   const [bulkPriceOperation, setBulkPriceOperation] = useState<'increase' | 'decrease'>('increase');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedStation, setSelectedStation] = useState<string>('all');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [showTranslationsModal, setShowTranslationsModal] = useState(false);
@@ -1126,8 +1127,19 @@ export default function MenuManagement() {
       result = result.filter(item => item.isAvailable !== false);
     }
 
+    // 6. Station
+    if (selectedStation !== 'all') {
+      const station = stations.find(s => s.id === selectedStation);
+      if (station) {
+        result = result.filter(item =>
+          item.kitchenStation === station.id ||
+          item.kitchenStation === station.name.toLowerCase()
+        );
+      }
+    }
+
     return result;
-  }, [items, searchTerm, selectedCategory, statusFilter, activeTab, showOutOfStock]);
+  }, [items, searchTerm, selectedCategory, statusFilter, activeTab, showOutOfStock, selectedStation, stations]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden" style={{ zoom: '0.8' }}>
@@ -1347,6 +1359,37 @@ export default function MenuManagement() {
 
                 {/* Filtreler */}
                 <div className="flex flex-wrap gap-4 items-center">
+                  {/* Kategori Filtresi */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700"><TranslatedText>Kategori</TranslatedText>:</label>
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 max-w-[200px]"
+                    >
+                      <option value="all">{t('Tümü')}</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* İstasyon Filtresi */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700"><TranslatedText>İstasyon</TranslatedText>:</label>
+                    <select
+                      value={selectedStation}
+                      onChange={(e) => setSelectedStation(e.target.value)}
+                      className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 max-w-[200px]"
+                    >
+                      <option value="all">{t('Tümü')}</option>
+                      {stations.map(station => (
+                        <option key={station.id} value={station.id}>
+                          {station.emoji} {station.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-medium text-gray-700"><TranslatedText>Durum</TranslatedText>:</label>
                     <select
