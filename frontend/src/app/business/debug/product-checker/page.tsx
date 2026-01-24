@@ -93,6 +93,10 @@ export default function ProductCheckerPage() {
         handleUpdateItem(itemId, { kitchenStation });
     };
 
+    const handleDescriptionChange = (itemId: string, description: string) => {
+        handleUpdateItem(itemId, { description });
+    };
+
     const filteredItems = items.filter(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = filterCategory === 'all' || item.categoryId === filterCategory;
@@ -199,6 +203,7 @@ export default function ProductCheckerPage() {
                             <tr>
                                 <th className="px-6 py-4 font-bold text-gray-700">Ürün Adı</th>
                                 <th className="px-6 py-4 font-bold text-gray-700">Kategori</th>
+                                <th className="px-6 py-4 font-bold text-gray-700">Ürün Açıklaması</th>
                                 <th className="px-6 py-4 font-bold text-gray-700">Mutfak İstasyonu</th>
                                 <th className="px-6 py-4 font-bold text-gray-700">Durum</th>
                             </tr>
@@ -206,7 +211,7 @@ export default function ProductCheckerPage() {
                         <tbody className="divide-y">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <FaSync className="animate-spin text-2xl text-blue-500" />
                                             <span>Yükleniyor...</span>
@@ -215,7 +220,7 @@ export default function ProductCheckerPage() {
                                 </tr>
                             ) : sortedItems.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                                         Ürün bulunamadı
                                     </td>
                                 </tr>
@@ -237,6 +242,23 @@ export default function ProductCheckerPage() {
                                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                                                 ))}
                                             </select>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <textarea
+                                                value={item.description || ''}
+                                                onChange={(e) => {
+                                                    // Local update for responsiveness
+                                                    const newItems = items.map(i =>
+                                                        i.id === item.id ? { ...i, description: e.target.value } : i
+                                                    );
+                                                    setItems(newItems);
+                                                }}
+                                                onBlur={(e) => handleDescriptionChange(item.id, e.target.value)}
+                                                disabled={saving === item.id}
+                                                rows={2}
+                                                className="w-full px-3 py-1.5 border rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none resize-none"
+                                                placeholder="Ürün açıklaması..."
+                                            />
                                         </td>
                                         <td className="px-6 py-4">
                                             <select
