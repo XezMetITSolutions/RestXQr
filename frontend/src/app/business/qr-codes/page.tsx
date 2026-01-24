@@ -25,6 +25,7 @@ import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
 import { useLanguage } from '@/context/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
 import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
+import { QRCodeCanvas } from 'qrcode.react';
 
 export default function QRCodesPage() {
   const router = useRouter();
@@ -514,6 +515,19 @@ export default function QRCodesPage() {
 
   // QR kod indirme
   const handleDownloadQR = (qrCode: QRCodeData) => {
+    try {
+      const canvas = document.getElementById(`qr-canvas-${qrCode.id}`) as HTMLCanvasElement | null;
+      if (canvas) {
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = `${qrCode.name}.png`;
+        link.click();
+        return;
+      }
+    } catch (e) {
+      console.error('QR canvas export failed:', e);
+    }
+
     const link = document.createElement('a');
     link.href = qrCode.qrCode;
     link.download = `${qrCode.name}.png`;
@@ -703,22 +717,30 @@ export default function QRCodesPage() {
                             {isSelected ? <FaCheckSquare className="text-blue-600" /> : <FaSquare />}
                           </button>
                         </div>
-                        <div className="text-center mb-4">
-                          {qrCode.qrCode ? (
-                            <img
-                              src={qrCode.qrCode}
-                              alt={qrCode.name}
-                              className="w-32 h-32 mx-auto mb-2 border border-gray-200 rounded"
-                              onError={(e) => {
-                                console.error('QR Image load error:', qrCode.qrCode);
-                                e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="128" height="128"%3E%3Crect fill="%23ddd" width="128" height="128"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EQR%3C/text%3E%3C/svg%3E';
+
+                        {qrCode.url ? (
+                          <div className="flex justify-center mb-2">
+                            <QRCodeCanvas
+                              id={`qr-canvas-${qrCode.id}`}
+                              value={qrCode.url}
+                              size={128}
+                              includeMargin={true}
+                              level="H"
+                              imageSettings={{
+                                src: '/kroren-logo.png',
+                                height: 30,
+                                width: 30,
+                                excavate: true
                               }}
                             />
-                          ) : (
-                            <div className="w-32 h-32 mx-auto mb-2 bg-gray-200 flex items-center justify-center text-gray-500 rounded">
-                              <FaQrcode className="text-4xl" />
-                            </div>
-                          )}
+                          </div>
+                        ) : (
+                          <div className="w-32 h-32 mx-auto mb-2 bg-gray-200 flex items-center justify-center text-gray-500 rounded">
+                            <FaQrcode className="text-4xl" />
+                          </div>
+                        )}
+
+                        <div className="text-center">
                           <h3 className="font-semibold text-gray-900"><TranslatedText>Masa</TranslatedText> {qrCode.tableNumber} <TranslatedText>- QR Menü</TranslatedText></h3>
                           <p className="text-sm text-gray-600"><TranslatedText>Masa</TranslatedText> {qrCode.tableNumber} <TranslatedText>için QR kod</TranslatedText></p>
                           {floorInfo && (
