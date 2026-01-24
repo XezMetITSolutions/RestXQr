@@ -30,7 +30,7 @@ const isTokenExpired = (expiresAt) => {
 router.post('/generate', async (req, res) => {
   try {
     console.log('🔍 QR Generate endpoint called:', req.body);
-    
+
     if (!QRToken || !Restaurant) {
       console.error('❌ Models not loaded:', { QRToken: !!QRToken, Restaurant: !!Restaurant });
       return res.status(503).json({
@@ -40,9 +40,9 @@ router.post('/generate', async (req, res) => {
     }
 
     const { restaurantId, tableNumber, duration = 2 } = req.body; // duration in hours
-    
+
     console.log('📝 Request data:', { restaurantId, tableNumber, duration });
-    
+
     if (!restaurantId || !tableNumber) {
       console.error('❌ Missing required fields:', { restaurantId, tableNumber });
       return res.status(400).json({
@@ -50,7 +50,7 @@ router.post('/generate', async (req, res) => {
         message: 'Restaurant ID and table number are required'
       });
     }
-    
+
     // Verify restaurant exists
     console.log('🔍 Checking restaurant:', restaurantId);
     const restaurant = await Restaurant.findByPk(restaurantId);
@@ -61,13 +61,13 @@ router.post('/generate', async (req, res) => {
         message: 'Restaurant not found'
       });
     }
-    
+
     console.log('✅ Restaurant found:', {
       id: restaurant.id,
       name: restaurant.name,
       username: restaurant.username
     });
-    
+
     // Plan limiti kontrolü - Maksimum masa sayısı
     const maxTables = restaurant.maxTables || 10;
     if (tableNumber > maxTables) {
@@ -80,7 +80,7 @@ router.post('/generate', async (req, res) => {
         upgradeRequired: true
       });
     }
-    
+
     // Try to reuse existing active, not expired token for this table
     const existing = await QRToken.findOne({
       where: {
@@ -140,7 +140,7 @@ router.post('/generate', async (req, res) => {
 
     // Her zaman doğru subdomain ile URL oluştur
     const qrUrl = `${origin}/menu/?t=${qrToken.token}&table=${qrToken.tableNumber}`;
-    
+
     console.log('🔗 QR URL generated:', {
       restaurantId: restaurant.id,
       restaurantName: restaurant.name,
@@ -161,12 +161,14 @@ router.post('/generate', async (req, res) => {
         qrData: qrUrl
       }
     });
-    
+
   } catch (error) {
-    console.error('Generate QR token error:', error);
+    console.error('❌ Generate QR token error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
@@ -175,7 +177,7 @@ router.post('/generate', async (req, res) => {
 router.get('/verify/:token', async (req, res) => {
   try {
     const { token } = req.params;
-    
+
     const qrToken = await QRToken.findOne({
       where: { token },
       include: [{
@@ -184,14 +186,14 @@ router.get('/verify/:token', async (req, res) => {
         attributes: ['id', 'name', 'username']
       }]
     });
-    
+
     if (!qrToken) {
       return res.status(404).json({
         success: false,
         message: 'Invalid QR code'
       });
     }
-    
+
     // Token validity: Always accept existing tokens (disable isActive/expiry checks for permanent QR codes)
     if (!qrToken.isActive) {
       return res.status(404).json({
@@ -199,10 +201,10 @@ router.get('/verify/:token', async (req, res) => {
         message: 'QR code has been deactivated'
       });
     }
-    
+
     // Update last used time
     await qrToken.update({ usedAt: new Date() });
-    
+
     res.json({
       success: true,
       data: {
@@ -215,7 +217,7 @@ router.get('/verify/:token', async (req, res) => {
         token: qrToken.token
       }
     });
-    
+
   } catch (error) {
     console.error('Verify QR token error:', error);
     res.status(500).json({
@@ -230,25 +232,25 @@ router.post('/refresh/:token', async (req, res) => {
   try {
     const { token } = req.params;
     const { duration = 2 } = req.body; // duration in hours
-    
+
     const qrToken = await QRToken.findOne({
       where: { token }
     });
-    
+
     if (!qrToken) {
       return res.status(404).json({
         success: false,
         message: 'QR token not found'
       });
     }
-    
+
     const newExpiresAt = new Date(Date.now() + duration * 60 * 60 * 1000);
-    
+
     await qrToken.update({
       expiresAt: newExpiresAt,
       isActive: true
     });
-    
+
     res.json({
       success: true,
       data: {
@@ -256,7 +258,7 @@ router.post('/refresh/:token', async (req, res) => {
         message: `QR code refreshed for ${duration} hours`
       }
     });
-    
+
   } catch (error) {
     console.error('Refresh QR token error:', error);
     res.status(500).json({
@@ -270,7 +272,7 @@ router.post('/refresh/:token', async (req, res) => {
 router.get('/restaurant/:restaurantId/tables', async (req, res) => {
   try {
     const { restaurantId } = req.params;
-    
+
     const tokens = await QRToken.findAll({
       where: {
         restaurantId,
@@ -282,7 +284,7 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
       order: [['tableNumber', 'ASC']],
       attributes: ['id', 'tableNumber', 'token', 'expiresAt', 'usedAt', 'createdAt']
     });
-    
+
     // Get restaurant to use correct subdomain
     const restaurant = await Restaurant.findByPk(restaurantId);
     if (!restaurant || !restaurant.username) {
@@ -291,11 +293,11 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
         message: 'Restaurant not found or username missing'
       });
     }
-    
+
     // Add QR URLs with correct subdomain
     const sub = restaurant.username;
     const baseUrl = process.env.FRONTEND_URL || `https://${sub}.restxqr.com`;
-    
+
     console.log('📋 Generating QR URLs for restaurant:', {
       restaurantId: restaurant.id,
       restaurantName: restaurant.name,
@@ -304,7 +306,7 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
       baseUrl: baseUrl,
       tokenCount: tokens.length
     });
-    
+
     const tokensWithUrls = tokens.map(token => {
       const qrUrl = `${baseUrl}/menu/?t=${token.token}&table=${token.tableNumber}`;
       console.log('🔗 QR URL for token:', {
@@ -318,17 +320,18 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
         remainingMinutes: Math.floor((new Date(token.expiresAt) - new Date()) / 60000)
       };
     });
-    
+
     res.json({
       success: true,
       data: tokensWithUrls
     });
-    
+
   } catch (error) {
-    console.error('Get restaurant QR tokens error:', error);
+    console.error(`❌ Get restaurant QR tokens error for ID ${req.params.restaurantId}:`, error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
+      details: error.message // Sadece debug için, sonra kaldırılabilir
     });
   }
 });
@@ -337,25 +340,25 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
 router.delete('/deactivate/:token', async (req, res) => {
   try {
     const { token } = req.params;
-    
+
     const qrToken = await QRToken.findOne({
       where: { token }
     });
-    
+
     if (!qrToken) {
       return res.status(404).json({
         success: false,
         message: 'QR token not found'
       });
     }
-    
+
     await qrToken.update({ isActive: false });
-    
+
     res.json({
       success: true,
       message: 'QR code deactivated successfully'
     });
-    
+
   } catch (error) {
     console.error('Deactivate QR token error:', error);
     res.status(500).json({
@@ -408,12 +411,12 @@ router.post('/cleanup', async (req, res) => {
         }
       }
     );
-    
+
     res.json({
       success: true,
       message: `Cleaned up ${result[0]} expired tokens`
     });
-    
+
   } catch (error) {
     console.error('Cleanup expired tokens error:', error);
     res.status(500).json({
