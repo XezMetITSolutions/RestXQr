@@ -508,7 +508,7 @@ export default function MenuManagement() {
 
     try {
       // Çevirileri API'den al veya oluştur
-      const languages = ['en', 'tr', 'ar', 'de', 'fr', 'es', 'it', 'ru'];
+      const languages = ['en', 'tr', 'ar', 'de', 'fr', 'es', 'it', 'ru', 'zh'];
       const newTranslations: { [key: string]: { name: string, description: string } } = {};
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://masapp-backend.onrender.com';
 
@@ -3476,7 +3476,8 @@ export default function MenuManagement() {
                             'fr': 'Français',
                             'es': 'Español',
                             'it': 'Italiano',
-                            'ru': 'Русский'
+                            'ru': 'Русский',
+                            'zh': '中文'
                           };
 
                           return (
@@ -3550,36 +3551,42 @@ export default function MenuManagement() {
                       <TranslatedText>Hedef Diller</TranslatedText>
                     </label>
                     <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { id: 'en', name: 'English', flag: '🇺🇸' },
-                        { id: 'de', name: 'German', flag: '🇩🇪' },
-                        { id: 'ar', name: 'Arabic', flag: '🇸🇦' },
-                        { id: 'ru', name: 'Russian', flag: '🇷🇺' },
-                        { id: 'fr', name: 'French', flag: '🇫🇷' },
-                        { id: 'es', name: 'Spanish', flag: '🇪🇸' },
-                        { id: 'it', name: 'Italian', flag: '🇮🇹' }
-                      ].map((lang) => (
-                        <button
-                          key={lang.id}
-                          onClick={() => {
-                            if (selectedBulkLanguages.includes(lang.id)) {
-                              setSelectedBulkLanguages(selectedBulkLanguages.filter(l => l !== lang.id));
-                            } else {
-                              setSelectedBulkLanguages([...selectedBulkLanguages, lang.id]);
-                            }
-                          }}
-                          className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedBulkLanguages.includes(lang.id)
-                            ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-sm'
-                            : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
-                            }`}
-                        >
-                          <span className="text-xl">{lang.flag}</span>
-                          <span className="text-sm font-semibold">{lang.name}</span>
-                          {selectedBulkLanguages.includes(lang.id) && (
-                            <FaCheck className="ml-auto text-purple-500 text-xs" />
-                          )}
-                        </button>
-                      ))}
+                      {translationLanguages.map((langCode) => {
+                        const langDetails = {
+                          'en': { name: 'English', flag: '🇺🇸' },
+                          'de': { name: 'German', flag: '🇩🇪' },
+                          'ar': { name: 'Arabic', flag: '🇸🇦' },
+                          'ru': { name: 'Russian', flag: '🇷🇺' },
+                          'fr': { name: 'French', flag: '🇫🇷' },
+                          'es': { name: 'Spanish', flag: '🇪🇸' },
+                          'it': { name: 'Italian', flag: '🇮🇹' },
+                          'zh': { name: 'Chinese', flag: '🇨🇳' }
+                        }[langCode] || { name: langCode.toUpperCase(), flag: '🌐' };
+
+                        return (
+                          <button
+                            key={langCode}
+                            onClick={() => {
+                              if (selectedBulkLanguages.includes(langCode)) {
+                                setSelectedBulkLanguages(selectedBulkLanguages.filter(l => l !== langCode));
+                              } else {
+                                setSelectedBulkLanguages([...selectedBulkLanguages, langCode]);
+                              }
+                            }}
+                            className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedBulkLanguages.includes(langCode)
+                              ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-sm'
+                              : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
+                              }`}
+                          >
+                            <span className="text-xl">{langDetails.flag}</span>
+                            <span className="text-sm font-semibold">{langDetails.name}</span>
+                            {selectedBulkLanguages.includes(langCode) && (
+                              <FaCheck className="ml-auto text-purple-500 text-xs" />
+                            )}
+                          </button>
+                        );
+                      })}
+                      {/* Removed hardcoded map closing brace since we are now mapping properly inline or just changing the source array */}
                     </div>
                   </div>
 
