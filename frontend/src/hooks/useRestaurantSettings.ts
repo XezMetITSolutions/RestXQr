@@ -38,23 +38,5 @@ export function useRestaurantSettings(restaurantId: string | undefined) {
     loadSettings();
   }, [restaurantId, store]);
   
-  // Settings değiştiğinde backend'e kaydet (debounced)
-  useEffect(() => {
-    if (!restaurantId) return;
-    
-    const saveSettings = async () => {
-      try {
-        // TODO: Backend API endpoint eklendiğinde aktif et
-        // await apiService.updateRestaurantSettings(restaurantId, store.settings);
-        await store.saveSettings();
-      } catch (error) {
-        console.error('❌ Failed to save settings:', error);
-      }
-    };
-    
-    const timeoutId = setTimeout(saveSettings, 1000);
-    return () => clearTimeout(timeoutId);
-  }, [restaurantId, store, store.settings]);
-  
   return store;
 }
