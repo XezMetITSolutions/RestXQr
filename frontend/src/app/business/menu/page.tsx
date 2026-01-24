@@ -1599,7 +1599,7 @@ export default function MenuManagement() {
                                     >
                                       <option value="">{t('İstasyon Seçin')}</option>
                                       {stations.map(station => (
-                                        <option key={station.id} value={station.name.toLowerCase()}>
+                                        <option key={station.id} value={station.id}>
                                           {station.emoji} {station.name}
                                         </option>
                                       ))}
@@ -1768,7 +1768,7 @@ export default function MenuManagement() {
                                   >
                                     <option value="">{t('Seçin')}</option>
                                     {stations.map(station => (
-                                      <option key={station.id} value={station.name.toLowerCase()}>{station.name}</option>
+                                      <option key={station.id} value={station.id}>{station.name}</option>
                                     ))}
                                   </select>
                                 </div>
@@ -1968,7 +1968,7 @@ export default function MenuManagement() {
                         <div className="mb-3">
                           <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
                             <FaFire className="mr-1" />
-                            {stations.find(s => s.name.toLowerCase() === category.kitchenStation?.toLowerCase())?.name || category.kitchenStation}
+                            {stations.find(s => s.id === category.kitchenStation || s.name.toLowerCase() === category.kitchenStation?.toLowerCase())?.name || category.kitchenStation}
                           </span>
                         </div>
                       )}
@@ -2261,7 +2261,7 @@ export default function MenuManagement() {
                         >
                           <option value="">{t('İstasyon Seçin')}</option>
                           {stations.sort((a, b) => a.order - b.order).map(station => (
-                            <option key={station.id} value={station.name.toLowerCase()}>
+                            <option key={station.id} value={station.id}>
                               {station.emoji} {station.name}
                             </option>
                           ))}
@@ -2998,7 +2998,7 @@ export default function MenuManagement() {
                       >
                         <option value="">{t('İstasyon Seçin')}</option>
                         {stations.sort((a, b) => a.order - b.order).map(station => (
-                          <option key={station.id} value={station.name.toLowerCase()}>
+                          <option key={station.id} value={station.id}>
                             {station.emoji} {station.name}
                           </option>
                         ))}
