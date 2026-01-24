@@ -11,9 +11,12 @@ export default function ProductCheckerPage() {
         categories,
         menuItems,
         fetchRestaurantMenu,
+        fetchCurrentRestaurant,
         updateMenuItem,
         loading: storeLoading
     } = useRestaurantStore();
+
+    const { authenticatedRestaurant, initializeAuth } = useAuthStore();
 
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -23,37 +26,55 @@ export default function ProductCheckerPage() {
     const [saving, setSaving] = useState<string | null>(null);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
+    // Initialize auth
+    useEffect(() => {
+        initializeAuth();
+    }, [initializeAuth]);
+
     // Initial load
     useEffect(() => {
         const loadInitialData = async () => {
-            if (currentRestaurant?.id) {
+            const restaurantId = currentRestaurant?.id || authenticatedRestaurant?.id;
+
+            if (restaurantId) {
+                console.log('ProductChecker: Starting load for restaurant:', restaurantId);
                 setLoading(true);
                 try {
-                    await fetchRestaurantMenu(currentRestaurant.id);
+                    // Fetch both menu and restaurant details (for kitchenStations)
+                    await Promise.all([
+                        fetchRestaurantMenu(restaurantId),
+                        fetchCurrentRestaurant(restaurantId)
+                    ]);
+                    console.log('ProductChecker: Load complete');
                 } catch (error) {
-                    console.error('Error fetching menu:', error);
+                    console.error('ProductChecker: Error during load:', error);
+                    setMessage({ type: 'error', text: 'Veriler yüklenirken hata oluştu' });
                 } finally {
                     setLoading(false);
                 }
+            } else {
+                console.warn('ProductChecker: No restaurant ID available yet');
             }
         };
         loadInitialData();
-    }, [currentRestaurant?.id]);
+    }, [currentRestaurant?.id, authenticatedRestaurant?.id, fetchRestaurantMenu, fetchCurrentRestaurant]);
 
     // Sync local items when store items change
     useEffect(() => {
-        setItems(menuItems);
+        console.log('ProductChecker: Store menuItems updated, count:', menuItems?.length);
+        setItems(menuItems || []);
     }, [menuItems]);
 
     const handleUpdateItem = async (itemId: string, updates: any) => {
-        if (!currentRestaurant?.id) return;
+        const restaurantId = currentRestaurant?.id || authenticatedRestaurant?.id;
+        if (!restaurantId) return;
 
         const existingItem = items.find(i => i.id === itemId);
         if (!existingItem) return;
 
         setSaving(itemId);
         try {
-            await updateMenuItem(currentRestaurant.id, itemId, { ...existingItem, ...updates });
+            await updateMenuItem(restaurantId, itemId, { ...existingItem, ...updates });
             setMessage({ type: 'success', text: 'Ürün başarıyla güncellendi' });
             setTimeout(() => setMessage(null), 3000);
         } catch (error) {
@@ -81,7 +102,7 @@ export default function ProductCheckerPage() {
         return matchesSearch && matchesCategory && matchesStation;
     });
 
-    const kitchenStations = currentRestaurant?.kitchenStations || [];
+    const kitchenStations = currentRestaurant?.kitchenStations || authenticatedRestaurant?.kitchenStations || [];
 
     // Sort items by category name for better readability
     const sortedItems = [...filteredItems].sort((a, b) => {
@@ -106,7 +127,10 @@ export default function ProductCheckerPage() {
                             </div>
                         </div>
                         <button
-                            onClick={() => currentRestaurant?.id && fetchRestaurantMenu(currentRestaurant.id)}
+                            onClick={() => {
+                                const id = currentRestaurant?.id || authenticatedRestaurant?.id;
+                                if (id) fetchRestaurantMenu(id);
+                            }}
                             disabled={loading || storeLoading}
                             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
                         >

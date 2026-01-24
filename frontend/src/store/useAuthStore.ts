@@ -106,7 +106,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
     try {
       // Backend'den subdomain'e göre restaurant bilgisini al
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurants/username/${subdomain}`);
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+      const apiUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+      const response = await fetch(`${apiUrl}/restaurants/username/${subdomain}`);
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
