@@ -25,7 +25,8 @@ import {
   FaBuilding,
   FaCode,
   FaPrint,
-  FaDatabase
+  FaDatabase,
+  FaBug
 } from 'react-icons/fa';
 import { useFeature } from '@/hooks/useFeature';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -271,6 +272,13 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       active: pathname === `${basePath}/online-orders`,
       visible: true,
       badge: 'Özel'
+    },
+    {
+      href: `${basePath}/debug/product-checker`,
+      icon: FaBug,
+      label: 'Ürün Denetçisi',
+      active: pathname === `${basePath}/debug/product-checker`,
+      visible: authenticatedRestaurant?.username === 'restxqr' || process.env.NODE_ENV === 'development'
     }
   ];
 

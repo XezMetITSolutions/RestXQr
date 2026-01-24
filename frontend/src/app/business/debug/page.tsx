@@ -179,6 +179,13 @@ export default function DebugPage() {
                             <FaTrash />
                             LocalStorage Temizle
                         </button>
+                        <a
+                            href="/business/debug/product-checker"
+                            className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2"
+                        >
+                            <FaBug />
+                            Ürün & İstasyon Denetçisi
+                        </a>
                     </div>
                     {testResult && (
                         <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
