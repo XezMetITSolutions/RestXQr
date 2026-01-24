@@ -1,0 +1,290 @@
+[
+    {
+        "category": "Başlangıçlar",
+        "zh_category": "开胃菜",
+        "en_category": "Starters",
+        "items": [
+            {
+                "tr": "Beyaz pilav",
+                "en": "White Rice",
+                "zh": "米饭"
+            },
+            {
+                "tr": "Çay yumurtası",
+                "en": "Tea Egg",
+                "zh": "茶叶蛋"
+            },
+            {
+                "tr": "Dana etli rojamo",
+                "en": "Beef Rougamo",
+                "zh": "肉夹馍"
+            },
+            {
+                "tr": "Haşlanmış mantı",
+                "en": "Boiled Dumplings",
+                "zh": "水饺"
+            },
+            {
+                "tr": "Hoxan",
+                "en": "Fried Buns",
+                "zh": "煎包"
+            },
+            {
+                "tr": "Karides krekleri",
+                "en": "Prawn Crackers",
+                "zh": "虾片"
+            },
+            {
+                "tr": "Sade ekmek",
+                "en": "Steamed Bread",
+                "zh": "馒头"
+            },
+            {
+                "tr": "Uygur mantı",
+                "en": "Uyghur Manti",
+                "zh": "薄皮包子"
+            }
+        ]
+    },
+    {
+        "category": "Salatalar",
+        "zh_category": "凉菜",
+        "en_category": "Salads",
+        "items": [
+            {
+                "tr": "Erişte salatası",
+                "en": "Liangpi Noodles",
+                "zh": "凉皮"
+            },
+            {
+                "tr": "Sığır eti salatası",
+                "en": "Spicy Beef Salad",
+                "zh": "凉拌牛肉"
+            }
+        ]
+    },
+    {
+        "category": "Makarnalar (Erişteler)",
+        "zh_category": "面食",
+        "en_category": "Noodles",
+        "items": [
+            {
+                "tr": "Dana etli ramen",
+                "en": "Beef Ramen",
+                "zh": "牛肉拉面"
+            },
+            {
+                "tr": "Dana noodle",
+                "en": "Beef Fried Noodles",
+                "zh": "牛肉炒面"
+            },
+            {
+                "tr": "Ganbian makarnası",
+                "en": "Dry Fried Noodles",
+                "zh": "干煸炒面"
+            },
+            {
+                "tr": "Guyro lagmen",
+                "en": "Guyro Laghman",
+                "zh": "过油肉拌面"
+            },
+            {
+                "tr": "Kızarmış dana döş",
+                "en": "Braised Brisket Noodles",
+                "zh": "红烧牛腩面"
+            },
+            {
+                "tr": "Sebzeli noodle",
+                "en": "Vegetable Noodles",
+                "zh": "素炒面"
+            },
+            {
+                "tr": "Tavuk noodle",
+                "en": "Chicken Noodles",
+                "zh": "鸡肉炒面"
+            }
+        ]
+    },
+    {
+        "category": "Etli Yemekler",
+        "zh_category": "肉类",
+        "en_category": "Meat Dishes",
+        "items": [
+            {
+                "tr": "Acılı haşlanmış dana",
+                "en": "Spicy Boiled Beef",
+                "zh": "水煮牛肉"
+            },
+            {
+                "tr": "Guyro",
+                "en": "Sizzling Beef",
+                "zh": "铁板牛肉"
+            },
+            {
+                "tr": "Pırasalı dana",
+                "en": "Scallion Beef",
+                "zh": "葱爆牛肉"
+            },
+            {
+                "tr": "Özel soslu dana",
+                "en": "Special Sauce Beef",
+                "zh": "烧汁牛肉"
+            }
+        ]
+    },
+    {
+        "category": "Tavuklu Yemekler",
+        "zh_category": "鸡肉类",
+        "en_category": "Chicken Dishes",
+        "items": [
+            {
+                "tr": "Acılı lokum tavuk",
+                "en": "Spicy Chicken",
+                "zh": "辣子鸡"
+            },
+            {
+                "tr": "Dapanji",
+                "en": "Big Plate Chicken",
+                "zh": "大盘鸡"
+            },
+            {
+                "tr": "Monzhou Usulü Tavuk",
+                "en": "Wenzhou Style Chicken",
+                "zh": "温州鸡"
+            },
+            {
+                "tr": "Portakallı tavuk",
+                "en": "Orange Chicken",
+                "zh": "橙汁鸡"
+            },
+            {
+                "tr": "Tatlı Ekşi Tavuk",
+                "en": "Sweet and Sour Chicken",
+                "zh": "糖醋鸡"
+            }
+        ]
+    },
+    {
+        "category": "Patates Kavurması (Ana Yemek)",
+        "zh_category": "土豆类",
+        "en_category": "Potato Dishes",
+        "items": [
+            {
+                "tr": "Patates kavurması",
+                "en": "Sour & Spicy Potatoes",
+                "zh": "酸辣土豆丝"
+            }
+        ]
+    },
+    {
+        "category": "Sushiler",
+        "zh_category": "寿司",
+        "en_category": "Sushi",
+        "items": [
+            {
+                "tr": "Balık sushi",
+                "en": "Fish Sushi",
+                "zh": "鱼寿司"
+            },
+            {
+                "tr": "Dana etli sushi",
+                "en": "Beef Sushi",
+                "zh": "牛肉寿司"
+            },
+            {
+                "tr": "Sebze sushi",
+                "en": "Vegetable Sushi",
+                "zh": "蔬菜寿司"
+            }
+        ]
+    },
+    {
+        "category": "Tofular",
+        "zh_category": "豆腐",
+        "en_category": "Tofu",
+        "items": [
+            {
+                "tr": "Acılı tofu",
+                "en": "Mapo Tofu",
+                "zh": "麻婆豆腐"
+            },
+            {
+                "tr": "Kızartma tofu",
+                "en": "Fried Tofu",
+                "zh": "家常豆腐"
+            },
+            {
+                "tr": "Özel soslu tofu",
+                "en": "Braised Tofu",
+                "zh": "红烧豆腐"
+            }
+        ]
+    },
+    {
+        "category": "İçecekler",
+        "zh_category": "饮料",
+        "en_category": "Drinks",
+        "items": [
+            {
+                "tr": "Cola",
+                "en": "Coke",
+                "zh": "可乐"
+            },
+            {
+                "tr": "Cola Zero",
+                "en": "Coke Zero",
+                "zh": "零度可乐"
+            },
+            {
+                "tr": "Fanta",
+                "en": "Fanta",
+                "zh": "芬达"
+            },
+            {
+                "tr": "Sprite",
+                "en": "Sprite",
+                "zh": "雪碧"
+            },
+            {
+                "tr": "Lipton Buzlu Çay Şeftali",
+                "en": "Lipton Ice Tea Peach",
+                "zh": "桃子冰茶"
+            },
+            {
+                "tr": "Lipton Buzlu Çay Limon",
+                "en": "Lipton Ice Tea Lemon",
+                "zh": "柠檬冰茶"
+            },
+            {
+                "tr": "Lipton Buzlu Çay Mango",
+                "en": "Lipton Ice Tea Mango",
+                "zh": "芒果冰茶"
+            },
+            {
+                "tr": "Niğde Gazozu",
+                "en": "Nigde Soda",
+                "zh": "尼格德汽水"
+            },
+            {
+                "tr": "Sade Soda",
+                "en": "Sparkling Water",
+                "zh": "苏打水"
+            },
+            {
+                "tr": "Limonlu Soda",
+                "en": "Lemon Sparkling Water",
+                "zh": "柠檬苏打水"
+            },
+            {
+                "tr": "Elmalı Soda",
+                "en": "Apple Sparkling Water",
+                "zh": "苹果苏打水"
+            },
+            {
+                "tr": "Su",
+                "en": "Water",
+                "zh": "矿泉水"
+            }
+        ]
+    }
+]
