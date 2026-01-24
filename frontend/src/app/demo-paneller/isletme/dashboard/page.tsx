@@ -534,9 +534,6 @@ export default function BusinessDashboard() {
                               }`}>
                               {order?.status === 'ready' ? 'Hazır' : 'Hazırlanıyor'}
                             </span>
-                            <span className="text-sm text-gray-500 font-bold">
-                              {order?.createdAt ? new Date(order.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
-                            </span>
                           </div>
                         </div>
                       );
