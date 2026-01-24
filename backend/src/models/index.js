@@ -113,17 +113,14 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('✅ PostgreSQL connection established successfully.');
 
-    // Sync models in correct order (respecting foreign key dependencies)
-    // First sync parent tables (no dependencies)
+    // Sync Core Models first
     await Restaurant.sync();
     await AdminUser.sync();
-    console.log('✅ Core tables synchronized');
-
-    // Then sync child tables
     await MenuCategory.sync();
     await MenuItem.sync();
+    console.log('✅ Core models synchronized');
 
-    // Ensure translations column exists on menu_items (production DB may be behind model changes)
+    // Ensure translations column exists on menu_items
     try {
       const [results] = await sequelize.query(`
         SELECT column_name
@@ -132,7 +129,7 @@ const connectDB = async () => {
       `);
 
       if (!results || results.length === 0) {
-        console.log('⚙️  Adding translations column to menu_items table...');
+        console.log('⚙️ Adding translations column to menu_items table...');
         await sequelize.query(`
           ALTER TABLE menu_items
           ADD COLUMN IF NOT EXISTS translations JSONB DEFAULT '{}'::jsonb;
@@ -141,6 +138,33 @@ const connectDB = async () => {
       }
     } catch (migrationError) {
       console.error('❌ Failed to ensure menu_items.translations column:', migrationError);
+    }
+
+    // QR Token Migration - Ensure columns are snake_case
+    try {
+      console.log('⚙️ Ensuring qr_tokens structure...');
+      const columnFixes = [
+        ['restaurantId', 'restaurant_id'],
+        ['tableNumber', 'table_number'],
+        ['expiresAt', 'expires_at'],
+        ['isActive', 'is_active'],
+        ['sessionId', 'session_id'],
+        ['usedAt', 'used_at'],
+        ['createdBy', 'created_by'],
+        ['createdAt', 'created_at'],
+        ['updatedAt', 'updated_at']
+      ];
+
+      for (const [oldCol, newCol] of columnFixes) {
+        try {
+          await sequelize.query(`ALTER TABLE qr_tokens RENAME COLUMN "${oldCol}" TO ${newCol}`);
+          console.log(`✅ Renamed qr_tokens.${oldCol} to ${newCol}`);
+        } catch (e) {
+          // Column already correct or table not exist
+        }
+      }
+    } catch (qrMigError) {
+      // console.warn('⚠️ QR tokens migration skipped:', qrMigError.message);
     }
 
     await VideoMenuItem.sync();
