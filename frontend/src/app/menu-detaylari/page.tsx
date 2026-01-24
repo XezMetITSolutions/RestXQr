@@ -12,6 +12,7 @@ export default function MenuDetailsPage() {
     const [isTranslating, setIsTranslating] = useState(false);
     const [translationProgress, setTranslationProgress] = useState(0);
     const [translationStatus, setTranslationStatus] = useState('');
+    const [translatingId, setTranslatingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchRestaurantMenu(KROREN_RESTAURANT_ID);
@@ -22,6 +23,61 @@ export default function MenuDetailsPage() {
             setItems(menuItems.filter((i: any) => i.restaurantId === KROREN_RESTAURANT_ID));
         }
     }, [menuItems]);
+
+    const translateSingleItem = async (item: any) => {
+        try {
+            setTranslatingId(item.id);
+
+            // Temiz isim al (suffix varsa temizle)
+            let baseName = item.name;
+            if (baseName.includes(' - ')) baseName = baseName.split(' - ')[0];
+
+            const baseDesc = item.description && item.description !== 'Açıklama yok' ? item.description : '';
+
+            // DeepL ile çeviriler
+            const zhName = await translateWithDeepL({ text: baseName, targetLanguage: 'zh' });
+            const enName = await translateWithDeepL({ text: baseName, targetLanguage: 'en' });
+
+            const zhDesc = baseDesc ? await translateWithDeepL({ text: baseDesc, targetLanguage: 'zh' }) : '';
+            const enDesc = baseDesc ? await translateWithDeepL({ text: baseDesc, targetLanguage: 'en' }) : '';
+
+            // İstenen formatlar:
+            // Türkçesi: Türkçe - Çinçe
+            // İngilizcesi: İngilizce - Çince
+            // Çincesi: Çince
+            const trNameFinal = `${baseName} - ${zhName}`;
+            const enNameFinal = `${enName} - ${zhName}`;
+            const zhNameFinal = zhName;
+
+            const payload = {
+                ...item,
+                name: trNameFinal,
+                translations: {
+                    ...(item.translations || {}),
+                    tr: { name: trNameFinal, description: baseDesc },
+                    en: { name: enNameFinal, description: enDesc },
+                    zh: { name: zhNameFinal, description: zhDesc }
+                }
+            };
+
+            await updateMenuItem(KROREN_RESTAURANT_ID, item.id, payload);
+            return true;
+        } catch (error) {
+            console.error('Translation error:', error);
+            return false;
+        } finally {
+            setTranslatingId(null);
+        }
+    };
+
+    const handleTranslateItem = async (item: any) => {
+        const success = await translateSingleItem(item);
+        if (success) {
+            fetchRestaurantMenu(KROREN_RESTAURANT_ID);
+        } else {
+            alert('Tercüme sırasında bir hata oluştu.');
+        }
+    };
 
     const handleTranslateAll = async () => {
         if (!confirm('Tüm menüyü DeepL ile tercüme etmek istediğinizden emin misiniz? Bu işlem biraz zaman alabilir.')) return;
@@ -35,39 +91,8 @@ export default function MenuDetailsPage() {
                 const item = items[i];
                 setTranslationStatus(`${item.name} çevriliyor... (${i + 1}/${totalItems})`);
 
-                // Temiz isim al (suffix varsa temizle)
-                let baseName = item.name;
-                if (baseName.includes(' - ')) baseName = baseName.split(' - ')[0];
+                await translateSingleItem(item);
 
-                const baseDesc = item.description && item.description !== 'Açıklama yok' ? item.description : '';
-
-                // DeepL ile çeviriler
-                const zhName = await translateWithDeepL({ text: baseName, targetLanguage: 'zh' });
-                const enName = await translateWithDeepL({ text: baseName, targetLanguage: 'en' });
-
-                const zhDesc = baseDesc ? await translateWithDeepL({ text: baseDesc, targetLanguage: 'zh' }) : '';
-                const enDesc = baseDesc ? await translateWithDeepL({ text: baseDesc, targetLanguage: 'en' }) : '';
-
-                // İstenen formatlar:
-                // TR: Türkce - Çinçe
-                // EN: İngilizce - Çinçe
-                // ZH: Çinçe
-                const trNameFinal = `${baseName} - ${zhName}`;
-                const enNameFinal = `${enName} - ${zhName}`;
-                const zhNameFinal = zhName;
-
-                const payload = {
-                    ...item,
-                    name: trNameFinal,
-                    translations: {
-                        ...(item.translations || {}),
-                        tr: { name: trNameFinal, description: baseDesc },
-                        en: { name: enNameFinal, description: enDesc },
-                        zh: { name: zhNameFinal, description: zhDesc }
-                    }
-                };
-
-                await updateMenuItem(KROREN_RESTAURANT_ID, item.id, payload);
                 setTranslationProgress(Math.round(((i + 1) / totalItems) * 100));
             }
             setTranslationStatus('Tüm çeviriler başarıyla tamamlandı!');
@@ -195,9 +220,26 @@ export default function MenuDetailsPage() {
                                         <h2 className="text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors uppercase tracking-wide">
                                             {item.name}
                                         </h2>
-                                        <span className="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded uppercase tracking-wider">
-                                            ID: {item.id.slice(0, 8)}
-                                        </span>
+                                        <div className="flex items-center gap-3 mt-1">
+                                            <span className="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded uppercase tracking-wider">
+                                                ID: {item.id.slice(0, 8)}
+                                            </span>
+                                            <button
+                                                onClick={() => handleTranslateItem(item)}
+                                                disabled={translatingId !== null || isTranslating}
+                                                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-sm ${translatingId === item.id
+                                                    ? 'bg-indigo-100 text-indigo-400 cursor-not-allowed'
+                                                    : 'bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-600 hover:text-white'
+                                                    }`}
+                                            >
+                                                {translatingId === item.id ? (
+                                                    <FaSpinner className="animate-spin" />
+                                                ) : (
+                                                    <FaMagic className="text-[10px]" />
+                                                )}
+                                                DeepL ile Çevir
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="text-2xl font-black text-indigo-900 drop-shadow-sm">
                                         {item.price} <span className="text-sm font-bold">₺</span>
