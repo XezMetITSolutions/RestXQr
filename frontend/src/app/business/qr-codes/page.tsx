@@ -61,6 +61,8 @@ export default function QRCodesPage() {
   const [selectAll, setSelectAll] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(30);
+  const [authTimeout, setAuthTimeout] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
 
@@ -114,6 +116,11 @@ export default function QRCodesPage() {
   useEffect(() => {
     initializeAuth();
   }, [initializeAuth]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setAuthTimeout(true), 2000);
+    return () => clearTimeout(t);
+  }, []);
 
   // Authentication check
   useEffect(() => {
@@ -180,7 +187,17 @@ export default function QRCodesPage() {
       }
 
       setLoading(true);
-      const res = await apiService.getRestaurantQRTokens(authenticatedRestaurant.id);
+      setApiError(null);
+
+      // Timeout için Promise.race kullan (15 saniye timeout)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Sunucu yanıt vermedi. Lütfen daha sonra tekrar deneyin.')), 15000)
+      );
+
+      const res = await Promise.race([
+        apiService.getRestaurantQRTokens(authenticatedRestaurant.id),
+        timeoutPromise
+      ]) as any;
 
       if (res?.success && Array.isArray(res.data)) {
         const mapped: QRCodeData[] = res.data.map((t: any) => {
@@ -231,8 +248,9 @@ export default function QRCodesPage() {
           clearQRCodes();
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Load QR tokens error:', e);
+      setApiError(e?.message || 'QR kodları yüklenirken hata oluştu. Lütfen sayfayı yenileyin.');
     } finally {
       setLoading(false);
     }
@@ -514,11 +532,40 @@ export default function QRCodesPage() {
   };
 
   if (!authenticatedRestaurant) {
+    if (!authTimeout) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600"><TranslatedText>Yükleniyor...</TranslatedText></p>
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600"><TranslatedText>Yükleniyor...</TranslatedText></p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="bg-white border rounded-lg p-6 max-w-md w-full">
+          <h2 className="text-lg font-semibold text-gray-900"><TranslatedText>Restoran bilgisi bulunamadı</TranslatedText></h2>
+          <p className="text-sm text-gray-600 mt-2"><TranslatedText>Lütfen tekrar giriş yapın veya sayfayı yenileyin.</TranslatedText></p>
+          <div className="flex gap-2 mt-4">
+            <button
+              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() => router.push('/isletme-giris')}
+            >
+              <TranslatedText>Giriş Yap</TranslatedText>
+            </button>
+            <button
+              className="px-4 py-2 rounded bg-gray-100 text-gray-800 hover:bg-gray-200"
+              onClick={() => {
+                setAuthTimeout(false);
+                initializeAuth();
+                setTimeout(() => setAuthTimeout(true), 2000);
+              }}
+            >
+              <TranslatedText>Tekrar Dene</TranslatedText>
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -536,6 +583,44 @@ export default function QRCodesPage() {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600"><TranslatedText>QR kodlar yükleniyor...</TranslatedText></p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (apiError) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <BusinessSidebar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          onLogout={onLogout}
+        />
+        <div className="lg:pl-64 flex items-center justify-center min-h-screen p-6">
+          <div className="bg-white border border-red-200 rounded-lg p-6 max-w-md w-full text-center shadow">
+            <div className="text-red-500 text-5xl mb-4">⚠️</div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              <TranslatedText>Bağlantı Hatası</TranslatedText>
+            </h2>
+            <p className="text-gray-600 mb-4">{apiError}</p>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => {
+                  setApiError(null);
+                  reloadQRCodes();
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                <TranslatedText>Tekrar Dene</TranslatedText>
+              </button>
+              <button
+                onClick={() => router.push('/business/dashboard')}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                <TranslatedText>Panele Dön</TranslatedText>
+              </button>
+            </div>
           </div>
         </div>
       </div>
