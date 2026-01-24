@@ -629,6 +629,35 @@ export default function QRCodesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <style jsx global>{`
+        @media print {
+          .lg\\:pl-72 { padding-left: 0 !important; }
+          .lg\\:pl-64 { padding-left: 0 !important; }
+          aside, nav, .bg-white.shadow-sm.border-b, button:not(.print-only), .no-print {
+            display: none !important;
+          }
+          .max-w-7xl { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+          .grid {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 20px !important;
+          }
+          .bg-gray-50 { background: white !important; }
+          .shadow { border: 1px solid #eee !important; box-shadow: none !important; }
+          .bg-gradient-to-r { 
+            background: #2563eb !important; 
+            color: white !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .rounded-lg { border-radius: 8px !important; }
+          body { background: white !important; }
+          .qr-card {
+             page-break-inside: avoid;
+             margin-bottom: 30px;
+          }
+        }
+      `}</style>
       <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -761,8 +790,8 @@ export default function QRCodesPage() {
                     const isSelected = selectedQRCodes.has(qrCode.id);
                     const floorInfo = findFloorForTable(qrCode.tableNumber);
                     return (
-                      <div key={qrCode.id} className={`border rounded-lg p-4 hover:shadow-lg transition-shadow ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
-                        <div className="flex items-start justify-between mb-2">
+                      <div key={qrCode.id} className={`qr-card border rounded-lg p-4 hover:shadow-lg transition-shadow ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
+                        <div className="flex items-start justify-between mb-2 no-print">
                           <button
                             onClick={() => handleToggleSelect(qrCode.id)}
                             className="mt-1 text-gray-600 hover:text-blue-600 transition-colors"
@@ -773,9 +802,9 @@ export default function QRCodesPage() {
 
                         <div className="text-center mb-4">
                           {/* Restaurant Logo üstte */}
-                          {settings?.branding?.logo && (
+                          {(settings?.branding?.logo || authenticatedRestaurant?.logo) && (
                             <img
-                              src={settings.branding.logo}
+                              src={settings?.branding?.logo || authenticatedRestaurant?.logo}
                               alt="Logo"
                               className="w-16 h-16 mx-auto mb-2 object-contain"
                             />
@@ -813,7 +842,7 @@ export default function QRCodesPage() {
                           )}
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-2 no-print">
                           <button
                             onClick={() => handleOpenURL(qrCode.url)}
                             className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-purple-50 text-purple-600 rounded hover:bg-purple-100 transition-colors"
