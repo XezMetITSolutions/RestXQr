@@ -122,6 +122,27 @@ const connectDB = async () => {
     // Then sync child tables
     await MenuCategory.sync();
     await MenuItem.sync();
+
+    // Ensure translations column exists on menu_items (production DB may be behind model changes)
+    try {
+      const [results] = await sequelize.query(`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name='menu_items' AND column_name='translations';
+      `);
+
+      if (!results || results.length === 0) {
+        console.log('⚙️  Adding translations column to menu_items table...');
+        await sequelize.query(`
+          ALTER TABLE menu_items
+          ADD COLUMN IF NOT EXISTS translations JSONB DEFAULT '{}'::jsonb;
+        `);
+        console.log('✅ translations column added to menu_items');
+      }
+    } catch (migrationError) {
+      console.error('❌ Failed to ensure menu_items.translations column:', migrationError);
+    }
+
     await VideoMenuItem.sync();
     await Event.sync();
     await InventoryItem.sync();
