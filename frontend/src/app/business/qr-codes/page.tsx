@@ -25,7 +25,6 @@ import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
 import { useLanguage } from '@/context/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
 import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
-import { QRCodeCanvas } from 'qrcode.react';
 
 export default function QRCodesPage() {
   const router = useRouter();
@@ -61,7 +60,6 @@ export default function QRCodesPage() {
   const [selectedQRCodes, setSelectedQRCodes] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
-  const [downloadTarget, setDownloadTarget] = useState<QRCodeData | null>(null);
 
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
 
@@ -516,51 +514,11 @@ export default function QRCodesPage() {
 
   // QR kod indirme
   const handleDownloadQR = (qrCode: QRCodeData) => {
-    // Heavy QR render (with logo) is done only for the requested download to avoid UI freezing.
-    if (qrCode?.url) {
-      setDownloadTarget(qrCode);
-      return;
-    }
-
     const link = document.createElement('a');
     link.href = qrCode.qrCode;
     link.download = `${qrCode.name}.png`;
     link.click();
   };
-
-  useEffect(() => {
-    if (!downloadTarget) return;
-
-    const run = async () => {
-      try {
-        // Wait a tick for the hidden canvas to render
-        await new Promise((r) => setTimeout(r, 0));
-        const canvas = document.getElementById('qr-download-canvas') as HTMLCanvasElement | null;
-        if (!canvas) {
-          // fallback
-          const link = document.createElement('a');
-          link.href = downloadTarget.qrCode;
-          link.download = `${downloadTarget.name}.png`;
-          link.click();
-          return;
-        }
-        const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png');
-        link.download = `${downloadTarget.name}.png`;
-        link.click();
-      } catch (e) {
-        console.error('QR download (canvas) failed:', e);
-        const link = document.createElement('a');
-        link.href = downloadTarget.qrCode;
-        link.download = `${downloadTarget.name}.png`;
-        link.click();
-      } finally {
-        setDownloadTarget(null);
-      }
-    };
-
-    run();
-  }, [downloadTarget]);
 
   // Print fonksiyonu
   const handlePrint = () => {
@@ -1046,25 +1004,6 @@ export default function QRCodesPage() {
           </div>
         </div>
       )}
-
-      {/* Hidden on-demand QR canvas for downloads (logo embedded) */}
-      <div style={{ position: 'fixed', left: -10000, top: -10000, width: 0, height: 0, overflow: 'hidden' }}>
-        {downloadTarget?.url ? (
-          <QRCodeCanvas
-            id="qr-download-canvas"
-            value={downloadTarget.url}
-            size={300}
-            includeMargin={true}
-            level="H"
-            imageSettings={{
-              src: '/kroren-logo.png',
-              height: 60,
-              width: 60,
-              excavate: true
-            }}
-          />
-        ) : null}
-      </div>
     </div>
   );
 }
