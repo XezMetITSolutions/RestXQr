@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { FaTimes, FaPlus, FaMinus, FaStar } from 'react-icons/fa';
 import { useCartStore } from '@/store';
 import { MenuItem } from '@/store/useMenuStore';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface MenuItemModalProps {
   item: MenuItem;
@@ -13,6 +14,7 @@ interface MenuItemModalProps {
 }
 
 export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion }: MenuItemModalProps) {
+  const { currentLanguage } = useLanguage();
   const { addItem } = useCartStore();
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
@@ -34,7 +36,6 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
     addItem({
       itemId: item.id,
       name: typeof item.name === 'string' ? { en: item.name, tr: item.name } : item.name,
-      name: typeof item.name === 'string' ? { en: item.name, tr: item.name } : item.name,
       price: currentPrice,
       variant: selectedVariant || undefined,
       quantity,
@@ -46,9 +47,18 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
 
   if (!isOpen) return null;
 
-  // Helper function to get Turkish text
-  const getName = () => typeof item.name === 'string' ? item.name : (item.name?.tr || '');
-  const getDescription = () => typeof item.description === 'string' ? item.description : (item.description?.tr || '');
+  // Helper function to get correct localized text
+  const language = currentLanguage === 'Turkish' ? 'tr' : (currentLanguage === 'German' ? 'de' : (currentLanguage === 'Chinese' ? 'zh' : (currentLanguage === 'English' ? 'en' : 'en')));
+
+  const getName = () => {
+    if (item.translations?.[language]?.name) return item.translations[language].name;
+    return typeof item.name === 'string' ? item.name : (item.name?.tr || '');
+  };
+
+  const getDescription = () => {
+    if (item.translations?.[language]?.description) return item.translations[language].description;
+    return typeof item.description === 'string' ? item.description : (item.description?.tr || '');
+  };
 
   return (
     <div

@@ -1,28 +1,30 @@
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') }); // Try loading from root
-require('dotenv').config(); // Try loading from current dir as fallback
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+require('dotenv').config();
 
 const API_BASE = 'https://masapp-backend.onrender.com/api';
 const KROREN_RESTAURANT_ID = '37b0322a-e11f-4ef1-b108-83be310aaf4d';
 const DEEPL_API_KEY = process.env.DEEPL_API_KEY || process.env.NEXT_PUBLIC_DEEPL_API_KEY;
 
 if (!DEEPL_API_KEY) {
-    console.error('❌ DEEPL_API_KEY or NEXT_PUBLIC_DEEPL_API_KEY environment variable is required.');
-    console.error('Current env keys:', Object.keys(process.env).filter(k => k.includes('DEEPL')));
+    console.error('❌ DEEPL_API_KEY environment variable is required.');
     process.exit(1);
 }
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function translateText(text, targetLang) {
-    if (!text) return '';
+    if (!text || text === 'Açıklama yok') return '';
     try {
         const params = new URLSearchParams();
         params.append('text', text);
         params.append('target_lang', targetLang.toUpperCase());
 
-        const response = await fetch('https://api-free.deepl.com/v2/translate', {
+        const isFree = DEEPL_API_KEY.trim().endsWith(':fx');
+        const apiUrl = isFree ? 'https://api-free.deepl.com/v2/translate' : 'https://api.deepl.com/v2/translate';
+
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Authorization': `DeepL-Auth-Key ${DEEPL_API_KEY}`,
@@ -32,32 +34,21 @@ async function translateText(text, targetLang) {
         });
 
         if (!response.ok) {
-            // Try Pro API if Free fails (or vice versa logic if needed, but usually domain differs)
-            const responsePro = await fetch('https://api.deepl.com/v2/translate', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `DeepL-Auth-Key ${DEEPL_API_KEY}`,
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: params
-            });
-            if (!responsePro.ok) throw new Error(`DeepL API Error: ${responsePro.statusText}`);
-            const data = await responsePro.json();
-            return data.translations[0].text;
+            const error = await response.text();
+            throw new Error(`DeepL API Error: ${response.status} ${error}`);
         }
 
         const data = await response.json();
         return data.translations[0].text;
     } catch (error) {
         console.error(`Translation error for "${text}" to ${targetLang}:`, error.message);
-        return text; // Fallback to original
+        return text;
     }
 }
 
 async function processMenu() {
     console.log('🔄 Fetching menu data...');
 
-    // Fetch Categories and Items
     const [catRes, itemRes] = await Promise.all([
         fetch(`${API_BASE}/restaurants/${KROREN_RESTAURANT_ID}/menu/categories`),
         fetch(`${API_BASE}/restaurants/${KROREN_RESTAURANT_ID}/menu/items`)
@@ -71,73 +62,71 @@ async function processMenu() {
     // --- Process Categories ---
     for (const cat of categories) {
         let baseName = cat.name;
-        // Clean existing suffixes if present (assuming " - " separator)
-        if (baseName.includes(' - ')) {
-            baseName = baseName.split(' - ')[0];
-        }
+        if (baseName.includes(' - ')) baseName = baseName.split(' - ')[0];
 
         console.log(`\nProcessing Category: ${baseName}`);
 
         const zhName = await translateText(baseName, 'zh');
         const enName = await translateText(baseName, 'en');
 
-        // Translate Description
-        const baseDesc = cat.description || '';
+        const baseDesc = cat.description && cat.description !== 'Açıklama yok' ? cat.description : '';
         const zhDesc = baseDesc ? await translateText(baseDesc, 'zh') : '';
         const enDesc = baseDesc ? await translateText(baseDesc, 'en') : '';
 
-        // Formats
-        const trFinal = `${baseName} - ${zhName}`;
-        const enFinal = `${enName} - ${zhName}`;
-        const zhFinal = zhName;
+        // Formats requested:
+        // TR: Türkce - Çinçe
+        // EN: İngilizce - Çinçe
+        // ZH: Çinçe
+        const trName = `${baseName} - ${zhName}`;
+        const enNameFinal = `${enName} - ${zhName}`;
+        const zhNameFinal = zhName;
 
         const payload = {
             ...cat,
-            name: trFinal,
+            name: trName,
             translations: {
                 ...(cat.translations || {}),
-                en: { name: enFinal, description: enDesc },
-                zh: { name: zhFinal, description: zhDesc },
-                tr: { name: trFinal, description: baseDesc } // Ensure TR is consistent
+                tr: { name: trName, description: baseDesc },
+                en: { name: enNameFinal, description: enDesc },
+                zh: { name: zhNameFinal, description: zhDesc }
             }
         };
 
         await updateCategory(cat.id, payload);
+        await sleep(200);
     }
 
     // --- Process Items ---
     for (const item of items) {
         let baseName = item.name;
-        if (baseName.includes(' - ')) {
-            baseName = baseName.split(' - ')[0];
-        }
+        if (baseName.includes(' - ')) baseName = baseName.split(' - ')[0];
 
         console.log(`\nProcessing Item: ${baseName}`);
 
         const zhName = await translateText(baseName, 'zh');
         const enName = await translateText(baseName, 'en');
 
-        // Description
-        const baseDesc = item.description || '';
+        const baseDesc = item.description && item.description !== 'Açıklama yok' ? item.description : '';
         const zhDesc = baseDesc ? await translateText(baseDesc, 'zh') : '';
         const enDesc = baseDesc ? await translateText(baseDesc, 'en') : '';
 
-        const trFinal = `${baseName} - ${zhName}`;
-        const enFinal = `${enName} - ${zhName}`;
-        const zhFinal = zhName;
+        const trName = `${baseName} - ${zhName}`;
+        const enNameFinal = `${enName} - ${zhName}`;
+        const zhNameFinal = zhName;
 
         const payload = {
             ...item,
-            name: trFinal,
+            name: trName,
             translations: {
                 ...(item.translations || {}),
-                en: { name: enFinal, description: enDesc },
-                zh: { name: zhFinal, description: zhDesc },
-                tr: { name: trFinal, description: baseDesc }
+                tr: { name: trName, description: baseDesc },
+                en: { name: enNameFinal, description: enDesc },
+                zh: { name: zhNameFinal, description: zhDesc }
             }
         };
 
         await updateItem(item.id, payload);
+        await sleep(200);
     }
 
     console.log('\n🎉 All done! Menu translated and updated.');
@@ -151,11 +140,10 @@ async function updateCategory(id, payload) {
             body: JSON.stringify(payload)
         });
         if (res.ok) console.log(`✅ Category updated: ${payload.name}`);
-        else console.error(`❌ Failed to update category ${id}: ${res.status}`);
+        else console.error(`❌ Failed update cat ${id}: ${res.status}`);
     } catch (e) {
-        console.error(`❌ Error updating category ${id}:`, e);
+        console.error(`❌ Error cat ${id}:`, e);
     }
-    await sleep(200); // Rate limit protection
 }
 
 async function updateItem(id, payload) {
@@ -166,11 +154,10 @@ async function updateItem(id, payload) {
             body: JSON.stringify(payload)
         });
         if (res.ok) console.log(`✅ Item updated: ${payload.name}`);
-        else console.error(`❌ Failed to update item ${id}: ${res.status}`);
+        else console.error(`❌ Failed update item ${id}: ${res.status}`);
     } catch (e) {
-        console.error(`❌ Error updating item ${id}:`, e);
+        console.error(`❌ Error item ${id}:`, e);
     }
-    await sleep(200);
 }
 
 processMenu();

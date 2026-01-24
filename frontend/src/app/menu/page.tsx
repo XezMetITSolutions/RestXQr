@@ -573,7 +573,7 @@ function MenuPageContent() {
   }, [isClient, cartItems]);
 
   // Get language code for menu data
-  const language = currentLanguage === 'Turkish' ? 'tr' : (currentLanguage === 'German' ? 'de' : (currentLanguage === 'Chinese' ? 'zh' : 'en'));
+  const language = currentLanguage === 'Turkish' ? 'tr' : (currentLanguage === 'German' ? 'de' : (currentLanguage === 'Chinese' ? 'zh' : (currentLanguage === 'English' ? 'en' : 'en')));
 
   // Get menu categories (backend format)
   const menuCategories = [
@@ -596,8 +596,8 @@ function MenuPageContent() {
 
   if (search.trim() !== '') {
     filteredItems = filteredItems.filter((item: any) => {
-      const itemName = typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || '');
-      const itemDesc = typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || '');
+      const itemName = item.translations?.[language]?.name || (typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || ''));
+      const itemDesc = item.translations?.[language]?.description || (typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || ''));
       return itemName.toLowerCase().includes(search.toLowerCase()) ||
         itemDesc.toLowerCase().includes(search.toLowerCase());
     });
@@ -967,11 +967,13 @@ function MenuPageContent() {
                 <div className="ml-3 flex-grow min-w-0 flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start">
-                      <h3 className="font-semibold text-dynamic-sm truncate">{typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün')}</h3>
+                      <h3 className="font-semibold text-dynamic-sm truncate">
+                        {item.translations?.[language]?.name || (typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün'))}
+                      </h3>
                       <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: primary }}>{item.price} ₺</span>
                     </div>
                     <p className="text-xs text-gray-600 line-clamp-2 mb-2 break-words">
-                      {typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || '')}
+                      {item.translations?.[language]?.description || (typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || ''))}
                     </p>
 
                     {/* Allergens */}
