@@ -772,11 +772,21 @@ export default function QRCodesPage() {
                         </div>
 
                         <div className="text-center mb-4">
+                          {/* Restaurant Logo üstte */}
+                          {settings?.branding?.logo && (
+                            <img
+                              src={settings.branding.logo}
+                              alt="Logo"
+                              className="w-16 h-16 mx-auto mb-2 object-contain"
+                            />
+                          )}
+
+                          {/* QR Kod */}
                           {qrCode.qrCode ? (
                             <img
                               src={qrCode.qrCode}
                               alt={qrCode.name}
-                              className="w-32 h-32 mx-auto mb-2 border border-gray-200 rounded"
+                              className="w-32 h-32 mx-auto border border-gray-200 rounded"
                               loading="lazy"
                               decoding="async"
                               onError={(e) => {
@@ -784,17 +794,20 @@ export default function QRCodesPage() {
                               }}
                             />
                           ) : (
-                            <div className="w-32 h-32 mx-auto mb-2 bg-gray-200 flex items-center justify-center text-gray-500 rounded">
+                            <div className="w-32 h-32 mx-auto bg-gray-200 flex items-center justify-center text-gray-500 rounded">
                               <FaQrcode className="text-4xl" />
                             </div>
                           )}
+
+                          {/* Masa Numarası - QR altında büyük ve belirgin */}
+                          <div className="mt-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-4 rounded-lg inline-block shadow">
+                            <span className="text-lg font-bold">MASA {qrCode.tableNumber}</span>
+                          </div>
                         </div>
 
                         <div className="text-center">
-                          <h3 className="font-semibold text-gray-900"><TranslatedText>Masa</TranslatedText> {qrCode.tableNumber} <TranslatedText>- QR Menü</TranslatedText></h3>
-                          <p className="text-sm text-gray-600"><TranslatedText>Masa</TranslatedText> {qrCode.tableNumber} <TranslatedText>için QR kod</TranslatedText></p>
                           {floorInfo && (
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-gray-500">
                               <TranslatedText>Kat</TranslatedText>: {floorInfo.name} ({floorInfo.startTable}-{floorInfo.endTable})
                             </p>
                           )}

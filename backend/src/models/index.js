@@ -147,6 +147,10 @@ const connectDB = async () => {
     await Event.sync();
     await InventoryItem.sync();
     await Branch.sync();
+    await QRToken.sync(); // QR Token tablosu
+    await Staff.sync(); // Staff tablosu
+    await Order.sync(); // Order tablosu
+    await OrderItem.sync(); // OrderItem tablosu
     console.log('✅ All database tables synchronized');
   } catch (error) {
     console.error('❌ Unable to connect to PostgreSQL:', error);
