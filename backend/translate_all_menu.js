@@ -1,12 +1,15 @@
-
 const fs = require('fs');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') }); // Try loading from root
+require('dotenv').config(); // Try loading from current dir as fallback
 
 const API_BASE = 'https://masapp-backend.onrender.com/api';
 const KROREN_RESTAURANT_ID = '37b0322a-e11f-4ef1-b108-83be310aaf4d';
-const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
+const DEEPL_API_KEY = process.env.DEEPL_API_KEY || process.env.NEXT_PUBLIC_DEEPL_API_KEY;
 
 if (!DEEPL_API_KEY) {
-    console.error('❌ DEEPL_API_KEY environment variable is required.');
+    console.error('❌ DEEPL_API_KEY or NEXT_PUBLIC_DEEPL_API_KEY environment variable is required.');
+    console.error('Current env keys:', Object.keys(process.env).filter(k => k.includes('DEEPL')));
     process.exit(1);
 }
 
