@@ -85,13 +85,15 @@ export default function QRCodesDebugPage() {
     setImageChecks([]);
 
     try {
-      addResult({ name: 'Auth summary', ok: true, details: {
-        isAuthenticated: auth.isAuthenticated(),
-        role: auth.getRole(),
-        restaurant: auth.authenticatedRestaurant,
-        staff: auth.authenticatedStaff,
-        user: auth.user
-      }});
+      addResult({
+        name: 'Auth summary', ok: true, details: {
+          isAuthenticated: auth.isAuthenticated(),
+          role: auth.getRole(),
+          restaurant: auth.authenticatedRestaurant,
+          staff: auth.authenticatedStaff,
+          user: auth.user
+        }
+      });
 
       await time('GET /api/settings (via apiService.getSettings)', async () => apiService.getSettings());
 
@@ -127,11 +129,18 @@ export default function QRCodesDebugPage() {
 
       if (menu.ok) {
         const cats = (menu.data as any)?.data?.categories;
-        addResult({ name: 'Menu categories summary', ok: true, details: {
-          count: Array.isArray(cats) ? cats.length : 0,
-          sample: Array.isArray(cats) ? cats.slice(0, 10).map((c: any) => ({ id: c.id, name: c.name })) : []
-        }});
+        addResult({
+          name: 'Menu categories summary', ok: true, details: {
+            count: Array.isArray(cats) ? cats.length : 0,
+            sample: Array.isArray(cats) ? cats.slice(0, 10).map((c: any) => ({ id: c.id, name: c.name })) : []
+          }
+        });
       }
+
+      await time('GET /api/qr/debug-schema (DB Schema Check)', async () => {
+        const res = await apiService.getDebugSchema();
+        return (res as any);
+      });
 
     } finally {
       setRunning(false);

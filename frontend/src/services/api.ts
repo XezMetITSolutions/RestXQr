@@ -267,6 +267,10 @@ class ApiService {
     });
   }
 
+  async getDebugSchema() {
+    return this.request<any>('/qr/debug-schema');
+  }
+
   // Staff endpoints
   async getStaff(restaurantId: string) {
     return this.request<any[]>(`/staff/restaurant/${restaurantId}`);

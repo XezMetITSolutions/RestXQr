@@ -462,5 +462,44 @@ router.post('/cleanup', async (req, res) => {
   }
 });
 
+// GET /api/qr/debug-schema - Inspect the qr_tokens schema
+router.get('/debug-schema', async (req, res) => {
+  try {
+    const { sequelize } = models;
+    const [results] = await sequelize.query(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'qr_tokens'
+      ORDER BY ordinal_position;
+    `);
+
+    // Get model definition for comparison
+    const modelDef = {};
+    if (QRToken && QRToken.rawAttributes) {
+      Object.keys(QRToken.rawAttributes).forEach(key => {
+        const attr = QRToken.rawAttributes[key];
+        modelDef[key] = {
+          type: attr.type ? attr.type.key : 'UNKNOWN',
+          field: attr.field,
+          allowNull: attr.allowNull
+        };
+      });
+    }
+
+    res.json({
+      success: true,
+      schema: results,
+      modelDefinition: modelDef
+    });
+  } catch (error) {
+    console.error('Debug schema error:', error);
+    res.status(500).json({
+      success: false,
+      message: `Internal server error: ${error.message}`,
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;
 
