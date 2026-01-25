@@ -135,6 +135,30 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: {},
       comment: 'Language translations keyed by language code (e.g., en, zh)'
+    },
+    discountedPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      field: 'discounted_price',
+      comment: 'Discounted price (if campaign is active)'
+    },
+    discountPercentage: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'discount_percentage',
+      comment: 'Discount percentage (0-100)'
+    },
+    discountStartDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'discount_start_date',
+      comment: 'Campaign start date'
+    },
+    discountEndDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'discount_end_date',
+      comment: 'Campaign end date'
     }
   }, {
     tableName: 'menu_items',

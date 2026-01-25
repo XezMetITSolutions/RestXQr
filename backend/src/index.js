@@ -265,6 +265,89 @@ app.get('/api/debug/fix-restaurants-schema', async (req, res) => {
 // TEST ENDPOINT
 app.get('/api/debug/ping', (req, res) => res.send('pong'));
 
+// ADD DISCOUNT COLUMNS MIGRATION
+app.get('/api/debug/add-discount-columns', async (req, res) => {
+  console.log('🔧 Add discount columns migration endpoint called');
+  try {
+    const { sequelize } = require('./models');
+    const results = [];
+
+    // Check and add columns to menu_items
+    console.log('⚙️ Checking menu_items table...');
+    const [itemColumns] = await sequelize.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name='menu_items' AND column_name IN ('discounted_price', 'discount_percentage', 'discount_start_date', 'discount_end_date');
+    `);
+
+    if (!itemColumns.find(c => c.column_name === 'discounted_price')) {
+      await sequelize.query(`ALTER TABLE menu_items ADD COLUMN discounted_price DECIMAL(10,2) NULL`);
+      results.push('✅ Added discounted_price to menu_items');
+      console.log('✅ Added discounted_price');
+    }
+
+    if (!itemColumns.find(c => c.column_name === 'discount_percentage')) {
+      await sequelize.query(`ALTER TABLE menu_items ADD COLUMN discount_percentage INTEGER NULL`);
+      results.push('✅ Added discount_percentage to menu_items');
+      console.log('✅ Added discount_percentage');
+    }
+
+    if (!itemColumns.find(c => c.column_name === 'discount_start_date')) {
+      await sequelize.query(`ALTER TABLE menu_items ADD COLUMN discount_start_date TIMESTAMP WITH TIME ZONE NULL`);
+      results.push('✅ Added discount_start_date to menu_items');
+      console.log('✅ Added discount_start_date');
+    }
+
+    if (!itemColumns.find(c => c.column_name === 'discount_end_date')) {
+      await sequelize.query(`ALTER TABLE menu_items ADD COLUMN discount_end_date TIMESTAMP WITH TIME ZONE NULL`);
+      results.push('✅ Added discount_end_date to menu_items');
+      console.log('✅ Added discount_end_date');
+    }
+
+    // Check and add columns to menu_categories
+    console.log('⚙️ Checking menu_categories table...');
+    const [catColumns] = await sequelize.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name='menu_categories' AND column_name IN ('discount_percentage', 'discount_start_date', 'discount_end_date');
+    `);
+
+    if (!catColumns.find(c => c.column_name === 'discount_percentage')) {
+      await sequelize.query(`ALTER TABLE menu_categories ADD COLUMN discount_percentage INTEGER NULL`);
+      results.push('✅ Added discount_percentage to menu_categories');
+      console.log('✅ Added discount_percentage to categories');
+    }
+
+    if (!catColumns.find(c => c.column_name === 'discount_start_date')) {
+      await sequelize.query(`ALTER TABLE menu_categories ADD COLUMN discount_start_date TIMESTAMP WITH TIME ZONE NULL`);
+      results.push('✅ Added discount_start_date to menu_categories');
+      console.log('✅ Added discount_start_date to categories');
+    }
+
+    if (!catColumns.find(c => c.column_name === 'discount_end_date')) {
+      await sequelize.query(`ALTER TABLE menu_categories ADD COLUMN discount_end_date TIMESTAMP WITH TIME ZONE NULL`);
+      results.push('✅ Added discount_end_date to menu_categories');
+      console.log('✅ Added discount_end_date to categories');
+    }
+
+    console.log('✅ Migration complete');
+
+    res.json({
+      success: true,
+      message: 'Discount columns migration completed successfully',
+      changes: results,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ Migration Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Migration failed',
+      error: error.message
+    });
+  }
+});
+
+
 // TÜM RESTORANLARIN PLANLARINI VE SUPERADMIN KULLANICILARINI DÜZELT
 app.get('/api/debug/fix-plans', async (req, res) => {
   console.log('🔧 Fix plans endpoint called');

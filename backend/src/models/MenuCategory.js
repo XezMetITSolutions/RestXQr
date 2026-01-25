@@ -38,6 +38,24 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       field: 'kitchen_station',
       comment: 'Kitchen station: izgara, makarna, soguk, tatli'
+    },
+    discountPercentage: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'discount_percentage',
+      comment: 'Category-wide discount percentage (0-100)'
+    },
+    discountStartDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'discount_start_date',
+      comment: 'Category campaign start date'
+    },
+    discountEndDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'discount_end_date',
+      comment: 'Category campaign end date'
     }
   }, {
     tableName: 'menu_categories',
