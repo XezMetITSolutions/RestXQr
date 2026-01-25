@@ -281,6 +281,58 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // İçecek kontrolü - İçecekler mutfağa gitmemeli, direkt garson paneline
+    try {
+      // Siparişteki tüm ürünlerin kategorilerini kontrol et
+      const orderItems = await OrderItem.findAll({
+        where: { orderId: order.id },
+        include: [{
+          model: MenuItem,
+          as: 'menuItem',
+          include: [{
+            model: MenuCategory,
+            as: 'category',
+            attributes: ['id', 'name']
+          }]
+        }]
+      });
+
+      // İçecek kategorisini bul (flexible search - içecek, drinks, içki vb.)
+      const drinkKeywords = ['içecek', 'drink', 'içki', 'beverage', 'sıcak içecek', 'soğuk içecek'];
+      const hasDrinks = orderItems.some(item => {
+        const categoryName = item.menuItem?.category?.name?.toLowerCase() || '';
+        return drinkKeywords.some(keyword => categoryName.includes(keyword));
+      });
+
+      const allDrinks = orderItems.every(item => {
+        const categoryName = item.menuItem?.category?.name?.toLowerCase() || '';
+        return drinkKeywords.some(keyword => categoryName.includes(keyword));
+      });
+
+      // Eğer tüm ürünler içecekse, siparişi otomatik onaylayıp "ready" yap
+      if (allDrinks && orderItems.length > 0) {
+        await order.update({
+          approved: true,
+          status: 'ready', // Direkt hazır (mutfağa gitmeden)
+          approvedAt: new Date()
+        });
+        console.log('🍹 Tüm ürünler içecek - Sipariş otomatik onaylandı ve garson paneline yönlendirildi:', order.id);
+      }
+      // Eğer içecek varsa ama hepsi içecek değilse, en azından otomatik onayla
+      else if (hasDrinks) {
+        await order.update({
+          approved: true,
+          approvedAt: new Date()
+        });
+        console.log('🍹 İçecek içeren sipariş - Otomatik onaylandı:', order.id);
+      }
+
+    } catch (drinkCheckError) {
+      console.error('❌ İçecek kontrolü hatası:', drinkCheckError);
+      // Hata olsa bile sipariş devam etsin
+    }
+
+
     // Order started: keep QR active until payment; do NOT deactivate here
     // Deactivation should occur after payment is completed. Placeholder logic below if needed later:
     // await QRToken.update({ isActive: false }, { where: { restaurantId, tableNumber, isActive: true } });
