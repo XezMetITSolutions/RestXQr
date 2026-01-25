@@ -50,6 +50,14 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'system',
       field: 'created_by',
       comment: 'waiter, system, admin'
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      field: 'created_at'
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      field: 'updated_at'
     }
   }, {
     tableName: 'qr_tokens',
