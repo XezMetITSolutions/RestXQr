@@ -218,7 +218,52 @@ router.post('/', async (req, res) => {
       console.log('✅ Found restaurant:', { username: restaurantId, id: actualRestaurantId });
     }
 
-    // Basic total calc if client did not send
+    // İçecek kategorisi kontrolü - İçecekler otomatik onaylansın
+    let hasDrinks = false;
+    let hasFood = false;
+
+    try {
+      // İçecek kategorilerini bul
+      const drinkCategories = await MenuCategory.findAll({
+        where: {
+          restaurantId: actualRestaurantId,
+          name: {
+            [Op.iLike]: '%içecek%'
+          }
+        }
+      });
+
+      const drinkCategoryIds = drinkCategories.map(cat => cat.id);
+
+      // Siparişteki ürünleri kontrol et
+      for (const it of items) {
+        let menuItem = null;
+
+        // MenuItem'ı bul
+        if (it.menuItemId) {
+          menuItem = await MenuItem.findByPk(it.menuItemId);
+        } else if (it.name) {
+          menuItem = await MenuItem.findOne({
+            where: { restaurantId: actualRestaurantId, name: it.name }
+          });
+        }
+
+        // Kategori kontrolü
+        if (menuItem && drinkCategoryIds.includes(menuItem.categoryId)) {
+          hasDrinks = true;
+        } else {
+          hasFood = true;
+        }
+      }
+    } catch (error) {
+      console.error('İçecek kontrolü hatası:', error);
+    }
+
+    // Sadece içecek varsa otomatik onaylansın
+    const autoApprove = hasDrinks && !hasFood;
+    console.log(`📋 Sipariş analizi: hasDrinks=${hasDrinks}, hasFood=${hasFood}, autoApprove=${autoApprove}`);
+
+    // Total amount hesapla
     let totalAmount = 0;
     for (const it of items) {
       const qty = Number(it.quantity || 1);
@@ -226,14 +271,16 @@ router.post('/', async (req, res) => {
       totalAmount += qty * unitPrice;
     }
 
+
     const order = await Order.create({
       restaurantId: actualRestaurantId,
       tableNumber: tableNumber || null,
       customerName: customerName || null,
-      status: 'pending',
+      status: autoApprove ? 'approved' : 'pending', // İçecek ise direkt approved
       totalAmount,
       notes: notes || null,
-      orderType
+      orderType,
+      approved: autoApprove // İçecek ise direkt onaylı
     });
 
     for (const it of items) {
@@ -280,58 +327,6 @@ router.post('/', async (req, res) => {
         notes: it.notes || null
       });
     }
-
-    // İçecek kontrolü - İçecekler mutfağa gitmemeli, direkt garson paneline
-    try {
-      // Siparişteki tüm ürünlerin kategorilerini kontrol et
-      const orderItems = await OrderItem.findAll({
-        where: { orderId: order.id },
-        include: [{
-          model: MenuItem,
-          as: 'menuItem',
-          include: [{
-            model: MenuCategory,
-            as: 'category',
-            attributes: ['id', 'name']
-          }]
-        }]
-      });
-
-      // İçecek kategorisini bul (flexible search - içecek, drinks, içki vb.)
-      const drinkKeywords = ['içecek', 'drink', 'içki', 'beverage', 'sıcak içecek', 'soğuk içecek'];
-      const hasDrinks = orderItems.some(item => {
-        const categoryName = item.menuItem?.category?.name?.toLowerCase() || '';
-        return drinkKeywords.some(keyword => categoryName.includes(keyword));
-      });
-
-      const allDrinks = orderItems.every(item => {
-        const categoryName = item.menuItem?.category?.name?.toLowerCase() || '';
-        return drinkKeywords.some(keyword => categoryName.includes(keyword));
-      });
-
-      // Eğer tüm ürünler içecekse, siparişi otomatik onaylayıp "ready" yap
-      if (allDrinks && orderItems.length > 0) {
-        await order.update({
-          approved: true,
-          status: 'ready', // Direkt hazır (mutfağa gitmeden)
-          approvedAt: new Date()
-        });
-        console.log('🍹 Tüm ürünler içecek - Sipariş otomatik onaylandı ve garson paneline yönlendirildi:', order.id);
-      }
-      // Eğer içecek varsa ama hepsi içecek değilse, en azından otomatik onayla
-      else if (hasDrinks) {
-        await order.update({
-          approved: true,
-          approvedAt: new Date()
-        });
-        console.log('🍹 İçecek içeren sipariş - Otomatik onaylandı:', order.id);
-      }
-
-    } catch (drinkCheckError) {
-      console.error('❌ İçecek kontrolü hatası:', drinkCheckError);
-      // Hata olsa bile sipariş devam etsin
-    }
-
 
     // Order started: keep QR active until payment; do NOT deactivate here
     // Deactivation should occur after payment is completed. Placeholder logic below if needed later:
