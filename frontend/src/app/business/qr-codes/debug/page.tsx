@@ -42,6 +42,14 @@ export default function QRCodesDebugPage() {
     auth.initializeAuth();
   }, [auth]);
 
+  const refetchRestaurantFromSubdomain = async () => {
+    try {
+      await auth.getRestaurantFromSubdomain();
+    } catch (e) {
+      console.error('getRestaurantFromSubdomain failed:', e);
+    }
+  };
+
   const addResult = (r: StepResult) => {
     setResults((prev) => [...prev, r]);
   };
@@ -143,6 +151,20 @@ export default function QRCodesDebugPage() {
               QR Kodlar
             </button>
             <button
+              className="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-800"
+              onClick={() => auth.initializeAuth()}
+              disabled={running}
+            >
+              Auth Yenile
+            </button>
+            <button
+              className="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-800"
+              onClick={refetchRestaurantFromSubdomain}
+              disabled={running}
+            >
+              Subdomain'den Restoranı Çek
+            </button>
+            <button
               className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white"
               onClick={runAll}
               disabled={running}
@@ -155,6 +177,8 @@ export default function QRCodesDebugPage() {
         <div className="bg-white border rounded p-4 mb-4">
           <div className="text-sm text-gray-700">API Base: <span className="font-mono">{apiBase || '(empty)'}</span></div>
           <div className="text-sm text-gray-700 mt-1">Restaurant ID: <span className="font-mono">{restaurantId || '(none)'}</span></div>
+          <div className="text-sm text-gray-700 mt-1">isAuthenticated(): <span className="font-mono">{String(auth.isAuthenticated())}</span></div>
+          <div className="text-sm text-gray-700 mt-1">Role: <span className="font-mono">{auth.getRole() || '(none)'}</span></div>
         </div>
 
         <div className="space-y-3">

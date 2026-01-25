@@ -3,18 +3,10 @@ const router = express.Router();
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 
-// Safe model import with fallback
-let QRToken, Restaurant;
-try {
-  const models = require('../models');
-  QRToken = models.QRToken;
-  Restaurant = models.Restaurant;
-} catch (error) {
-  console.error('Model import error:', error);
-  // Fallback: create simple models
-  QRToken = null;
-  Restaurant = null;
-}
+// Models import
+const models = require('../models');
+const QRToken = models.QRToken;
+const Restaurant = models.Restaurant;
 
 // Helper: Generate secure token
 const generateToken = () => {
@@ -166,7 +158,7 @@ router.post('/generate', async (req, res) => {
     console.error('❌ Generate QR token error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: `Internal server error: ${error.message}`,
       details: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
@@ -177,6 +169,14 @@ router.post('/generate', async (req, res) => {
 router.get('/verify/:token', async (req, res) => {
   try {
     const { token } = req.params;
+
+    if (!QRToken || !Restaurant) {
+      console.error('❌ Models not loaded in verify route');
+      return res.status(503).json({
+        success: false,
+        message: 'QR system temporarily unavailable - models not loaded'
+      });
+    }
 
     const qrToken = await QRToken.findOne({
       where: { token },
@@ -222,7 +222,8 @@ router.get('/verify/:token', async (req, res) => {
     console.error('Verify QR token error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: `Internal server error: ${error.message}`,
+      details: error.message
     });
   }
 });
@@ -232,6 +233,14 @@ router.post('/refresh/:token', async (req, res) => {
   try {
     const { token } = req.params;
     const { duration = 2 } = req.body; // duration in hours
+
+    if (!QRToken) {
+      console.error('❌ QRToken model not loaded in refresh route');
+      return res.status(503).json({
+        success: false,
+        message: 'QR system temporarily unavailable'
+      });
+    }
 
     const qrToken = await QRToken.findOne({
       where: { token }
@@ -263,7 +272,8 @@ router.post('/refresh/:token', async (req, res) => {
     console.error('Refresh QR token error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: `Internal server error: ${error.message}`,
+      details: error.message
     });
   }
 });
@@ -272,6 +282,15 @@ router.post('/refresh/:token', async (req, res) => {
 router.get('/restaurant/:restaurantId/tables', async (req, res) => {
   try {
     const { restaurantId } = req.params;
+    console.log(`🔍 Fetching QR tokens for restaurant: ${restaurantId}`);
+
+    if (!QRToken || !Restaurant) {
+      console.error('❌ Models not loaded in GET tokens route');
+      return res.status(503).json({
+        success: false,
+        message: 'QR system temporarily unavailable - models not loaded'
+      });
+    }
 
     const tokens = await QRToken.findAll({
       where: {
@@ -285,12 +304,23 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
       attributes: ['id', 'tableNumber', 'token', 'expiresAt', 'usedAt', 'createdAt']
     });
 
+    console.log(`✅ Found ${tokens.length} active tokens for restaurant ${restaurantId}`);
+
     // Get restaurant to use correct subdomain
     const restaurant = await Restaurant.findByPk(restaurantId);
-    if (!restaurant || !restaurant.username) {
+    if (!restaurant) {
+      console.error(`❌ Restaurant not found: ${restaurantId}`);
       return res.status(404).json({
         success: false,
-        message: 'Restaurant not found or username missing'
+        message: 'Restaurant not found'
+      });
+    }
+
+    if (!restaurant.username) {
+      console.error(`❌ Restaurant username missing for ID: ${restaurantId}`);
+      return res.status(400).json({
+        success: false,
+        message: 'Restaurant username missing'
       });
     }
 
@@ -307,17 +337,14 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
       tokenCount: tokens.length
     });
 
-    const tokensWithUrls = tokens.map(token => {
-      const qrUrl = `${baseUrl}/menu/?t=${token.token}&table=${token.tableNumber}`;
-      console.log('🔗 QR URL for token:', {
-        tableNumber: token.tableNumber,
-        token: token.token?.substring(0, 20) + '...',
-        qrUrl: qrUrl
-      });
+    const tokensWithUrls = tokens.map(tokenObj => {
+      const qrUrl = `${baseUrl.replace(/\/$/, '')}/menu/?t=${tokenObj.token}&table=${tokenObj.tableNumber}`;
       return {
-        ...token.toJSON(),
+        ...tokenObj.toJSON(),
         qrUrl: qrUrl,
-        remainingMinutes: Math.floor((new Date(token.expiresAt) - new Date()) / 60000)
+        remainingMinutes: tokenObj.expiresAt
+          ? Math.floor((new Date(tokenObj.expiresAt).getTime() - Date.now()) / 60000)
+          : 0
       };
     });
 
@@ -330,8 +357,9 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
     console.error(`❌ Get restaurant QR tokens error for ID ${req.params.restaurantId}:`, error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
-      details: error.message // Sadece debug için, sonra kaldırılabilir
+      message: `Internal server error: ${error.message}`,
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
@@ -340,6 +368,10 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
 router.delete('/deactivate/:token', async (req, res) => {
   try {
     const { token } = req.params;
+
+    if (!QRToken) {
+      return res.status(503).json({ success: false, message: 'QR system unavailable' });
+    }
 
     const qrToken = await QRToken.findOne({
       where: { token }
@@ -374,6 +406,10 @@ router.post('/deactivate-by-table', async (req, res) => {
     const { restaurantId, tableNumber } = req.body;
     if (!restaurantId || !tableNumber) {
       return res.status(400).json({ success: false, message: 'restaurantId and tableNumber are required' });
+    }
+
+    if (!QRToken) {
+      return res.status(503).json({ success: false, message: 'QR system unavailable' });
     }
 
     const activeToken = await QRToken.findOne({

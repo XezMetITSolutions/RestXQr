@@ -1063,36 +1063,33 @@ app.get('/api/debug/missing-images', async (req, res) => {
   }
 });
 
-// Test endpoint for QR system
-app.get('/api/qr/test', async (req, res) => {
+// Schema debug endpoint for qr_tokens
+app.get('/api/debug/qr-schema', async (req, res) => {
   try {
-    const { QRToken, Restaurant } = require('./models');
+    const { sequelize } = require('./models');
+    const [results] = await sequelize.query(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'qr_tokens';
+    `);
 
-    // Test if QRToken model is available
-    if (!QRToken) {
-      return res.status(503).json({
-        success: false,
-        message: 'QRToken model not available'
-      });
-    }
-
-    // Test database connection
-    const count = await QRToken.count();
+    const [tableExists] = await sequelize.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'qr_tokens'
+      );
+    `);
 
     res.json({
       success: true,
-      message: 'QR system is working',
-      qrTokenCount: count,
-      models: {
-        QRToken: !!QRToken,
-        Restaurant: !!Restaurant
-      }
+      tableExists: tableExists[0].exists,
+      columns: results,
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('QR test error:', error);
     res.status(500).json({
       success: false,
-      message: 'QR system error',
+      message: 'Schema check failed',
       error: error.message
     });
   }
