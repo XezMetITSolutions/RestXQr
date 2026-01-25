@@ -348,6 +348,75 @@ app.get('/api/debug/add-discount-columns', async (req, res) => {
 });
 
 
+// BEĞENİLENLER TOPLU GÜNCELLEME - İçecekler hariç
+app.get('/api/debug/mark-favorites', async (req, res) => {
+  console.log('🌟 Mark favorites endpoint called');
+  try {
+    const { MenuItem, MenuCategory } = require('./models');
+    const { Op } = require('sequelize');
+
+    // "İçecekler" kategorilerini bul
+    const drinkCategories = await MenuCategory.findAll({
+      where: {
+        name: {
+          [Op.iLike]: '%içecek%'
+        }
+      }
+    });
+
+    const drinkCategoryIds = drinkCategories.map(cat => cat.id);
+
+    console.log(`📋 Bulunan içecek kategorileri: ${drinkCategories.length}`);
+    drinkCategories.forEach(cat => {
+      console.log(`   - ${cat.name}`);
+    });
+
+    // İçecekler hariç tüm ürünleri güncelle
+    const whereClause = drinkCategoryIds.length > 0
+      ? { categoryId: { [Op.notIn]: drinkCategoryIds } }
+      : {};
+
+    const [updateCount] = await MenuItem.update(
+      { isPopular: true },
+      {
+        where: {
+          ...whereClause,
+          isPopular: { [Op.ne]: true }
+        }
+      }
+    );
+
+    // Özet
+    const totalItems = await MenuItem.count();
+    const popularItems = await MenuItem.count({ where: { isPopular: true } });
+    const drinkItems = drinkCategoryIds.length > 0
+      ? await MenuItem.count({ where: { categoryId: { [Op.in]: drinkCategoryIds } } })
+      : 0;
+
+    res.json({
+      success: true,
+      message: `${updateCount} ürün beğenilen olarak işaretlendi`,
+      stats: {
+        updated: updateCount,
+        totalItems,
+        popularItems,
+        drinkItems,
+        nonPopularItems: totalItems - popularItems
+      },
+      drinkCategories: drinkCategories.map(c => c.name),
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ Mark favorites error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Beğenilenler güncellenirken hata oluştu',
+      error: error.message
+    });
+  }
+});
+
 // TÜM RESTORANLARIN PLANLARINI VE SUPERADMIN KULLANICILARINI DÜZELT
 app.get('/api/debug/fix-plans', async (req, res) => {
   console.log('🔧 Fix plans endpoint called');
