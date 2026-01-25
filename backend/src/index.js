@@ -205,64 +205,59 @@ app.post('/api/debug/add-kitchen-station', async (req, res) => {
   }
 });
 
-// PRINTER CONFIG MIGRATION ENDPOINT
-app.post('/api/debug/add-printer-config', async (req, res) => {
-  console.log('🔧 Add printer_config column endpoint called');
+// VERİTABANI ŞEMASINI GÜNCELLE (Comprehensive Fix)
+app.get('/api/debug/fix-restaurants-schema', async (req, res) => {
+  console.log('🔧 Fix restaurants schema endpoint called');
   try {
     const { sequelize } = require('./models');
-    console.log('⚙️  Checking if printer_config column exists...');
 
-    const [results] = await sequelize.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name='restaurants' AND column_name='printer_config';
-    `);
-
-    if (results.length > 0) {
-      console.log('✅ printer_config column already exists');
-
-      await sequelize.query(`
-        UPDATE restaurants 
-        SET printer_config = '{"kavurma": {"ip": "192.168.1.13", "port": 9100, "enabled": true}}'::jsonb
-        WHERE username = 'kroren';
-      `);
-
-      return res.json({
-        success: true,
-        message: 'printer_config kolonu zaten mevcut. Kroren config güncellendi.',
-        timestamp: new Date().toISOString(),
-        alreadyExists: true
-      });
+    // 1. Check and add kitchen_stations
+    console.log('⚙️ Checking kitchen_stations...');
+    const [ksResult] = await sequelize.query("SELECT column_name FROM information_schema.columns WHERE table_name='restaurants' AND column_name='kitchen_stations'");
+    if (ksResult.length === 0) {
+      await sequelize.query("ALTER TABLE restaurants ADD COLUMN kitchen_stations JSONB NULL");
+      console.log('✅ Added kitchen_stations');
     }
 
-    await sequelize.query(`
-      ALTER TABLE restaurants 
-      ADD COLUMN printer_config JSONB DEFAULT '{}'::jsonb;
-    `);
+    // 2. Check and add printer_config
+    console.log('⚙️ Checking printer_config...');
+    const [pcResult] = await sequelize.query("SELECT column_name FROM information_schema.columns WHERE table_name='restaurants' AND column_name='printer_config'");
+    if (pcResult.length === 0) {
+      await sequelize.query("ALTER TABLE restaurants ADD COLUMN printer_config JSONB DEFAULT '{}'::jsonb");
+      console.log('✅ Added printer_config');
+    }
 
-    console.log('✅ printer_config column added successfully');
+    // 3. Check and add settings (if missing)
+    console.log('⚙️ Checking settings...');
+    const [sResult] = await sequelize.query("SELECT column_name FROM information_schema.columns WHERE table_name='restaurants' AND column_name='settings'");
+    if (sResult.length === 0) {
+      await sequelize.query("ALTER TABLE restaurants ADD COLUMN settings JSONB DEFAULT '{}'::jsonb");
+      console.log('✅ Added settings');
+    }
 
-    await sequelize.query(`
-      UPDATE restaurants 
-      SET printer_config = '{"kavurma": {"ip": "192.168.1.13", "port": 9100, "enabled": true}}'::jsonb
-      WHERE username = 'kroren';
-    `);
+    // 4. Check and add created_at / updated_at if missing
+    console.log('⚙️ Checking timestamps...');
+    const [tsResult] = await sequelize.query("SELECT column_name FROM information_schema.columns WHERE table_name='restaurants' AND column_name='created_at'");
+    if (tsResult.length === 0) {
+      await sequelize.query("ALTER TABLE restaurants ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()");
+      await sequelize.query("ALTER TABLE restaurants ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()");
+      console.log('✅ Added timestamps');
+    }
 
-    console.log('✅ Kroren printer config set');
+    console.log('✅ Schema check complete');
 
     res.json({
       success: true,
-      message: 'printer_config kolonu eklendi ve Kroren kavurma istasyonu yapılandırıldı (192.168.1.13)!',
-      timestamp: new Date().toISOString(),
-      details: 'Kroren kavurma IP: 192.168.1.13'
+      message: 'Restaurants table schema checked and fixed (kitchen_stations, printer_config, settings, timestamps)',
+      timestamp: new Date().toISOString()
     });
+
   } catch (error) {
-    console.error('❌ Add printer_config Error:', error);
+    console.error('❌ Schema Fix Error:', error);
     res.status(500).json({
       success: false,
-      message: 'printer_config kolonu eklenirken hata oluştu',
-      error: error.message,
-      timestamp: new Date().toISOString()
+      message: 'Schema fix failed',
+      error: error.message
     });
   }
 });
