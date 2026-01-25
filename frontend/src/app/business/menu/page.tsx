@@ -206,7 +206,11 @@ export default function MenuManagement() {
     variations: [] as Array<{ name: string, price: number }>,
     options: [] as Array<{ name: string, values: string[] }>,
     type: 'single' as 'single' | 'bundle',
-    bundleItems: [] as Array<{ itemId: string; quantity: number; name?: string }>
+    bundleItems: [] as Array<{ itemId: string; quantity: number; name?: string }>,
+    discountedPrice: '',
+    discountPercentage: '',
+    discountStartDate: '',
+    discountEndDate: ''
   });
 
   const [categoryFormData, setCategoryFormData] = useState({
@@ -215,7 +219,10 @@ export default function MenuManagement() {
     order: 0,
     isActive: true,
     kitchenStation: '',
-    translations: {}
+    translations: {},
+    discountPercentage: '',
+    discountStartDate: '',
+    discountEndDate: ''
   });
 
   const [stationFormData, setStationFormData] = useState({
@@ -387,7 +394,11 @@ export default function MenuManagement() {
       variations: [],
       options: [],
       type: activeTab === 'combos' ? 'bundle' : 'single',
-      bundleItems: []
+      bundleItems: [],
+      discountedPrice: '',
+      discountPercentage: '',
+      discountStartDate: '',
+      discountEndDate: ''
     });
     setShowItemForm(true);
   };
@@ -420,7 +431,11 @@ export default function MenuManagement() {
       variations: item.variations || [],
       options: item.options || [],
       type: item.type || 'single',
-      bundleItems: item.bundleItems || []
+      bundleItems: item.bundleItems || [],
+      discountedPrice: item.discountedPrice?.toString() || '',
+      discountPercentage: item.discountPercentage?.toString() || '',
+      discountStartDate: item.discountStartDate || '',
+      discountEndDate: item.discountEndDate || ''
     });
 
     console.log('📝 handleEditItem - Original Item:', {
@@ -753,7 +768,10 @@ export default function MenuManagement() {
       order: categories.length,
       isActive: true,
       kitchenStation: '',
-      translations: {}
+      translations: {},
+      discountPercentage: '',
+      discountStartDate: '',
+      discountEndDate: ''
     });
     setSubcategories([]);
     setShowCategoryForm(true);
@@ -767,7 +785,10 @@ export default function MenuManagement() {
       order: category.order || 0,
       isActive: category.isActive !== false,
       kitchenStation: category.kitchenStation || '',
-      translations: category.translations || {}
+      translations: category.translations || {},
+      discountPercentage: category.discountPercentage?.toString() || '',
+      discountStartDate: category.discountStartDate || '',
+      discountEndDate: category.discountEndDate || ''
     });
     setShowCategoryForm(true);
   };
@@ -3138,7 +3159,10 @@ export default function MenuManagement() {
                                 description: categoryFormData.description,
                                 order: categories.length,
                                 isActive: categoryFormData.isActive,
-                                kitchenStation: categoryFormData.kitchenStation
+                                kitchenStation: categoryFormData.kitchenStation,
+                                discountPercentage: categoryFormData.discountPercentage ? parseInt(categoryFormData.discountPercentage) : null,
+                                discountStartDate: categoryFormData.discountStartDate || null,
+                                discountEndDate: categoryFormData.discountEndDate || null
                               });
                               console.log('Yeni kategori backend\'e kaydedildi');
                               // Menüyü yeniden yükle
@@ -3158,7 +3182,10 @@ export default function MenuManagement() {
                           order: categories.length,
                           isActive: true,
                           kitchenStation: '',
-                          translations: {}
+                          translations: {},
+                          discountPercentage: '',
+                          discountStartDate: '',
+                          discountEndDate: ''
                         });
                       }}
                       className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
