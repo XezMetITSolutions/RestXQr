@@ -63,8 +63,6 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'qr_tokens',
     timestamps: true,
     underscored: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
     indexes: [
       {
         unique: true,
