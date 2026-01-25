@@ -275,8 +275,7 @@ export default function QRCodesPage() {
                 stationId: f.drinkStationId
               };
             }
-            let cursor = 1; // Logic implies cursor is recalculated during render, but for saving we need to trust the logic
-            // For simple saving: just save what user entered
+            // For simple saving: just save what user entered (rely on previous logic)
             return {
               name: f.name,
               tableCount: Number(f.tableCount),
@@ -286,7 +285,6 @@ export default function QRCodesPage() {
             };
           });
 
-        // Re-calculate ranges accurately for saving if not manual
         if (!useManualRanges) {
           let cursor = 1;
           routingFloors.forEach(f => {
@@ -419,6 +417,11 @@ export default function QRCodesPage() {
     const match = floors.find((f: any) => Number(f.startTable) <= t && t <= Number(f.endTable));
     if (!match) return null;
     return { name: match.name, start: match.startTable, end: match.endTable };
+  };
+
+  const onLogout = () => {
+    logout();
+    router.push('/isletme-giris');
   };
 
   // Render Loading
@@ -634,7 +637,7 @@ export default function QRCodesPage() {
 
                       <div className="flex justify-between items-center pt-2 border-t border-gray-50">
                         <span className="text-xs text-gray-400">
-                          {new Date(qr.createdAt).toLocaleDateString()}
+                          {typeof qr.createdAt === 'string' || qr.createdAt instanceof Date ? new Date(qr.createdAt).toLocaleDateString() : ''}
                         </span>
                         <a
                           href={qr.url}
@@ -787,7 +790,7 @@ export default function QRCodesPage() {
                           className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700"
                         >
                           <option value=""><TranslatedText>Seçiniz...</TranslatedText></option>
-                          {settings?.kitchenStations?.map((station: any) => (
+                          {authenticatedRestaurant?.kitchenStations?.map((station: any) => (
                             <option key={station.id} value={station.id}>{station.name}</option>
                           )) || []}
                         </select>
