@@ -179,15 +179,41 @@ router.get('/', async (req, res) => {
         category: 'food',
         status: 'preparing',
         prepTime: 10,
-        kitchenStation: itemStation
+        kitchenStation: itemStation,
+        categoryId: it.menuItem?.categoryId // Kategori ID'sini ekle (filtreleme için)
       });
       orderIdToItems.set(it.orderId, list);
     }
 
-    const data = orders.map(o => ({
-      ...o.toJSON(),
-      items: orderIdToItems.get(o.id) || []
-    }));
+    // İçecek kategorilerini bul (mutfak paneli için filtreleme)
+    let drinkCategoryIds = [];
+    if (req.query.excludeDrinks === 'true') {
+      const drinkCategories = await MenuCategory.findAll({
+        where: {
+          restaurantId: actualRestaurantId,
+          name: {
+            [Op.iLike]: '%içecek%'
+          }
+        }
+      });
+      drinkCategoryIds = drinkCategories.map(cat => cat.id);
+      console.log('🚫 İçecekler filtreleniyor, kategori IDs:', drinkCategoryIds);
+    }
+
+    const data = orders.map(o => {
+      let orderItems = orderIdToItems.get(o.id) || [];
+
+      // İçecekleri filtrele (mutfak paneli için)
+      if (req.query.excludeDrinks === 'true' && drinkCategoryIds.length > 0) {
+        orderItems = orderItems.filter(item => !drinkCategoryIds.includes(item.categoryId));
+      }
+
+      return {
+        ...o.toJSON(),
+        items: orderItems
+      };
+    }).filter(order => order.items.length > 0); // İçecek dışında ürünü olmayan siparişleri kaldır
+
 
     res.json({ success: true, data });
   } catch (error) {
