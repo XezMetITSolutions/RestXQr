@@ -577,7 +577,7 @@ function MenuPageContent() {
 
   // Get menu categories (backend format)
   const menuCategories = [
-    { id: 'popular', name: currentLanguage === 'Turkish' ? 'Popüler' : (currentLanguage === 'German' ? 'Beliebt' : (currentLanguage === 'Chinese' ? '热门' : 'Popular')) },
+    { id: 'popular', name: currentLanguage === 'Turkish' ? 'Beğenilenler' : (currentLanguage === 'German' ? 'Favoriten' : (currentLanguage === 'Chinese' ? '最爱' : 'Favorites')) },
     ...filteredCategories.map((cat: any) => ({
       id: cat.id,
       name: typeof cat.name === 'string' ? cat.name : (cat.name?.[language] || cat.name?.tr || cat.name?.en || 'Kategori')
