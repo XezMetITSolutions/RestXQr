@@ -118,7 +118,7 @@ export default function KitchenDashboard() {
   const loadOrders = async (silent: boolean = false) => {
     try {
       if (!silent) setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com'}/api/orders?restaurantId=aksaray&status=pending`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com'}/api/orders?restaurantId=aksaray&status=pending&excludeDrinks=true`);
       const data = await response.json();
 
       if (data.success) {
@@ -315,8 +315,8 @@ export default function KitchenDashboard() {
               key={key}
               onClick={() => setFilter(key as any)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${filter === key
-                  ? 'bg-red-600 text-white shadow-lg'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
+                ? 'bg-red-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
                 }`}
             >
               {label} ({count})
@@ -330,8 +330,8 @@ export default function KitchenDashboard() {
             <div
               key={order.orderId}
               className={`bg-white rounded-xl shadow-lg p-6 border-l-4 ${order.status === 'pending' ? 'border-red-500' :
-                  order.status === 'preparing' ? 'border-yellow-500' :
-                    order.status === 'ready' ? 'border-green-500' : 'border-gray-500'
+                order.status === 'preparing' ? 'border-yellow-500' :
+                  order.status === 'ready' ? 'border-green-500' : 'border-gray-500'
                 } hover:shadow-xl transition-all duration-300`}
             >
               {/* Order Header */}
