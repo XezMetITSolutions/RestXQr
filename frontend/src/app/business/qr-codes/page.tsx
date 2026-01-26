@@ -547,6 +547,37 @@ export default function QRCodesPage() {
                 <div>
                   <h3 className="text-red-800 font-medium"><TranslatedText>Bağlantı Hatası</TranslatedText></h3>
                   <p className="text-red-700 text-sm">{apiError}</p>
+
+                  {/* Debug Bilgisi */}
+                  <details className="mt-3 text-xs text-red-600">
+                    <summary className="cursor-pointer font-medium hover:underline">🔍 Debug Bilgisi (Tıkla)</summary>
+                    <div className="mt-2 p-3 bg-white rounded border border-red-200 font-mono text-xs space-y-1">
+                      <div><strong>Restaurant ID:</strong> {authenticatedRestaurant?.id || 'YOK'}</div>
+                      <div><strong>Restaurant Username:</strong> {authenticatedRestaurant?.username || 'YOK'}</div>
+                      <div><strong>API URL:</strong> {process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com'}/api/qr/restaurant/{authenticatedRestaurant?.id}/tables</div>
+                      <div><strong>Timeout:</strong> 30 saniye</div>
+                      <div><strong>Loaded QRs:</strong> {qrCodes.length}</div>
+                      <div><strong>Zaman:</strong> {new Date().toLocaleString('tr-TR')}</div>
+                      <button
+                        onClick={async () => {
+                          const url = `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com'}/api/qr/restaurant/${authenticatedRestaurant?.id}/tables`;
+                          console.log('🔍 Manuel API Test:', url);
+                          try {
+                            const res = await fetch(url);
+                            const data = await res.json();
+                            console.log('✅ Response:', data);
+                            alert(`Status: ${res.status}\nData: ${JSON.stringify(data, null, 2)}`);
+                          } catch (e: any) {
+                            console.error('❌ Error:', e);
+                            alert(`Error: ${e.message}`);
+                          }
+                        }}
+                        className="mt-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        🧪 Manuel API Test
+                      </button>
+                    </div>
+                  </details>
                 </div>
               </div>
               <button onClick={reloadQRCodes} className="px-3 py-1 bg-white text-red-600 border border-red-200 rounded text-sm hover:bg-red-50">
