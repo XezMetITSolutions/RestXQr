@@ -485,8 +485,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
     const menuItems = [
       // RAMEN
       {
-        name: 'Dilimlenmiş ramen',
-        description: '刀削面 - Geleneksel el yapımı Çin eriştesi',
+        name: 'Dilimlenmiş ramen 刀削面',
+        description: 'Geleneksel el yapımı Çin eriştesi',
         price: 248,
         categoryId: categories.ramen.id,
         preparationTime: 15,
@@ -496,8 +496,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
 
       // MANTI
       {
-        name: 'Çüğüre',
-        description: '酸汤水饺 - Ekşili mantı çorbası',
+        name: 'Çüğüre 酸汤水饺',
+        description: 'Ekşili mantı çorbası',
         price: 358,
         categoryId: categories.manti.id,
         preparationTime: 20,
@@ -507,8 +507,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
 
       // KAVURMA
       {
-        name: 'Soğan et kavurması',
-        description: '洋葱炒牛肉 - Soğanlı dana eti kavurması',
+        name: 'Soğan et kavurması 洋葱炒牛肉',
+        description: 'Soğanlı dana eti kavurması',
         price: 728,
         categoryId: categories.kavurma.id,
         preparationTime: 15,
@@ -516,8 +516,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
         isPopular: true
       },
       {
-        name: 'Kimyonlu dana kavurma',
-        description: '孜然牛肉 - Kimyon aromalı dana kavurma',
+        name: 'Kimyonlu dana kavurma 孜然牛肉',
+        description: 'Kimyon aromalı dana kavurma',
         price: 728,
         categoryId: categories.kavurma.id,
         preparationTime: 15,
@@ -525,8 +525,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
         isPopular: true
       },
       {
-        name: 'İstiridye soslu kıvırcık',
-        description: '蚝油生菜 - İstiridye soslu lahana',
+        name: 'İstiridye soslu kıvırcık 蚝油生菜',
+        description: 'İstiridye soslu lahana',
         price: 398,
         categoryId: categories.kavurma.id,
         preparationTime: 10,
@@ -534,8 +534,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
         isPopular: false
       },
       {
-        name: 'Sarımsaklı kıvırcık',
-        description: '蒜蓉包菜 - Sarımsaklı lahana kavurması',
+        name: 'Sarımsaklı kıvırcık 蒜蓉包菜',
+        description: 'Sarımsaklı lahana kavurması',
         price: 388,
         categoryId: categories.kavurma.id,
         preparationTime: 10,
@@ -543,8 +543,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
         isPopular: false
       },
       {
-        name: 'Brokoli kavurma',
-        description: '蒜茄炒蛋 - Brokoli kavurması',
+        name: 'Brokoli kavurma 蒜茄炒蛋',
+        description: 'Brokoli kavurması',
         price: 398,
         categoryId: categories.kavurma.id,
         preparationTime: 10,
@@ -552,8 +552,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
         isPopular: false
       },
       {
-        name: 'Domatesli yumurta',
-        description: '干锅土豆片 - Domates ve yumurta kavurması',
+        name: 'Domatesli yumurta 干锅土豆片',
+        description: 'Domates ve yumurta kavurması',
         price: 428,
         categoryId: categories.kavurma.id,
         preparationTime: 12,
@@ -561,8 +561,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
         isPopular: false
       },
       {
-        name: 'Acılı kızarmış patates',
-        description: '蒜蓉西兰花 - Baharatlı patates kavurması',
+        name: 'Acılı kızarmış patates 蒜蓉西兰花',
+        description: 'Baharatlı patates kavurması',
         price: 458,
         categoryId: categories.kavurma.id,
         preparationTime: 12,
@@ -570,8 +570,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
         isPopular: false
       },
       {
-        name: 'Dana etli körili pilav',
-        description: '咖喱牛肉炒饭 - Köri soslu dana etli kızarmış pilav',
+        name: 'Dana etli körili pilav 咖喱牛肉炒饭',
+        description: 'Köri soslu dana etli kızarmış pilav',
         price: 498,
         categoryId: categories.kavurma.id,
         preparationTime: 18,
@@ -579,8 +579,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
         isPopular: true
       },
       {
-        name: 'Tavuklu pilav',
-        description: '鸡肉炒饭 - Tavuklu kızarmış pilav',
+        name: 'Tavuklu pilav 鸡肉炒饭',
+        description: 'Tavuklu kızarmış pilav',
         price: 458,
         categoryId: categories.kavurma.id,
         preparationTime: 15,
@@ -588,8 +588,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
         isPopular: true
       },
       {
-        name: 'Yumurtalı pilav',
-        description: '蛋炒饭 - Klasik yumurtalı kızarmış pilav',
+        name: 'Yumurtalı pilav 蛋炒饭',
+        description: 'Klasik yumurtalı kızarmış pilav',
         price: 358,
         categoryId: categories.kavurma.id,
         preparationTime: 12,
@@ -597,8 +597,8 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
         isPopular: true
       },
       {
-        name: 'Dana etli pilav',
-        description: '牛肉炒饭 - Dana etli kızarmış pilav',
+        name: 'Dana etli pilav 牛肉炒饭',
+        description: 'Dana etli kızarmış pilav',
         price: 498,
         categoryId: categories.kavurma.id,
         preparationTime: 15,
