@@ -149,9 +149,9 @@ export default function QRCodesPage() {
       setLoading(true);
       setApiError(null);
 
-      // Timeout wrapper
+      // Timeout wrapper - 30 saniye (cold start için)
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Sunucu yanıt vermedi. Lütfen daha sonra tekrar deneyin.')), 15000)
+        setTimeout(() => reject(new Error('Sunucu yanıt vermedi. Lütfen daha sonra tekrar deneyin.')), 30000)
       );
 
       const res = await Promise.race([
