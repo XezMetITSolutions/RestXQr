@@ -436,48 +436,61 @@ export default function QRCodesPage() {
               const rightPanelX = leftPanelWidth + 50;
 
               // "menu" yazısı (brush style)
-              ctx.font = 'bold 120px Arial';
+              ctx.font = 'bold 120px "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive';
               ctx.fillStyle = '#000000';
               ctx.textAlign = 'left';
-              ctx.fillText('menu', 80, 200);
+              ctx.fillText('Menu', 80, 200);
 
-              // Ok işareti (basit)
+              // Ok işareti (daha estetik)
               ctx.strokeStyle = '#000000';
-              ctx.lineWidth = 8;
+              ctx.lineWidth = 6;
+              ctx.lineCap = 'round';
               ctx.beginPath();
-              ctx.moveTo(150, 100);
-              ctx.quadraticCurveTo(250, 120, 200, 150);
+              // Yay şeklinde gövde
+              ctx.moveTo(180, 120);
+              ctx.quadraticCurveTo(300, 100, 350, 160);
               ctx.stroke();
 
+              // Ok ucu
               ctx.beginPath();
-              ctx.moveTo(200, 150);
-              ctx.lineTo(180, 130);
-              ctx.moveTo(200, 150);
-              ctx.lineTo(180, 170);
+              ctx.moveTo(350, 160);
+              ctx.lineTo(330, 130); // Sol kanat
+              ctx.moveTo(350, 160);
+              ctx.lineTo(320, 160); // Sağ kanat
+              ctx.stroke();
+
+              // Okun arkasına küçük bir süs
+              ctx.beginPath();
+              ctx.moveTo(180, 120);
+              ctx.lineTo(190, 130);
               ctx.stroke();
 
               // Açıklama metni
-              ctx.font = 'bold 28px Arial';
+              ctx.font = 'bold 32px "Helvetica Neue", Arial, sans-serif';
               ctx.fillStyle = '#000000';
               ctx.textAlign = 'left';
               const line1 = 'SCAN THE QR CODE &';
               const line2 = 'ORDER YOUR FAVOURITES';
-              ctx.fillText(line1, 80, 350);
-              ctx.fillText(line2, 80, 390);
+              ctx.fillText(line1, 80, 300);
+              ctx.fillText(line2, 80, 345);
 
-              // Domain
-              ctx.font = '32px Arial';
+              // Domain (daha belirgin)
+              ctx.font = 'italic 36px "Times New Roman", serif';
               ctx.fillStyle = '#333333';
-              ctx.fillText('kroren.restxqr.com', 80, 500);
+              ctx.fillText('kroren.restxqr.com', 80, 480);
 
-              // Masa numarası (kalın ve büyük)
-              ctx.font = 'bold 48px Arial';
-              ctx.fillStyle = '#FF6B35';
-              ctx.fillText(`TABLE ${qrCode.tableNumber}`, 80, 600);
+              // Masa numarası (çok büyük ve dikkat çekici)
+              ctx.font = '900 60px "Impact", "Arial Black", sans-serif';
+              ctx.fillStyle = '#E85D04'; // Turuncu
+              ctx.fillText(`TABLE ${qrCode.tableNumber}`, 80, 650);
+
+              // Alt çizgi (masa nosu altına)
+              ctx.fillStyle = '#000000';
+              ctx.fillRect(80, 670, 250, 10);
 
               // Sağ Panel - QR Kod
-              const qrSize = 450;
-              const qrX = rightPanelX + 50;
+              const qrSize = 500; // Biraz daha büyük
+              const qrX = rightPanelX + 20;
               const qrY = (canvas.height - qrSize) / 2;
 
               // Dış çerçeve (kalın)
