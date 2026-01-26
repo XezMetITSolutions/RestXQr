@@ -422,6 +422,7 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
   console.log('🍜 Menu items bulk add endpoint called');
   try {
     const { MenuItem, MenuCategory, Restaurant } = require('./models');
+    const { Op } = require('sequelize');
 
     // Restaurant bul (kroren)
     const restaurant = await Restaurant.findOne({
