@@ -396,6 +396,145 @@ export default function QRCodesPage() {
     }
   };
 
+  // Profesyonel QR Kart Oluşturucu
+  const generateQRCardBlob = async (qrCode: QRCodeData): Promise<Blob | null> => {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+      // Canvas boyutu (landscape A5 benzeri)
+      canvas.width = 1200;
+      canvas.height = 800;
+
+      // Arka plan (açık gri)
+      ctx.fillStyle = '#f5f5f5';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // QR kod resmini yükle
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      return new Promise((resolve) => {
+        img.onload = () => {
+          // Sol Panel - Text Alanı
+          const leftPanelWidth = 500;
+          const rightPanelX = leftPanelWidth + 50;
+
+          // "menu" yazısı (brush style)
+          ctx.font = 'bold 120px "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive';
+          ctx.fillStyle = '#000000';
+          ctx.textAlign = 'left';
+          ctx.fillText('Menu', 80, 200);
+
+          // Ok işareti (daha estetik)
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 6;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          // Yay şeklinde gövde
+          ctx.moveTo(180, 120);
+          ctx.quadraticCurveTo(300, 100, 350, 160);
+          ctx.stroke();
+
+          // Ok ucu
+          ctx.beginPath();
+          ctx.moveTo(350, 160);
+          ctx.lineTo(330, 130); // Sol kanat
+          ctx.moveTo(350, 160);
+          ctx.lineTo(320, 160); // Sağ kanat
+          ctx.stroke();
+
+          // Okun arkasına küçük bir süs
+          ctx.beginPath();
+          ctx.moveTo(180, 120);
+          ctx.lineTo(190, 130);
+          ctx.stroke();
+
+          // Açıklama metni
+          ctx.font = 'bold 32px "Helvetica Neue", Arial, sans-serif';
+          ctx.fillStyle = '#000000';
+          ctx.textAlign = 'left';
+          const line1 = 'SCAN THE QR CODE &';
+          const line2 = 'ORDER YOUR FAVOURITES';
+          ctx.fillText(line1, 80, 300);
+          ctx.fillText(line2, 80, 345);
+
+          // Domain (daha belirgin)
+          ctx.font = 'italic 36px "Times New Roman", serif';
+          ctx.fillStyle = '#333333';
+          ctx.fillText('kroren.restxqr.com', 80, 480);
+
+          // Masa numarası (çok büyük ve dikkat çekici)
+          ctx.font = '900 60px "Impact", "Arial Black", sans-serif';
+          ctx.fillStyle = '#E85D04'; // Turuncu
+          ctx.fillText(`TABLE ${qrCode.tableNumber}`, 80, 650);
+
+          // Alt çizgi (masa nosu altına)
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(80, 670, 250, 10);
+
+          // Sağ Panel - QR Kod
+          const qrSize = 500; // Biraz daha büyük
+          const qrX = rightPanelX + 20;
+          const qrY = (canvas.height - qrSize) / 2;
+
+          // Dış çerçeve (kalın)
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 12;
+          ctx.strokeRect(qrX - 30, qrY - 30, qrSize + 60, qrSize + 60);
+
+          // İç çerçeve
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 8;
+          ctx.strokeRect(qrX - 15, qrY - 15, qrSize + 30, qrSize + 30);
+
+          // Beyaz arka plan (QR için)
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(qrX, qrY, qrSize, qrSize);
+
+          // QR kodu çiz
+          ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+
+          // "SCAN ME" yazıları (4 köşede)
+          ctx.font = 'bold 16px Arial';
+          ctx.fillStyle = '#000000';
+          ctx.textAlign = 'center';
+
+          // Üst
+          ctx.fillText('SCAN ME', qrX + qrSize / 2, qrY - 40);
+
+          // Alt
+          ctx.fillText('SCAN ME', qrX + qrSize / 2, qrY + qrSize + 55);
+
+          // Sol (döndürülmüş)
+          ctx.save();
+          ctx.translate(qrX - 40, qrY + qrSize / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillText('SCAN ME', 0, 0);
+          ctx.restore();
+
+          // Sağ (döndürülmüş)
+          ctx.save();
+          ctx.translate(qrX + qrSize + 40, qrY + qrSize / 2);
+          ctx.rotate(Math.PI / 2);
+          ctx.fillText('SCAN ME', 0, 0);
+          ctx.restore();
+
+          canvas.toBlob((blob) => resolve(blob));
+        };
+        img.onerror = () => {
+          console.error('Failed to load QR image for canvas.');
+          resolve(null);
+        };
+        img.src = qrCode.qrCode;
+      });
+    } catch (e) {
+      console.error('QR card generation error:', e);
+      return null;
+    }
+  };
+
   const handleBulkDownload = async () => {
     if (selectedQRCodes.size === 0) return;
 
@@ -411,147 +550,10 @@ export default function QRCodesPage() {
     for (const qrId of Array.from(selectedQRCodes)) {
       const qrCode = qrCodes.find(qr => qr.id === qrId);
       if (qrCode) {
-        try {
-          // Profesyonel QR card oluştur (resmi gibi)
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          if (!ctx) continue;
-
-          // Canvas boyutu (landscape A5 benzeri)
-          canvas.width = 1200;
-          canvas.height = 800;
-
-          // Arka plan (açık gri)
-          ctx.fillStyle = '#f5f5f5';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          // QR kod resmini yükle
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-
-          await new Promise((resolve) => {
-            img.onload = () => {
-              // Sol Panel - Text Alanı
-              const leftPanelWidth = 500;
-              const rightPanelX = leftPanelWidth + 50;
-
-              // "menu" yazısı (brush style)
-              ctx.font = 'bold 120px "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive';
-              ctx.fillStyle = '#000000';
-              ctx.textAlign = 'left';
-              ctx.fillText('Menu', 80, 200);
-
-              // Ok işareti (daha estetik)
-              ctx.strokeStyle = '#000000';
-              ctx.lineWidth = 6;
-              ctx.lineCap = 'round';
-              ctx.beginPath();
-              // Yay şeklinde gövde
-              ctx.moveTo(180, 120);
-              ctx.quadraticCurveTo(300, 100, 350, 160);
-              ctx.stroke();
-
-              // Ok ucu
-              ctx.beginPath();
-              ctx.moveTo(350, 160);
-              ctx.lineTo(330, 130); // Sol kanat
-              ctx.moveTo(350, 160);
-              ctx.lineTo(320, 160); // Sağ kanat
-              ctx.stroke();
-
-              // Okun arkasına küçük bir süs
-              ctx.beginPath();
-              ctx.moveTo(180, 120);
-              ctx.lineTo(190, 130);
-              ctx.stroke();
-
-              // Açıklama metni
-              ctx.font = 'bold 32px "Helvetica Neue", Arial, sans-serif';
-              ctx.fillStyle = '#000000';
-              ctx.textAlign = 'left';
-              const line1 = 'SCAN THE QR CODE &';
-              const line2 = 'ORDER YOUR FAVOURITES';
-              ctx.fillText(line1, 80, 300);
-              ctx.fillText(line2, 80, 345);
-
-              // Domain (daha belirgin)
-              ctx.font = 'italic 36px "Times New Roman", serif';
-              ctx.fillStyle = '#333333';
-              ctx.fillText('kroren.restxqr.com', 80, 480);
-
-              // Masa numarası (çok büyük ve dikkat çekici)
-              ctx.font = '900 60px "Impact", "Arial Black", sans-serif';
-              ctx.fillStyle = '#E85D04'; // Turuncu
-              ctx.fillText(`TABLE ${qrCode.tableNumber}`, 80, 650);
-
-              // Alt çizgi (masa nosu altına)
-              ctx.fillStyle = '#000000';
-              ctx.fillRect(80, 670, 250, 10);
-
-              // Sağ Panel - QR Kod
-              const qrSize = 500; // Biraz daha büyük
-              const qrX = rightPanelX + 20;
-              const qrY = (canvas.height - qrSize) / 2;
-
-              // Dış çerçeve (kalın)
-              ctx.strokeStyle = '#000000';
-              ctx.lineWidth = 12;
-              ctx.strokeRect(qrX - 30, qrY - 30, qrSize + 60, qrSize + 60);
-
-              // İç çerçeve
-              ctx.strokeStyle = '#000000';
-              ctx.lineWidth = 8;
-              ctx.strokeRect(qrX - 15, qrY - 15, qrSize + 30, qrSize + 30);
-
-              // Beyaz arka plan (QR için)
-              ctx.fillStyle = '#ffffff';
-              ctx.fillRect(qrX, qrY, qrSize, qrSize);
-
-              // QR kodu çiz
-              ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
-
-              // "SCAN ME" yazıları (4 köşede)
-              ctx.font = 'bold 16px Arial';
-              ctx.fillStyle = '#000000';
-              ctx.textAlign = 'center';
-
-              // Üst
-              ctx.fillText('SCAN ME', qrX + qrSize / 2, qrY - 40);
-
-              // Alt
-              ctx.fillText('SCAN ME', qrX + qrSize / 2, qrY + qrSize + 55);
-
-              // Sol (döndürülmüş)
-              ctx.save();
-              ctx.translate(qrX - 40, qrY + qrSize / 2);
-              ctx.rotate(-Math.PI / 2);
-              ctx.fillText('SCAN ME', 0, 0);
-              ctx.restore();
-
-              // Sağ (döndürülmüş)
-              ctx.save();
-              ctx.translate(qrX + qrSize + 40, qrY + qrSize / 2);
-              ctx.rotate(Math.PI / 2);
-              ctx.fillText('SCAN ME', 0, 0);
-              ctx.restore();
-
-              resolve(true);
-            };
-
-            img.src = qrCode.qrCode;
-          });
-
-          // Canvas'ı blob'a çevir ve ZIP'e ekle
-          const blob = await new Promise<Blob | null>((resolve) => {
-            canvas.toBlob((blob) => resolve(blob));
-          });
-
-          if (blob) {
-            qrFolder.file(`Table_${qrCode.tableNumber}_Menu_QR.png`, blob);
-            processedCount++;
-          }
-        } catch (error) {
-          console.error(`QR ${qrCode.tableNumber} eklenemedi:`, error);
+        const blob = await generateQRCardBlob(qrCode);
+        if (blob) {
+          qrFolder.file(`Table_${qrCode.tableNumber}_Menu_QR.png`, blob);
+          processedCount++;
         }
       }
     }
@@ -566,6 +568,26 @@ export default function QRCodesPage() {
     URL.revokeObjectURL(url);
 
     showToast(getStatic(`${processedCount} QR card indirildi!`), 'success');
+  };
+
+  const handleDownloadSingle = async (qr: QRCodeData) => {
+    try {
+      showToast(getStatic('Kart indiriliyor...'), 'success');
+      const blob = await generateQRCardBlob(qr);
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Table_${qr.tableNumber}_Menu_QR.png`;
+        link.click();
+        URL.revokeObjectURL(url);
+      } else {
+        showToast(getStatic('QR kart oluşturulamadı.'), 'error');
+      }
+    } catch (e) {
+      console.error('Single QR card download error:', e);
+      showToast(getStatic('İndirme hatası'), 'error');
+    }
   };
 
   const findFloorForTable = (tableNumber?: number) => {
@@ -805,11 +827,20 @@ export default function QRCodesPage() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={qr.qrCode} alt={qr.name} className="w-32 h-32 object-contain" />
                       </div>
-                      {floor && (
-                        <span className="mt-3 inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
-                          {floor.name}
-                        </span>
-                      )}
+                      <div className="flex gap-2 mt-3">
+                        {floor && (
+                          <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                            {floor.name}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handleDownloadSingle(qr)}
+                          className="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded-full hover:bg-gray-300 flex items-center gap-1"
+                          title="Kartı İndir"
+                        >
+                          <FaDownload size={10} /> <TranslatedText>Kart</TranslatedText>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Details */}
