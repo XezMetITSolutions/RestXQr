@@ -342,6 +342,7 @@ router.get('/restaurant/:restaurantId/tables', async (req, res) => {
       return {
         ...tokenObj.toJSON(),
         qrUrl: qrUrl,
+        scanCount: 0, // Default scan count
         remainingMinutes: tokenObj.expiresAt
           ? Math.floor((new Date(tokenObj.expiresAt).getTime() - Date.now()) / 60000)
           : 0
