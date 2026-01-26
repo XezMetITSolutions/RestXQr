@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import JSZip from 'jszip';
 import {
   FaQrcode,
   FaPlus,
@@ -398,66 +399,83 @@ export default function QRCodesPage() {
   const handleBulkDownload = async () => {
     if (selectedQRCodes.size === 0) return;
 
+    showToast(getStatic('QR kodları hazırlanıyor...'), 'success');
+
+    const zip = new JSZip();
+    const qrFolder = zip.folder('QR_Kodlari');
+
+    if (!qrFolder) return;
+
+    let processedCount = 0;
+
     for (const qrId of Array.from(selectedQRCodes)) {
       const qrCode = qrCodes.find(qr => qr.id === qrId);
       if (qrCode) {
-        // Canvas oluştur
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) continue;
+        try {
+          // Canvas oluştur
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) continue;
 
-        // QR kod resmini yükle
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
+          // QR kod resmini yükle
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
 
-        await new Promise((resolve) => {
-          img.onload = () => {
-            // QR kod boyutu
-            const qrSize = img.width;
-            const textHeight = 80; // Üstte text için alan
+          await new Promise((resolve) => {
+            img.onload = () => {
+              // QR kod boyutu
+              const qrSize = img.width;
+              const textHeight = 80; // Üstte text için alan
 
-            // Canvas boyutu (QR + text alanı)
-            canvas.width = qrSize;
-            canvas.height = qrSize + textHeight;
+              // Canvas boyutu (QR + text alanı)
+              canvas.width = qrSize;
+              canvas.height = qrSize + textHeight;
 
-            // Beyaz arka plan
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+              // Beyaz arka plan
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Masa numarasını üste yaz
-            ctx.fillStyle = '#000000';
-            ctx.font = 'bold 48px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(`Masa ${qrCode.tableNumber}`, canvas.width / 2, textHeight / 2);
+              // Masa numarasını üste yaz
+              ctx.fillStyle = '#000000';
+              ctx.font = 'bold 48px Arial';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(`Masa ${qrCode.tableNumber}`, canvas.width / 2, textHeight / 2);
 
-            // QR kodu alta çiz
-            ctx.drawImage(img, 0, textHeight);
+              // QR kodu alta çiz
+              ctx.drawImage(img, 0, textHeight);
 
-            // İndir
-            canvas.toBlob((blob) => {
-              if (blob) {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `Masa_${qrCode.tableNumber}_QR.png`;
-                link.click();
-                URL.revokeObjectURL(url);
-              }
-            });
+              resolve(true);
+            };
 
-            resolve(true);
-          };
+            img.src = qrCode.qrCode;
+          });
 
-          img.src = qrCode.qrCode;
-        });
+          // Canvas'ı blob'a çevir ve ZIP'e ekle
+          const blob = await new Promise<Blob | null>((resolve) => {
+            canvas.toBlob((blob) => resolve(blob));
+          });
 
-        // Her indirme arasında küçük gecikme
-        await new Promise(resolve => setTimeout(resolve, 100));
+          if (blob) {
+            qrFolder.file(`Masa_${qrCode.tableNumber}_QR.png`, blob);
+            processedCount++;
+          }
+        } catch (error) {
+          console.error(`QR ${qrCode.tableNumber} eklenemedi:`, error);
+        }
       }
     }
 
-    showToast(getStatic('İndirme başlatıldı...'), 'success');
+    // ZIP dosyasını oluştur ve indir
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `QR_Kodlari_${new Date().toISOString().split('T')[0]}.zip`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    showToast(getStatic(`${processedCount} QR kod indirildi!`), 'success');
   };
 
   const findFloorForTable = (tableNumber?: number) => {
