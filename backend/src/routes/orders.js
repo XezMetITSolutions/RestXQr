@@ -533,7 +533,7 @@ router.put('/:id', async (req, res) => {
     // Alanları güncelle
     const previousStatus = order.status;
     if (status) order.status = status;
-    if (tableNumber) order.tableNumber = tableNumber;
+    if (tableNumber !== undefined) order.tableNumber = tableNumber;
     if (paidAmount !== undefined) order.paidAmount = paidAmount;
     if (discountAmount !== undefined) order.discountAmount = discountAmount;
     if (discountReason) order.discountReason = discountReason;

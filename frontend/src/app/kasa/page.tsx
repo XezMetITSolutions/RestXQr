@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMoneyBillWave, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft } from 'react-icons/fa';
+import { FaMoneyBillWave, FaSearch, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft } from 'react-icons/fa';
 
 interface OrderItem {
   id: string;
@@ -74,6 +74,12 @@ export default function KasaPanel() {
   const [showCashPad, setShowCashPad] = useState(false);
   const [cashReceived, setCashReceived] = useState('');
   const [targetPaymentAmount, setTargetPaymentAmount] = useState(0);
+
+  // Search & Table Change States
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showTableModal, setShowTableModal] = useState(false);
+  const [tableEditOrder, setTableEditOrder] = useState<Order | null>(null);
+  const [newTableNumber, setNewTableNumber] = useState('');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
@@ -658,6 +664,40 @@ export default function KasaPanel() {
     }
   };
 
+  const handleUpdateTable = async () => {
+    if (!tableEditOrder || !newTableNumber) return;
+
+    try {
+      const isGrouped = tableEditOrder.id.includes('grouped');
+      const tableOrders = isGrouped ? tableEditOrder.originalOrders || [] : [tableEditOrder];
+
+      if (tableOrders.length === 0) return;
+
+      const results = await Promise.all(tableOrders.map(async (order) => {
+        const response = await fetch(`${API_URL}/orders/${order.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tableNumber: Number(newTableNumber) })
+        });
+        return response.json();
+      }));
+
+      const allSuccess = results.every(r => r.success);
+      if (allSuccess) {
+        alert('Masa numarası başarıyla güncellendi.');
+        setShowTableModal(false);
+        setTableEditOrder(null);
+        setNewTableNumber('');
+        fetchOrders();
+      } else {
+        alert('Bazı siparişler güncellenirken hata oluştu.');
+      }
+    } catch (error) {
+      console.error('Masa güncelleme hatası:', error);
+      alert('Masa güncellenirken bir hata oluştu.');
+    }
+  };
+
   const getWaitInfo = (dateString: string) => {
     const diffMins = Math.floor((currentTime.getTime() - new Date(dateString).getTime()) / 60000);
     let color = 'text-green-600 bg-green-50';
@@ -671,7 +711,7 @@ export default function KasaPanel() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-white/20 backdrop-blur-md">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="p-4 bg-green-500 rounded-2xl shadow-lg shadow-green-200">
               <FaMoneyBillWave className="text-3xl text-white" />
@@ -681,6 +721,20 @@ export default function KasaPanel() {
               <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">{restaurantName || 'YÜKLENİYOR...'}</p>
             </div>
           </div>
+
+          <div className="flex-1 max-w-md mx-4 relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <FaSearch className="text-gray-400 group-focus-within:text-green-500 transition-colors" />
+            </div>
+            <input
+              type="text"
+              placeholder="Masa No veya Ürün Ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-gray-50 border-2 border-transparent focus:border-green-500 focus:bg-white rounded-2xl py-3 pl-12 pr-4 text-sm font-bold transition-all shadow-sm outline-none"
+            />
+          </div>
+
           <div className="flex items-center gap-8">
             <div className="text-center group">
               <div className="text-2xl font-black text-green-600 group-hover:scale-110 transition-transform">
@@ -749,6 +803,14 @@ export default function KasaPanel() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {orders
               .filter(o => activeSource === 'restoran' ? o.orderType === 'dine_in' : o.orderType !== 'dine_in')
+              .filter(o => {
+                if (!searchTerm) return true;
+                const term = searchTerm.toLowerCase();
+                const tableMatch = o.tableNumber?.toString().includes(term);
+                const itemMatch = o.items.some(it => it.name.toLowerCase().includes(term));
+                const noteMatch = o.notes?.toLowerCase().includes(term);
+                return tableMatch || itemMatch || noteMatch;
+              })
               .sort((a, b) => {
                 const callA = a.tableNumber ? calls.find(c => c.tableNumber === a.tableNumber) : null;
                 const callB = b.tableNumber ? calls.find(c => c.tableNumber === b.tableNumber) : null;
@@ -782,15 +844,28 @@ export default function KasaPanel() {
                           <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
                         </div>
                       </div>
-                      <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${order.status === 'pending' ? 'text-yellow-600 bg-yellow-50' :
-                        order.status === 'preparing' ? 'text-blue-600 bg-blue-50' :
-                          order.status === 'ready' ? 'text-green-600 bg-green-50' :
-                            'text-gray-600 bg-gray-50'
-                        }`}>
-                        {order.status === 'pending' ? 'BEKLEMEDE' :
-                          order.status === 'preparing' ? 'HAZIRLANIYOR' :
-                            order.status === 'ready' ? 'HAZIR' :
-                              order.status === 'completed' ? 'TAMAMLANDI' : order.status.toUpperCase()}
+                      <div className="flex flex-col items-end gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTableEditOrder(order);
+                            setNewTableNumber(order.tableNumber?.toString() || '');
+                            setShowTableModal(true);
+                          }}
+                          className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black hover:bg-blue-600 hover:text-white transition-all border border-blue-100"
+                        >
+                          MASA DEĞİŞTİR
+                        </button>
+                        <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${order.status === 'pending' ? 'text-yellow-600 bg-yellow-50' :
+                          order.status === 'preparing' ? 'text-blue-600 bg-blue-50' :
+                            order.status === 'ready' ? 'text-green-600 bg-green-50' :
+                              'text-gray-600 bg-gray-50'
+                          }`}>
+                          {order.status === 'pending' ? 'BEKLEMEDE' :
+                            order.status === 'preparing' ? 'HAZIRLANIYOR' :
+                              order.status === 'ready' ? 'HAZIR' :
+                                order.status === 'completed' ? 'TAMAMLANDI' : order.status.toUpperCase()}
+                        </div>
                       </div>
                     </div>
                     <div className="p-6">
@@ -1363,6 +1438,47 @@ export default function KasaPanel() {
           </div>
         )
       }
+
+      {/* MASA DEĞİŞTİRME MODALI */}
+      {showTableModal && tableEditOrder && (
+        <div className="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
+            <div className="p-8 border-b border-gray-50">
+              <h3 className="text-2xl font-black text-gray-800 text-center uppercase tracking-tight">Masa Numarası Değiştir</h3>
+              <p className="text-gray-400 text-center font-bold text-xs mt-2 uppercase tracking-widest">Sipariş ID: {tableEditOrder.id.substring(0, 8)}</p>
+            </div>
+
+            <div className="p-8">
+              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3 text-center">YENİ MASA NUMARASI</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  autoFocus
+                  value={newTableNumber}
+                  onChange={(e) => setNewTableNumber(e.target.value)}
+                  className="w-full bg-gray-50 border-4 border-gray-100 rounded-2xl py-6 text-center text-4xl font-black text-gray-800 focus:border-blue-500 focus:bg-white transition-all outline-none"
+                  placeholder="0"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-8">
+                <button
+                  onClick={() => { setShowTableModal(false); setTableEditOrder(null); setNewTableNumber(''); }}
+                  className="py-4 px-6 bg-gray-100 text-gray-500 rounded-2xl font-black hover:bg-gray-200 transition-all uppercase text-sm tracking-widest"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={handleUpdateTable}
+                  className="py-4 px-6 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 uppercase text-sm tracking-widest flex items-center justify-center gap-2"
+                >
+                  <FaCheck /> Kaydet
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div >
   );
