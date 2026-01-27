@@ -35,7 +35,9 @@ import {
   FaMagic,
   FaLanguage,
   FaClock,
-  FaBoxOpen
+  FaBoxOpen,
+  FaProjectDiagram,
+  FaExchangeAlt
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
@@ -135,7 +137,7 @@ export default function MenuManagement() {
     return staticDictionary[text]?.[code] || text;
   }; const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || t('Kullanıcı');
 
-  const [activeTab, setActiveTab] = useState<'items' | 'combos' | 'categories' | 'stations' | 'stats'>('items');
+  const [activeTab, setActiveTab] = useState<'items' | 'combos' | 'categories' | 'stations' | 'mapping' | 'stats'>('items');
   const [searchTerm, setSearchTerm] = useState('');
   const [showItemForm, setShowItemForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
@@ -157,6 +159,7 @@ export default function MenuManagement() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [showBulkPriceModal, setShowBulkPriceModal] = useState(false);
+  const [mappingFilter, setMappingFilter] = useState<'all' | 'unmapped'>('all');
   const [bulkPriceType, setBulkPriceType] = useState<'percentage' | 'fixed'>('percentage');
   const [bulkPriceValue, setBulkPriceValue] = useState('');
   const [bulkPriceOperation, setBulkPriceOperation] = useState<'increase' | 'decrease'>('increase');
@@ -1183,7 +1186,6 @@ export default function MenuManagement() {
     if (!showOutOfStock && statusFilter === 'all') {
       result = result.filter(item => item.isAvailable !== false);
     }
-
     // 6. Station
     if (selectedStation !== 'all') {
       const station = stations.find(s => s.id === selectedStation);
@@ -1195,8 +1197,13 @@ export default function MenuManagement() {
       }
     }
 
+    // 7. Mapping Filter
+    if (activeTab === 'mapping' && mappingFilter === 'unmapped') {
+      result = result.filter(item => !item.kitchenStation);
+    }
+
     return result;
-  }, [items, searchTerm, selectedCategory, statusFilter, activeTab, showOutOfStock, selectedStation, stations]);
+  }, [items, searchTerm, selectedCategory, statusFilter, activeTab, showOutOfStock, selectedStation, stations, mappingFilter]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden" style={{ zoom: '0.8' }}>
@@ -1282,6 +1289,16 @@ export default function MenuManagement() {
               >
                 <FaFire />
                 <TranslatedText>İstasyonlar</TranslatedText> ({stations.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('mapping')}
+                className={`px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 flex items-center gap-2 ${activeTab === 'mapping'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+              >
+                <FaExchangeAlt />
+                <TranslatedText>Eşleşmeler</TranslatedText>
               </button>
               <button
                 onClick={() => setActiveTab('stats')}
@@ -2202,6 +2219,205 @@ export default function MenuManagement() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {!loading && activeTab === 'mapping' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center bg-white/50 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-xl">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <FaExchangeAlt className="text-amber-600 text-xl" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-gray-800"><TranslatedText>Ürün - İstasyon Eşleştirmeleri</TranslatedText></h2>
+                    <p className="text-gray-500 text-sm italic"><TranslatedText>Siparişlerin doğru yazıcıdan çıkması için ürünleri mutfak istasyonlarıyla eşleştirin.</TranslatedText></p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-3">
+                  <div className="hidden md:block">
+                    <span className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-xs font-bold border border-green-100 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <TranslatedText>Otomatik Kayıt Aktif</TranslatedText>
+                    </span>
+                  </div>
+                  <Link
+                    href="/business/printers"
+                    className="flex items-center gap-2 px-4 py-2 bg-white/80 hover:bg-white text-purple-600 rounded-xl text-xs font-bold shadow-sm transition-all border border-purple-100"
+                  >
+                    <FaCog />
+                    <TranslatedText>Yazıcı Ayarları</TranslatedText>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Search & Filters for Mapping */}
+              <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/20 flex flex-wrap gap-6 items-center">
+                <div className="relative flex-1 min-w-[300px]">
+                  <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder={t('Ürün ara...')}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all outline-none"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="bg-gray-100 p-2 rounded-lg">
+                    <FaTag className="text-gray-500" />
+                  </div>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none transition-all cursor-pointer"
+                  >
+                    <option value="all">{t('Tüm Kategoriler')}</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${mappingFilter === 'unmapped' ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-500'}`}>
+                    <FaExclamationTriangle />
+                  </div>
+                  <select
+                    value={mappingFilter}
+                    onChange={(e) => setMappingFilter(e.target.value as any)}
+                    className={`px-4 py-3 border rounded-xl text-sm font-bold outline-none transition-all cursor-pointer ${mappingFilter === 'unmapped' ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-gray-50 border-gray-200 text-gray-700'
+                      }`}
+                  >
+                    <option value="all">{t('Tüm Ürünler')}</option>
+                    <option value="unmapped">{t('Atanmamış Ürünler')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50/80 border-b border-gray-100">
+                        <th className="px-8 py-5 text-xs font-black text-gray-500 uppercase tracking-widest"><TranslatedText>Ürün Bilgisi</TranslatedText></th>
+                        <th className="px-8 py-5 text-xs font-black text-gray-500 uppercase tracking-widest"><TranslatedText>Kategori</TranslatedText></th>
+                        <th className="px-8 py-5 text-xs font-black text-gray-500 uppercase tracking-widest"><TranslatedText>Mutfak İstasyonu</TranslatedText></th>
+                        <th className="px-8 py-5 text-xs font-black text-gray-500 uppercase tracking-widest text-center"><TranslatedText>Durum</TranslatedText></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {filteredItems.map(item => (
+                        <tr key={item.id} className="hover:bg-purple-50/50 transition-all duration-200 group">
+                          <td className="px-8 py-5">
+                            <div className="flex items-center gap-4">
+                              <div className="relative group-hover:scale-110 transition-transform duration-300">
+                                <img
+                                  src={
+                                    (item.imageUrl || item.image)
+                                      ? (item.imageUrl || item.image)?.startsWith('http')
+                                        ? (item.imageUrl || item.image)
+                                        : (() => {
+                                          const imagePath = item.imageUrl || item.image;
+                                          if (imagePath && typeof imagePath === 'string' && imagePath.startsWith('/uploads/')) {
+                                            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                                            return `${baseUrl}${imagePath}`;
+                                          }
+                                          return `${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}${imagePath}`;
+                                        })()
+                                      : '/placeholder-food.jpg'
+                                  }
+                                  alt={item.name}
+                                  className="h-14 w-14 rounded-2xl object-cover border-2 border-white shadow-md"
+                                  onError={(e) => { e.currentTarget.src = '/placeholder-food.jpg'; }}
+                                />
+                                {item.isPopular && (
+                                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white p-1 rounded-lg text-[8px] font-bold shadow-lg">
+                                    <FaFire />
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <div className="font-bold text-gray-900 group-hover:text-purple-700 transition-colors">{item.name}</div>
+                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{item.type || 'single'}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-5">
+                            <span className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold border border-gray-200">
+                              {categories.find(c => c.id === item.categoryId)?.name || t('Atanmamış')}
+                            </span>
+                          </td>
+                          <td className="px-8 py-5">
+                            <div className="flex flex-col gap-1">
+                              <select
+                                value={item.kitchenStation || ''}
+                                onChange={async (e) => {
+                                  const newStationId = e.target.value;
+                                  try {
+                                    if (currentRestaurantId) {
+                                      // Tüm item verisini spread ederek gönder, aksi takdirde store'daki backendData üretimi bazı alanları null yapabilir
+                                      await updateMenuItem(currentRestaurantId, item.id, {
+                                        ...item,
+                                        kitchenStation: newStationId
+                                      });
+                                      await fetchRestaurantMenu(currentRestaurantId);
+                                    }
+                                  } catch (error) {
+                                    console.error('İstasyon güncellenirken hata:', error);
+                                  }
+                                }}
+                                className={`w-full max-w-[240px] px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all outline-none border-2 ${item.kitchenStation
+                                  ? 'bg-amber-50 border-amber-200 text-amber-900 focus:border-amber-400'
+                                  : 'bg-gray-50 border-gray-100 text-gray-500 focus:border-purple-300'
+                                  }`}
+                              >
+                                <option value="">⚠️ {t('İstasyon Seçin')}</option>
+                                {stations.map(station => (
+                                  <option key={station.id} value={station.id}>
+                                    {station.emoji} {station.name}
+                                  </option>
+                                ))}
+                              </select>
+                              {item.kitchenStation && (
+                                <p className="text-[10px] text-amber-600 font-bold ml-1">
+                                  {t('Siparişler buraya gönderilecek')}
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-8 py-5 text-center">
+                            {item.kitchenStation ? (
+                              <div className="flex items-center justify-center">
+                                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-inner">
+                                  <FaCheck />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center">
+                                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 animate-pulse">
+                                  <FaExclamationTriangle />
+                                </div>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {filteredItems.length === 0 && (
+                  <div className="py-32 text-center flex flex-col items-center gap-4">
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center border-4 border-white shadow-xl">
+                      <FaSearch className="text-gray-300 text-3xl" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-700"><TranslatedText>Sonuç bulunamadı</TranslatedText></h3>
+                      <p className="text-gray-400"><TranslatedText>Arama kriterlerinize uygun ürün bulunamadı.</TranslatedText></p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
