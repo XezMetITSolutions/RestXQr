@@ -1,6 +1,7 @@
 @echo off
 set "STARTUP_FOLDER=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 set "TARGET_BATCH=%~dp0START_BRIDGE.bat"
+set "VBS_SCRIPT=%STARTUP_FOLDER%\Launcher_RestXQR.vbs"
 echo Installing RestXQR Printer Bridge to Startup Folder (Silent Mode)...
 echo.
 echo Target: %TARGET_BATCH%

@@ -364,20 +364,6 @@ function BusinessDashboardContent() {
               <div className="hidden sm:block">
                 <LanguageSelector enabledLanguages={useBusinessSettingsStore(s => s.settings.menuSettings.language)} />
               </div>
-              <button
-                onClick={() => setShowUpgradeModal(true)}
-                className={`px-6 py-4 rounded-2xl text-base font-bold transition-all duration-300 hover:scale-105 shadow-xl ${(authenticatedRestaurant?.subscription?.plan || 'premium') === 'premium'
-                  ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white hover:shadow-2xl'
-                  : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 hover:from-gray-200 hover:to-gray-300'
-                  }`}
-              >
-                <span className="hidden sm:inline">
-                  {(authenticatedRestaurant?.subscription?.plan || 'premium') === 'premium' ? <TranslatedText>Premium Plan</TranslatedText> : <TranslatedText>Premium Plan</TranslatedText>}
-                </span>
-                <span className="sm:hidden">
-                  {(authenticatedRestaurant?.subscription?.plan || 'premium') === 'premium' ? 'P' : 'P'}
-                </span>
-              </button>
             </div>
           </div>
         </header>
