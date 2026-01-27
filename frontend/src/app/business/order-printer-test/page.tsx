@@ -10,20 +10,21 @@ export default function OrderPrinterTestPage() {
     const [result, setResult] = useState<any>(null);
     const [orderId, setOrderId] = useState<string>('');
 
+    const [selectedStation, setSelectedStation] = useState('kavurma');
     const restaurantId = '37b0322a-e11f-4ef1-b108-83be310aaf4d'; // Kroren ID
 
     useEffect(() => {
         loadProducts();
-    }, []);
+    }, [selectedStation]);
 
     const loadProducts = async () => {
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurants/${restaurantId}/menu/items`);
             const data = await response.json();
             if (data.success) {
-                // Sadece kavurma istasyonundaki ürünleri filtrele
-                const kavurmaProducts = data.data.filter((p: any) => p.kitchenStation === 'kavurma');
-                setProducts(kavurmaProducts);
+                // Seçili istasyondaki ürünleri filtrele
+                const filteredProducts = data.data.filter((p: any) => p.kitchenStation === selectedStation);
+                setProducts(filteredProducts);
             }
         } catch (error) {
             console.error('Error loading products:', error);
@@ -204,8 +205,26 @@ export default function OrderPrinterTestPage() {
                         <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
-                        Ürün Seçimi (Kavurma İstasyonu)
+                        Ürün Seçimi ({selectedStation.toUpperCase()})
                     </h2>
+
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1 text-gray-700">İstasyon Değiştir:</label>
+                        <select
+                            value={selectedStation}
+                            onChange={(e) => {
+                                setSelectedStation(e.target.value);
+                                setSelectedProducts([]); // İstasyon değişince seçimi sıfırla
+                            }}
+                            className="w-full border rounded-lg px-3 py-2 text-sm bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="kavurma">🍖 Kavurma</option>
+                            <option value="ramen">🍜 Ramen</option>
+                            <option value="manti">🥟 Mantı</option>
+                            <option value="icecek1">🥤 1. Kat İçecek</option>
+                            <option value="icecek2">🍹 2. Kat İçecek</option>
+                        </select>
+                    </div>
 
                     {products.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">

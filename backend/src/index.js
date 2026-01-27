@@ -157,6 +157,89 @@ app.post('/api/debug/sync-db', async (req, res) => {
   }
 });
 
+// KROREN YAZICI YAPILANDIRMASINI GÜNCELLE
+app.post('/api/debug/update-kroren-printers', async (req, res) => {
+  console.log('🔧 Update Kroren printers endpoint called');
+  try {
+    const { Restaurant } = require('./models');
+
+    const kroren = await Restaurant.findOne({ where: { username: 'kroren' } });
+    if (!kroren) {
+      return res.status(404).json({ success: false, message: 'Kroren restaurant not found' });
+    }
+
+    const newPrinterConfig = {
+      kavurma: {
+        name: 'KAVURMA',
+        ip: '192.168.10.194',
+        port: 9100,
+        enabled: true,
+        type: 'epson'
+      },
+      ramen: {
+        name: 'RAMEN',
+        ip: '192.168.10.197',
+        port: 9100,
+        enabled: true,
+        type: 'epson'
+      },
+      manti: {
+        name: 'MANTI',
+        ip: '192.168.10.199',
+        port: 9100,
+        enabled: true,
+        type: 'epson'
+      },
+      icecek1: {
+        name: '1. Kat İçecek',
+        ip: '',
+        port: 9100,
+        enabled: true,
+        type: 'epson'
+      },
+      icecek2: {
+        name: '2. Kat İçecek',
+        ip: '',
+        port: 9100,
+        enabled: true,
+        type: 'epson'
+      }
+    };
+
+    const newKitchenStations = [
+      { id: 'kavurma', name: 'KAVURMA', color: '#FF0000', order: 1 },
+      { id: 'ramen', name: 'RAMEN', color: '#FF0000', order: 2 },
+      { id: 'manti', name: 'MANTI', color: '#FF0000', order: 3 },
+      { id: 'icecek1', name: '1. Kat İçecek', color: '#0000FF', order: 4 },
+      { id: 'icecek2', name: '2. Kat İçecek', color: '#0000FF', order: 5 }
+    ];
+
+    await kroren.update({
+      printer_config: newPrinterConfig,
+      kitchen_stations: newKitchenStations
+    });
+
+    console.log('✅ Kroren printer configuration updated successfully');
+    res.json({
+      success: true,
+      message: 'Kroren yazıcı ve istasyon yapılandırması güncellendi!',
+      data: {
+        printerConfig: newPrinterConfig,
+        kitchenStations: newKitchenStations
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Update Kroren Printers Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Kroren yazıcı yapılandırması güncellenirken hata oluştu',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // VERİTABANI ŞEMASINI GÜNCELLE (Add kitchen_station column to menu_items)
 app.post('/api/debug/add-kitchen-station', async (req, res) => {
   console.log('🔧 Add kitchen_station column endpoint called');

@@ -33,9 +33,11 @@ export default function PrinterTestPage() {
     const [messages, setMessages] = useState<Record<string, { type: 'success' | 'error' | 'info'; text: string }>>({});
 
     const defaultStations = [
-        { id: 'station1', name: 'Station 1 - Grill (XPrinter XP-80)', ip: '192.168.1.13', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
-        { id: 'station2', name: 'Station 2 - Cold Kitchen (XPrinter XP-80)', ip: '192.168.1.14', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
-        { id: 'station3', name: 'Station 3 - Bar (XPrinter XP-80)', ip: '192.168.1.15', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
+        { id: 'kavurma', name: 'KAVURMA', ip: '192.168.10.194', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
+        { id: 'manti', name: 'MANTI', ip: '192.168.10.199', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
+        { id: 'ramen', name: 'RAMEN', ip: '192.168.10.197', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
+        { id: 'icecek1', name: '1 Kat İçecek', ip: '', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
+        { id: 'icecek2', name: '2. Kat İçecek', ip: '', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
     ];
 
     useEffect(() => {

@@ -160,6 +160,8 @@ export default function StationDebugPage() {
                             <option value="kavurma">🍖 Kavurma</option>
                             <option value="ramen">🍜 Ramen</option>
                             <option value="manti">🥟 Mantı</option>
+                            <option value="icecek1">🥤 1. Kat İçecek</option>
+                            <option value="icecek2">🍹 2. Kat İçecek</option>
                         </select>
                     </div>
                     <button

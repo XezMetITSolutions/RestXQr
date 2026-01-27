@@ -11,7 +11,7 @@ export default function PrinterDebugPage() {
         setResult(null);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/debug/add-printer-config`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/debug/update-kroren-printers`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -43,10 +43,10 @@ export default function PrinterDebugPage() {
                         <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
                         </svg>
-                        Yazıcı Yapılandırması Migration
+                        Kroren İstasyon Yazıcıları Migration
                     </h2>
                     <p className="text-sm text-gray-600 mt-2">
-                        Veritabanına printer_config kolonunu ekler ve Kroren'in kavurma istasyonuna yazıcı IP'sini atar.
+                        Kroren için 5 ana istasyonu (Kavurma, Ramen, Mantı, 1. Kat İçecek, 2. Kat İçecek) ve IP adreslerini yapılandırır.
                     </p>
                 </div>
 
@@ -58,9 +58,9 @@ export default function PrinterDebugPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                             <div>
-                                <p className="text-sm font-semibold text-yellow-800">Dikkat:</p>
+                                <p className="text-sm font-semibold text-yellow-800">Bilgi:</p>
                                 <p className="text-sm text-yellow-700 mt-1">
-                                    Bu işlem veritabanı şemasını değiştirir. Kolon zaten mevcutsa sadece Kroren config'ini günceller.
+                                    Bu işlem sadece Kroren (kroren) restoranının yazıcı ve istasyon ayarlarını güncelleyecektir.
                                 </p>
                             </div>
                         </div>
@@ -78,14 +78,14 @@ export default function PrinterDebugPage() {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                Migration Çalıştırılıyor...
+                                Yapılandırma Güncelleniyor...
                             </>
                         ) : (
                             <>
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
                                 </svg>
-                                Migration'ı Çalıştır
+                                Kroren İstasyonlarını Yapılandır
                             </>
                         )}
                     </button>
@@ -93,8 +93,8 @@ export default function PrinterDebugPage() {
                     {/* Result */}
                     {result && (
                         <div className={`rounded-lg p-4 ${result.success
-                                ? 'bg-green-50 border border-green-200'
-                                : 'bg-red-50 border border-red-200'
+                            ? 'bg-green-50 border border-green-200'
+                            : 'bg-red-50 border border-red-200'
                             }`}>
                             <div className="flex items-start gap-3">
                                 {result.success ? (
@@ -108,20 +108,18 @@ export default function PrinterDebugPage() {
                                 )}
                                 <div className="flex-1">
                                     <p className={`font-semibold text-sm ${result.success
-                                            ? 'text-green-800'
-                                            : 'text-red-800'
+                                        ? 'text-green-800'
+                                        : 'text-red-800'
                                         }`}>
                                         {result.message}
                                     </p>
-                                    {result.alreadyExists && (
-                                        <p className="text-sm text-green-700 mt-1">
-                                            ✅ Kolon zaten mevcut - Kroren config güncellendi
-                                        </p>
-                                    )}
-                                    {result.details && (
-                                        <p className="text-sm text-green-700 mt-1">
-                                            📝 {result.details}
-                                        </p>
+                                    {result.data && (
+                                        <div className="text-xs text-green-700 mt-2 space-y-1">
+                                            <p>✅ Kavurma: 192.168.10.194</p>
+                                            <p>✅ Ramen: 192.168.10.197</p>
+                                            <p>✅ Mantı: 192.168.10.199</p>
+                                            <p>✅ İçecek İstasyonları eklendi</p>
+                                        </div>
                                     )}
                                     {result.error && (
                                         <p className="text-sm text-red-700 mt-2">
@@ -140,12 +138,12 @@ export default function PrinterDebugPage() {
 
                     {/* Migration Details */}
                     <div className="bg-gray-50 rounded-lg p-4">
-                        <h3 className="font-semibold text-gray-900 mb-2">Migration Detayları:</h3>
+                        <h3 className="font-semibold text-gray-900 mb-2">Yapılandırılacak İstasyonlar:</h3>
                         <ul className="text-sm space-y-1 text-gray-600">
-                            <li>• Tablo: <code className="bg-white px-2 py-0.5 rounded text-xs">restaurants</code></li>
-                            <li>• Kolon: <code className="bg-white px-2 py-0.5 rounded text-xs">printer_config</code></li>
-                            <li>• Tip: <code className="bg-white px-2 py-0.5 rounded text-xs">JSONB</code></li>
-                            <li>• Kroren Kavurma IP: <code className="bg-white px-2 py-0.5 rounded text-xs font-bold text-blue-600">192.168.1.13:9100</code></li>
+                            <li>• <span className="font-bold">KAVURMA:</span> <code className="bg-white px-2 py-0.5 rounded text-xs">192.168.10.194</code></li>
+                            <li>• <span className="font-bold">RAMEN:</span> <code className="bg-white px-2 py-0.5 rounded text-xs">192.168.10.197</code></li>
+                            <li>• <span className="font-bold">MANTI:</span> <code className="bg-white px-2 py-0.5 rounded text-xs">192.168.10.199</code></li>
+                            <li>• <span className="font-bold">İÇECEK 1 & 2:</span> <code className="bg-white px-2 py-0.5 rounded text-xs">(Manuel IP)</code></li>
                         </ul>
                     </div>
 

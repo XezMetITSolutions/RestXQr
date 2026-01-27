@@ -97,7 +97,8 @@ router.post('/generate', async (req, res) => {
 
     let qrToken;
     if (existing) {
-      const newExpiresAt = new Date(Date.now() + duration * 60 * 60 * 1000);
+      // Reused tokens should also be long-lived (10 years) for permanent table QR codes
+      const newExpiresAt = new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000);
       await existing.update({ expiresAt: newExpiresAt });
       qrToken = existing;
       console.log('♻️ Reusing existing QR token:', {

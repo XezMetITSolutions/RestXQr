@@ -20,29 +20,47 @@ class PrinterService {
             'ü': '\x81', 'Ü': '\x9A'
         };
 
-        // İstasyon yazıcı konfigürasyonları - Default stations for XPrinter XP-80
+        // İstasyon yazıcı konfigürasyonları - Kroren Ana Mutfak & İçecek İstasyonları
         this.stations = {
-            station1: {
-                name: 'Station 1 - Grill (XPrinter XP-80)',
-                ip: '192.168.1.13',
+            kavurma: {
+                name: 'KAVURMA',
+                ip: '192.168.10.194',
                 port: 9100,
                 enabled: true,
                 type: PrinterTypes.EPSON,
                 characterSet: CharacterSet.PC857_TURKISH,
                 codePage: 'CP857'
             },
-            station2: {
-                name: 'Station 2 - Cold Kitchen (XPrinter XP-80)',
-                ip: '192.168.1.14',
+            manti: {
+                name: 'MANTI',
+                ip: '192.168.10.199',
                 port: 9100,
                 enabled: true,
                 type: PrinterTypes.EPSON,
                 characterSet: CharacterSet.PC857_TURKISH,
                 codePage: 'CP857'
             },
-            station3: {
-                name: 'Station 3 - Bar (XPrinter XP-80)',
-                ip: '192.168.1.15',
+            ramen: {
+                name: 'RAMEN',
+                ip: '192.168.10.197',
+                port: 9100,
+                enabled: true,
+                type: PrinterTypes.EPSON,
+                characterSet: CharacterSet.PC857_TURKISH,
+                codePage: 'CP857'
+            },
+            icecek1: {
+                name: '1 Kat İçecek',
+                ip: '', // Manuel girilecek
+                port: 9100,
+                enabled: true,
+                type: PrinterTypes.EPSON,
+                characterSet: CharacterSet.PC857_TURKISH,
+                codePage: 'CP857'
+            },
+            icecek2: {
+                name: '2. Kat İçecek',
+                ip: '', // Manuel girilecek
                 port: 9100,
                 enabled: true,
                 type: PrinterTypes.EPSON,
