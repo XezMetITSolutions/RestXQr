@@ -32,25 +32,36 @@ export default function PrintTestPage() {
 
         try {
             // 1. Sipariş Oluştur
+            const testOrderData = {
+                restaurantId,
+                tableNumber: 999,
+                customerName: 'DEBUG TEST',
+                items: [
+                    {
+                        name: 'Tavuk noodle - 鸡肉炒面',
+                        quantity: 1,
+                        unitPrice: 150,
+                        notes: 'test siparisidir'
+                    }
+                ],
+                notes: 'BU BİR YAZICI TEST SİPARİŞİDİR. LÜTFEN DİKKATE ALMAYIN.',
+                orderType: 'dine_in'
+            };
+
+            addLog(`API İsteği gönderiliyor: ${API_URL}/orders`);
+
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), 15000);
+
             const orderResponse = await fetch(`${API_URL}/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    restaurantId,
-                    tableNumber: 999, // Debug masa numarası
-                    customerName: 'DEBUG TEST',
-                    items: [
-                        {
-                            name: 'Tavuk Noodle',
-                            quantity: 1,
-                            unitPrice: 150,
-                            notes: 'test siparisidir'
-                        }
-                    ],
-                    notes: 'BU BİR YAZICI TEST SİPARİŞİDİR. LÜTFEN DİKKATE ALMAYIN.',
-                    orderType: 'dine_in'
-                })
+                body: JSON.stringify(testOrderData),
+                signal: controller.signal
             });
+            clearTimeout(id);
+
+            addLog(`Sunucu yanıt verdi: ${orderResponse.status}`);
 
             const orderData = await orderResponse.json();
             if (!orderData.success) throw new Error(orderData.message || 'Sipariş oluşturulamadı');
@@ -174,7 +185,7 @@ export default function PrintTestPage() {
                             {logs.length === 0 && <div className="text-gray-700 italic text-sm">Komut bekleniyor...</div>}
                             {logs.map((log, i) => (
                                 <div key={i} className={`text-sm py-1 font-mono break-words ${log.type === 'error' ? 'text-red-400' :
-                                        log.type === 'success' ? 'text-green-400' : 'text-blue-400'
+                                    log.type === 'success' ? 'text-green-400' : 'text-blue-400'
                                     }`}>
                                     <span className="opacity-30 mr-2 text-[10px]">[{log.time}]</span>
                                     {log.msg}
