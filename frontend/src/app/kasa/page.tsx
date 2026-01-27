@@ -81,6 +81,10 @@ export default function KasaPanel() {
   const [tableEditOrder, setTableEditOrder] = useState<Order | null>(null);
   const [newTableNumber, setNewTableNumber] = useState('');
 
+  // Floor states
+  const [floors, setFloors] = useState<any[]>([]);
+  const [activeFloor, setActiveFloor] = useState<string>('all');
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
   // Yetki kontrolü (State-based to prevent hydration errors)
@@ -300,6 +304,19 @@ export default function KasaPanel() {
     }
   };
 
+  const fetchFloors = async () => {
+    if (!restaurantId) return;
+    try {
+      const response = await fetch(`${API_URL}/restaurant-settings/${restaurantId}`);
+      const data = await response.json();
+      if (data.success && data.data?.drinkStationRouting?.floors) {
+        setFloors(data.data.drinkStationRouting.floors);
+      }
+    } catch (error) {
+      console.error('Katlar alınamadı:', error);
+    }
+  };
+
   useEffect(() => {
     if (restaurantId) {
       const loadData = () => {
@@ -308,6 +325,7 @@ export default function KasaPanel() {
       };
 
       loadData();
+      fetchFloors();
       const interval = setInterval(loadData, 5000);
       return () => clearInterval(interval);
     }
@@ -787,6 +805,33 @@ export default function KasaPanel() {
           </button>
         </div>
 
+        {/* Floor Tabs */}
+        {activeSource === 'restoran' && floors.length > 0 && (
+          <div className="flex gap-2 mb-8 bg-white/30 p-1.5 rounded-2xl border border-gray-100/50 overflow-x-auto no-scrollbar">
+            <button
+              onClick={() => setActiveFloor('all')}
+              className={`px-6 py-2 rounded-xl font-bold transition-all text-sm ${activeFloor === 'all'
+                ? 'bg-white text-gray-900 shadow-md transform scale-105'
+                : 'text-gray-500 hover:bg-white/50'
+                }`}
+            >
+              TÜM KATLAR
+            </button>
+            {floors.map((floor, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveFloor(floor.name)}
+                className={`px-6 py-2 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${activeFloor === floor.name
+                  ? 'bg-white text-gray-900 shadow-md transform scale-105'
+                  : 'text-gray-500 hover:bg-white/50'
+                  }`}
+              >
+                {floor.name.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        )}
+
         {loading && orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -810,6 +855,14 @@ export default function KasaPanel() {
                 const itemMatch = o.items.some(it => it.name.toLowerCase().includes(term));
                 const noteMatch = o.notes?.toLowerCase().includes(term);
                 return tableMatch || itemMatch || noteMatch;
+              })
+              .filter(o => {
+                if (activeSource !== 'restoran') return true;
+                if (activeFloor === 'all') return true;
+                const floor = floors.find(f => activeFloor === f.name);
+                if (!floor) return true;
+                const table = Number(o.tableNumber);
+                return table >= Number(floor.startTable) && table <= Number(floor.endTable);
               })
               .sort((a, b) => {
                 const callA = a.tableNumber ? calls.find(c => c.tableNumber === a.tableNumber) : null;
