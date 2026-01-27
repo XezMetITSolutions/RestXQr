@@ -279,6 +279,13 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       label: 'Ürün Denetçisi',
       active: pathname === `${basePath}/debug/product-checker`,
       visible: authenticatedRestaurant?.username === 'restxqr' || process.env.NODE_ENV === 'development'
+    },
+    {
+      href: `${basePath}/debug/print-test`,
+      icon: FaPrint,
+      label: 'Yazıcı Test Terminali',
+      active: pathname === `${basePath}/debug/print-test`,
+      visible: authenticatedRestaurant?.username === 'restxqr' || process.env.NODE_ENV === 'development'
     }
   ];
 
