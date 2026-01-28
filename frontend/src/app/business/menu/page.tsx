@@ -283,7 +283,16 @@ export default function MenuManagement() {
         console.log('✅ Stations set from existing data');
       } else if (currentRestaurant.kitchenStations === null || (Array.isArray(currentRestaurant.kitchenStations) && currentRestaurant.kitchenStations.length === 0)) {
         // Eğer backend'de hiç yoksa varsayılanları koy
-        const defaults: any[] = [];
+        const defaults = [
+          { id: 'kavurma', name: 'KAVURMA', emoji: '🥩', color: '#EF4444', order: 1 },
+          { id: 'ramen', name: 'RAMEN', emoji: '🍜', color: '#F59E0B', order: 2 },
+          { id: 'kebap', name: 'KEBAP', emoji: '🍢', color: '#D97706', order: 3 },
+          { id: 'manti', name: 'MANTI', emoji: '🥟', color: '#10B981', order: 4 },
+          { id: 'icecek1', name: '1. Kat İçecek', emoji: '🥤', color: '#3B82F6', order: 5 },
+          { id: 'icecek2', name: '2. Kat İçecek', emoji: '🍷', color: '#8B5CF6', order: 6 },
+          { id: 'ortakasa', name: 'ORTA KASA', emoji: '💻', color: '#6B7280', order: 7 },
+          { id: 'test', name: 'Test Yazıcısı', emoji: '🔧', color: '#9CA3AF', order: 99 }
+        ];
         setStations(defaults);
         setIsStationsInitialized(true);
         console.log('✅ Stations set to defaults');

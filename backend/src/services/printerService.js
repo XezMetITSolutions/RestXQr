@@ -1,5 +1,9 @@
 const { ThermalPrinter, PrinterTypes, CharacterSet } = require('node-thermal-printer');
 const iconv = require('iconv-lite');
+const fs = require('fs');
+const path = require('path');
+
+const CONFIG_FILE = path.join(__dirname, '../../printer-config.json');
 
 /**
  * Thermal Printer Service
@@ -31,15 +35,6 @@ class PrinterService {
                 characterSet: CharacterSet.PC857_TURKISH,
                 codePage: 'CP857'
             },
-            manti: {
-                name: 'MANTI',
-                ip: '192.168.10.199',
-                port: 9100,
-                enabled: true,
-                type: PrinterTypes.EPSON,
-                characterSet: CharacterSet.PC857_TURKISH,
-                codePage: 'CP857'
-            },
             ramen: {
                 name: 'RAMEN',
                 ip: '192.168.10.197',
@@ -49,9 +44,27 @@ class PrinterService {
                 characterSet: CharacterSet.PC857_TURKISH,
                 codePage: 'CP857'
             },
+            kebap: {
+                name: 'KEBAP',
+                ip: '192.168.10.196',
+                port: 9100,
+                enabled: true,
+                type: PrinterTypes.EPSON,
+                characterSet: CharacterSet.PC857_TURKISH,
+                codePage: 'CP857'
+            },
+            manti: {
+                name: 'MANTI',
+                ip: '192.168.10.199',
+                port: 9100,
+                enabled: true,
+                type: PrinterTypes.EPSON,
+                characterSet: CharacterSet.PC857_TURKISH,
+                codePage: 'CP857'
+            },
             icecek1: {
-                name: '1 Kat İçecek',
-                ip: '', // Manuel girilecek
+                name: '1. Kat İçecek',
+                ip: '192.168.10.192',
                 port: 9100,
                 enabled: true,
                 type: PrinterTypes.EPSON,
@@ -60,6 +73,24 @@ class PrinterService {
             },
             icecek2: {
                 name: '2. Kat İçecek',
+                ip: '192.168.10.191',
+                port: 9100,
+                enabled: true,
+                type: PrinterTypes.EPSON,
+                characterSet: CharacterSet.PC857_TURKISH,
+                codePage: 'CP857'
+            },
+            ortakasa: {
+                name: 'ORTA KASA',
+                ip: '192.168.10.198',
+                port: 9100,
+                enabled: true,
+                type: PrinterTypes.EPSON,
+                characterSet: CharacterSet.PC857_TURKISH,
+                codePage: 'CP857'
+            },
+            test: {
+                name: 'Test Yazıcısı',
                 ip: '', // Manuel girilecek
                 port: 9100,
                 enabled: true,
@@ -68,6 +99,41 @@ class PrinterService {
                 codePage: 'CP857'
             }
         };
+
+        // Konfigürasyonu yükle
+        this.loadConfig();
+    }
+
+    /**
+     * Konfigürasyonu dosyadan yükle
+     */
+    loadConfig() {
+        try {
+            if (fs.existsSync(CONFIG_FILE)) {
+                const data = fs.readFileSync(CONFIG_FILE, 'utf8');
+                const savedStations = JSON.parse(data);
+                // Mevcut stations ile birleştir (kod içindeki yeni tanımları korumak için, ama kayıtlılar ezer)
+                this.stations = { ...this.stations, ...savedStations };
+                console.log('✅ Yazıcı konfigürasyonu yüklendi:', CONFIG_FILE);
+            } else {
+                console.log('ℹ️ Yazıcı konfigürasyon dosyası bulunamadı, varsayılanlar oluşturuluyor.');
+                this.saveConfig();
+            }
+        } catch (error) {
+            console.error('❌ Konfigürasyon yükleme hatası:', error);
+        }
+    }
+
+    /**
+     * Konfigürasyonu dosyaya kaydet
+     */
+    saveConfig() {
+        try {
+            fs.writeFileSync(CONFIG_FILE, JSON.stringify(this.stations, null, 2), 'utf8');
+            console.log('💾 Yazıcı konfigürasyonu kaydedildi');
+        } catch (error) {
+            console.error('❌ Konfigürasyon kaydetme hatası:', error);
+        }
     }
 
     /**
@@ -150,6 +216,7 @@ class PrinterService {
     updateStationPrinter(station, config) {
         if (this.stations[station]) {
             this.stations[station] = { ...this.stations[station], ...config };
+            this.saveConfig(); // Değişiklikleri kaydet
         }
     }
 
@@ -161,6 +228,7 @@ class PrinterService {
             ...this.stations[stationId],
             ...config
         };
+        this.saveConfig(); // Değişiklikleri kaydet
     }
 
     /**
