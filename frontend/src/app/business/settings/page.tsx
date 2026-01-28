@@ -458,7 +458,7 @@ function SettingsPageContent() {
     }
 
     try {
-      // alert(getStatic('Test dökümü gönderiliyor... IP: ') + ip); // Alert yerine loading state kullanılabilir ama şimdilik request atalım
+      // alert(getStatic('Test dökümü gönderiliyor... IP: ') + ip); 
       const res = await fetch(`${BRIDGE_URL}/test/${ip}`, { method: 'POST' });
       const data = await res.json();
 

@@ -84,19 +84,26 @@ app.post('/test/:ip', async (req, res) => {
 
         printer.alignCenter();
         printer.println("RestXQR Local Bridge");
-        printer.drawLine();
+        printer.newLine();
 
-        printer.setTextDoubleHeight();
-        printer.println("TEST BASARILI");
-        printer.setTextNormal();
+        // Simple text test
+        printer.alignLeft();
+        printer.println("TEST PRINT SUCCESSFUL");
+        printer.println("--------------------------------");
+        printer.println("IP: " + ip);
+        printer.println("Date: " + new Date().toLocaleDateString());
+        printer.println("Time: " + new Date().toLocaleTimeString());
+        printer.println("--------------------------------");
 
-        printer.drawLine();
-        printer.println(encodeText("Türkçe Karakter Testi:"));
+        // Character set test
+        printer.println("Turkish Char Test:");
         printer.println(encodeText("ÇğıÖşü İIĞÜŞÇ"));
         printer.newLine();
 
-        printer.println(encodeText("Station: " + ip));
-        printer.println("Time: " + new Date().toLocaleTimeString());
+        printer.alignCenter();
+        printer.println("End of Test");
+        printer.newLine();
+        printer.newLine();
 
         printer.cut();
 
