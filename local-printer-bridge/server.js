@@ -15,22 +15,32 @@ app.use(cors({
 
 app.use(express.json());
 
-// Turkish Character Map (CP857)
-const turkishCharMap = {
-    'ç': '\x87', 'Ç': '\x80',
-    'ğ': '\x98', 'Ğ': '\xA6',
-    'ı': '\x8D', 'İ': '\x98',
-    'ö': '\x94', 'Ö': '\x99',
-    'ş': '\x9E', 'Ş': '\x9D',
-    'ü': '\x81', 'Ü': '\x9A'
+// ESC/POS Commands
+const CMD = {
+    CP857: Buffer.from([0x1B, 0x74, 13]),      // ESC t 13 -> PC857
+    GB18030_ON: Buffer.from([0x1C, 0x26]),      // FS & -> Kanji ON (GB18030)
+    GB18030_OFF: Buffer.from([0x1C, 0x2E]),     // FS . -> Kanji OFF
+    UTF8_ON: Buffer.from([0x1D, 0x28, 0x47, 0x03, 0x00, 0x30, 0x01, 0x02]), // UTF8 ON (if supported)
+    RESET: Buffer.from([0x1B, 0x40])            // ESC @ -> Init
 };
 
-function encodeText(text) {
-    let converted = text;
-    Object.keys(turkishCharMap).forEach(char => {
-        converted = converted.replace(new RegExp(char, 'g'), turkishCharMap[char]);
-    });
-    return converted;
+function encodeText(text, encoding = 'cp857') {
+    // For Turkish CP857, we might want to use the manual map as a fallback 
+    // because some printers have slight variations. But iconv-lite is generally better.
+    try {
+        if (encoding === 'cp857') {
+            // First try manual map for critical Turkish chars (most reliable on cheap clones)
+            let mapped = text;
+            Object.keys(turkishCharMap).forEach(char => {
+                mapped = mapped.replace(new RegExp(char, 'g'), turkishCharMap[char]);
+            });
+            return Buffer.from(mapped, 'binary');
+        }
+        return iconv.encode(text, encoding);
+    } catch (e) {
+        console.error("Encoding error:", e);
+        return Buffer.from(text);
+    }
 }
 
 // Check status endpoint
@@ -83,7 +93,14 @@ app.post('/test/:ip', async (req, res) => {
         }
 
         printer.alignCenter();
-        printer.println("RestXQR Local Bridge");
+        printer.setTextDoubleHeight();
+        printer.bold(true);
+        printer.add(CMD.CP857);
+        printer.add(encodeText("MASA 15"));
+        printer.bold(false);
+        printer.setTextNormal();
+        printer.println(new Date().toLocaleString('tr-TR'));
+        printer.drawLine();
         printer.newLine();
 
         // Simple text test
@@ -95,15 +112,39 @@ app.post('/test/:ip', async (req, res) => {
         printer.println("Time: " + new Date().toLocaleTimeString());
         printer.println("--------------------------------");
 
-        // Character set test
-        printer.println("Turkish Char Test:");
-        printer.println(encodeText("ÇğıÖşü İIĞÜŞÇ"));
+        const testItems = [
+            { tr: "Karışık Ramen", zh: "什锦拉面", qty: 2, note: "Acılı, Soğansız" },
+            { tr: "Dana Etli Ramen", zh: "牛肉拉面", qty: 1, note: "Çok Acılı" },
+            { tr: "Mantı", zh: "饺子", qty: 3, note: "Acısız" },
+            { tr: "Izgara Tavuk", zh: "烤鸡", qty: 1, note: "Az pişmiş" }
+        ];
+
+        for (const item of testItems) {
+            // Line 1: Quantity + Turkish Name
+            printer.bold(true);
+            printer.add(CMD.CP857);
+            printer.add(encodeText(`${item.qty}x ${item.tr}\n`));
+
+            // Line 2: Chinese Name
+            printer.bold(false);
+            printer.add(CMD.GB18030_ON);
+            printer.add(encodeText(`   ${item.zh}\n`, 'gb18030'));
+            printer.add(CMD.GB18030_OFF);
+
+            // Line 3: Notes
+            if (item.note) {
+                printer.add(CMD.CP857);
+                printer.add(encodeText(`   ⚠ ${item.note}\n`));
+            }
+            printer.drawLine();
+        }
+
         printer.newLine();
 
         printer.alignCenter();
-        printer.println("End of Test");
-        printer.newLine();
-        printer.newLine();
+        printer.setTextSize(0, 0);
+        printer.add(CMD.CP857);
+        printer.add(encodeText(`Local Bridge Test - ${ip}\n`));
 
         printer.cut();
 
@@ -115,6 +156,80 @@ app.post('/test/:ip', async (req, res) => {
             console.error("Execute error:", execError);
             throw new Error("Printer execution failed: " + execError.message);
         }
+    } catch (error) {
+        console.error("Print error:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Generic print endpoint for orders
+app.post('/print/:ip', async (req, res) => {
+    const { ip } = req.params;
+    const { orderNumber, tableNumber, items } = req.body;
+
+    console.log(`Received PRINT request for ${ip} (Order: ${orderNumber})`);
+
+    try {
+        const printer = new ThermalPrinter({
+            type: PrinterTypes.EPSON,
+            interface: `tcp://${ip}:9100`,
+            characterSet: CharacterSet.PC857_TURKISH,
+            removeSpecialCharacters: false,
+            lineCharacter: '-',
+            options: { timeout: 5000 }
+        });
+
+        const isConnected = await printer.isPrinterConnected();
+        if (!isConnected) throw new Error("Printer unreachable");
+
+        // Format Kitchen Receipt
+        printer.alignCenter();
+        printer.setTextDoubleHeight();
+        printer.bold(true);
+        printer.add(CMD.CP857);
+        printer.add(encodeText(`MASA ${tableNumber || '?'}`));
+        printer.bold(false);
+        printer.setTextNormal();
+        printer.println(new Date().toLocaleString('tr-TR'));
+        printer.add(CMD.CP857);
+        printer.add(encodeText(`Siparis No: ${orderNumber}\n`));
+        printer.drawLine();
+        printer.newLine();
+
+        printer.alignLeft();
+        for (const item of items) {
+            // Turkish Name
+            printer.bold(true);
+            printer.add(CMD.CP857);
+            printer.add(encodeText(`${item.quantity}x ${item.name}\n`));
+
+            // Chinese Name (if available)
+            const chineseName = item.translations?.zh?.name || item.nameChinese;
+            if (chineseName) {
+                printer.bold(false);
+                printer.add(CMD.GB18030_ON);
+                printer.add(encodeText(`   ${chineseName}\n`, 'gb18030'));
+                printer.add(CMD.GB18030_OFF);
+            }
+
+            // Notes (Turkish)
+            printer.bold(false);
+            if (item.notes) {
+                printer.add(CMD.CP857);
+                printer.add(encodeText(`   NOT: ${item.notes}\n`));
+            }
+            printer.newLine();
+        }
+
+        printer.drawLine();
+        printer.alignCenter();
+        printer.println("Afiyet Olsun!");
+        printer.cut();
+
+        await printer.execute();
+        console.log(`✅ Printed Order ${orderNumber} to ${ip}`);
+        res.json({ success: true });
+>>>>>>> Stashed changes
 
     } catch (error) {
         console.error("Print error:", error);

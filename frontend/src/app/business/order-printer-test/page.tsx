@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { printReceiptViaBridge } from '@/lib/printerHelpers';
 
 export default function OrderPrinterTestPage() {
     const [products, setProducts] = useState<any[]>([]);
@@ -135,17 +136,13 @@ export default function OrderPrinterTestPage() {
                         console.log(`🖨️ Bulut üzerinden yazılamadı (Yerel IP: ${result.ip}). Yerel köprü deneniyor...`);
 
                         try {
-                            const bridgeRes = await fetch(`${BRIDGE_URL}/print/${result.ip}`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    orderNumber: orderId.substring(0, 8),
-                                    tableNumber: tableNumber,
-                                    items: result.stationItems
-                                })
+                            const success = await printReceiptViaBridge(BRIDGE_URL, result.ip, {
+                                orderNumber: orderId,
+                                tableNumber: tableNumber,
+                                items: result.stationItems
                             });
-                            const bridgeData = await bridgeRes.json();
-                            if (bridgeData.success) {
+
+                            if (success) {
                                 bridgeSuccess = true;
                                 bridgeMessage = `✅ Yerel yazıcıdan başarıyla yazdırıldı! (${result.ip})`;
                             } else {

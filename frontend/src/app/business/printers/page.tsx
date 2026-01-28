@@ -6,6 +6,7 @@ import { FaPrint, FaCheck, FaTimes, FaPlug, FaSync, FaCog, FaBars } from 'react-
 import BusinessSidebar from '@/components/BusinessSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { LanguageProvider } from '@/context/LanguageContext';
+import { printReceiptViaBridge } from '@/lib/printerHelpers';
 
 interface Station {
     id: string;
@@ -100,14 +101,23 @@ function PrinterManagementContent() {
 
         try {
             setTestingStation(stationId);
-            // Local Bridge üzerinden test yazdırma (Debug sayfasındaki mantık)
-            const res = await fetch(`${BRIDGE_URL}/test/${station.ip}`, { method: 'POST' });
-            const data = await res.json();
+            // Method 5: Image Print via Bridge
+            const dummyData = {
+                orderNumber: "TEST-002",
+                tableNumber: "TEST",
+                items: [
+                    { name: "RestXQR Test", quantity: 1, notes: "Görüntü Modu" },
+                    { name: station.name, quantity: 1, notes: "Printer St: " + station.id },
+                    { name: "Yazıcı Testi", quantity: 1, translations: { zh: { name: "打印机测试 (Printer Test)" } } }
+                ]
+            };
 
-            if (data.success) {
-                alert('✅ Test yazdırma başarılı! (Local Bridge)');
+            const success = await printReceiptViaBridge(BRIDGE_URL, station.ip, dummyData);
+
+            if (success) {
+                alert('✅ Test yazdırma başarılı! (Görüntü Modu)');
             } else {
-                alert(`❌ Hata: ${data.error}`);
+                throw new Error("Bridge connection failed");
             }
         } catch (error: any) {
             console.error('Test print error:', error);

@@ -568,7 +568,7 @@ router.put('/:id', async (req, res) => {
               include: [{
                 model: MenuItem,
                 as: 'menuItem',
-                attributes: ['name', 'kitchenStation', 'categoryId']
+                attributes: ['name', 'kitchenStation', 'categoryId', 'translations']
               }]
             });
 
@@ -587,7 +587,8 @@ router.put('/:id', async (req, res) => {
               itemsByStation[station].push({
                 name: item.menuItem?.name || 'Ürün',
                 quantity: item.quantity,
-                notes: item.notes || ''
+                notes: item.notes || '',
+                translations: item.menuItem?.translations || {}
               });
             }
 
@@ -741,7 +742,7 @@ router.put('/:id', async (req, res) => {
           include: [{
             model: MenuItem,
             as: 'menuItem',
-            attributes: ['name', 'kitchenStation', 'categoryId']
+            attributes: ['name', 'kitchenStation', 'categoryId', 'translations']
           }]
         });
 
@@ -758,7 +759,8 @@ router.put('/:id', async (req, res) => {
           itemsByStation[station].push({
             name: item.menuItem?.name || 'Ürün',
             quantity: item.quantity,
-            notes: (item.notes || '') + ' (ÖDEME ALINDI)'
+            notes: (item.notes || '') + ' (ÖDEME ALINDI)',
+            translations: item.menuItem?.translations || {}
           });
         }
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaMoneyBillWave, FaSearch, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft } from 'react-icons/fa';
+import { printReceiptViaBridge } from '@/lib/printerHelpers';
 
 interface OrderItem {
   id: string;
@@ -594,17 +595,13 @@ export default function KasaPanel() {
           }
 
           try {
-            const bridgeRes = await fetch(`${BRIDGE_URL}/print/${result.ip}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                orderNumber: orderId.substring(0, 8),
-                tableNumber: data.order?.tableNumber || data.data?.tableNumber || '?',
-                items: result.stationItems
-              })
+            const success = await printReceiptViaBridge(BRIDGE_URL, result.ip, {
+              orderNumber: orderId,
+              tableNumber: (data.order?.tableNumber || data.data?.tableNumber || '?').toString(),
+              items: result.stationItems
             });
-            const bridgeData = await bridgeRes.json();
-            if (bridgeData.success) {
+
+            if (success) {
               bridgeSuccessCount++;
               if (showDebug) {
                 setDebugLogs(prev => [...prev, {

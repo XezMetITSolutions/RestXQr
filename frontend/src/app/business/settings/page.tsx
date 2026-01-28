@@ -56,6 +56,7 @@ import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
 
 import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
+import { printReceiptViaBridge } from '@/lib/printerHelpers';
 
 function SettingsPageContent() {
   const router = useRouter();
@@ -458,18 +459,27 @@ function SettingsPageContent() {
     }
 
     try {
-      // alert(getStatic('Test dökümü gönderiliyor... IP: ') + ip); 
-      const res = await fetch(`${BRIDGE_URL}/test/${ip}`, { method: 'POST' });
-      const data = await res.json();
+      // Use Method 5 (Image Print) via Bridge
+      const dummyData = {
+        orderNumber: "TEST-001",
+        tableNumber: "TEST",
+        items: [
+          { name: "RestXQR Test", quantity: 1, notes: "Türkçe Karakter: ĞÜŞİÖÇ" },
+          { name: "Image Print Info", quantity: 1, notes: "Mode: Canvas to Image" },
+          { name: "Chinese Test", quantity: 1, translations: { zh: { name: "你好世界 (Hello World)" } } }
+        ]
+      };
 
-      if (data.success) {
-        alert(getStatic('✅ Test yazdırma başarılı! (Local Bridge)'));
+      const success = await printReceiptViaBridge(BRIDGE_URL, ip, dummyData);
+
+      if (success) {
+        alert(getStatic('✅ Test yazdırma başarılı! (Görüntü Modu)'));
       } else {
-        throw new Error(data.error || 'Unknown error');
+        throw new Error('Local bridge request failed');
       }
     } catch (error: any) {
       console.error('Test print error:', error);
-      alert(`${getStatic('❌ Test yazdırma hatası')}: ${error.message}\n${getStatic('Local Printer Bridge (Port 3005) çalışıyor mu? Bu özellik sadece yerel ağda çalışır.')}`);
+      alert(`${getStatic('❌ Test yazdırma hatası')}: ${error.message}\n${getStatic('Local Printer Bridge (Port 3005) çalışıyor mu?')}`);
     }
   };
 
