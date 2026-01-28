@@ -302,7 +302,7 @@ function BusinessDashboardContent() {
   });
 
   // Bugünkü ciro
-  const todayRevenue = todayOrders.reduce((total, order) => total + (order.totalAmount || 0), 0);
+  const todayRevenue = todayOrders.reduce((total, order) => total + (Number(order.totalAmount) || 0), 0);
 
   // Bu ayki siparişler
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -312,7 +312,7 @@ function BusinessDashboardContent() {
   });
 
   // Aylık ciro
-  const monthlyRevenue = monthlyOrders.reduce((total, order) => total + (order.totalAmount || 0), 0);
+  const monthlyRevenue = monthlyOrders.reduce((total, order) => total + (Number(order.totalAmount) || 0), 0);
 
   const stats = {
     todayOrders: todayOrders.length,

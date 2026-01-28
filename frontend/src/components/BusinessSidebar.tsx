@@ -196,7 +196,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaBox,
       label: <TranslatedText>Stok Yönetimi</TranslatedText>,
       active: pathname === `${basePath}/inventory`,
-      visible: isDemo ? true : hasInventoryManagement,
+      visible: false, // Hidden as per user request
       badge: 'Premium'
     },
     // Enterprise Özellikler
@@ -205,7 +205,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaBuilding,
       label: <TranslatedText>Şube Yönetimi</TranslatedText>,
       active: pathname === `${basePath}/branches`,
-      visible: isDemo ? true : hasMultiBranch,
+      visible: false, // Hidden as per user request
       badge: 'Enterprise'
     },
     {
@@ -213,7 +213,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaCode,
       label: <TranslatedText>API Yönetimi</TranslatedText>,
       active: pathname === `${basePath}/api`,
-      visible: isDemo ? true : hasApiAccess,
+      visible: false, // Hidden as per user request
       badge: 'Enterprise'
     },
     // Özel Özellikler
@@ -222,7 +222,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaTruck,
       label: <TranslatedText>Paket Servis</TranslatedText>,
       active: pathname === `${basePath}/delivery`,
-      visible: isDemo ? true : hasDeliveryIntegration,
+      visible: false, // Hidden as per user request
       badge: 'Özel'
     },
     {
@@ -230,7 +230,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaCashRegister,
       label: <TranslatedText>POS Entegrasyonu</TranslatedText>,
       active: pathname === `${basePath}/pos`,
-      visible: isDemo ? true : hasPosIntegration,
+      visible: false, // Hidden as per user request
       badge: 'Özel'
     },
     {
@@ -238,7 +238,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaCalculator,
       label: <TranslatedText>Muhasebe</TranslatedText>,
       active: pathname === `${basePath}/accounting`,
-      visible: isDemo ? true : hasAccountingSoftware,
+      visible: false, // Hidden as per user request
       badge: 'Özel'
     },
     {
@@ -246,7 +246,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaRobot,
       label: <TranslatedText>AI Önerileri</TranslatedText>,
       active: pathname === `${basePath}/ai`,
-      visible: isDemo ? true : hasAiRecommendations,
+      visible: false, // Hidden as per user request
       badge: 'Özel'
     },
     {
@@ -262,7 +262,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaCalendarAlt,
       label: <TranslatedText>Etkinlikler</TranslatedText>,
       active: pathname === `${basePath}/events`,
-      visible: isDemo ? true : hasEventManagement,
+      visible: false, // Hidden as per user request
       badge: 'Özel'
     },
     {
@@ -270,7 +270,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       icon: FaGlobe,
       label: <TranslatedText>Online Siparişler</TranslatedText>,
       active: pathname === `${basePath}/online-orders`,
-      visible: true,
+      visible: false,
       badge: 'Özel'
     },
     {

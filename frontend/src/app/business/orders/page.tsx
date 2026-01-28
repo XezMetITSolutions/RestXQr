@@ -110,7 +110,7 @@ export default function OrdersPage() {
               notes: item.notes,
               options: item.options || []
             })) || [],
-            totalAmount: order.totalAmount || order.total || 0,
+            totalAmount: Number(order.totalAmount) || Number(order.total) || 0,
             status: order.status || 'pending',
             createdAt: order.createdAt || order.created_at || new Date(),
             paymentMethod: order.paymentMethod || order.payment_method,

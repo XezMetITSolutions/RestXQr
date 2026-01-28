@@ -967,6 +967,142 @@ router.post('/:id/print', async (req, res) => {
   }
 });
 
+// POST /api/orders/:id/print-info (Information receipt for cashier)
+router.post('/:id/print-info', async (req, res) => {
+  const steps = [];
+  const log = (msg, type = 'info') => {
+    steps.push({ timestamp: new Date().toISOString(), message: msg, type });
+    console.log(`[PRINT-INFO] ${msg}`);
+  };
+
+  try {
+    const { id } = req.params;
+    const { cashierName } = req.body;
+    log(`Bilgi fişi isteği alındı. ID: ${id}`);
+
+    let orders = [];
+    let tableNumber = null;
+    let restaurantId = null;
+
+    if (id.startsWith('table-') && id.endsWith('-grouped')) {
+      const tableToken = id.replace('table-', '').replace('-grouped', '');
+      tableNumber = tableToken === 'null' ? null : Number(tableToken);
+
+      // Need restaurantId from query or body if it's a virtual ID
+      restaurantId = req.query.restaurantId || req.body.restaurantId;
+      if (!restaurantId) {
+        return res.status(400).json({ success: false, message: 'restaurantId required for grouped orders', steps });
+      }
+
+      orders = await Order.findAll({
+        where: {
+          restaurantId,
+          tableNumber,
+          status: { [Op.notIn]: ['completed', 'cancelled'] }
+        },
+        include: [{
+          model: OrderItem,
+          as: 'items',
+          include: [{ model: MenuItem, as: 'menuItem' }]
+        }]
+      });
+      log(`Gruplanmış siparişler bulundu: ${orders.length} adet.`);
+    } else {
+      const order = await Order.findByPk(id, {
+        include: [{
+          model: OrderItem,
+          as: 'items',
+          include: [{ model: MenuItem, as: 'menuItem' }]
+        }]
+      });
+      if (!order) return res.status(404).json({ success: false, message: 'Order not found', steps });
+      orders = [order];
+      tableNumber = order.tableNumber;
+      restaurantId = order.restaurantId;
+      log(`Tekil sipariş bulundu.`);
+    }
+
+    if (orders.length === 0) {
+      return res.status(404).json({ success: false, message: 'No active orders found for this table', steps });
+    }
+
+    const restaurant = await Restaurant.findByPk(restaurantId);
+    if (!restaurant) return res.status(404).json({ success: false, message: 'Restaurant not found', steps });
+
+    // Ürünleri birleştir
+    const consolidatedItems = [];
+    orders.forEach(o => {
+      o.items.forEach(it => {
+        consolidatedItems.push({
+          name: it.menuItem?.name || 'Ürün',
+          quantity: Number(it.quantity),
+          price: Number(it.unitPrice)
+        });
+      });
+    });
+
+    // Kasa yazıcısını bul (varsayılan: 'kasa' veya 'default')
+    // PrinterConfig içinde stationId'lere bakarız. Eğer 'kasa' yoksa, ilk aktif olanı dene?
+    // Kullanıcı genelde kasadan çıkartacağı için 'kasa' isimli bir station arayalım.
+    let targetStation = 'kasa';
+    if (!restaurant.printerConfig || !restaurant.printerConfig[targetStation]) {
+      // Eğer 'kasa' yoksa 'default' dene
+      if (restaurant.printerConfig && restaurant.printerConfig['default']) {
+        targetStation = 'default';
+      } else if (restaurant.printerConfig) {
+        // İlk bulunanı seç
+        targetStation = Object.keys(restaurant.printerConfig)[0] || 'default';
+      }
+    }
+
+    const printerConfig = restaurant.printerConfig ? restaurant.printerConfig[targetStation] : null;
+    log(`Hedef yazıcı istasyonu: ${targetStation}`);
+
+    if (printerConfig && printerConfig.enabled && printerConfig.ip) {
+      const printerService = require('../services/printerService');
+
+      printerService.addOrUpdateStation(targetStation, {
+        name: targetStation,
+        ip: printerConfig.ip,
+        port: printerConfig.port || 9100,
+        enabled: true,
+        type: require('node-thermal-printer').PrinterTypes.EPSON,
+        characterSet: require('node-thermal-printer').CharacterSet.PC857_TURKISH,
+        codePage: 'CP857'
+      });
+
+      const printResult = await printerService.printInformationReceipt(targetStation, {
+        orderNumber: id.includes('grouped') ? `TBL-${tableNumber}` : id,
+        tableNumber: tableNumber || 'Paket',
+        items: consolidatedItems,
+        cashierName: cashierName || 'Kasiyer'
+      });
+
+      if (printResult.success) {
+        log(`Bilgi fişi başarıyla yazdırıldı: ${targetStation} (${printerConfig.ip})`, 'success');
+        return res.json({ success: true, message: 'Bilgi fişi yazdırıldı', steps });
+      } else {
+        log(`Yazdırma hatası: ${printResult.error}`, 'error');
+        return res.json({
+          success: false,
+          error: printResult.error,
+          isLocalIP: printResult.isLocalIP,
+          ip: printerConfig.ip,
+          stationItems: consolidatedItems, // Failover için items gönder
+          steps
+        });
+      }
+    } else {
+      log('Yazıcı yapılandırması eksik veya devre dışı', 'error');
+      return res.status(400).json({ success: false, message: 'Printer not configured', steps });
+    }
+
+  } catch (error) {
+    log(`Sistem hatası: ${error.message}`, 'error');
+    res.status(500).json({ success: false, message: 'Internal server error', steps });
+  }
+});
+
 module.exports = router;
 
 

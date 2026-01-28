@@ -312,7 +312,7 @@ export default function DeliveryPage() {
   const activeDeliveries = deliveries.filter(d => d.status === 'on_way').length;
   const pendingDeliveries = deliveries.filter(d => d.status === 'pending' || d.status === 'preparing').length;
   const deliveredToday = deliveries.filter(d => d.status === 'delivered').length;
-  const totalRevenue = deliveries.reduce((sum, d) => sum + d.totalAmount, 0);
+  const totalRevenue = deliveries.reduce((sum, d) => sum + (Number(d.totalAmount) || 0), 0);
 
   return (
     <div className="min-h-screen bg-gray-50">

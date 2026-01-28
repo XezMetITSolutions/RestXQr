@@ -332,6 +332,143 @@ class PrinterService {
     }
 
     /**
+     * Bilgi Fişi Yazdır (Kasa için)
+     */
+    async printInformationReceipt(station, orderData) {
+        const stationConfig = this.stations[station];
+
+        if (!stationConfig || !stationConfig.enabled || !stationConfig.ip) {
+            return { success: false, error: 'Printer not configured' };
+        }
+
+        // Cloud ortamında yerel IP kontrolü
+        const isCloud = process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
+        if (isCloud && this.isLocalIP(stationConfig.ip)) {
+            return {
+                success: false,
+                error: `Yazıcı yerel bir IP adresine sahip (${stationConfig.ip}). Lütfen 'Yerel Köprü' kullanın.`,
+                isLocalIP: true,
+                ip: stationConfig.ip
+            };
+        }
+
+        try {
+            const printer = new ThermalPrinter({
+                type: stationConfig.type,
+                interface: `tcp://${stationConfig.ip}:${stationConfig.port}`,
+                characterSet: CharacterSet.PC857_TURKISH,
+                removeSpecialCharacters: false,
+                lineCharacter: '-',
+                options: { timeout: 5000 }
+            });
+
+            const isConnected = await printer.isPrinterConnected();
+            if (!isConnected) throw new Error('Printer not connected');
+
+            // Logo ve restoran adı
+            printer.alignCenter();
+            // Logo path assumes backend root correctly
+            const path = require('path');
+            const logoPath = path.join(__dirname, '../../Kroren_Logo.png');
+            try {
+                // Not: node-thermal-printer image desteği bağımlılık gerektirebilir (jimp/canvas)
+                // Eğer hata alırsak sadece text yazdıracağız.
+                await printer.printImage(logoPath);
+            } catch (e) {
+                console.warn('Logo yazdırılamadı, text ile devam ediliyor:', e.message);
+                printer.bold(true);
+                printer.setTextDoubleHeight();
+                printer.println('KROREN KADIKOY');
+                printer.setTextNormal();
+                printer.bold(false);
+            }
+
+            printer.newLine();
+            printer.bold(true);
+            printer.println(this.encodeText('KROREN KADIKOY'));
+            printer.bold(false);
+            printer.drawLine();
+
+            // Sipariş bilgileri
+            printer.alignLeft();
+            printer.println(`Cek : ${orderData.orderNumber.substring(0, 8)}`);
+            printer.println(`Masa: MASA - ${orderData.tableNumber}`);
+            printer.newLine();
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('tr-TR');
+            const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+            printer.tableCustom([
+                { text: 'Tarih', align: 'LEFT', width: 0.5 },
+                { text: `${dateStr} ${timeStr}`, align: 'RIGHT', width: 0.5 }
+            ]);
+
+            printer.tableCustom([
+                { text: 'Kullanici', align: 'LEFT', width: 0.5 },
+                { text: orderData.cashierName || 'Kasiyer', align: 'RIGHT', width: 0.5 }
+            ]);
+
+            printer.tableCustom([
+                { text: 'Gelir Merkezi', align: 'LEFT', width: 0.5 },
+                { text: 'Restoran', align: 'RIGHT', width: 0.5 }
+            ]);
+
+            printer.drawLine();
+
+            // Ürünler
+            let subtotal = 0;
+            for (const item of orderData.items) {
+                const itemTotal = Number(item.price) * Number(item.quantity);
+                subtotal += itemTotal;
+
+                printer.println(`${item.quantity} x ${this.encodeText(item.name)}`);
+            }
+
+            printer.bold(true);
+            printer.tableCustom([
+                { text: 'ARA TOPLAM', align: 'LEFT', width: 0.5 },
+                { text: `${subtotal.toFixed(2)} TL`, align: 'RIGHT', width: 0.5 }
+            ]);
+            printer.bold(false);
+            printer.drawLine();
+
+            // Vergiler (KDV)
+            // Örnek: %10 KDV varsayalım (Gıda için %10, Alkol %20 vb. ama basit tutalım)
+            const taxRate = 0.10;
+            const taxAmount = subtotal * (taxRate / (1 + taxRate));
+            const netAmount = subtotal - taxAmount;
+
+            printer.println(this.encodeText(`Icecek (%10)`));
+            printer.tableCustom([
+                { text: `${subtotal.toFixed(2)} TL`, align: 'LEFT', width: 0.4 },
+                { text: `${taxAmount.toFixed(2)} KDV`, align: 'CENTER', width: 0.3 },
+                { text: `${netAmount.toFixed(2)} NET`, align: 'RIGHT', width: 0.3 }
+            ]);
+
+            printer.bold(true);
+            printer.setTextDoubleHeight();
+            printer.tableCustom([
+                { text: 'TOPLAM', align: 'LEFT', width: 0.5 },
+                { text: `${subtotal.toFixed(2)} TL`, align: 'RIGHT', width: 0.5 }
+            ]);
+            printer.setTextNormal();
+            printer.bold(false);
+            printer.drawLine();
+
+            printer.newLine();
+            printer.cut();
+
+            await printer.execute();
+            return { success: true };
+
+        } catch (error) {
+            console.error(`❌ Bilgi fişi yazdırma hatası:`, error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
      * Test yazdırma (Türkçe karakterlerle)
      */
     async printTest(station) {

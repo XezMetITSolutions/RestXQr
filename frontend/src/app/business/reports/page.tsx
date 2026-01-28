@@ -35,7 +35,7 @@ export default function ReportsPage() {
   const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || 'Kullanıcı';
   const displayEmail = authenticatedRestaurant?.email || authenticatedStaff?.email || '';
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'revenue' | 'hours'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'revenue' | 'hours' | 'endOfDay'>('overview');
   const [dateRange, setDateRange] = useState({
     start: new Date().toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
@@ -162,6 +162,25 @@ export default function ReportsPage() {
         XLSX.utils.book_append_sheet(wb, ws, t('Yoğun Saatler'));
       }
 
+      if (activeTab === 'endOfDay') {
+        // Z-Report logic for Excel
+        const rows = [
+          [t('Z-Raporu'), new Date().toLocaleDateString('tr-TR')],
+          [],
+          [t('Metrik'), t('Değer')],
+          [t('Toplam Ciro (Gross)'), currentDailyReport?.totalSales || 0],
+          [t('KDV Toplam (%10 Tahmini)'), (currentDailyReport?.totalSales || 0) * 0.10], // Estimated 10%
+          [t('Net Ciro'), (currentDailyReport?.totalSales || 0) * 0.90],
+          [t('Toplam Sipariş'), currentDailyReport?.totalOrders || 0],
+          [],
+          [t('Ödeme Dağılımı')],
+          [t('Yöntem'), t('Tutar')],
+          // Add payment breakdown loops here if needed for excel
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, t('Gün Sonu'));
+      }
+
       const arr = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
       const blob = new Blob([arr], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = URL.createObjectURL(blob);
@@ -208,7 +227,8 @@ export default function ReportsPage() {
                 <h1>${t('RestXQr İşletme Raporu')}</h1>
                 <p>${t('Rapor Türü')}: ${activeTab === 'overview' ? t('Genel Bakış') :
             activeTab === 'products' ? t('Ürün Performansı') :
-              activeTab === 'revenue' ? t('Ciro Analizi') : t('Saat Analizi')}</p>
+              activeTab === 'revenue' ? t('Ciro Analizi') :
+                activeTab === 'endOfDay' ? t('Gün Sonu (Z-Raporu)') : t('Saat Analizi')}</p>
                 <div class="print-date">${t('Yazdırma Tarihi')}: ${new Date().toLocaleString('tr-TR')}</div>
               </div>
               ${printContent.innerHTML}
@@ -304,22 +324,22 @@ export default function ReportsPage() {
 
   // Günlük rapor hesapla
   const currentDailyReport = {
-    totalSales: todayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0),
+    totalSales: todayOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0),
     totalOrders: todayOrders.length,
     averageOrderValue: todayOrders.length > 0
-      ? todayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0) / todayOrders.length
+      ? todayOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0) / todayOrders.length
       : 0,
     totalTables: new Set(todayOrders.map(order => order.tableNumber || order.table_id)).size,
     averageTableTime: 0 // Bu bilgi siparişlerde yok, backend'den gelmeli
   };
 
   // Gelir verileri
-  const todayRevenue = todayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
-  const yesterdayRevenue = yesterdayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
-  const thisWeekRevenue = thisWeekOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
-  const lastWeekRevenue = lastWeekOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
-  const thisMonthRevenue = thisMonthOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
-  const lastMonthRevenue = lastMonthOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0);
+  const todayRevenue = todayOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
+  const yesterdayRevenue = yesterdayOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
+  const thisWeekRevenue = thisWeekOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
+  const lastWeekRevenue = lastWeekOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
+  const thisMonthRevenue = thisMonthOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
+  const lastMonthRevenue = lastMonthOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
 
   const revenueData = {
     daily: {
@@ -378,7 +398,7 @@ export default function ReportsPage() {
     });
     dailyTrend.push({
       date: dateStr,
-      revenue: dayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0),
+      revenue: dayOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0),
       orders: dayOrders.length
     });
   }
@@ -401,7 +421,7 @@ export default function ReportsPage() {
     });
     weeklyTrend.push({
       week: `${weekStart.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })} - ${weekEnd.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}`,
-      revenue: weekOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0),
+      revenue: weekOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0),
       orders: weekOrders.length
     });
   }
@@ -421,7 +441,7 @@ export default function ReportsPage() {
     });
     monthlyTrend.push({
       month: monthDate.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }),
-      revenue: monthOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0),
+      revenue: monthOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0),
       orders: monthOrders.length
     });
   }
@@ -466,7 +486,7 @@ export default function ReportsPage() {
     const orderDate = new Date(order.createdAt || order.created_at);
     const hour = orderDate.getHours();
     if (hour >= 8 && hour < 20) {
-      hourlySales[hour - 8] += order.totalAmount || order.total || 0;
+      hourlySales[hour - 8] += Number(order.totalAmount) || Number(order.total) || 0;
       hourlyOrders[hour - 8] += 1;
     }
   });
@@ -592,6 +612,15 @@ export default function ReportsPage() {
                   💰 <TranslatedText>Ciro Analizi</TranslatedText>
                 </button>
                 <button
+                  onClick={() => setActiveTab('endOfDay')}
+                  className={`flex items-center gap-2 px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 ${activeTab === 'endOfDay'
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg scale-105'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                >
+                  📑 <TranslatedText>Gün Sonu</TranslatedText>
+                </button>
+                <button
                   onClick={() => setActiveTab('hours')}
                   className={`flex items-center gap-2 px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 ${activeTab === 'hours'
                     ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg scale-105'
@@ -711,7 +740,7 @@ export default function ReportsPage() {
                         <div className="flex items-center mt-1">
                           {(() => {
                             const yesterdayAvg = yesterdayOrders.length > 0
-                              ? yesterdayOrders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0) / yesterdayOrders.length
+                              ? yesterdayOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0) / yesterdayOrders.length
                               : 0;
                             const todayAvg = currentDailyReport.averageOrderValue;
                             const avgChange = yesterdayAvg > 0 ? ((todayAvg - yesterdayAvg) / yesterdayAvg) * 100 : 0;
@@ -1043,11 +1072,11 @@ export default function ReportsPage() {
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-sm"><TranslatedText>Toplam Ciro</TranslatedText></span>
-                            <span className="text-sm font-bold text-purple-600">{formatCurrency(orders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0))}</span>
+                            <span className="text-sm font-bold text-purple-600">{formatCurrency(orders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0))}</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-sm"><TranslatedText>Ortalama Sipariş</TranslatedText></span>
-                            <span className="text-sm font-bold text-purple-600">{formatCurrency(orders.length > 0 ? orders.reduce((sum, order) => sum + (order.totalAmount || order.total || 0), 0) / orders.length : 0)}</span>
+                            <span className="text-sm font-bold text-purple-600">{formatCurrency(orders.length > 0 ? orders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0) / orders.length : 0)}</span>
                           </div>
                         </div>
                       </div>
@@ -1083,6 +1112,199 @@ export default function ReportsPage() {
                   <div className="mt-3 flex flex-wrap gap-4 text-xs text-gray-600">
                     <div className="flex items-center gap-2"><span className="inline-block w-3 h-3 bg-blue-500 rounded-sm"></span> <TranslatedText>Sipariş yoğunluğu</TranslatedText></div>
                     <div className="flex items-center gap-2"><span className="inline-block w-3 h-3 bg-green-500 rounded-sm"></span> <TranslatedText>En kârlı saatler</TranslatedText></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Gün Sonu Raporları (End of Day) */}
+          {activeTab === 'endOfDay' && (
+            <div className="space-y-8">
+              {/* Z-Raporu Kartı */}
+              <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+                <div className="flex justify-between items-center mb-6 border-b pb-4">
+                  <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                    📑 <TranslatedText>Gün Sonu Z-Raporu</TranslatedText>
+                  </h3>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500"><TranslatedText>Tarih</TranslatedText></p>
+                    <p className="font-bold text-lg text-gray-800">{new Date().toLocaleDateString('tr-TR')}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                  {/* Sol Kolon: Finansal Özet */}
+                  <div className="space-y-6">
+                    <h4 className="text-lg font-bold text-gray-700 border-b pb-2"><TranslatedText>Finansal Özet</TranslatedText></h4>
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="font-medium text-gray-600"><TranslatedText>Toplam Satış (Brüt)</TranslatedText></span>
+                        <span className="text-xl font-bold text-gray-900">{formatCurrency(currentDailyReport?.totalSales || 0)}</span>
+                      </div>
+
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="font-medium text-gray-600"><TranslatedText>KDV (%10 Tahmini)</TranslatedText></span>
+                        <span className="text-xl font-bold text-red-600">
+                          {formatCurrency((currentDailyReport?.totalSales || 0) * 0.10)}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-100">
+                        <span className="font-bold text-green-800 text-lg"><TranslatedText>Net Satış</TranslatedText></span>
+                        <span className="text-2xl font-black text-green-600">
+                          {formatCurrency((currentDailyReport?.totalSales || 0) * 0.90)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-6">
+                      <h4 className="text-lg font-bold text-gray-700 border-b pb-2 mb-4"><TranslatedText>Satış Detayları</TranslatedText></h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white border rounded-xl p-4 text-center">
+                          <p className="text-gray-500 text-sm mb-1"><TranslatedText>Fiş Sayısı</TranslatedText></p>
+                          <p className="text-xl font-bold">{currentDailyReport?.totalOrders || 0}</p>
+                        </div>
+                        <div className="bg-white border rounded-xl p-4 text-center">
+                          <p className="text-gray-500 text-sm mb-1"><TranslatedText>İptal/İade</TranslatedText></p>
+                          <p className="text-xl font-bold text-red-500">0</p>
+                          {/* Backend'den iptal verisi gelince burası güncellenebilir */}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sağ Kolon: Ödeme Dağılımı */}
+                  <div className="space-y-6">
+                    <h4 className="text-lg font-bold text-gray-700 border-b pb-2"><TranslatedText>Ödeme Yöntemi Dağılımı</TranslatedText></h4>
+
+                    <div className="space-y-4">
+                      {/* Ödeme yöntemlerini hesapla */}
+                      {(() => {
+                        // Bu hesaplama render içinde yapılıyor, normalde useMemo kullanmak daha iyi olabilir ama basitlik için burada
+                        const paymentStats = {
+                          cash: 0,
+                          card: 0,
+                          online: 0
+                        };
+
+                        todayOrders.forEach(order => {
+                          const amount = Number(order.totalAmount) || Number(order.total) || 0;
+                          const method = order.paymentMethod || 'cash'; // Varsayılan nakit
+                          if (method === 'card' || method === 'kredi_karti') paymentStats.card += amount;
+                          else if (method === 'online') paymentStats.online += amount;
+                          else paymentStats.cash += amount;
+                        });
+
+                        const total = paymentStats.cash + paymentStats.card + paymentStats.online;
+
+                        return (
+                          <>
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                  <span className="font-medium text-gray-700"><TranslatedText>Nakit</TranslatedText></span>
+                                </div>
+                                <span className="font-bold">{formatCurrency(paymentStats.cash)}</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${total > 0 ? (paymentStats.cash / total) * 100 : 0}%` }}></div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                  <span className="font-medium text-gray-700"><TranslatedText>Kredi Kartı</TranslatedText></span>
+                                </div>
+                                <span className="font-bold">{formatCurrency(paymentStats.card)}</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: `${total > 0 ? (paymentStats.card / total) * 100 : 0}%` }}></div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                                  <span className="font-medium text-gray-700"><TranslatedText>Online Ödeme</TranslatedText></span>
+                                </div>
+                                <span className="font-bold">{formatCurrency(paymentStats.online)}</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                <div className="bg-purple-500 h-2.5 rounded-full" style={{ width: `${total > 0 ? (paymentStats.online / total) * 100 : 0}%` }}></div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ürün & Stok Raporu */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Satılan Ürünler */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    📦 <TranslatedText>Satılan Ürünler (Stok Çıkışı)</TranslatedText>
+                  </h3>
+                  <div className="overflow-y-auto max-h-96">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                          <th className="text-left p-3 text-xs font-bold text-gray-500 uppercase"><TranslatedText>Ürün</TranslatedText></th>
+                          <th className="text-right p-3 text-xs font-bold text-gray-500 uppercase"><TranslatedText>Adet</TranslatedText></th>
+                          <th className="text-right p-3 text-xs font-bold text-gray-500 uppercase"><TranslatedText>Toplam</TranslatedText></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {topProducts.map((product, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50">
+                            <td className="p-3 text-sm font-medium text-gray-800">{product.productName}</td>
+                            <td className="p-3 text-sm text-right font-bold text-blue-600">{product.totalQuantity}</td>
+                            <td className="p-3 text-sm text-right font-bold text-gray-900">{formatCurrency(product.totalRevenue)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Az Satanlar (Uyarı) */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    ⚠️ <TranslatedText>Hareket Görmeyen / Az Satanlar</TranslatedText>
+                  </h3>
+                  <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100 mb-4">
+                    <p className="text-sm text-yellow-800">
+                      <TranslatedText>Bu liste, menüde olup bugün hiç satılmayan veya çok az satılan ürünleri gösterir. Stok takibi ve fire kontrolü için önemlidir.</TranslatedText>
+                    </p>
+                  </div>
+                  {/* Burada normalde tüm menüden satılmayanlar çıkarılır ama şimdilik en az satanları gösterelim */}
+                  <div className="overflow-y-auto max-h-60">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                          <th className="text-left p-3 text-xs font-bold text-gray-500 uppercase"><TranslatedText>Ürün</TranslatedText></th>
+                          <th className="text-right p-3 text-xs font-bold text-gray-500 uppercase"><TranslatedText>Adet</TranslatedText></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {/* Reverse sort topProducts to get least sold from the active sales list used as proxy for now */}
+                        {[...topProducts].reverse().slice(0, 5).map((product, idx) => (
+                          <tr key={idx}>
+                            <td className="p-3 text-sm text-gray-600">{product.productName}</td>
+                            <td className="p-3 text-sm text-right font-bold text-gray-400">{product.totalQuantity}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
