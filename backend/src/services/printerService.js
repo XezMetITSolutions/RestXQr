@@ -434,12 +434,13 @@ class PrinterService {
             printer.drawLine();
 
             // Vergiler (KDV)
-            // Örnek: %10 KDV varsayalım (Gıda için %10, Alkol %20 vb. ama basit tutalım)
+            // Türkiye için %10 KDV
             const taxRate = 0.10;
-            const taxAmount = subtotal * (taxRate / (1 + taxRate));
+            // Eğer subtotal KDV dahil ise (gross ise):
+            const taxAmount = subtotal - (subtotal / (1 + taxRate));
             const netAmount = subtotal - taxAmount;
 
-            printer.println(this.encodeText(`Icecek (%10)`));
+            printer.println(this.encodeText(`KDV (%10)`));
             printer.tableCustom([
                 { text: `${subtotal.toFixed(2)} TL`, align: 'LEFT', width: 0.4 },
                 { text: `${taxAmount.toFixed(2)} KDV`, align: 'CENTER', width: 0.3 },

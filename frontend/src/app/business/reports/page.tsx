@@ -169,7 +169,7 @@ export default function ReportsPage() {
           [],
           [t('Metrik'), t('Değer')],
           [t('Toplam Ciro (Gross)'), currentDailyReport?.totalSales || 0],
-          [t('KDV Toplam (%10 Tahmini)'), (currentDailyReport?.totalSales || 0) * 0.10], // Estimated 10%
+          [t('KDV Toplam (%10)'), (currentDailyReport?.totalSales || 0) * 0.10],
           [t('Net Ciro'), (currentDailyReport?.totalSales || 0) * 0.90],
           [t('Toplam Sipariş'), currentDailyReport?.totalOrders || 0],
           [],
@@ -1145,7 +1145,7 @@ export default function ReportsPage() {
                       </div>
 
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="font-medium text-gray-600"><TranslatedText>KDV (%10 Tahmini)</TranslatedText></span>
+                        <span className="font-medium text-gray-600"><TranslatedText>KDV (%10)</TranslatedText></span>
                         <span className="text-xl font-bold text-red-600">
                           {formatCurrency((currentDailyReport?.totalSales || 0) * 0.10)}
                         </span>
