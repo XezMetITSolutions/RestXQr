@@ -111,6 +111,32 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
   },
 
   fetchRestaurantByUsername: async (username: string) => {
+    // Önce cache'ten yükle (hızlı açılış için)
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem(`restaurant_${username}`);
+      if (cached) {
+        try {
+          const restaurantData = JSON.parse(cached);
+          console.log('⚡ Using cached restaurant data for:', username);
+
+          // Cache'ten veriyi hemen state'e bas
+          let cachedMenuItems = restaurantData?.menuItems || [];
+          if (cachedMenuItems.length === 0 && restaurantData?.categories) {
+            cachedMenuItems = restaurantData.categories.flatMap((cat: any) => cat.items || []);
+          }
+
+          set((state) => ({
+            currentRestaurant: restaurantData,
+            restaurants: [...(Array.isArray(state.restaurants) ? state.restaurants : []).filter(r => r.id !== restaurantData.id), restaurantData],
+            categories: Array.isArray(restaurantData?.categories) ? restaurantData.categories : [],
+            menuItems: Array.isArray(cachedMenuItems) ? cachedMenuItems : [],
+          }));
+        } catch (e) {
+          console.error('❌ Cache parse error:', e);
+        }
+      }
+    }
+
     set({ loading: true, error: null });
     try {
       console.log('🔍 Fetching restaurant by username:', username);
@@ -139,6 +165,11 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
           })) : [],
           loading: false
         }));
+
+        // Backend'den gelen güncel veriyi cache'e kaydet
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`restaurant_${username}`, JSON.stringify(restaurantData));
+        }
 
         // Verify state was set
         const state = get();

@@ -7,7 +7,8 @@ import { FaShoppingCart, FaBell, FaArrowLeft, FaStar, FaPlus, FaInfo, FaUtensils
 import useRestaurantStore from '@/store/useRestaurantStore';
 import { useCartStore } from '@/store';
 import Toast from '@/components/Toast';
-import MenuItemModal from '@/components/MenuItemModal';
+import dynamic from 'next/dynamic';
+const MenuItemModal = dynamic(() => import('@/components/MenuItemModal'), { ssr: false });
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import TranslatedText from '@/components/TranslatedText';
 import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
@@ -321,8 +322,8 @@ function MenuPageContent() {
       if (!hasVisited) {
         setShowSplash(true);
         sessionStorage.setItem('menuVisitedOnce', '1');
-        // Splash süresini 1.6s'den 0.8s'e düşürerek açılışı hızlandırıyoruz
-        setTimeout(() => setShowSplash(false), 800);
+        // Splash süresini 0.8s'den 0.5s'e düşürerek açılışı hızlandırıyoruz
+        setTimeout(() => setShowSplash(false), 500);
       }
     } catch { }
   }, [fetchRestaurants, fetchRestaurantMenu]);
@@ -537,17 +538,6 @@ function MenuPageContent() {
         preparationTime: item.preparationTime
       };
 
-      console.log('🛒 SEPETE EKLEME:', {
-        timestamp: new Date().toLocaleString(),
-        ürün: item.name,
-        fiyat: item.price + '₺',
-        kategori: item.category,
-        restaurantId: currentRestaurant?.id,
-        restaurantName: currentRestaurant?.name,
-        masaNo: tableNumber,
-        cartItem
-      });
-
       addItem(cartItem);
       setToastVisible(true);
 
@@ -598,6 +588,25 @@ function MenuPageContent() {
     console.log('🐛 DEBUG BİLGİLERİ:', debugData);
     alert(JSON.stringify(debugData, null, 2));
   };
+
+  const MenuSkeleton = () => (
+    <div className="container mx-auto px-3 py-2 animate-pulse">
+      {[1, 2, 3, 4, 5, 6].map(i => (
+        <div key={i} className="bg-white rounded-lg shadow-sm border p-3 flex mb-3">
+          <div className="h-20 w-20 rounded-lg bg-gray-200 flex-shrink-0" />
+          <div className="ml-3 flex-grow">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+            <div className="h-3 bg-gray-100 rounded w-full mb-1" />
+            <div className="h-3 bg-gray-100 rounded w-5/6" />
+            <div className="flex justify-between items-center mt-3">
+              <div className="h-4 bg-gray-200 rounded w-16" />
+              <div className="h-3 bg-gray-100 rounded w-20" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   // Token geçersizse menüyü gizle
   if (tokenValid === false) {
@@ -824,18 +833,24 @@ function MenuPageContent() {
         {/* Categories */}
         <div className="pb-2 overflow-x-auto max-w-full">
           <div className="flex px-3 space-x-2 min-w-max max-w-full">
-            {menuCategories.map((category) => (
-              <button
-                key={category.id}
-                className={`px-3 py-1.5 rounded-full whitespace-nowrap text-dynamic-sm ${activeCategory === category.id
-                  ? 'btn-gradient'
-                  : 'bg-brand-surface text-gray-700'
-                  }`}
-                onClick={() => handleCategoryChange(category.id)}
-              >
-                {category.name}
-              </button>
-            ))}
+            {loading && menuCategories.length === 0 ? (
+              [1, 2, 3, 4].map(i => (
+                <div key={i} className="px-3 py-1.5 rounded-full bg-gray-200 w-20 h-8 animate-pulse" />
+              ))
+            ) : (
+              menuCategories.map((category) => (
+                <button
+                  key={category.id}
+                  className={`px-3 py-1.5 rounded-full whitespace-nowrap text-dynamic-sm ${activeCategory === category.id
+                    ? 'btn-gradient'
+                    : 'bg-brand-surface text-gray-700'
+                    }`}
+                  onClick={() => handleCategoryChange(category.id)}
+                >
+                  {category.name}
+                </button>
+              ))
+            )}
           </div>
         </div>
 
@@ -844,72 +859,77 @@ function MenuPageContent() {
         {/* Menu Items */}
         <div className="container mx-auto px-3 py-2 max-w-full">
           <div className="grid grid-cols-1 gap-3 max-w-full">
-            {filteredItems.map((item: any) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-lg shadow-sm border p-3 flex max-w-full cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]"
-                onClick={() => openModal(item)}
-              >
-                <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                  <Image
-                    src={item.imageUrl ?
-                      (item.imageUrl.startsWith('http') ?
-                        `${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}` :
-                        (() => {
-                          // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
-                          if (item.imageUrl.startsWith('/uploads/')) {
-                            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
-                            return `${baseUrl}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
-                          }
-                          return `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
-                        })())
-                      : '/placeholder-food.jpg'}
-                    alt={typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Menu item')}
-                    width={80}
-                    height={80}
-                    className="object-cover w-full h-full rounded-lg"
-                    unoptimized
-                  />
-                  {item.isPopular && (
-                    <div className="absolute top-0 left-0 text-white text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--brand-strong)' }}>
-                      <FaStar className="inline-block mr-1" size={8} />
-                      <TranslatedText>Popüler</TranslatedText>
-                    </div>
-                  )}
-                </div>
-                <div className="ml-3 flex-grow min-w-0 flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-semibold text-dynamic-sm truncate">
-                        {item.translations?.[language]?.name || (typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün'))}
-                      </h3>
-                      <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: primary }}>{item.price} ₺</span>
-                    </div>
-                    <p className="text-xs text-gray-600 line-clamp-2 mb-2 break-words">
-                      {item.translations?.[language]?.description || (typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || ''))}
-                    </p>
-
-                    {/* Allergens */}
-                    {item.allergens && item.allergens.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-1">
-                        {item.allergens.slice(0, 3).map((allergen: any, i: number) => (
-                          <span key={i} className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-full">
-                            {typeof allergen === 'string' ? allergen : (allergen[language as keyof typeof allergen] || allergen.tr || allergen.en)}
-                          </span>
-                        ))}
+            {loading && filteredItems.length === 0 ? (
+              <MenuSkeleton />
+            ) : (
+              filteredItems.map((item: any, idx: number) => (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-lg shadow-sm border p-3 flex max-w-full cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]"
+                  onClick={() => openModal(item)}
+                >
+                  <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                    <Image
+                      src={item.imageUrl ?
+                        (item.imageUrl.startsWith('http') ?
+                          `${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}` :
+                          (() => {
+                            // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
+                            if (item.imageUrl.startsWith('/uploads/')) {
+                              const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                              return `${baseUrl}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
+                            }
+                            return `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
+                          })())
+                        : '/placeholder-food.jpg'}
+                      alt={typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Menu item')}
+                      width={80}
+                      height={80}
+                      className="object-cover w-full h-full rounded-lg"
+                      unoptimized={!item.imageUrl}
+                      priority={idx < 4}
+                    />
+                    {item.isPopular && (
+                      <div className="absolute top-0 left-0 text-white text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--brand-strong)' }}>
+                        <FaStar className="inline-block mr-1" size={8} />
+                        <TranslatedText>Popüler</TranslatedText>
                       </div>
                     )}
                   </div>
+                  <div className="ml-3 flex-grow min-w-0 flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-semibold text-dynamic-sm truncate">
+                          {item.translations?.[language]?.name || (typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün'))}
+                        </h3>
+                        <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: primary }}>{item.price} ₺</span>
+                      </div>
+                      <p className="text-xs text-gray-600 line-clamp-2 mb-2 break-words">
+                        {item.translations?.[language]?.description || (typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || ''))}
+                      </p>
 
-                  <div className="flex justify-end mt-1">
-                    <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                      <FaPlus size={8} />
-                      <TranslatedText>Detaylar & Ekle</TranslatedText>
-                    </span>
+                      {/* Allergens */}
+                      {item.allergens && item.allergens.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-1">
+                          {item.allergens.slice(0, 3).map((allergen: any, i: number) => (
+                            <span key={i} className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-full">
+                              {typeof allergen === 'string' ? allergen : (allergen[language as keyof typeof allergen] || allergen.tr || allergen.en)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end mt-1">
+                      <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                        <FaPlus size={8} />
+                        <TranslatedText>Detaylar & Ekle</TranslatedText>
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
