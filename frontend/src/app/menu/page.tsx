@@ -650,7 +650,7 @@ function MenuPageContent() {
             <div className="relative inline-flex items-center justify-center mb-3">
               <div className="absolute inset-0 -z-10 h-24 w-24 rounded-full opacity-10" style={{ backgroundColor: 'var(--brand-primary)' }} />
               {settings?.branding?.logo ? (
-                <img src={settings.branding.logo} alt="Logo" className="h-20 w-20 object-contain rounded-md shadow-sm" />
+                <img src={settings?.branding?.logo} alt="Logo" className="h-20 w-20 object-contain rounded-md shadow-sm" />
               ) : (
                 <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'var(--brand-primary)' }}>
                   {(settings?.basicInfo?.name || 'Işletme').slice(0, 1)}
@@ -659,7 +659,7 @@ function MenuPageContent() {
             </div>
             <div className="text-dynamic-xl font-bold text-gray-900">{settings?.basicInfo?.name || 'İşletme'}</div>
             {settings?.branding?.showSloganOnLoading !== false && settings?.basicInfo?.slogan && (
-              <div className="text-dynamic-sm text-gray-600 mt-1">{settings.basicInfo.slogan}</div>
+              <div className="text-dynamic-sm text-gray-600 mt-1">{settings?.basicInfo?.slogan}</div>
             )}
             <div className="mt-4 mx-auto h-[1px] w-40 bg-gray-200" />
             <div className="mt-3 w-40 h-1 bg-gray-100 rounded overflow-hidden mx-auto">
@@ -747,7 +747,7 @@ function MenuPageContent() {
               }}
             >
               {(settings?.basicInfo?.menuSpecialContents?.length > 0) ? (
-                (settings.basicInfo.menuSpecialContents).map((content: any, idx: number) => (
+                (settings?.basicInfo?.menuSpecialContents || []).map((content: any, idx: number) => (
                   <div key={content.id || idx} className="w-full text-white p-3 bg-brand-gradient">
                     <div className="flex items-center">
                       <span className="text-lg mr-2">{content.emoji || '🎉'}</span>
@@ -935,7 +935,7 @@ function MenuPageContent() {
               {settings?.basicInfo?.showReviewInMenu && settings?.basicInfo?.googleReviewLink && (
                 <div className="hidden sm:block">
                   <a
-                    href={settings.basicInfo.googleReviewLink}
+                    href={settings?.basicInfo?.googleReviewLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-white hover:bg-gray-50"
@@ -958,7 +958,7 @@ function MenuPageContent() {
               {settings?.basicInfo?.showReviewInMenu && settings?.basicInfo?.googleReviewLink && (
                 <div className="block sm:hidden my-4">
                   <a
-                    href={settings.basicInfo.googleReviewLink}
+                    href={settings?.basicInfo?.googleReviewLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="relative overflow-hidden block rounded-xl shadow-lg transform transition active:scale-95"
@@ -999,9 +999,9 @@ function MenuPageContent() {
                 </div>
               )}
               {/* Instagram Button */}
-              {settings.basicInfo.showInstagramInMenu && (
+              {settings?.basicInfo?.showInstagramInMenu && (
                 <a
-                  href={settings.basicInfo.instagram || "https://instagram.com/restoranadi"}
+                  href={settings?.basicInfo?.instagram || "https://instagram.com/restoranadi"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-white hover:bg-gray-50"
@@ -1014,7 +1014,7 @@ function MenuPageContent() {
                     </span>
                   </div>
                   <button className="text-sm font-bold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-primary">
-                    @{settings.basicInfo.instagram?.replace('https://instagram.com/', '').replace('https://www.instagram.com/', '') || 'restoranadi'}
+                    @{settings?.basicInfo?.instagram?.replace('https://instagram.com/', '').replace('https://www.instagram.com/', '') || 'restoranadi'}
                   </button>
                 </a>
               )}

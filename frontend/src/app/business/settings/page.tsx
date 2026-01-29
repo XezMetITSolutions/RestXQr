@@ -183,10 +183,10 @@ function SettingsPageContent() {
     }));
   };
 
-  const selectedLanguages = settings.menuSettings.language || ['tr'];
+  const selectedLanguages = settings?.menuSettings?.language || ['tr'];
 
   const toggleLanguage = (code: string) => {
-    const current = settings.menuSettings.language || ['tr'];
+    const current = settings?.menuSettings?.language || ['tr'];
     if (current.includes(code)) {
       if (current.length === 1) {
         alert(getStatic('En az bir dil aktif olmalı.'));
@@ -211,19 +211,19 @@ function SettingsPageContent() {
       // Sadece boş olan alanları doldur, kullanıcı değiştirdiyse üzerine yazma
       const updates: any = {};
 
-      if (!settings.basicInfo.name && authenticatedRestaurant.name) {
+      if (!settings?.basicInfo?.name && authenticatedRestaurant.name) {
         updates.name = authenticatedRestaurant.name;
       }
-      if (!settings.basicInfo.subdomain && authenticatedRestaurant.username) {
+      if (!settings?.basicInfo?.subdomain && authenticatedRestaurant.username) {
         updates.subdomain = authenticatedRestaurant.username;
       }
-      if (!settings.basicInfo.address && authenticatedRestaurant.address) {
+      if (!settings?.basicInfo?.address && authenticatedRestaurant.address) {
         updates.address = authenticatedRestaurant.address;
       }
-      if (!settings.basicInfo.phone && authenticatedRestaurant.phone) {
+      if (!settings?.basicInfo?.phone && authenticatedRestaurant.phone) {
         updates.phone = authenticatedRestaurant.phone;
       }
-      if (!settings.basicInfo.email && authenticatedRestaurant.email) {
+      if (!settings?.basicInfo?.email && authenticatedRestaurant.email) {
         updates.email = authenticatedRestaurant.email;
       }
 
@@ -232,19 +232,19 @@ function SettingsPageContent() {
       }
 
       // Logo varsa ve settings'de logo yoksa branding'e ekle
-      if (authenticatedRestaurant.logo && !settings.branding.logo) {
+      if (authenticatedRestaurant.logo && !settings?.branding?.logo) {
         updateBranding({
           logo: authenticatedRestaurant.logo
         });
       }
 
       // Renkler varsa ve settings'de yoksa branding'e ekle
-      if (authenticatedRestaurant.primaryColor && !settings.branding.primaryColor) {
+      if (authenticatedRestaurant.primaryColor && !settings?.branding?.primaryColor) {
         updateBranding({
           primaryColor: authenticatedRestaurant.primaryColor
         });
       }
-      if (authenticatedRestaurant.secondaryColor && !settings.branding.secondaryColor) {
+      if (authenticatedRestaurant.secondaryColor && !settings?.branding?.secondaryColor) {
         updateBranding({
           secondaryColor: authenticatedRestaurant.secondaryColor
         });
@@ -413,7 +413,7 @@ function SettingsPageContent() {
 
     try {
       // Store'u güncelle
-      if (fieldName in settings.basicInfo) {
+      if (fieldName in (settings?.basicInfo || {})) {
         updateBasicInfo({ [fieldName]: value });
       }
 
@@ -452,7 +452,7 @@ function SettingsPageContent() {
   const BRIDGE_URL = 'http://localhost:3005';
 
   const handleTestPrint = async () => {
-    const ip = settings.printerSettings?.testIpAddress;
+    const ip = settings?.printerSettings?.testIpAddress;
     if (!ip) {
       alert(getStatic('Lütfen geçerli bir IP adresi girin.'));
       return;
@@ -627,7 +627,7 @@ function SettingsPageContent() {
                         <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => {
-                              const subdomain = authenticatedRestaurant?.username || settings.basicInfo.subdomain || 'kroren';
+                              const subdomain = authenticatedRestaurant?.username || settings?.basicInfo?.subdomain || 'kroren';
                               window.open(`https://${subdomain}.restxqr.com/menu`, '_blank');
                             }}
                             className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200 transition-colors"
@@ -673,7 +673,7 @@ function SettingsPageContent() {
                           </label>
                           <input
                             type="text"
-                            value={settings.basicInfo.name}
+                            value={settings?.basicInfo?.name}
                             onChange={(e) => updateBasicInfo({ name: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             placeholder={getStatic('İşletme Adı')}
@@ -684,7 +684,7 @@ function SettingsPageContent() {
                             <TranslatedText>İşletme Türü *</TranslatedText>
                           </label>
                           <select
-                            value={settings.basicInfo.businessType}
+                            value={settings?.basicInfo?.businessType}
                             onChange={(e) => updateBasicInfo({ businessType: e.target.value as any })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           >
@@ -709,7 +709,7 @@ function SettingsPageContent() {
                           <div className="flex-1 relative">
                             <input
                               type="text"
-                              value={settings.basicInfo.subdomain || authenticatedRestaurant?.username || ''}
+                              value={settings?.basicInfo?.subdomain || authenticatedRestaurant?.username || ''}
                               readOnly
                               disabled
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
@@ -719,7 +719,7 @@ function SettingsPageContent() {
                           <span className="text-gray-500 font-medium">.restxqr.com</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          <TranslatedText>Menü adresiniz:</TranslatedText> <span className="font-medium text-purple-600">https://{settings.basicInfo.subdomain || authenticatedRestaurant?.username || 'aksaray'}.restxqr.com</span>
+                          <TranslatedText>Menü adresiniz:</TranslatedText> <span className="font-medium text-purple-600">https://{settings?.basicInfo?.subdomain || authenticatedRestaurant?.username || 'aksaray'}.restxqr.com</span>
                         </p>
                         <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
                           <FaExclamationTriangle size={12} />
@@ -734,7 +734,7 @@ function SettingsPageContent() {
                             <TranslatedText>Açıklama</TranslatedText>
                           </label>
                           <textarea
-                            value={settings.basicInfo.description}
+                            value={settings?.basicInfo?.description}
                             onChange={(e) => updateBasicInfo({ description: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             rows={3}
@@ -747,7 +747,7 @@ function SettingsPageContent() {
                           </label>
                           <input
                             type="text"
-                            value={settings.basicInfo.slogan || ''}
+                            value={settings?.basicInfo?.slogan || ''}
                             onChange={(e) => updateBasicInfo({ slogan: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             placeholder={getStatic('Örn: En taze malzemelerle...')}
@@ -763,7 +763,7 @@ function SettingsPageContent() {
                             <TranslatedText>Adres</TranslatedText>
                           </label>
                           <textarea
-                            value={settings.basicInfo.address}
+                            value={settings?.basicInfo?.address}
                             onChange={(e) => updateBasicInfo({ address: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             rows={2}
@@ -776,7 +776,7 @@ function SettingsPageContent() {
                           </label>
                           <input
                             type="text"
-                            value={settings.basicInfo.phone}
+                            value={settings?.basicInfo?.phone}
                             onChange={(e) => updateBasicInfo({ phone: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             placeholder={getStatic('Telefon numaranız')}
@@ -788,7 +788,7 @@ function SettingsPageContent() {
                           </label>
                           <input
                             type="email"
-                            value={settings.basicInfo.email}
+                            value={settings?.basicInfo?.email}
                             onChange={(e) => updateBasicInfo({ email: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             placeholder={getStatic('E-posta adresiniz')}
@@ -800,7 +800,7 @@ function SettingsPageContent() {
                           </label>
                           <input
                             type="url"
-                            value={settings.basicInfo.website || ''}
+                            value={settings?.basicInfo?.website || ''}
                             onChange={(e) => updateBasicInfo({ website: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             placeholder={getStatic('Web sitenizin adresi')}
@@ -817,13 +817,13 @@ function SettingsPageContent() {
                         <div className="flex gap-2 mb-4">
                           <input
                             type="text"
-                            value={settings.basicInfo.wifiPassword || ''}
+                            value={settings?.basicInfo?.wifiPassword || ''}
                             onChange={(e) => updateBasicInfo({ wifiPassword: e.target.value })}
                             className="flex-1 px-4 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder={getStatic('Ücretsiz Wi-Fi şifresi: 12345678')}
                           />
                           <button
-                            onClick={() => handleSaveField('wifiPassword', settings.basicInfo.wifiPassword)}
+                            onClick={() => handleSaveField('wifiPassword', settings?.basicInfo?.wifiPassword)}
                             className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             title={getStatic('WiFi Şifresini Kaydet')}
                           >
@@ -834,7 +834,7 @@ function SettingsPageContent() {
                           <input
                             type="checkbox"
                             id="showWifiInMenu"
-                            checked={settings.basicInfo.showWifiInMenu || false}
+                            checked={settings?.basicInfo?.showWifiInMenu || false}
                             onChange={(e) => {
                               updateBasicInfo({ showWifiInMenu: e.target.checked });
                               handleSaveField('showWifiInMenu', e.target.checked);
@@ -854,7 +854,7 @@ function SettingsPageContent() {
                             <TranslatedText>Çalışma Saatleri (7 Gün)</TranslatedText>
                           </h4>
                           <button
-                            onClick={() => handleSaveField('workingHours', settings.basicInfo.workingHours)}
+                            onClick={() => handleSaveField('workingHours', settings?.basicInfo?.workingHours)}
                             className="px-3 py-1 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors"
                           >
                             <TranslatedText>Çalışma Saatlerini Kaydet</TranslatedText>
@@ -870,10 +870,10 @@ function SettingsPageContent() {
                             { key: 'saturday', label: getStatic('Cumartesi'), day: 'saturday' },
                             { key: 'sunday', label: getStatic('Pazar'), day: 'sunday' }
                           ].map((dayInfo) => {
-                            const workingHours = settings.basicInfo.workingHours ?
-                              (typeof settings.basicInfo.workingHours === 'string'
-                                ? JSON.parse(settings.basicInfo.workingHours || '{}')
-                                : settings.basicInfo.workingHours)
+                            const workingHours = settings?.basicInfo?.workingHours ?
+                              (typeof settings?.basicInfo?.workingHours === 'string'
+                                ? JSON.parse(settings?.basicInfo?.workingHours || '{}')
+                                : settings?.basicInfo?.workingHours)
                               : {};
                             const dayData = workingHours[dayInfo.key] || { isOpen: true, openTime: '09:00', closeTime: '22:00' };
 
@@ -929,7 +929,7 @@ function SettingsPageContent() {
                           <input
                             type="checkbox"
                             id="showHoursInMenu"
-                            checked={settings.basicInfo.showHoursInMenu || false}
+                            checked={settings?.basicInfo?.showHoursInMenu || false}
                             onChange={(e) => {
                               updateBasicInfo({ showHoursInMenu: e.target.checked });
                               handleSaveField('showHoursInMenu', e.target.checked);
@@ -966,7 +966,7 @@ function SettingsPageContent() {
                             </label>
                             <input
                               type="url"
-                              value={settings.basicInfo.googleReviewLink || ''}
+                              value={settings?.basicInfo?.googleReviewLink || ''}
                               onChange={(e) => updateBasicInfo({ googleReviewLink: e.target.value })}
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                               placeholder="https://www.google.com/maps/place/restoranadi/reviews"
@@ -980,7 +980,7 @@ function SettingsPageContent() {
                             <input
                               type="checkbox"
                               id="showReviewInMenu"
-                              checked={settings.basicInfo.showReviewInMenu || false}
+                              checked={settings?.basicInfo?.showReviewInMenu || false}
                               onChange={(e) => updateBasicInfo({ showReviewInMenu: e.target.checked })}
                               className="rounded border-yellow-300 text-yellow-600 focus:ring-yellow-500"
                             />
@@ -1006,7 +1006,7 @@ function SettingsPageContent() {
                           </div>
                           <button
                             onClick={() => {
-                              const currentContents = settings.basicInfo.menuSpecialContents || [];
+                              const currentContents = settings?.basicInfo?.menuSpecialContents || [];
                               const newContent = {
                                 id: Date.now().toString(),
                                 emoji: '⭐',
@@ -1023,7 +1023,7 @@ function SettingsPageContent() {
                         </div>
 
                         {/* Dinamik İçerikler */}
-                        {(!settings.basicInfo.menuSpecialContents || settings.basicInfo.menuSpecialContents.length === 0) ? (
+                        {(!settings?.basicInfo?.menuSpecialContents || settings?.basicInfo?.menuSpecialContents.length === 0) ? (
                           <div className="text-center py-8 bg-white rounded-lg border-2 border-dashed border-gray-300">
                             <p className="text-gray-500 mb-4"><TranslatedText>Henüz içerik eklenmemiş</TranslatedText></p>
                             <button
@@ -1044,7 +1044,7 @@ function SettingsPageContent() {
                           </div>
                         ) : (
                           <div className="space-y-4">
-                            {(settings.basicInfo.menuSpecialContents || []).map((content: any, index: number) => (
+                            {(settings?.basicInfo?.menuSpecialContents || []).map((content: any, index: number) => (
                               <div key={content.id || index} className="bg-white p-4 rounded-lg border border-gray-200">
                                 <div className="flex items-start justify-between mb-4">
                                   <div className="flex items-center gap-3">
@@ -1065,7 +1065,7 @@ function SettingsPageContent() {
                                                 key={emoji}
                                                 type="button"
                                                 onClick={() => {
-                                                  const contents = [...(settings.basicInfo.menuSpecialContents || [])];
+                                                  const contents = [...(settings?.basicInfo?.menuSpecialContents || [])];
                                                   contents[index] = { ...contents[index], emoji: emoji };
                                                   updateBasicInfo({ menuSpecialContents: contents });
                                                   setShowEmojiPicker(null);
@@ -1081,7 +1081,7 @@ function SettingsPageContent() {
                                               type="text"
                                               value={content.emoji || '⭐'}
                                               onChange={(e) => {
-                                                const contents = [...(settings.basicInfo.menuSpecialContents || [])];
+                                                const contents = [...(settings?.basicInfo?.menuSpecialContents || [])];
                                                 contents[index] = { ...contents[index], emoji: e.target.value };
                                                 updateBasicInfo({ menuSpecialContents: contents });
                                               }}
@@ -1101,7 +1101,7 @@ function SettingsPageContent() {
                                         type="text"
                                         value={content.title || ''}
                                         onChange={(e) => {
-                                          const contents = [...(settings.basicInfo.menuSpecialContents || [])];
+                                          const contents = [...(settings?.basicInfo?.menuSpecialContents || [])];
                                           contents[index] = { ...contents[index], title: e.target.value };
                                           updateBasicInfo({ menuSpecialContents: contents });
                                         }}
@@ -1112,7 +1112,7 @@ function SettingsPageContent() {
                                   </div>
                                   <button
                                     onClick={() => {
-                                      const contents = (settings.basicInfo.menuSpecialContents || []).filter((_: any, i: number) => i !== index);
+                                      const contents = (settings?.basicInfo?.menuSpecialContents || []).filter((_: any, i: number) => i !== index);
                                       updateBasicInfo({ menuSpecialContents: contents });
                                     }}
                                     className="ml-3 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -1129,7 +1129,7 @@ function SettingsPageContent() {
                                     type="text"
                                     value={content.description || ''}
                                     onChange={(e) => {
-                                      const contents = [...(settings.basicInfo.menuSpecialContents || [])];
+                                      const contents = [...(settings?.basicInfo?.menuSpecialContents || [])];
                                       contents[index] = { ...contents[index], description: e.target.value };
                                       updateBasicInfo({ menuSpecialContents: contents });
                                     }}
@@ -1138,7 +1138,7 @@ function SettingsPageContent() {
                                   />
                                 </div>
                                 <button
-                                  onClick={() => handleSaveField('menuSpecialContents', settings.basicInfo.menuSpecialContents)}
+                                  onClick={() => handleSaveField('menuSpecialContents', settings?.basicInfo?.menuSpecialContents)}
                                   className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                                 >
                                   <FaSave size={14} className="inline mr-2" />
@@ -1165,7 +1165,7 @@ function SettingsPageContent() {
                           </label>
                           <input
                             type="url"
-                            value={settings.basicInfo.facebook || ''}
+                            value={settings?.basicInfo?.facebook || ''}
                             onChange={(e) => updateBasicInfo({ facebook: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             placeholder={getStatic('Facebook profil linkiniz')}
@@ -1178,13 +1178,13 @@ function SettingsPageContent() {
                           <div className="flex gap-2">
                             <input
                               type="url"
-                              value={settings.basicInfo.instagram || ''}
+                              value={settings?.basicInfo?.instagram || ''}
                               onChange={(e) => updateBasicInfo({ instagram: e.target.value })}
                               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                               placeholder={getStatic('Instagram profil linkiniz')}
                             />
                             <button
-                              onClick={() => handleSaveField('instagram', settings.basicInfo.instagram)}
+                              onClick={() => handleSaveField('instagram', settings?.basicInfo?.instagram)}
                               className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                               title={getStatic('Instagram Linkini Kaydet')}
                             >
@@ -1195,7 +1195,7 @@ function SettingsPageContent() {
                             <input
                               type="checkbox"
                               id="showInstagramInMenu"
-                              checked={settings.basicInfo.showInstagramInMenu || false}
+                              checked={settings?.basicInfo?.showInstagramInMenu || false}
                               onChange={(e) => {
                                 updateBasicInfo({ showInstagramInMenu: e.target.checked });
                                 handleSaveField('showInstagramInMenu', e.target.checked);
@@ -1213,7 +1213,7 @@ function SettingsPageContent() {
                           </label>
                           <input
                             type="url"
-                            value={settings.basicInfo.twitter || ''}
+                            value={settings?.basicInfo?.twitter || ''}
                             onChange={(e) => updateBasicInfo({ twitter: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             placeholder={getStatic('Twitter profil linkiniz')}
@@ -1232,7 +1232,7 @@ function SettingsPageContent() {
                               type="radio"
                               name="status"
                               value="active"
-                              checked={settings.basicInfo.status === 'active'}
+                              checked={settings?.basicInfo?.status === 'active'}
                               onChange={(e) => updateBasicInfo({ status: e.target.value as any })}
                               className="text-purple-600"
                             />
@@ -1243,7 +1243,7 @@ function SettingsPageContent() {
                               type="radio"
                               name="status"
                               value="inactive"
-                              checked={settings.basicInfo.status === 'inactive'}
+                              checked={settings?.basicInfo?.status === 'inactive'}
                               onChange={(e) => updateBasicInfo({ status: e.target.value as any })}
                               className="text-purple-600"
                             />
@@ -1302,9 +1302,9 @@ function SettingsPageContent() {
                             className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors cursor-pointer"
                             onClick={() => (document.getElementById('logoFileInput') as HTMLInputElement)?.click()}
                           >
-                            {settings.branding.logo ? (
+                            {settings?.branding?.logo ? (
                               <div className="flex flex-col items-center">
-                                <img src={settings.branding.logo} alt="Logo" className="max-h-24 object-contain mb-3" />
+                                <img src={settings?.branding?.logo} alt="Logo" className="max-h-24 object-contain mb-3" />
                                 <button className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors">
                                   <FaUpload className="inline mr-2" />
                                   <TranslatedText>Logoyu Değiştir</TranslatedText>
@@ -1351,7 +1351,7 @@ function SettingsPageContent() {
                                 <button
                                   key={color.value}
                                   onClick={() => updateBranding({ primaryColor: color.value })}
-                                  className={`w-12 h-12 rounded-lg border-2 transition-colors ${settings.branding.primaryColor === color.value ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200 hover:border-gray-400'}`}
+                                  className={`w-12 h-12 rounded-lg border-2 transition-colors ${settings?.branding?.primaryColor === color.value ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200 hover:border-gray-400'}`}
                                   style={{ backgroundColor: color.value }}
                                   title={color.name}
                                 />
@@ -1360,11 +1360,11 @@ function SettingsPageContent() {
                             <div className="flex items-center gap-3">
                               <input
                                 type="color"
-                                value={settings.branding.primaryColor}
+                                value={settings?.branding?.primaryColor}
                                 onChange={(e) => updateBranding({ primaryColor: e.target.value })}
                                 className="w-12 h-10 p-0 border rounded cursor-pointer"
                               />
-                              <span className="text-sm text-gray-600">{settings.branding.primaryColor}</span>
+                              <span className="text-sm text-gray-600">{settings?.branding?.primaryColor}</span>
                             </div>
                           </div>
 
@@ -1374,11 +1374,11 @@ function SettingsPageContent() {
                             <div className="flex items-center gap-3">
                               <input
                                 type="color"
-                                value={settings.branding.secondaryColor}
+                                value={settings?.branding?.secondaryColor}
                                 onChange={(e) => updateBranding({ secondaryColor: e.target.value })}
                                 className="w-12 h-10 p-0 border rounded cursor-pointer"
                               />
-                              <span className="text-sm text-gray-600">{settings.branding.secondaryColor}</span>
+                              <span className="text-sm text-gray-600">{settings?.branding?.secondaryColor}</span>
                             </div>
                             <p className="text-xs text-gray-500 mt-1"><TranslatedText>Arka plan ve vurgu renkleri otomatik hesaplanacak</TranslatedText></p>
                           </div>
@@ -1388,7 +1388,7 @@ function SettingsPageContent() {
                         <div className="mb-4">
                           <label className="block text-sm font-medium text-gray-700 mb-2"><TranslatedText>Font Ailesi</TranslatedText></label>
                           <select
-                            value={settings.branding.fontFamily}
+                            value={settings?.branding?.fontFamily}
                             onChange={(e) => updateBranding({ fontFamily: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           >
@@ -1416,7 +1416,7 @@ function SettingsPageContent() {
                               <button
                                 key={size.id}
                                 onClick={() => updateBranding({ fontSize: size.id as any })}
-                                className={`px-3 py-2 text-sm rounded-lg border transition-colors ${settings.branding.fontSize === size.id
+                                className={`px-3 py-2 text-sm rounded-lg border transition-colors ${settings?.branding?.fontSize === size.id
                                   ? 'border-purple-500 bg-purple-50 text-purple-700'
                                   : 'border-gray-300 hover:border-gray-400'
                                   }`}
@@ -1448,7 +1448,7 @@ function SettingsPageContent() {
                                 <button
                                   key={style.id}
                                   onClick={() => updateBranding({ headerStyle: style.id as any })}
-                                  className={`p-3 text-left rounded-lg border transition-colors ${settings.branding.headerStyle === style.id
+                                  className={`p-3 text-left rounded-lg border transition-colors ${settings?.branding?.headerStyle === style.id
                                     ? 'border-purple-500 bg-purple-50 text-purple-700'
                                     : 'border-gray-300 hover:border-gray-400'
                                     }`}
@@ -1648,7 +1648,7 @@ function SettingsPageContent() {
                             onClick={() => {
                               updateMenuSettings({ defaultLanguage: language.code });
                             }}
-                            className={`border rounded-2xl p-4 flex items-center justify-between transition-all ${settings.menuSettings.defaultLanguage === language.code
+                            className={`border rounded-2xl p-4 flex items-center justify-between transition-all ${settings?.menuSettings?.defaultLanguage === language.code
                               ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
                               : 'border-gray-200 hover:border-purple-200'
                               }`}
@@ -1657,12 +1657,12 @@ function SettingsPageContent() {
                               <span className="text-2xl">{language.flag}</span>
                               <div className="text-left">
                                 <p className="text-sm font-semibold text-gray-900">{language.label}</p>
-                                {settings.menuSettings.defaultLanguage === language.code && (
+                                {settings?.menuSettings?.defaultLanguage === language.code && (
                                   <span className="text-xs text-purple-600 font-medium">Varsayılan</span>
                                 )}
                               </div>
                             </div>
-                            {settings.menuSettings.defaultLanguage === language.code && (
+                            {settings?.menuSettings?.defaultLanguage === language.code && (
                               <FaCheckCircle className="text-purple-600 text-xl" />
                             )}
                           </button>
@@ -1709,12 +1709,12 @@ function SettingsPageContent() {
                             <input
                               type="checkbox"
                               id="allowCashPayment"
-                              checked={settings.paymentSettings.allowCashPayment}
+                              checked={settings?.paymentSettings?.allowCashPayment}
                               onChange={(e) => updatePaymentSettings({ allowCashPayment: e.target.checked })}
                               className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                             />
                             <label htmlFor="allowCashPayment" className="text-sm font-medium text-gray-700 cursor-pointer">
-                              {settings.paymentSettings.allowCashPayment ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
+                              {settings?.paymentSettings?.allowCashPayment ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
                             </label>
                           </div>
                         </div>
@@ -1734,12 +1734,12 @@ function SettingsPageContent() {
                             <input
                               type="checkbox"
                               id="allowCardPayment"
-                              checked={settings.paymentSettings.allowCardPayment}
+                              checked={settings?.paymentSettings?.allowCardPayment}
                               onChange={(e) => updatePaymentSettings({ allowCardPayment: e.target.checked })}
                               className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                             />
                             <label htmlFor="allowCardPayment" className="text-sm font-medium text-gray-700 cursor-pointer">
-                              {settings.paymentSettings.allowCardPayment ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
+                              {settings?.paymentSettings?.allowCardPayment ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
                             </label>
                           </div>
                         </div>
@@ -1759,12 +1759,12 @@ function SettingsPageContent() {
                             <input
                               type="checkbox"
                               id="allowTips"
-                              checked={settings.paymentSettings.allowTips}
+                              checked={settings?.paymentSettings?.allowTips}
                               onChange={(e) => updatePaymentSettings({ allowTips: e.target.checked })}
                               className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                             />
                             <label htmlFor="allowTips" className="text-sm font-medium text-gray-700 cursor-pointer">
-                              {settings.paymentSettings.allowTips ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
+                              {settings?.paymentSettings?.allowTips ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
                             </label>
                           </div>
                         </div>
@@ -1784,12 +1784,12 @@ function SettingsPageContent() {
                             <input
                               type="checkbox"
                               id="allowDonations"
-                              checked={settings.paymentSettings.allowDonations}
+                              checked={settings?.paymentSettings?.allowDonations}
                               onChange={(e) => updatePaymentSettings({ allowDonations: e.target.checked })}
                               className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                             />
                             <label htmlFor="allowDonations" className="text-sm font-medium text-gray-700 cursor-pointer">
-                              {settings.paymentSettings.allowDonations ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
+                              {settings?.paymentSettings?.allowDonations ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
                             </label>
                           </div>
                         </div>

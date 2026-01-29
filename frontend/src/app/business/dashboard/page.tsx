@@ -362,7 +362,7 @@ function BusinessDashboardContent() {
             </div>
             <div className="flex items-center gap-4">
               <div className="hidden sm:block">
-                <LanguageSelector enabledLanguages={useBusinessSettingsStore(s => s.settings.menuSettings.language)} />
+                <LanguageSelector enabledLanguages={useBusinessSettingsStore(s => s.settings?.menuSettings?.language)} />
               </div>
             </div>
           </div>

@@ -93,9 +93,9 @@ function CartPageContent() {
 
       // Initial payment method selection based on settings
       // Eğer hiçbir ödeme yöntemi aktif değilse, kasada ödeme için default 'cash' kullan
-      if (settings.paymentSettings.allowCardPayment) {
+      if (settings?.paymentSettings?.allowCardPayment) {
         setPaymentMethod('card');
-      } else if (settings.paymentSettings.allowCashPayment) {
+      } else if (settings?.paymentSettings?.allowCashPayment) {
         setPaymentMethod('cash');
       } else {
         // Tüm ödeme yöntemleri kapalı - kasada ödeme modu
@@ -129,13 +129,13 @@ function CartPageContent() {
     console.log('🔄 Cart Settings Updated:', {
       restaurantId: currentRestaurant?.id,
       restaurantName: currentRestaurant?.name,
-      allowCard: settings.paymentSettings.allowCardPayment,
-      allowCash: settings.paymentSettings.allowCashPayment
+      allowCard: settings?.paymentSettings?.allowCardPayment,
+      allowCash: settings?.paymentSettings?.allowCashPayment
     });
 
-    if (settings.paymentSettings.allowCardPayment) {
+    if (settings?.paymentSettings?.allowCardPayment) {
       setPaymentMethod('card');
-    } else if (settings.paymentSettings.allowCashPayment) {
+    } else if (settings?.paymentSettings?.allowCashPayment) {
       setPaymentMethod('cash');
     } else {
       setPaymentMethod('cash');
@@ -363,7 +363,7 @@ function CartPageContent() {
             notes: itemNote
           };
         }),
-        notes: `Ödeme yöntemi: ${(!settings.paymentSettings.allowCardPayment && !settings.paymentSettings.allowCashPayment) ? 'Kasada Ödeme' :
+        notes: `Ödeme yöntemi: ${(!settings?.paymentSettings?.allowCardPayment && !settings?.paymentSettings?.allowCashPayment) ? 'Kasada Ödeme' :
           (paymentMethod === 'cash' ? 'nakit' : paymentMethod)
           }, Bahşiş: ${tipAmount}₺, Bağış: ${donationAmount}₺`,
         orderType: 'dine_in'
@@ -718,16 +718,16 @@ function CartPageContent() {
               </div>
 
               {/* Payment Options */}
-              {(settings.paymentSettings.allowCardPayment || settings.paymentSettings.allowCashPayment || settings.paymentSettings.allowTips || settings.paymentSettings.allowDonations) ? (
+              {(settings?.paymentSettings?.allowCardPayment || settings?.paymentSettings?.allowCashPayment || settings?.paymentSettings?.allowTips || settings?.paymentSettings?.allowDonations) ? (
                 <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
                   <h3 className="font-semibold text-dynamic-sm mb-4">
                     <TranslatedText>Ödeme Seçenekleri</TranslatedText>
                   </h3>
 
                   {/* Payment Method Selection */}
-                  {(settings.paymentSettings.allowCardPayment || settings.paymentSettings.allowCashPayment) && (
+                  {(settings?.paymentSettings?.allowCardPayment || settings?.paymentSettings?.allowCashPayment) && (
                     <div className="grid grid-cols-2 gap-3 mb-4">
-                      {settings.paymentSettings.allowCardPayment && (
+                      {settings?.paymentSettings?.allowCardPayment && (
                         <button
                           onClick={() => setPaymentMethod('card')}
                           className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
@@ -740,7 +740,7 @@ function CartPageContent() {
                         </button>
                       )}
 
-                      {settings.paymentSettings.allowCashPayment && (
+                      {settings?.paymentSettings?.allowCashPayment && (
                         <button
                           onClick={() => setPaymentMethod('cash')}
                           className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${paymentMethod === 'cash' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
@@ -756,9 +756,9 @@ function CartPageContent() {
                   )}
 
                   {/* Additional Options */}
-                  {(settings.paymentSettings.allowTips || settings.paymentSettings.allowDonations) && (
+                  {(settings?.paymentSettings?.allowTips || settings?.paymentSettings?.allowDonations) && (
                     <div className="space-y-3">
-                      {settings.paymentSettings.allowTips && (
+                      {settings?.paymentSettings?.allowTips && (
                         <button
                           onClick={handleTip}
                           className="w-full p-3 rounded-lg border border-gray-200 flex items-center justify-between hover:bg-gray-50"
@@ -775,7 +775,7 @@ function CartPageContent() {
                         </button>
                       )}
 
-                      {settings.paymentSettings.allowDonations && (
+                      {settings?.paymentSettings?.allowDonations && (
                         <button
                           onClick={handleDonation}
                           className="w-full p-3 rounded-lg border border-gray-200 flex items-center justify-between hover:bg-gray-50"
@@ -875,181 +875,187 @@ function CartPageContent() {
             </Link>
           </div>
         </nav>
-      </main>
+      </main >
 
       {/* Payment Modal */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 m-4 max-w-sm w-full">
-            <h3 className="text-lg font-semibold mb-4">
-              <TranslatedText>Sipariş Onayı</TranslatedText>
-            </h3>
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                <TranslatedText>Toplam Tutar:</TranslatedText>
-              </p>
-              <p className="text-2xl font-bold" style={{ color: primary }}>
-                ₺{total.toFixed(2)}
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowPaymentModal(false)}
-                className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                <TranslatedText>İptal</TranslatedText>
-              </button>
-              <button
-                onClick={handlePayment}
-                disabled={isSubmitting}
-                className="flex-1 py-2 px-4 btn btn-primary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <TranslatedText>Gönderiliyor...</TranslatedText>
-                  </div>
-                ) : (
-                  <TranslatedText>Siparişi Tamamla</TranslatedText>
-                )}
-              </button>
+      {
+        showPaymentModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-lg p-6 m-4 max-w-sm w-full">
+              <h3 className="text-lg font-semibold mb-4">
+                <TranslatedText>Sipariş Onayı</TranslatedText>
+              </h3>
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  <TranslatedText>Toplam Tutar:</TranslatedText>
+                </p>
+                <p className="text-2xl font-bold" style={{ color: primary }}>
+                  ₺{total.toFixed(2)}
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  <TranslatedText>İptal</TranslatedText>
+                </button>
+                <button
+                  onClick={handlePayment}
+                  disabled={isSubmitting}
+                  className="flex-1 py-2 px-4 btn btn-primary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <TranslatedText>Gönderiliyor...</TranslatedText>
+                    </div>
+                  ) : (
+                    <TranslatedText>Siparişi Tamamla</TranslatedText>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Tip Modal */}
-      {showTipModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 m-4 max-w-sm w-full">
-            <h3 className="text-lg font-semibold mb-4">
-              <TranslatedText>Bahşiş Miktarı</TranslatedText>
-            </h3>
+      {
+        showTipModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-lg p-6 m-4 max-w-sm w-full">
+              <h3 className="text-lg font-semibold mb-4">
+                <TranslatedText>Bahşiş Miktarı</TranslatedText>
+              </h3>
 
-            {/* Yüzde Butonları */}
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                <TranslatedText>Hızlı Seçim</TranslatedText>
-              </p>
-              <div className="grid grid-cols-3 gap-2 mb-4">
+              {/* Yüzde Butonları */}
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  <TranslatedText>Hızlı Seçim</TranslatedText>
+                </p>
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <button
+                    onClick={() => setTipAmount(subtotal * 0.03)}
+                    className="py-2 px-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                  >
+                    3% - ₺{(subtotal * 0.03).toFixed(2)}
+                  </button>
+                  <button
+                    onClick={() => setTipAmount(subtotal * 0.05)}
+                    className="py-2 px-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
+                  >
+                    5% - ₺{(subtotal * 0.05).toFixed(2)}
+                  </button>
+                  <button
+                    onClick={() => setTipAmount(subtotal * 0.10)}
+                    className="py-2 px-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
+                  >
+                    10% - ₺{(subtotal * 0.10).toFixed(2)}
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <TranslatedText>Manuel Miktar</TranslatedText>
+                </label>
+                <input
+                  type="number"
+                  value={tipAmount}
+                  onChange={(e) => setTipAmount(Number(e.target.value))}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  placeholder="0.00"
+                  step="0.01"
+                />
+              </div>
+
+              <div className="flex gap-3">
                 <button
-                  onClick={() => setTipAmount(subtotal * 0.03)}
-                  className="py-2 px-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                  onClick={() => setShowTipModal(false)}
+                  className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                 >
-                  3% - ₺{(subtotal * 0.03).toFixed(2)}
+                  <TranslatedText>İptal</TranslatedText>
                 </button>
                 <button
-                  onClick={() => setTipAmount(subtotal * 0.05)}
-                  className="py-2 px-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
+                  onClick={() => setShowTipModal(false)}
+                  className="flex-1 py-2 px-4 btn btn-primary rounded-lg"
                 >
-                  5% - ₺{(subtotal * 0.05).toFixed(2)}
-                </button>
-                <button
-                  onClick={() => setTipAmount(subtotal * 0.10)}
-                  className="py-2 px-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
-                >
-                  10% - ₺{(subtotal * 0.10).toFixed(2)}
+                  <TranslatedText>Tamam</TranslatedText>
                 </button>
               </div>
             </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <TranslatedText>Manuel Miktar</TranslatedText>
-              </label>
-              <input
-                type="number"
-                value={tipAmount}
-                onChange={(e) => setTipAmount(Number(e.target.value))}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                placeholder="0.00"
-                step="0.01"
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowTipModal(false)}
-                className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                <TranslatedText>İptal</TranslatedText>
-              </button>
-              <button
-                onClick={() => setShowTipModal(false)}
-                className="flex-1 py-2 px-4 btn btn-primary rounded-lg"
-              >
-                <TranslatedText>Tamam</TranslatedText>
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Donation Modal */}
-      {showDonationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 m-4 max-w-sm w-full">
-            <h3 className="text-lg font-semibold mb-4">
-              <TranslatedText>Bağış Miktarı</TranslatedText>
-            </h3>
+      {
+        showDonationModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-lg p-6 m-4 max-w-sm w-full">
+              <h3 className="text-lg font-semibold mb-4">
+                <TranslatedText>Bağış Miktarı</TranslatedText>
+              </h3>
 
-            {/* Yüzde Butonları */}
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                <TranslatedText>Hızlı Seçim</TranslatedText>
-              </p>
-              <div className="grid grid-cols-3 gap-2 mb-4">
+              {/* Yüzde Butonları */}
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  <TranslatedText>Hızlı Seçim</TranslatedText>
+                </p>
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <button
+                    onClick={() => setDonationAmount(subtotal * 0.03)}
+                    className="py-2 px-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                  >
+                    3% - ₺{(subtotal * 0.03).toFixed(2)}
+                  </button>
+                  <button
+                    onClick={() => setDonationAmount(subtotal * 0.05)}
+                    className="py-2 px-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
+                  >
+                    5% - ₺{(subtotal * 0.05).toFixed(2)}
+                  </button>
+                  <button
+                    onClick={() => setDonationAmount(subtotal * 0.10)}
+                    className="py-2 px-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
+                  >
+                    10% - ₺{(subtotal * 0.10).toFixed(2)}
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <TranslatedText>Manuel Miktar</TranslatedText>
+                </label>
+                <input
+                  type="number"
+                  value={donationAmount}
+                  onChange={(e) => setDonationAmount(Number(e.target.value))}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  placeholder="0.00"
+                  step="0.01"
+                />
+              </div>
+              <div className="flex gap-3">
                 <button
-                  onClick={() => setDonationAmount(subtotal * 0.03)}
-                  className="py-2 px-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                  onClick={() => setShowDonationModal(false)}
+                  className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                 >
-                  3% - ₺{(subtotal * 0.03).toFixed(2)}
+                  <TranslatedText>İptal</TranslatedText>
                 </button>
                 <button
-                  onClick={() => setDonationAmount(subtotal * 0.05)}
-                  className="py-2 px-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
+                  onClick={() => setShowDonationModal(false)}
+                  className="flex-1 py-2 px-4 btn btn-primary rounded-lg"
                 >
-                  5% - ₺{(subtotal * 0.05).toFixed(2)}
-                </button>
-                <button
-                  onClick={() => setDonationAmount(subtotal * 0.10)}
-                  className="py-2 px-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
-                >
-                  10% - ₺{(subtotal * 0.10).toFixed(2)}
+                  <TranslatedText>Tamam</TranslatedText>
                 </button>
               </div>
             </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <TranslatedText>Manuel Miktar</TranslatedText>
-              </label>
-              <input
-                type="number"
-                value={donationAmount}
-                onChange={(e) => setDonationAmount(Number(e.target.value))}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                placeholder="0.00"
-                step="0.01"
-              />
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDonationModal(false)}
-                className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                <TranslatedText>İptal</TranslatedText>
-              </button>
-              <button
-                onClick={() => setShowDonationModal(false)}
-                className="flex-1 py-2 px-4 btn btn-primary rounded-lg"
-              >
-                <TranslatedText>Tamam</TranslatedText>
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
     </>
   );

@@ -131,16 +131,16 @@ export default function PaymentModal({
 
         <div className="p-4 overflow-y-auto max-h-[70vh]">
           {/* Payment Methods */}
-          {(settings.paymentSettings.allowCardPayment || settings.paymentSettings.allowCashPayment) && (
+          {(settings?.paymentSettings?.allowCardPayment || settings?.paymentSettings?.allowCashPayment) && (
             <div className="mb-6">
               <h3 className="font-semibold mb-3">{t.paymentMethod}</h3>
               <div className="grid grid-cols-3 gap-3">
-                {settings.paymentSettings.allowCardPayment && (
+                {settings?.paymentSettings?.allowCardPayment && (
                   <button
                     onClick={() => setPaymentMethod('card')}
                     className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-colors ${paymentMethod === 'card'
-                        ? 'border-current text-white'
-                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                      ? 'border-current text-white'
+                      : 'border-gray-200 text-gray-700 hover:border-gray-300'
                       }`}
                     style={paymentMethod === 'card' ? { backgroundColor: restaurantColor, borderColor: restaurantColor } : {}}
                   >
@@ -149,12 +149,12 @@ export default function PaymentModal({
                   </button>
                 )}
 
-                {settings.paymentSettings.allowCashPayment && (
+                {settings?.paymentSettings?.allowCashPayment && (
                   <button
                     onClick={() => setPaymentMethod('cash')}
                     className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-colors ${paymentMethod === 'cash'
-                        ? 'border-current text-white'
-                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                      ? 'border-current text-white'
+                      : 'border-gray-200 text-gray-700 hover:border-gray-300'
                       }`}
                     style={paymentMethod === 'cash' ? { backgroundColor: restaurantColor, borderColor: restaurantColor } : {}}
                   >
@@ -164,12 +164,12 @@ export default function PaymentModal({
                 )}
 
                 {/* QR payment tied to card setting */}
-                {settings.paymentSettings.allowCardPayment && (
+                {settings?.paymentSettings?.allowCardPayment && (
                   <button
                     onClick={() => setPaymentMethod('qr')}
                     className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-colors ${paymentMethod === 'qr'
-                        ? 'border-current text-white'
-                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                      ? 'border-current text-white'
+                      : 'border-gray-200 text-gray-700 hover:border-gray-300'
                       }`}
                     style={paymentMethod === 'qr' ? { backgroundColor: restaurantColor, borderColor: restaurantColor } : {}}
                   >
@@ -182,7 +182,7 @@ export default function PaymentModal({
           )}
 
           {/* Tip Section */}
-          {(showTipOptions && settings.paymentSettings.allowTips) && (
+          {(showTipOptions && settings?.paymentSettings?.allowTips) && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold flex items-center gap-2">
@@ -204,8 +204,8 @@ export default function PaymentModal({
                     key={percentage}
                     onClick={() => handleTipSelection(percentage)}
                     className={`p-3 rounded-lg border-2 text-center transition-colors ${tipAmount === calculateTip(percentage) && tipType === 'percentage'
-                        ? 'border-current text-white'
-                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                      ? 'border-current text-white'
+                      : 'border-gray-200 text-gray-700 hover:border-gray-300'
                       }`}
                     style={tipAmount === calculateTip(percentage) && tipType === 'percentage'
                       ? { backgroundColor: restaurantColor, borderColor: restaurantColor }

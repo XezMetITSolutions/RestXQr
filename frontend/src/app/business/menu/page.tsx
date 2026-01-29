@@ -183,7 +183,7 @@ export default function MenuManagement() {
 
   const { settings } = useBusinessSettingsStore();
   const selectedLanguages = settings?.menuSettings?.language?.length
-    ? settings.menuSettings.language
+    ? settings?.menuSettings?.language
     : ['tr'];
   const translationLanguages = useMemo(
     () => selectedLanguages.filter((lang) => lang !== 'tr'),

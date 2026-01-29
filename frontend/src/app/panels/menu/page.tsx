@@ -46,8 +46,8 @@ function MenuPageContent() {
   const [showSplash, setShowSplash] = useState(false);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [tokenMessage, setTokenMessage] = useState('');
-  const primary = settings.branding.primaryColor;
-  const secondary = settings.branding.secondaryColor || settings.branding.primaryColor;
+  const primary = settings?.branding?.primaryColor || '#8B5CF6';
+  const secondary = settings?.branding?.secondaryColor || settings?.branding?.primaryColor || '#8B5CF6';
 
   // Subdomain'den restaurant bulma - Demo için Aksaray restoranını kullan
   const getCurrentRestaurant = () => {
@@ -361,17 +361,17 @@ function MenuPageContent() {
           <div className="text-center px-6 animate-scaleIn">
             <div className="relative inline-flex items-center justify-center mb-3">
               <div className="absolute inset-0 -z-10 h-24 w-24 rounded-full opacity-10" style={{ backgroundColor: 'var(--brand-primary)' }} />
-              {settings.branding.logo ? (
-                <img src={settings.branding.logo} alt="Logo" className="h-20 w-20 object-contain rounded-md shadow-sm" />
+              {settings?.branding?.logo ? (
+                <img src={settings?.branding?.logo} alt="Logo" className="h-20 w-20 object-contain rounded-md shadow-sm" />
               ) : (
                 <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'var(--brand-primary)' }}>
-                  {(settings.basicInfo.name || 'Işletme').slice(0, 1)}
+                  {(settings?.basicInfo?.name || 'Işletme').slice(0, 1)}
                 </div>
               )}
             </div>
-            <div className="text-dynamic-xl font-bold text-gray-900">{settings.basicInfo.name || 'İşletme'}</div>
-            {settings.branding.showSloganOnLoading !== false && settings.basicInfo.slogan && (
-              <div className="text-dynamic-sm text-gray-600 mt-1">{settings.basicInfo.slogan}</div>
+            <div className="text-dynamic-xl font-bold text-gray-900">{settings?.basicInfo?.name || 'İşletme'}</div>
+            {settings?.branding?.showSloganOnLoading !== false && settings?.basicInfo?.slogan && (
+              <div className="text-dynamic-sm text-gray-600 mt-1">{settings?.basicInfo?.slogan}</div>
             )}
             <div className="mt-4 mx-auto h-[1px] w-40 bg-gray-200" />
             <div className="mt-3 w-40 h-1 bg-gray-100 rounded overflow-hidden mx-auto">
@@ -428,11 +428,11 @@ function MenuPageContent() {
             <div
               className="flex animate-dynamic-slide"
               style={{
-                width: `${Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2) * 100}%`
+                width: `${Math.max((settings?.basicInfo?.menuSpecialContents?.length || 2), 2) * 100}%`
               }}
             >
-              {(settings.basicInfo.menuSpecialContents && settings.basicInfo.menuSpecialContents.length > 0) ? (
-                settings.basicInfo.menuSpecialContents.map((content: any, idx: number) => (
+              {(settings?.basicInfo?.menuSpecialContents && settings?.basicInfo?.menuSpecialContents?.length > 0) ? (
+                settings?.basicInfo?.menuSpecialContents.map((content: any, idx: number) => (
                   <div key={content.id || idx} className="w-full text-white p-3 bg-brand-gradient">
                     <div className="flex items-center">
                       <span className="text-lg mr-2">{content.emoji || '🎉'}</span>
@@ -454,10 +454,10 @@ function MenuPageContent() {
                       <span className="text-lg mr-2">🎉</span>
                       <div>
                         <div className="font-semibold text-sm">
-                          <TranslatedText>{settings.basicInfo.dailySpecialTitle || 'Bugüne Özel!'}</TranslatedText>
+                          <TranslatedText>{settings?.basicInfo?.dailySpecialTitle || 'Bugüne Özel!'}</TranslatedText>
                         </div>
                         <div className="text-xs opacity-90">
-                          <TranslatedText>{settings.basicInfo.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}</TranslatedText>
+                          <TranslatedText>{settings?.basicInfo?.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}</TranslatedText>
                         </div>
                       </div>
                     </div>
@@ -467,10 +467,10 @@ function MenuPageContent() {
                       <span className="text-lg mr-2">🍲</span>
                       <div>
                         <div className="font-semibold text-sm">
-                          <TranslatedText>{settings.basicInfo.soupOfDayTitle || 'Günün Çorbası'}</TranslatedText>
+                          <TranslatedText>{settings?.basicInfo?.soupOfDayTitle || 'Günün Çorbası'}</TranslatedText>
                         </div>
                         <div className="text-xs opacity-90">
-                          <TranslatedText>{settings.basicInfo.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}</TranslatedText>
+                          <TranslatedText>{settings?.basicInfo?.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}</TranslatedText>
                         </div>
                       </div>
                     </div>
@@ -484,7 +484,7 @@ function MenuPageContent() {
         <style jsx>{`
           @keyframes dynamic-slide {
             ${(() => {
-            const count = Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2);
+            const count = Math.max((settings?.basicInfo?.menuSpecialContents?.length || 2), 2);
             if (count <= 1) return '0% { transform: translateX(0); } 100% { transform: translateX(0); }';
 
             let keyframes = '';
@@ -501,7 +501,7 @@ function MenuPageContent() {
           })()}
           }
           .animate-dynamic-slide {
-            animation: dynamic-slide ${Math.max((settings.basicInfo.menuSpecialContents?.length || 2), 2) * 4}s infinite ease-in-out;
+            animation: dynamic-slide ${Math.max((settings?.basicInfo?.menuSpecialContents?.length || 2), 2) * 4}s infinite ease-in-out;
           }
         `}</style>
 
@@ -512,8 +512,8 @@ function MenuPageContent() {
               <button
                 key={category.id}
                 className={`px-3 py-1.5 rounded-full whitespace-nowrap text-dynamic-sm ${activeCategory === category.id
-                    ? 'btn-gradient'
-                    : 'bg-brand-surface text-gray-700'
+                  ? 'btn-gradient'
+                  : 'bg-brand-surface text-gray-700'
                   }`}
                 onClick={() => handleCategoryChange(category.id)}
               >
@@ -604,7 +604,7 @@ function MenuPageContent() {
           <div className="rounded-xl p-5 shadow-lg border bg-tone1">
             <div className="grid grid-cols-1 gap-3">
               {/* WiFi Info */}
-              {settings.basicInfo.showWifiInMenu && (
+              {settings?.basicInfo?.showWifiInMenu && (
                 <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
                   <div className="flex items-center">
                     <span className="text-lg mr-3">📶</span>
@@ -613,7 +613,7 @@ function MenuPageContent() {
                     </span>
                   </div>
                   <span className="text-sm font-bold px-2 py-1 rounded" style={{ color: 'var(--brand-strong)', backgroundColor: 'var(--brand-surface)' }}>
-                    {settings.basicInfo.wifiPassword || 'restoran2024'}
+                    {settings?.basicInfo?.wifiPassword || 'restoran2024'}
                   </span>
                 </div>
               )}
@@ -636,7 +636,7 @@ function MenuPageContent() {
                 </button>
               </a>
               {/* Working Hours */}
-              {settings.basicInfo.showHoursInMenu && (
+              {settings?.basicInfo?.showHoursInMenu && (
                 <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
                   <div className="flex items-center">
                     <span className="text-lg mr-3">🕒</span>
@@ -645,14 +645,14 @@ function MenuPageContent() {
                     </span>
                   </div>
                   <span className="text-sm font-bold" style={{ color: 'var(--brand-strong)' }}>
-                    {settings.basicInfo.workingHours || '09:00 - 23:00'}
+                    {settings?.basicInfo?.workingHours || '09:00 - 23:00'}
                   </span>
                 </div>
               )}
               {/* Instagram Button */}
-              {settings.basicInfo.showInstagramInMenu && (
+              {settings?.basicInfo?.showInstagramInMenu && (
                 <a
-                  href={settings.basicInfo.instagram || "https://instagram.com/restoranadi"}
+                  href={settings?.basicInfo?.instagram || "https://instagram.com/restoranadi"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-tone3"
@@ -665,7 +665,7 @@ function MenuPageContent() {
                     </span>
                   </div>
                   <button className="text-sm font-bold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-primary">
-                    @{settings.basicInfo.instagram?.replace('https://instagram.com/', '').replace('https://www.instagram.com/', '') || 'restoranadi'}
+                    @{settings?.basicInfo?.instagram?.replace('https://instagram.com/', '').replace('https://www.instagram.com/', '') || 'restoranadi'}
                   </button>
                 </a>
               )}

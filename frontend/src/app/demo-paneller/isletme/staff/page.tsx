@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  FaUsers, 
+import {
+  FaUsers,
   FaPlus,
   FaEdit,
   FaTrash,
@@ -52,10 +52,10 @@ import { demoStaff } from '@/data/demoIsletmeData';
 export default function StaffPage() {
   const router = useRouter();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
-  const { 
-    settings, 
-    updateStaffCredentials, 
-    generateStaffCredentials 
+  const {
+    settings,
+    updateStaffCredentials,
+    generateStaffCredentials
   } = useBusinessSettingsStore();
   // Feature flag: per-staff panel credentials (keep code but disable UI by default)
   const individualStaffPanelsEnabled = false;
@@ -88,7 +88,7 @@ export default function StaffPage() {
   useEffect(() => {
     // Auth'u initialize et
     initializeAuth();
-    
+
     // Demo için session kontrolü yok
   }, [isAuthenticated, router, initializeAuth]);
 
@@ -97,7 +97,7 @@ export default function StaffPage() {
     const loadStaffFromBackend = async () => {
       // Demo modunda demo verileri kullan
       const isDemo = typeof window !== 'undefined' && window.location.pathname.includes('/demo-paneller/isletme');
-      
+
       if (isDemo) {
         console.log('📡 Using demo staff data');
         setStaff(demoStaff);
@@ -155,7 +155,7 @@ export default function StaffPage() {
         const name = typeof member.name === 'string' ? member.name : (member.name?.tr || member.name?.en || '');
         const email = typeof member.email === 'string' ? member.email : '';
         const phone = typeof member.phone === 'string' ? member.phone : '';
-        
+
         return (
           name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -255,7 +255,7 @@ export default function StaffPage() {
       department: newStaff.department,
       startDate: now.toISOString().slice(0, 10),
       status: 'active',
-      lastLogin: `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,
+      lastLogin: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
       totalOrders: 0,
       rating: 0,
       notes: newStaff.notes,
@@ -275,10 +275,10 @@ export default function StaffPage() {
           username: newStaff.username,
           password: newStaff.password
         };
-        
+
         const response = await apiService.createStaff(authenticatedRestaurant.id, staffData);
         console.log('✅ Staff created in backend:', response);
-        
+
         // Backend'den dönen ID'yi kullan
         if (response?.data?.id) {
           newMember.id = response.data.id;
@@ -292,12 +292,12 @@ export default function StaffPage() {
     const updatedStaff = [newMember, ...staff];
     setStaff(updatedStaff);
     setFilteredStaff(updatedStaff);
-    
+
     // localStorage'a kaydet
     if (typeof window !== 'undefined') {
       localStorage.setItem('business_staff', JSON.stringify(updatedStaff));
     }
-    
+
     setShowAddModal(false);
     setNewStaff({
       name: '',
@@ -313,12 +313,12 @@ export default function StaffPage() {
     // Rol bazlı yönlendirme bilgisi
     const rolePanelMap: { [key: string]: string } = {
       'waiter': 'Garson Paneli',
-      'cashier': 'Kasa Paneli', 
+      'cashier': 'Kasa Paneli',
       'chef': 'Mutfak Paneli',
       'manager': 'Yönetim Paneli',
       'admin': 'Admin Paneli'
     };
-    
+
     const panelName = rolePanelMap[newStaff.role] || 'Panel';
     alert(`${name} personeli başarıyla eklendi! ${panelName} için giriş yapabilir.`);
   };
@@ -327,7 +327,7 @@ export default function StaffPage() {
     setSelectedStaff(staffMember);
     setShowEditModal(true);
   };
- 
+
   const handleUpdateStaff = async () => {
     if (!selectedStaff) { return; }
     const name = (selectedStaff.name || '').trim();
@@ -338,7 +338,7 @@ export default function StaffPage() {
     // Backend'e güncelleme gönder
     try {
       if (authenticatedRestaurant?.id) {
-        const updateData = {
+        const updateData: any = {
           name: selectedStaff.name,
           email: selectedStaff.email,
           phone: selectedStaff.phone,
@@ -348,15 +348,15 @@ export default function StaffPage() {
           status: selectedStaff.status,
           username: selectedStaff.username
         };
-        
+
         // Şifre sadece değiştirilmişse ekle
         if (selectedStaff.password && selectedStaff.password.trim() !== '') {
           updateData.password = selectedStaff.password;
         }
-        
-        const response = await apiService.updateStaff(selectedStaff.id, updateData);
+
+        const response = await apiService.updateStaff(String(selectedStaff.id), updateData);
         console.log('✅ Staff updated in backend:', response);
-        
+
         // Başarı mesajı
         if (updateData.password) {
           alert('✅ Personel bilgileri ve şifre başarıyla güncellendi!');
@@ -371,12 +371,12 @@ export default function StaffPage() {
     }
 
     setStaff(prev => prev.map(s => s.id === selectedStaff.id ? selectedStaff : s));
-    
+
     // localStorage'a kaydet
     if (typeof window !== 'undefined') {
       localStorage.setItem('business_staff', JSON.stringify(staff.map(s => s.id === selectedStaff.id ? selectedStaff : s)));
     }
-    
+
     setShowEditModal(false);
     alert('Personel bilgileri başarıyla güncellendi!');
   };
@@ -387,23 +387,23 @@ export default function StaffPage() {
       try {
         console.log('📡 Calling backend delete API...');
         // Backend'den sil
-        await apiService.deleteStaff(staffId);
+        await apiService.deleteStaff(String(staffId));
         console.log('✅ Staff deleted from backend:', staffId);
-        
+
         // Frontend state'den sil
         setStaff(staff.filter(s => s.id !== staffId));
         console.log('✅ Staff removed from frontend state');
         alert('Personel başarıyla silindi!');
       } catch (error) {
         console.error('❌ Error deleting staff:', error);
-        alert('Personel silinirken hata oluştu: ' + error.message);
+        alert('Personel silinirken hata oluştu: ' + (error instanceof Error ? error.message : String(error)));
       }
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -421,13 +421,13 @@ export default function StaffPage() {
               >
                 <FaBars className="text-lg text-gray-600" />
               </button>
-            <div>
+              <div>
                 <h2 className="text-lg sm:text-2xl font-semibold text-gray-800">Personel</h2>
                 <p className="text-xs sm:text-sm text-gray-500 mt-1 hidden sm:block">Personel bilgilerini yönetin ve takip edin</p>
-            </div>
+              </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
-              <button 
+              <button
                 onClick={() => setShowAddModal(true)}
                 className="px-2 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
               >
@@ -609,16 +609,16 @@ export default function StaffPage() {
 
                       <div className="flex items-center gap-2">
                         {individualStaffPanelsEnabled && (
-                        <button
-                          onClick={() => {
-                            setSelectedStaff(member);
-                            setShowPanelModal(true);
-                          }}
-                          className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                          title="Panel Bilgileri"
-                        >
-                          <FaCog />
-                        </button>
+                          <button
+                            onClick={() => {
+                              setSelectedStaff(member);
+                              setShowPanelModal(true);
+                            }}
+                            className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                            title="Panel Bilgileri"
+                          >
+                            <FaCog />
+                          </button>
                         )}
                         <button
                           onClick={() => handleEditStaff(member)}
@@ -703,7 +703,7 @@ export default function StaffPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="mt-3 space-y-1 text-xs text-gray-600">
                       <div className="flex items-center gap-2">
                         <FaPhone className="text-gray-400" />
@@ -795,7 +795,7 @@ export default function StaffPage() {
                   <input
                     type="text"
                     value={newStaff.name}
-                    onChange={(e) => setNewStaff({...newStaff, name: e.target.value})}
+                    onChange={(e) => setNewStaff({ ...newStaff, name: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
                     placeholder="Personel adı"
                   />
@@ -808,7 +808,7 @@ export default function StaffPage() {
                   <input
                     type="text"
                     value={newStaff.username}
-                    onChange={(e) => setNewStaff({...newStaff, username: e.target.value})}
+                    onChange={(e) => setNewStaff({ ...newStaff, username: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
                     placeholder="kullanici_adi"
                   />
@@ -821,7 +821,7 @@ export default function StaffPage() {
                   <input
                     type="password"
                     value={newStaff.password}
-                    onChange={(e) => setNewStaff({...newStaff, password: e.target.value})}
+                    onChange={(e) => setNewStaff({ ...newStaff, password: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
                     placeholder="••••••••"
                   />
@@ -834,7 +834,7 @@ export default function StaffPage() {
                   <input
                     type="email"
                     value={newStaff.email}
-                    onChange={(e) => setNewStaff({...newStaff, email: e.target.value})}
+                    onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
                     placeholder="email@example.com"
                   />
@@ -847,7 +847,7 @@ export default function StaffPage() {
                   <input
                     type="text"
                     value={newStaff.phone}
-                    onChange={(e) => setNewStaff({...newStaff, phone: e.target.value})}
+                    onChange={(e) => setNewStaff({ ...newStaff, phone: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
                     placeholder="0532 123 45 67"
                   />
@@ -860,7 +860,7 @@ export default function StaffPage() {
                     </label>
                     <select
                       value={newStaff.role}
-                      onChange={(e) => setNewStaff({...newStaff, role: e.target.value})}
+                      onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value })}
                       className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
                     >
                       <option value="waiter">Garson</option>
@@ -876,7 +876,7 @@ export default function StaffPage() {
                     </label>
                     <select
                       value={newStaff.department}
-                      onChange={(e) => setNewStaff({...newStaff, department: e.target.value})}
+                      onChange={(e) => setNewStaff({ ...newStaff, department: e.target.value })}
                       className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
                     >
                       <option value="service">Servis</option>
@@ -893,7 +893,7 @@ export default function StaffPage() {
                   </label>
                   <textarea
                     value={newStaff.notes}
-                    onChange={(e) => setNewStaff({...newStaff, notes: e.target.value})}
+                    onChange={(e) => setNewStaff({ ...newStaff, notes: e.target.value })}
                     rows={3}
                     className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
                     placeholder="Personel hakkında notlar..."
@@ -936,7 +936,7 @@ export default function StaffPage() {
                   <input
                     type="text"
                     value={selectedStaff.name}
-                    onChange={(e) => setSelectedStaff({...selectedStaff, name: e.target.value})}
+                    onChange={(e) => setSelectedStaff({ ...selectedStaff, name: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
@@ -948,7 +948,7 @@ export default function StaffPage() {
                   <input
                     type="email"
                     value={selectedStaff.email}
-                    onChange={(e) => setSelectedStaff({...selectedStaff, email: e.target.value})}
+                    onChange={(e) => setSelectedStaff({ ...selectedStaff, email: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
@@ -960,7 +960,7 @@ export default function StaffPage() {
                   <input
                     type="text"
                     value={selectedStaff.phone}
-                    onChange={(e) => setSelectedStaff({...selectedStaff, phone: e.target.value})}
+                    onChange={(e) => setSelectedStaff({ ...selectedStaff, phone: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
@@ -972,7 +972,7 @@ export default function StaffPage() {
                     </label>
                     <select
                       value={selectedStaff.role}
-                      onChange={(e) => setSelectedStaff({...selectedStaff, role: e.target.value})}
+                      onChange={(e) => setSelectedStaff({ ...selectedStaff, role: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                     >
                       <option value="waiter">Garson</option>
@@ -988,7 +988,7 @@ export default function StaffPage() {
                     </label>
                     <select
                       value={selectedStaff.status}
-                      onChange={(e) => setSelectedStaff({...selectedStaff, status: e.target.value})}
+                      onChange={(e) => setSelectedStaff({ ...selectedStaff, status: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                     >
                       <option value="active">Aktif</option>
@@ -1005,7 +1005,7 @@ export default function StaffPage() {
                   </label>
                   <textarea
                     value={selectedStaff.notes}
-                    onChange={(e) => setSelectedStaff({...selectedStaff, notes: e.target.value})}
+                    onChange={(e) => setSelectedStaff({ ...selectedStaff, notes: e.target.value })}
                     rows={3}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   />
@@ -1021,7 +1021,7 @@ export default function StaffPage() {
                       <input
                         type="text"
                         value={selectedStaff.username || ''}
-                        onChange={(e) => setSelectedStaff({...selectedStaff, username: e.target.value})}
+                        onChange={(e) => setSelectedStaff({ ...selectedStaff, username: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                         placeholder="Kullanıcı adı"
                       />
@@ -1033,7 +1033,7 @@ export default function StaffPage() {
                       <input
                         type="password"
                         value={selectedStaff.password || ''}
-                        onChange={(e) => setSelectedStaff({...selectedStaff, password: e.target.value})}
+                        onChange={(e) => setSelectedStaff({ ...selectedStaff, password: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                         placeholder="Yeni şifre"
                       />
@@ -1089,13 +1089,13 @@ export default function StaffPage() {
                       <div className="flex items-center gap-2">
                         <input
                           type="text"
-                          value={settings.staffCredentials[selectedStaff.id]?.panelUrl || ''}
+                          value={settings?.staffCredentials?.[selectedStaff.id]?.panelUrl || ''}
                           readOnly
                           className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
                         />
                         <button
                           onClick={() => {
-                            const url = settings.staffCredentials[selectedStaff.id]?.panelUrl;
+                            const url = settings?.staffCredentials?.[selectedStaff.id]?.panelUrl;
                             if (url) {
                               navigator.clipboard.writeText(url);
                               alert('URL kopyalandı!');
@@ -1114,13 +1114,13 @@ export default function StaffPage() {
                       <div className="flex items-center gap-2">
                         <input
                           type="text"
-                          value={settings.staffCredentials[selectedStaff.id]?.username || ''}
+                          value={settings?.staffCredentials?.[selectedStaff.id]?.username || ''}
                           readOnly
                           className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
                         />
                         <button
                           onClick={() => {
-                            const username = settings.staffCredentials[selectedStaff.id]?.username;
+                            const username = settings?.staffCredentials?.[selectedStaff.id]?.username;
                             if (username) {
                               navigator.clipboard.writeText(username);
                               alert('Kullanıcı adı kopyalandı!');
@@ -1139,13 +1139,13 @@ export default function StaffPage() {
                       <div className="flex items-center gap-2">
                         <input
                           type="password"
-                          value={settings.staffCredentials[selectedStaff.id]?.password || ''}
+                          value={settings?.staffCredentials?.[selectedStaff.id]?.password || ''}
                           readOnly
                           className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
                         />
                         <button
                           onClick={() => {
-                            const password = settings.staffCredentials[selectedStaff.id]?.password;
+                            const password = settings?.staffCredentials?.[selectedStaff.id]?.password;
                             if (password) {
                               navigator.clipboard.writeText(password);
                               alert('Şifre kopyalandı!');
@@ -1162,27 +1162,25 @@ export default function StaffPage() {
                         Durum
                       </label>
                       <div className="flex items-center gap-2">
-                        <span className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                          settings.staffCredentials[selectedStaff.id]?.isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {settings.staffCredentials[selectedStaff.id]?.isActive ? 'Aktif' : 'Pasif'}
+                        <span className={`px-3 py-2 rounded-lg text-sm font-medium ${settings?.staffCredentials?.[selectedStaff.id]?.isActive
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                          }`}>
+                          {settings?.staffCredentials?.[selectedStaff.id]?.isActive ? 'Aktif' : 'Pasif'}
                         </span>
                         <button
                           onClick={() => {
                             updateStaffCredentials(selectedStaff.id, {
-                              ...settings.staffCredentials[selectedStaff.id],
-                              isActive: !settings.staffCredentials[selectedStaff.id]?.isActive
+                              ...(settings?.staffCredentials?.[selectedStaff.id] || {}),
+                              isActive: !settings?.staffCredentials?.[selectedStaff.id]?.isActive
                             });
                           }}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                            settings.staffCredentials[selectedStaff.id]?.isActive 
-                              ? 'bg-red-600 text-white hover:bg-red-700' 
-                              : 'bg-green-600 text-white hover:bg-green-700'
-                          }`}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium ${settings?.staffCredentials?.[selectedStaff.id]?.isActive
+                            ? 'bg-red-600 text-white hover:bg-red-700'
+                            : 'bg-green-600 text-white hover:bg-green-700'
+                            }`}
                         >
-                          {settings.staffCredentials[selectedStaff.id]?.isActive ? 'Pasif Yap' : 'Aktif Yap'}
+                          {settings?.staffCredentials?.[selectedStaff.id]?.isActive ? 'Pasif Yap' : 'Aktif Yap'}
                         </button>
                       </div>
                     </div>

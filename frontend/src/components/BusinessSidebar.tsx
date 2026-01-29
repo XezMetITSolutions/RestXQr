@@ -80,9 +80,9 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
   useEffect(() => {
     if (settings?.branding) {
       setBrandColors({
-        primary: settings.branding.primaryColor || '#3B82F6',
-        secondary: settings.branding.secondaryColor || '#1D4ED8',
-        accent: settings.branding.accentColor || '#F59E0B'
+        primary: settings?.branding?.primaryColor || '#3B82F6',
+        secondary: settings?.branding?.secondaryColor || '#1D4ED8',
+        accent: settings?.branding?.accentColor || '#F59E0B'
       });
     }
   }, [settings?.branding]);

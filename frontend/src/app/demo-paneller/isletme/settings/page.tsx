@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  FaCog, 
+import {
+  FaCog,
   FaChartLine,
   FaChartBar,
   FaQrcode,
@@ -51,13 +51,13 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 export default function SettingsPage() {
   const router = useRouter();
   const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
-  
+
   // Sayfa yüklendiğinde auth'u initialize et
   useEffect(() => {
     initializeAuth();
   }, [initializeAuth]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
+
   // Restaurant-specific settings kullan
   const {
     settings,
@@ -86,7 +86,7 @@ export default function SettingsPage() {
     validateSubdomain
   } = useRestaurantSettings(authenticatedRestaurant?.id);
 
-  const [showPassword, setShowPassword] = useState<{[key: string]: boolean}>({});
+  const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({});
   const [showAnnModal, setShowAnnModal] = useState(false);
   const [subdomainValidation, setSubdomainValidation] = useState<{
     isValid: boolean;
@@ -125,44 +125,36 @@ export default function SettingsPage() {
       // Admin panelinden gelen restaurant bilgilerini settings'e aktar
       // Sadece boş olan alanları doldur, kullanıcı değiştirdiyse üzerine yazma
       const updates: any = {};
-      
-      if (!settings.basicInfo.name && authenticatedRestaurant.name) {
-        updates.name = authenticatedRestaurant.name;
+
+      if (!settings?.basicInfo?.name && authenticatedRestaurant.name) {
+        updateBasicInfo({ name: authenticatedRestaurant.name });
       }
-      if (!settings.basicInfo.subdomain && authenticatedRestaurant.username) {
-        updates.subdomain = authenticatedRestaurant.username;
+      if (!settings?.basicInfo?.subdomain && authenticatedRestaurant.username) {
+        updateBasicInfo({ subdomain: authenticatedRestaurant.username });
       }
-      if (!settings.basicInfo.address && authenticatedRestaurant.address) {
-        updates.address = authenticatedRestaurant.address;
+      if (!settings?.basicInfo?.address && authenticatedRestaurant.address) {
+        updateBasicInfo({ address: authenticatedRestaurant.address });
       }
-      if (!settings.basicInfo.phone && authenticatedRestaurant.phone) {
-        updates.phone = authenticatedRestaurant.phone;
+      if (!settings?.basicInfo?.phone && authenticatedRestaurant.phone) {
+        updateBasicInfo({ phone: authenticatedRestaurant.phone });
       }
-      if (!settings.basicInfo.email && authenticatedRestaurant.email) {
-        updates.email = authenticatedRestaurant.email;
+      if (!settings?.basicInfo?.email && authenticatedRestaurant.email) {
+        updateBasicInfo({ email: authenticatedRestaurant.email });
       }
-      
+
       if (Object.keys(updates).length > 0) {
         updateBasicInfo(updates);
       }
-      
+
       // Logo varsa ve settings'de logo yoksa branding'e ekle
-      if (authenticatedRestaurant.logo && !settings.branding.logo) {
-        updateBranding({
-          logo: authenticatedRestaurant.logo
-        });
+      if (authenticatedRestaurant.logo && !settings?.branding?.logo) {
+        updateBranding({ logo: authenticatedRestaurant.logo });
       }
-      
-      // Renkler varsa ve settings'de yoksa branding'e ekle
-      if (authenticatedRestaurant.primaryColor && !settings.branding.primaryColor) {
-        updateBranding({
-          primaryColor: authenticatedRestaurant.primaryColor
-        });
+      if (authenticatedRestaurant.primaryColor && !settings?.branding?.primaryColor) {
+        updateBranding({ primaryColor: authenticatedRestaurant.primaryColor });
       }
-      if (authenticatedRestaurant.secondaryColor && !settings.branding.secondaryColor) {
-        updateBranding({
-          secondaryColor: authenticatedRestaurant.secondaryColor
-        });
+      if (authenticatedRestaurant.secondaryColor && !settings?.branding?.secondaryColor) {
+        updateBranding({ secondaryColor: authenticatedRestaurant.secondaryColor });
       }
     }
   }, [authenticatedRestaurant?.id]); // Sadece restaurant değiştiğinde çalışsın
@@ -196,7 +188,7 @@ export default function SettingsPage() {
     free: { name: 'Ücretsiz Plan', priceMonthly: 0, features: ['Temel menü', 'Sınırlı görüntüleme'], description: 'Başlamak için ideal' },
     premium: { name: 'Premium Paket', priceMonthly: 4980, features: ['Sınırsız kategori', 'Çoklu şube', 'Gelişmiş raporlar'], highlight: true },
   };
-  const BILLING: Record<BillingCycle, { months: number; discount: number; label: string }>= {
+  const BILLING: Record<BillingCycle, { months: number; discount: number; label: string }> = {
     monthly: { months: 1, discount: 0, label: 'Aylık' },
     semiannual: { months: 6, discount: 0.17, label: '6 Aylık' },
     annual: { months: 12, discount: 0.2, label: 'Yıllık' },
@@ -308,13 +300,13 @@ export default function SettingsPage() {
   const handleSave = async (section: string) => {
     setLoading(true);
     console.log(`💾 ${section} ayarları kaydediliyor...`);
-    
+
     try {
       // Zustand persist otomatik olarak localStorage'a kaydedecek
-    // Simulate API call
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    console.log(`✅ ${section} ayarları kaydedildi`);
+
+      console.log(`✅ ${section} ayarları kaydedildi`);
     } catch (error) {
       console.error('❌ Kaydetme hatası:', error);
     } finally {
@@ -325,11 +317,11 @@ export default function SettingsPage() {
   // Tek alan kaydetme fonksiyonu
   const handleSaveField = async (fieldName: string, value: any) => {
     console.log(`💾 ${fieldName} alanı kaydediliyor:`, value);
-    
+
     try {
       // Store'u güncelle - persist otomatik olarak localStorage'a kaydedecek
       updateBasicInfo({ [fieldName]: value });
-      
+
       console.log(`✅ ${fieldName} alanı kaydedildi`);
     } catch (error) {
       console.error('❌ Alan kaydetme hatası:', error);
@@ -343,7 +335,7 @@ export default function SettingsPage() {
     }
 
     setSubdomainValidation({ isValid: false, isChecking: true, message: 'Kontrol ediliyor...' });
-    
+
     try {
       const isValid = await validateSubdomain(subdomain);
       setSubdomainValidation({
@@ -403,7 +395,7 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
-      <BusinessSidebar 
+      <BusinessSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
@@ -430,7 +422,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={() => setShowAnnModal(true)}
                 className="flex items-center gap-2 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
               >
@@ -456,11 +448,10 @@ export default function SettingsPage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${
-                          activeTab === tab.id
-                            ? 'bg-purple-100 text-purple-700 border-l-4 border-purple-500'
-                            : 'text-gray-600 hover:bg-gray-100'
-                        }`}
+                        className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${activeTab === tab.id
+                          ? 'bg-purple-100 text-purple-700 border-l-4 border-purple-500'
+                          : 'text-gray-600 hover:bg-gray-100'
+                          }`}
                       >
                         <Icon className="mr-3" />
                         <span className="text-sm font-medium">{tab.name}</span>
@@ -502,7 +493,7 @@ export default function SettingsPage() {
                           >
                             <FaUtensils className="inline mr-1" /> Mutfak Paneli
                           </button>
-                          <button 
+                          <button
                             onClick={() => window.open('/business/waiter', '_blank')}
                             className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-200 transition-colors"
                           >
@@ -526,7 +517,7 @@ export default function SettingsPage() {
                         Kaydet
                       </button>
                     </div>
-                    
+
                     <div className="space-y-6">
                       {/* İşletme Adı */}
                       <div>
@@ -535,7 +526,7 @@ export default function SettingsPage() {
                         </label>
                         <input
                           type="text"
-                          value={settings.basicInfo.name}
+                          value={settings?.basicInfo?.name}
                           onChange={(e) => updateBasicInfo({ name: e.target.value })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
@@ -547,7 +538,7 @@ export default function SettingsPage() {
                           İşletme Türü *
                         </label>
                         <select
-                          value={settings.basicInfo.businessType}
+                          value={settings?.basicInfo?.businessType}
                           onChange={(e) => updateBasicInfo({ businessType: e.target.value as any })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
@@ -571,7 +562,7 @@ export default function SettingsPage() {
                         <div className="relative">
                           <input
                             type="text"
-                            value={settings.basicInfo.subdomain}
+                            value={settings?.basicInfo?.subdomain}
                             onChange={(e) => {
                               updateBasicInfo({ subdomain: e.target.value });
                               handleSubdomainChange(e.target.value);
@@ -592,9 +583,8 @@ export default function SettingsPage() {
                           {!subdomainValidation.isChecking && !subdomainValidation.isValid && (
                             <FaTimes className="text-red-500" />
                           )}
-                          <span className={`text-sm ${
-                            subdomainValidation.isValid ? 'text-green-600' : 'text-red-600'
-                          }`}>
+                          <span className={`text-sm ${subdomainValidation.isValid ? 'text-green-600' : 'text-red-600'
+                            }`}>
                             {subdomainValidation.message}
                           </span>
                         </div>
@@ -609,7 +599,7 @@ export default function SettingsPage() {
                           Açıklama
                         </label>
                         <textarea
-                          value={settings.basicInfo.description}
+                          value={settings?.basicInfo?.description}
                           onChange={(e) => updateBasicInfo({ description: e.target.value })}
                           rows={3}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -623,7 +613,7 @@ export default function SettingsPage() {
                         </label>
                         <input
                           type="text"
-                          value={settings.basicInfo.slogan || ''}
+                          value={settings?.basicInfo?.slogan || ''}
                           onChange={(e) => updateBasicInfo({ slogan: e.target.value })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           placeholder="Örn: Lezzetin Adresi"
@@ -638,7 +628,7 @@ export default function SettingsPage() {
                           </label>
                           <input
                             type="text"
-                            value={settings.basicInfo.address}
+                            value={settings?.basicInfo?.address}
                             onChange={(e) => updateBasicInfo({ address: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
@@ -649,7 +639,7 @@ export default function SettingsPage() {
                           </label>
                           <input
                             type="text"
-                            value={settings.basicInfo.phone}
+                            value={settings?.basicInfo?.phone}
                             onChange={(e) => updateBasicInfo({ phone: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
@@ -660,7 +650,7 @@ export default function SettingsPage() {
                           </label>
                           <input
                             type="email"
-                            value={settings.basicInfo.email}
+                            value={settings?.basicInfo?.email}
                             onChange={(e) => updateBasicInfo({ email: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
@@ -671,7 +661,7 @@ export default function SettingsPage() {
                           </label>
                           <input
                             type="url"
-                            value={settings.basicInfo.website || ''}
+                            value={settings?.basicInfo?.website || ''}
                             onChange={(e) => updateBasicInfo({ website: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
@@ -684,14 +674,14 @@ export default function SettingsPage() {
                           WiFi Şifresi
                         </label>
                         <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={settings.basicInfo.wifiPassword || ''}
-                          onChange={(e) => updateBasicInfo({ wifiPassword: e.target.value })}
+                          <input
+                            type="text"
+                            value={settings?.basicInfo?.wifiPassword || ''}
+                            onChange={(e) => updateBasicInfo({ wifiPassword: e.target.value })}
                             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                           <button
-                            onClick={() => handleSaveField('wifiPassword', settings.basicInfo.wifiPassword)}
+                            onClick={() => handleSaveField('wifiPassword', settings?.basicInfo?.wifiPassword)}
                             className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                             title="WiFi Şifresini Kaydet"
                           >
@@ -702,7 +692,7 @@ export default function SettingsPage() {
                           <input
                             type="checkbox"
                             id="showWifiInMenu"
-                            checked={settings.basicInfo.showWifiInMenu || false}
+                            checked={settings?.basicInfo?.showWifiInMenu || false}
                             onChange={(e) => {
                               updateBasicInfo({ showWifiInMenu: e.target.checked });
                               handleSaveField('showWifiInMenu', e.target.checked);
@@ -721,27 +711,27 @@ export default function SettingsPage() {
                           Çalışma Saatleri (7 Gün)
                         </label>
                         <div className="flex gap-2">
-                        <textarea
-                          value={settings.basicInfo.workingHours || ''}
-                          onChange={(e) => updateBasicInfo({ workingHours: e.target.value })}
-                          rows={7}
-                          placeholder="Pazartesi: 08:00 - 22:00&#10;Salı: 08:00 - 22:00&#10;Çarşamba: 08:00 - 22:00&#10;Perşembe: 08:00 - 22:00&#10;Cuma: 08:00 - 23:00&#10;Cumartesi: 09:00 - 23:00&#10;Pazar: 09:00 - 22:00"
+                          <textarea
+                            value={settings?.basicInfo?.workingHours || ''}
+                            onChange={(e) => updateBasicInfo({ workingHours: e.target.value })}
+                            rows={7}
+                            placeholder="Pazartesi: 08:00 - 22:00&#10;Salı: 08:00 - 22:00&#10;Çarşamba: 08:00 - 22:00&#10;Perşembe: 08:00 - 22:00&#10;Cuma: 08:00 - 23:00&#10;Cumartesi: 09:00 - 23:00&#10;Pazar: 09:00 - 22:00"
                             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                           <button
-                            onClick={() => handleSaveField('workingHours', settings.basicInfo.workingHours)}
+                            onClick={() => handleSaveField('workingHours', settings?.basicInfo?.workingHours)}
                             className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                             title="Çalışma Saatlerini Kaydet"
                           >
                             <FaSave size={14} />
                           </button>
                         </div>
-                        
+
                         <div className="mt-6 flex items-center gap-2 p-4 bg-blue-50 rounded-xl">
                           <input
                             type="checkbox"
                             id="showHoursInMenu"
-                            checked={settings.basicInfo.showHoursInMenu || false}
+                            checked={settings?.basicInfo?.showHoursInMenu || false}
                             onChange={(e) => {
                               updateBasicInfo({ showHoursInMenu: e.target.checked });
                               handleSaveField('showHoursInMenu', e.target.checked);
@@ -764,7 +754,7 @@ export default function SettingsPage() {
                           Menü Özel İçerikler
                         </h4>
                         <p className="text-sm text-gray-600 mb-6">Müşteri menüsünde gösterilen günlük duyurular ve özel içerikler</p>
-                        
+
                         {/* Bugüne Özel Duyuru */}
                         <div className="mb-6">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -772,7 +762,7 @@ export default function SettingsPage() {
                           </label>
                           <input
                             type="text"
-                            value={settings.basicInfo.dailySpecialTitle || 'Bugüne Özel!'}
+                            value={settings?.basicInfo?.dailySpecialTitle || 'Bugüne Özel!'}
                             onChange={(e) => updateBasicInfo({ dailySpecialTitle: e.target.value })}
                             placeholder="Bugüne Özel!"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -783,14 +773,14 @@ export default function SettingsPage() {
                             </label>
                             <input
                               type="text"
-                              value={settings.basicInfo.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}
+                              value={settings?.basicInfo?.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}
                               onChange={(e) => updateBasicInfo({ dailySpecialDesc: e.target.value })}
                               placeholder="Tüm tatlılarda %20 indirim - Sadece bugün geçerli"
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
                           <button
-                            onClick={() => handleSaveField('dailySpecialTitle', settings.basicInfo.dailySpecialTitle)}
+                            onClick={() => handleSaveField('dailySpecialTitle', settings?.basicInfo?.dailySpecialTitle)}
                             className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                           >
                             <FaSave size={14} className="inline mr-2" />
@@ -805,7 +795,7 @@ export default function SettingsPage() {
                           </label>
                           <input
                             type="text"
-                            value={settings.basicInfo.soupOfDayTitle || 'Günün Çorbası'}
+                            value={settings?.basicInfo?.soupOfDayTitle || 'Günün Çorbası'}
                             onChange={(e) => updateBasicInfo({ soupOfDayTitle: e.target.value })}
                             placeholder="Günün Çorbası"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -816,14 +806,14 @@ export default function SettingsPage() {
                             </label>
                             <input
                               type="text"
-                              value={settings.basicInfo.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}
+                              value={settings?.basicInfo?.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}
                               onChange={(e) => updateBasicInfo({ soupOfDayDesc: e.target.value })}
                               placeholder="Ezogelin çorbası - Ev yapımı lezzet"
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
                           <button
-                            onClick={() => handleSaveField('soupOfDayTitle', settings.basicInfo.soupOfDayTitle)}
+                            onClick={() => handleSaveField('soupOfDayTitle', settings?.basicInfo?.soupOfDayTitle)}
                             className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                           >
                             <FaSave size={14} className="inline mr-2" />
@@ -846,7 +836,7 @@ export default function SettingsPage() {
                           </label>
                           <input
                             type="url"
-                            value={settings.basicInfo.facebook || ''}
+                            value={settings?.basicInfo?.facebook || ''}
                             onChange={(e) => updateBasicInfo({ facebook: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
@@ -856,14 +846,14 @@ export default function SettingsPage() {
                             Instagram
                           </label>
                           <div className="flex gap-2">
-                          <input
-                            type="url"
-                            value={settings.basicInfo.instagram || ''}
-                            onChange={(e) => updateBasicInfo({ instagram: e.target.value })}
+                            <input
+                              type="url"
+                              value={settings?.basicInfo?.instagram || ''}
+                              onChange={(e) => updateBasicInfo({ instagram: e.target.value })}
                               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                             <button
-                              onClick={() => handleSaveField('instagram', settings.basicInfo.instagram)}
+                              onClick={() => handleSaveField('instagram', settings?.basicInfo?.instagram)}
                               className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                               title="Instagram Linkini Kaydet"
                             >
@@ -874,7 +864,7 @@ export default function SettingsPage() {
                             <input
                               type="checkbox"
                               id="showInstagramInMenu"
-                              checked={settings.basicInfo.showInstagramInMenu || false}
+                              checked={settings?.basicInfo?.showInstagramInMenu || false}
                               onChange={(e) => {
                                 updateBasicInfo({ showInstagramInMenu: e.target.checked });
                                 handleSaveField('showInstagramInMenu', e.target.checked);
@@ -892,7 +882,7 @@ export default function SettingsPage() {
                           </label>
                           <input
                             type="url"
-                            value={settings.basicInfo.twitter || ''}
+                            value={settings?.basicInfo?.twitter || ''}
                             onChange={(e) => updateBasicInfo({ twitter: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
@@ -910,7 +900,7 @@ export default function SettingsPage() {
                               type="radio"
                               name="status"
                               value="active"
-                              checked={settings.basicInfo.status === 'active'}
+                              checked={settings?.basicInfo?.status === 'active'}
                               onChange={(e) => updateBasicInfo({ status: e.target.value as any })}
                               className="text-purple-600"
                             />
@@ -921,7 +911,7 @@ export default function SettingsPage() {
                               type="radio"
                               name="status"
                               value="inactive"
-                              checked={settings.basicInfo.status === 'inactive'}
+                              checked={settings?.basicInfo?.status === 'inactive'}
                               onChange={(e) => updateBasicInfo({ status: e.target.value as any })}
                               className="text-purple-600"
                             />
@@ -980,9 +970,9 @@ export default function SettingsPage() {
                             className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors cursor-pointer"
                             onClick={() => (document.getElementById('logoFileInput') as HTMLInputElement)?.click()}
                           >
-                            {settings.branding.logo ? (
+                            {settings?.branding?.logo ? (
                               <div className="flex flex-col items-center">
-                                <img src={settings.branding.logo} alt="Logo" className="max-h-24 object-contain mb-3" />
+                                <img src={settings?.branding?.logo} alt="Logo" className="max-h-24 object-contain mb-3" />
                                 <button className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors">
                                   <FaUpload className="inline mr-2" />
                                   Logoyu Değiştir
@@ -1011,7 +1001,7 @@ export default function SettingsPage() {
                           <p className="text-sm text-gray-500 mb-4">
                             Seçtiğiniz renkler menü tasarımında butonlar, kategoriler ve vurgular için kullanılır.
                           </p>
-                          
+
                           {/* Ana Renk */}
                           <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Ana Renk</label>
@@ -1029,7 +1019,7 @@ export default function SettingsPage() {
                                 <button
                                   key={color.value}
                                   onClick={() => updateBranding({ primaryColor: color.value })}
-                                  className={`w-12 h-12 rounded-lg border-2 transition-colors ${settings.branding.primaryColor === color.value ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200 hover:border-gray-400'}`}
+                                  className={`w-12 h-12 rounded-lg border-2 transition-colors ${settings?.branding?.primaryColor === color.value ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200 hover:border-gray-400'}`}
                                   style={{ backgroundColor: color.value }}
                                   title={color.name}
                                 />
@@ -1038,11 +1028,11 @@ export default function SettingsPage() {
                             <div className="flex items-center gap-3">
                               <input
                                 type="color"
-                                value={settings.branding.primaryColor}
+                                value={settings?.branding?.primaryColor}
                                 onChange={(e) => updateBranding({ primaryColor: e.target.value })}
                                 className="w-12 h-10 p-0 border rounded cursor-pointer"
                               />
-                              <span className="text-sm text-gray-600">{settings.branding.primaryColor}</span>
+                              <span className="text-sm text-gray-600">{settings?.branding?.primaryColor}</span>
                             </div>
                           </div>
 
@@ -1052,11 +1042,11 @@ export default function SettingsPage() {
                             <div className="flex items-center gap-3">
                               <input
                                 type="color"
-                                value={settings.branding.secondaryColor}
+                                value={settings?.branding?.secondaryColor}
                                 onChange={(e) => updateBranding({ secondaryColor: e.target.value })}
                                 className="w-12 h-10 p-0 border rounded cursor-pointer"
                               />
-                              <span className="text-sm text-gray-600">{settings.branding.secondaryColor}</span>
+                              <span className="text-sm text-gray-600">{settings?.branding?.secondaryColor}</span>
                             </div>
                             <p className="text-xs text-gray-500 mt-1">Arka plan ve vurgu renkleri otomatik hesaplanacak</p>
                           </div>
@@ -1068,12 +1058,12 @@ export default function SettingsPage() {
                             <span className="text-purple-600">A</span>
                             Font Ayarları
                           </h4>
-                          
+
                           {/* Font Ailesi */}
                           <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Font Ailesi</label>
                             <select
-                              value={settings.branding.fontFamily}
+                              value={settings?.branding?.fontFamily}
                               onChange={(e) => updateBranding({ fontFamily: e.target.value })}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             >
@@ -1101,11 +1091,10 @@ export default function SettingsPage() {
                                 <button
                                   key={size.id}
                                   onClick={() => updateBranding({ fontSize: size.id as any })}
-                                  className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
-                                    settings.branding.fontSize === size.id
-                                      ? 'border-purple-500 bg-purple-50 text-purple-700'
-                                      : 'border-gray-300 hover:border-gray-400'
-                                  }`}
+                                  className={`px-3 py-2 text-sm rounded-lg border transition-colors ${settings?.branding?.fontSize === size.id
+                                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                    : 'border-gray-300 hover:border-gray-400'
+                                    }`}
                                 >
                                   {size.name} ({size.size})
                                 </button>
@@ -1121,7 +1110,7 @@ export default function SettingsPage() {
                             <FaPalette className="text-purple-600" />
                             Stil Ayarları
                           </h4>
-                          
+
                           {/* Header Stili */}
                           <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Header Stili</label>
@@ -1135,11 +1124,10 @@ export default function SettingsPage() {
                                 <button
                                   key={style.id}
                                   onClick={() => updateBranding({ headerStyle: style.id as any })}
-                                  className={`p-3 text-left rounded-lg border transition-colors ${
-                                    settings.branding.headerStyle === style.id
-                                      ? 'border-purple-500 bg-purple-50 text-purple-700'
-                                      : 'border-gray-300 hover:border-gray-400'
-                                  }`}
+                                  className={`p-3 text-left rounded-lg border transition-colors ${settings?.branding?.headerStyle === style.id
+                                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                    : 'border-gray-300 hover:border-gray-400'
+                                    }`}
                                 >
                                   <div className="font-medium text-sm">{style.name}</div>
                                   <div className="text-xs text-gray-500">{style.desc}</div>
@@ -1162,18 +1150,18 @@ export default function SettingsPage() {
                             <p className="text-sm text-gray-600 mb-6">
                               Değişikliklerinizi anlık olarak görüntüleyin
                             </p>
-                            
+
                             {/* Modern Telefon Önizleme */}
                             <div className="relative">
                               {/* Gradient Background */}
                               <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-blue-50 to-pink-100 rounded-2xl opacity-50"></div>
-                              
+
                               {/* Phone Frame */}
                               <div className="relative p-8">
                                 <div className="bg-white rounded-[3rem] shadow-2xl p-4 mx-auto max-w-sm border-8 border-gray-800">
                                   {/* Notch */}
                                   <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-gray-800 rounded-b-3xl"></div>
-                                  
+
                                   {/* Screen */}
                                   <div className="bg-gray-50 rounded-[2.5rem] overflow-hidden h-[600px] relative">
                                     {/* Status Bar */}
@@ -1185,28 +1173,28 @@ export default function SettingsPage() {
                                         </div>
                                       </div>
                                     </div>
-                                    
+
                                     {/* Content */}
                                     <div className="p-4 overflow-y-auto h-full">
                                       <PhonePreview className="w-full" />
                                     </div>
                                   </div>
-                                  
+
                                   {/* Home Indicator */}
                                   <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-800 rounded-full"></div>
                                 </div>
                               </div>
-                              
+
                               {/* Floating Action Buttons */}
                               <div className="absolute top-4 right-4 flex flex-col gap-2">
-                                <button 
+                                <button
                                   onClick={() => window.open('/menu', '_blank')}
                                   className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
                                   title="Canlı Önizleme"
                                 >
                                   <FaEye className="text-purple-600" />
                                 </button>
-                                <button 
+                                <button
                                   onClick={() => window.location.reload()}
                                   className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
                                   title="Yenile"
@@ -1215,7 +1203,7 @@ export default function SettingsPage() {
                                 </button>
                               </div>
                             </div>
-                            
+
                             <div className="mt-6 text-center space-y-2">
                               <p className="text-sm font-medium text-gray-700">
                                 ✨ Canlı Önizleme
@@ -1252,42 +1240,42 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <div className="bg-white rounded-lg shadow-sm p-6">
                     <h3 className="text-xl font-semibold text-gray-800 mb-6">Entegrasyonlar</h3>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {[
-                        { 
-                          name: 'POS Sistemleri', 
-                          icon: FaCreditCard, 
+                        {
+                          name: 'POS Sistemleri',
+                          icon: FaCreditCard,
                           status: 'available',
                           desc: 'Yazar kasa ve POS sistemleri ile entegrasyon'
                         },
-                        { 
-                          name: 'Muhasebe', 
-                          icon: FaSync, 
+                        {
+                          name: 'Muhasebe',
+                          icon: FaSync,
                           status: 'available',
                           desc: 'Muhasebe programları ile otomatik senkronizasyon'
                         },
-                        { 
-                          name: 'Online Ödeme', 
-                          icon: FaCreditCard, 
+                        {
+                          name: 'Online Ödeme',
+                          icon: FaCreditCard,
                           status: 'active',
                           desc: 'Kredi kartı ve online ödeme sistemleri'
                         },
-                        { 
-                          name: 'Stok Yönetimi', 
-                          icon: FaSync, 
+                        {
+                          name: 'Stok Yönetimi',
+                          icon: FaSync,
                           status: 'coming',
                           desc: 'Stok takip sistemleri ile entegrasyon'
                         },
-                        { 
-                          name: 'CRM Sistemleri', 
-                          icon: FaUsers, 
+                        {
+                          name: 'CRM Sistemleri',
+                          icon: FaUsers,
                           status: 'coming',
                           desc: 'Müşteri ilişkileri yönetimi'
                         },
-                        { 
-                          name: 'Rezervasyon', 
-                          icon: FaSync, 
+                        {
+                          name: 'Rezervasyon',
+                          icon: FaSync,
                           status: 'coming',
                           desc: 'Rezervasyon sistemleri ile entegrasyon'
                         }

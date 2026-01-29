@@ -42,7 +42,8 @@ import {
   FaEyeSlash,
   FaSync,
   FaBars,
-  FaMoneyBillWave
+  FaMoneyBillWave,
+  FaUser
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
@@ -89,6 +90,14 @@ export default function StaffPage() {
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'list' | 'permissions'>('list');
+
+  // Departmanı role göre otomatik ata
+  const roleToDepartment: Record<string, string> = {
+    waiter: 'service',
+    chef: 'kitchen',
+    cashier: 'finance',
+    manager: 'management'
+  };
 
   useEffect(() => {
     // Auth'u initialize et
@@ -262,13 +271,7 @@ export default function StaffPage() {
     if (!name) { alert(t('Ad Soyad zorunludur.')); return; }
     if (!email) { alert(t('E-posta zorunludur.')); return; }
 
-    // Departmanı role göre otomatik ata
-    const roleToDepartment: Record<string, string> = {
-      waiter: 'service',
-      chef: 'kitchen',
-      cashier: 'finance',
-      manager: 'management'
-    };
+
 
     const now = new Date();
     const newMember: any = {
@@ -1154,13 +1157,13 @@ export default function StaffPage() {
                           <div className="flex items-center gap-2">
                             <input
                               type="text"
-                              value={settings.staffCredentials[selectedStaff.id]?.panelUrl || ''}
+                              value={settings?.staffCredentials?.[selectedStaff.id]?.panelUrl || ''}
                               readOnly
                               className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
                             />
                             <button
                               onClick={() => {
-                                const url = settings.staffCredentials[selectedStaff.id]?.panelUrl;
+                                const url = settings?.staffCredentials?.[selectedStaff.id]?.panelUrl;
                                 if (url) {
                                   navigator.clipboard.writeText(url);
                                   alert(t('URL kopyalandı!'));
@@ -1179,13 +1182,13 @@ export default function StaffPage() {
                           <div className="flex items-center gap-2">
                             <input
                               type="text"
-                              value={settings.staffCredentials[selectedStaff.id]?.username || ''}
+                              value={settings?.staffCredentials?.[selectedStaff.id]?.username || ''}
                               readOnly
                               className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
                             />
                             <button
                               onClick={() => {
-                                const username = settings.staffCredentials[selectedStaff.id]?.username;
+                                const username = settings?.staffCredentials?.[selectedStaff.id]?.username;
                                 if (username) {
                                   navigator.clipboard.writeText(username);
                                   alert(t('Kullanıcı adı kopyalandı!'));
@@ -1204,13 +1207,13 @@ export default function StaffPage() {
                           <div className="flex items-center gap-2">
                             <input
                               type="password"
-                              value={settings.staffCredentials[selectedStaff.id]?.password || ''}
+                              value={settings?.staffCredentials?.[selectedStaff.id]?.password || ''}
                               readOnly
                               className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
                             />
                             <button
                               onClick={() => {
-                                const password = settings.staffCredentials[selectedStaff.id]?.password;
+                                const password = settings?.staffCredentials?.[selectedStaff.id]?.password;
                                 if (password) {
                                   navigator.clipboard.writeText(password);
                                   alert(t('Şifre kopyalandı!'));
@@ -1227,25 +1230,25 @@ export default function StaffPage() {
                             <TranslatedText>Durum</TranslatedText>
                           </label>
                           <div className="flex items-center gap-2">
-                            <span className={`px-3 py-2 rounded-lg text-sm font-medium ${settings.staffCredentials[selectedStaff.id]?.isActive
+                            <span className={`px-3 py-2 rounded-lg text-sm font-medium ${settings?.staffCredentials?.[selectedStaff.id]?.isActive
                               ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
                               }`}>
-                              {settings.staffCredentials[selectedStaff.id]?.isActive ? t('Aktif') : t('Pasif')}
+                              {settings?.staffCredentials?.[selectedStaff.id]?.isActive ? t('Aktif') : t('Pasif')}
                             </span>
                             <button
                               onClick={() => {
                                 updateStaffCredentials(selectedStaff.id, {
-                                  ...settings.staffCredentials[selectedStaff.id],
-                                  isActive: !settings.staffCredentials[selectedStaff.id]?.isActive
+                                  ...(settings?.staffCredentials?.[selectedStaff.id] || {}),
+                                  isActive: !settings?.staffCredentials?.[selectedStaff.id]?.isActive
                                 });
                               }}
-                              className={`px-3 py-2 rounded-lg text-sm font-medium ${settings.staffCredentials[selectedStaff.id]?.isActive
+                              className={`px-3 py-2 rounded-lg text-sm font-medium ${settings?.staffCredentials?.[selectedStaff.id]?.isActive
                                 ? 'bg-red-600 text-white hover:bg-red-700'
                                 : 'bg-green-600 text-white hover:bg-green-700'
                                 }`}
                             >
-                              {settings.staffCredentials[selectedStaff.id]?.isActive ? t('Pasif Yap') : t('Aktif Yap')}
+                              {settings?.staffCredentials?.[selectedStaff.id]?.isActive ? t('Pasif Yap') : t('Aktif Yap')}
                             </button>
                           </div>
                         </div>
