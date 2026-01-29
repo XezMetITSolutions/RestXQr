@@ -81,16 +81,39 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
         </div>
 
         {/* Image */}
-        <div className="relative h-48 w-full cursor-pointer" onClick={() => window.open(item.image, '_blank')}>
-          <img
-            src={item.image ? `${item.image}${item.image.includes('?') ? '&' : '?'}v=${imageCacheVersion || Date.now()}` : '/placeholder-food.jpg'}
-            alt={getName()}
-            className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = '/placeholder-food.jpg';
-            }}
-          />
+        <div
+          className="relative h-48 w-full cursor-pointer"
+          onClick={() => {
+            const finalImage = item.imageUrl || item.image;
+            if (finalImage) {
+              const url = finalImage.startsWith('http') ? finalImage : `${(process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '')}${finalImage}`;
+              window.open(url, '_blank');
+            }
+          }}
+        >
+          {(() => {
+            const finalImage = item.imageUrl || item.image;
+            const src = finalImage ?
+              (finalImage.startsWith('http') ?
+                `${finalImage}${finalImage.includes('?') ? '&' : '?'}v=${imageCacheVersion || Date.now()}` :
+                (() => {
+                  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                  return `${baseUrl}${finalImage}${finalImage.includes('?') ? '&' : '?'}v=${imageCacheVersion || Date.now()}`;
+                })())
+              : '/placeholder-food.jpg';
+
+            return (
+              <img
+                src={src}
+                alt={getName()}
+                className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/placeholder-food.jpg';
+                }}
+              />
+            );
+          })()}
           <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all flex items-center justify-center">
             <div className="bg-white bg-opacity-80 rounded-full p-2 opacity-0 hover:opacity-100 transition-opacity">
               <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">

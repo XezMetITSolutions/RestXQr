@@ -14,6 +14,7 @@ export interface MenuItem {
   } | string;
   price: number;
   image?: string;
+  imageUrl?: string;
   images?: string[];
   category?: string; // Legacy field
   categoryId?: string; // New field for PostgreSQL
@@ -34,6 +35,12 @@ export interface MenuItem {
   variants?: { name: string; price: number }[];
   variations?: { name: string; price: number }[];
   options?: { name: string; values: string[] }[];
+  translations?: {
+    [key: string]: {
+      name?: string;
+      description?: string;
+    }
+  };
   type?: 'single' | 'bundle';
   bundleItems?: { itemId: string; quantity: number; name?: string }[];
 }

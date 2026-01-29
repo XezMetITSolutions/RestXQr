@@ -424,7 +424,9 @@ export default function QRCodesPage() {
       };
 
       // Logoları ve QR'ı yükle
-      const logoUrl = settings?.branding?.logo || authenticatedRestaurant?.logo || '/logo.png';
+      const isKroren = typeof window !== 'undefined' && window.location.hostname.includes('kroren');
+      const logoUrl = isKroren ? '/Kroren_Logo.png' : (settings?.branding?.logo || authenticatedRestaurant?.logo || '/logo.png');
+
       const [logoImg, qrImg] = await Promise.all([
         loadImage(logoUrl),
         loadImage(qrCode.qrCode)
@@ -814,7 +816,7 @@ export default function QRCodesPage() {
 
                       <div className="flex justify-between items-center pt-2 border-t border-gray-50">
                         <span className="text-xs text-gray-400">
-                          {typeof qr.createdAt === 'string' || qr.createdAt instanceof Date ? new Date(qr.createdAt).toLocaleDateString() : ''}
+                          {qr.createdAt ? new Date(qr.createdAt as any).toLocaleDateString() : ''}
                         </span>
                         <a
                           href={qr.url}
