@@ -339,7 +339,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
               </div>
             </div>
             <div className="lg:hidden">
-              <LanguageSelector enabledLanguages={settings.menuSettings.language} />
+              <LanguageSelector enabledLanguages={settings?.menuSettings?.language} />
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
