@@ -173,7 +173,7 @@ export default function QRCodesPage() {
             backendQrUrl = backendQrUrl.replace('aksaray.restxqr.com', `${restaurantSlug}.restxqr.com`);
           }
 
-          const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(backendQrUrl)}`;
+          const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&ecc=H&data=${encodeURIComponent(backendQrUrl)}`;
 
           return {
             id: t.id,
@@ -496,32 +496,65 @@ export default function QRCodesPage() {
           // QR kodu çiz
           ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
 
-          // "SCAN ME" yazıları (4 köşede)
-          ctx.font = 'bold 16px Arial';
-          ctx.fillStyle = '#000000';
-          ctx.textAlign = 'center';
+          // Ortaya Logo Ekle (Eğer logo varsa)
+          const logoUrl = settings?.branding?.logo || authenticatedRestaurant?.logo;
 
-          // Üst
-          ctx.fillText('SCAN ME', qrX + qrSize / 2, qrY - 40);
+          const continueDrawing = () => {
+            // "SCAN ME" yazıları (4 köşede)
+            ctx.font = 'bold 16px Arial';
+            ctx.fillStyle = '#000000';
+            ctx.textAlign = 'center';
 
-          // Alt
-          ctx.fillText('SCAN ME', qrX + qrSize / 2, qrY + qrSize + 55);
+            // Üst
+            ctx.fillText('SCAN ME', qrX + qrSize / 2, qrY - 40);
 
-          // Sol (döndürülmüş)
-          ctx.save();
-          ctx.translate(qrX - 40, qrY + qrSize / 2);
-          ctx.rotate(-Math.PI / 2);
-          ctx.fillText('SCAN ME', 0, 0);
-          ctx.restore();
+            // Alt
+            ctx.fillText('SCAN ME', qrX + qrSize / 2, qrY + qrSize + 55);
 
-          // Sağ (döndürülmüş)
-          ctx.save();
-          ctx.translate(qrX + qrSize + 40, qrY + qrSize / 2);
-          ctx.rotate(Math.PI / 2);
-          ctx.fillText('SCAN ME', 0, 0);
-          ctx.restore();
+            // Sol (döndürülmüş)
+            ctx.save();
+            ctx.translate(qrX - 40, qrY + qrSize / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('SCAN ME', 0, 0);
+            ctx.restore();
 
-          canvas.toBlob((blob) => resolve(blob));
+            // Sağ (döndürülmüş)
+            ctx.save();
+            ctx.translate(qrX + qrSize + 40, qrY + qrSize / 2);
+            ctx.rotate(Math.PI / 2);
+            ctx.fillText('SCAN ME', 0, 0);
+            ctx.restore();
+
+            canvas.toBlob((blob) => resolve(blob));
+          };
+
+          if (logoUrl) {
+            const logoImg = new Image();
+            logoImg.crossOrigin = 'anonymous';
+            logoImg.onload = () => {
+              const logoSize = qrSize * 0.22; // QR boyutunun %22'si
+              const lx = qrX + (qrSize - logoSize) / 2;
+              const ly = qrY + (qrSize - logoSize) / 2;
+
+              // Logo arkasına beyaz alan (köşeleri hafif yuvarlatılmış)
+              ctx.fillStyle = '#ffffff';
+              ctx.beginPath();
+              if (ctx.roundRect) {
+                ctx.roundRect(lx - 5, ly - 5, logoSize + 10, logoSize + 10, 8);
+              } else {
+                ctx.fillRect(lx - 5, ly - 5, logoSize + 10, logoSize + 10);
+              }
+              ctx.fill();
+
+              // Logoyu çiz
+              ctx.drawImage(logoImg, lx, ly, logoSize, logoSize);
+              continueDrawing();
+            };
+            logoImg.onerror = () => continueDrawing();
+            logoImg.src = logoUrl;
+          } else {
+            continueDrawing();
+          }
         };
         img.onerror = () => {
           console.error('Failed to load QR image for canvas.');
@@ -823,9 +856,22 @@ export default function QRCodesPage() {
 
                     {/* QR Image Area */}
                     <div className="p-6 bg-gray-50 flex flex-col items-center justify-center border-b border-gray-100">
-                      <div className="bg-white p-2 rounded-lg shadow-sm">
+                      <div className="bg-white p-2 rounded-lg shadow-sm relative">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={qr.qrCode} alt={qr.name} className="w-32 h-32 object-contain" />
+                        {(settings?.branding?.logo || authenticatedRestaurant?.logo) && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-8 h-8 bg-white p-0.5 rounded shadow-sm border border-gray-100">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={settings?.branding?.logo || authenticatedRestaurant?.logo}
+                                alt="logo"
+                                className="w-full h-full object-contain"
+                                onError={(e) => (e.currentTarget.parentElement!.style.display = 'none')}
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className="flex gap-2 mt-3">
                         {floor && (
