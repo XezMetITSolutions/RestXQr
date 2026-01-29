@@ -180,4 +180,3 @@ module.exports = (sequelize, DataTypes) => {
 
   return MenuItem;
 };
-p
