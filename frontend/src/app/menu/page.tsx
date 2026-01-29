@@ -301,7 +301,7 @@ function MenuPageContent() {
 
       const hostname = window.location.hostname;
       const subdomain = hostname.split('.')[0];
-      const mainDomains = ['localhost', 'www', 'guzellestir', 'restxqr', 'kroren'];
+      const mainDomains = ['localhost', 'www', 'guzellestir', 'restxqr'];
       const targetSubdomain = mainDomains.includes(subdomain) ? 'aksaray' : subdomain;
 
       // Sadece bu restoranın verilerini fetch et (tüm restoranları değil)

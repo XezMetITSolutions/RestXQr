@@ -54,10 +54,9 @@ function MenuPageContent() {
     if (typeof window === 'undefined') return null;
     const hostname = window.location.hostname;
     const subdomain = hostname.split('.')[0];
-    const mainDomains = ['localhost', 'www', 'guzellestir'];
-
-    // Demo sayfası için Aksaray restoranını kullan
-    if (mainDomains.includes(subdomain) || hostname.includes('restxqr.com')) {
+    const mainDomains = ['localhost', 'www', 'guzellestir', 'restxqr'];
+    const isMainDomain = mainDomains.includes(subdomain);
+    if (isMainDomain) {
       return restaurants.find((r: any) => r.username === 'aksaray');
     }
 
