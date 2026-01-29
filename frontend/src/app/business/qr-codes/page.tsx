@@ -403,164 +403,122 @@ export default function QRCodesPage() {
       const ctx = canvas.getContext('2d');
       if (!ctx) return null;
 
-      // Canvas boyutu (landscape A5 benzeri)
-      canvas.width = 1200;
-      canvas.height = 800;
+      // Canvas boyutu (Dikey A5 Benzeri)
+      canvas.width = 1000;
+      canvas.height = 1400;
 
-      // Arka plan (açık gri)
-      ctx.fillStyle = '#f5f5f5';
+      // Arka plan (Beyaz / Hafif Gradyan)
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#ffffff');
+      gradient.addColorStop(1, '#fcfcfc');
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // QR kod resmini yükle
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
+      // Resim yükleme yardımcı fonksiyonu
+      const loadImage = (url: string): Promise<HTMLImageElement | null> => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null);
+          img.src = url;
+        });
+      };
+
+      // Logoları ve QR'ı yükle
+      const logoUrl = settings?.branding?.logo || authenticatedRestaurant?.logo || '/logo.png';
+      const [logoImg, qrImg] = await Promise.all([
+        loadImage(logoUrl),
+        loadImage(qrCode.qrCode)
+      ]);
+
+      if (!qrImg) return null;
+
+      // 1. Üst Kısım - Logo
+      if (logoImg) {
+        const logoWidth = 500;
+        const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
+        const lx = (canvas.width - logoWidth) / 2;
+        const ly = 120;
+        ctx.drawImage(logoImg, lx, ly, logoWidth, logoHeight);
+      }
+
+      // 2. Orta Kısım - Talimatlar
+      ctx.font = 'bold 48px "Helvetica Neue", Arial, sans-serif';
+      ctx.fillStyle = '#0a0a0a';
+      ctx.textAlign = 'center';
+      ctx.fillText('MENÜYÜ GÖRMEK İÇİN OKUTUN', canvas.width / 2, 620);
+
+      ctx.font = '300 32px "Helvetica Neue", Arial, sans-serif';
+      ctx.fillStyle = '#666666';
+      ctx.fillText('Scan to view our delicious menu', canvas.width / 2, 675);
+
+      // 3. QR Kod Alanı
+      const qrSize = 580;
+      const qrX = (canvas.width - qrSize) / 2;
+      const qrY = 760;
+
+      // QR Arka Planı ve Gölge Efekti
+      ctx.shadowColor = 'rgba(0,0,0,0.08)';
+      ctx.shadowBlur = 30;
+      ctx.shadowOffsetY = 15;
+      ctx.fillStyle = '#ffffff';
+
+      // Yuvarlatılmış beyaz alan
+      const cornerRadius = 40;
+      ctx.beginPath();
+      if ((ctx as any).roundRect) {
+        (ctx as any).roundRect(qrX - 40, qrY - 40, qrSize + 80, qrSize + 80, cornerRadius);
+      } else {
+        ctx.fillRect(qrX - 40, qrY - 40, qrSize + 80, qrSize + 80);
+      }
+      ctx.fill();
+
+      // Gölgeyi sıfırla
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+
+      // QR Kodu Çiz
+      ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+
+      // 4. QR Ortasına Logo
+      if (logoImg) {
+        const logoCenterSize = qrSize * 0.22;
+        const lcx = qrX + (qrSize - logoCenterSize) / 2;
+        const lcy = qrY + (qrSize - logoCenterSize) / 2;
+
+        // Logo arkasına beyaz dairesel alan
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        if ((ctx as any).roundRect) {
+          (ctx as any).roundRect(lcx - 10, lcy - 10, logoCenterSize + 20, logoCenterSize + 20, 15);
+        } else {
+          ctx.fillRect(lcx - 10, lcy - 10, logoCenterSize + 20, logoCenterSize + 20);
+        }
+        ctx.fill();
+
+        // Logo çizimi
+        ctx.drawImage(logoImg, lcx, lcy, logoCenterSize, logoCenterSize);
+      }
+
+      // 5. Alt Kısım - Masa Numarası
+      ctx.font = '900 80px "Impact", "Arial Black", sans-serif';
+      ctx.fillStyle = '#E85D04'; // Kroren Turuncusu (veya benzeri)
+      ctx.textAlign = 'center';
+      ctx.fillText(`MASA ${qrCode.tableNumber}`, canvas.width / 2, 1180);
+
+      // Süsleme Çizgisi
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect((canvas.width - 200) / 2, 1210, 200, 8);
+
+      // 6. Footer - Domain
+      ctx.font = 'italic 28px "Georgia", serif';
+      ctx.fillStyle = '#999999';
+      ctx.fillText('kroren.restxqr.com', canvas.width / 2, 1340);
 
       return new Promise((resolve) => {
-        img.onload = () => {
-          // Sol Panel - Text Alanı
-          const leftPanelWidth = 500;
-          const rightPanelX = leftPanelWidth + 50;
-
-          // "menu" yazısı (brush style)
-          ctx.font = 'bold 120px "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive';
-          ctx.fillStyle = '#000000';
-          ctx.textAlign = 'left';
-          ctx.fillText('Menu', 80, 200);
-
-          // Ok işareti (daha estetik)
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 6;
-          ctx.lineCap = 'round';
-          ctx.beginPath();
-          // Yay şeklinde gövde
-          ctx.moveTo(180, 120);
-          ctx.quadraticCurveTo(300, 100, 350, 160);
-          ctx.stroke();
-
-          // Ok ucu
-          ctx.beginPath();
-          ctx.moveTo(350, 160);
-          ctx.lineTo(330, 130); // Sol kanat
-          ctx.moveTo(350, 160);
-          ctx.lineTo(320, 160); // Sağ kanat
-          ctx.stroke();
-
-          // Okun arkasına küçük bir süs
-          ctx.beginPath();
-          ctx.moveTo(180, 120);
-          ctx.lineTo(190, 130);
-          ctx.stroke();
-
-          // Açıklama metni
-          ctx.font = 'bold 32px "Helvetica Neue", Arial, sans-serif';
-          ctx.fillStyle = '#000000';
-          ctx.textAlign = 'left';
-          const line1 = 'SCAN THE QR CODE &';
-          const line2 = 'ORDER YOUR FAVOURITES';
-          ctx.fillText(line1, 80, 300);
-          ctx.fillText(line2, 80, 345);
-
-          // Domain (daha belirgin)
-          ctx.font = 'italic 36px "Times New Roman", serif';
-          ctx.fillStyle = '#333333';
-          ctx.fillText('kroren.restxqr.com', 80, 480);
-
-          // Masa numarası (çok büyük ve dikkat çekici)
-          ctx.font = '900 60px "Impact", "Arial Black", sans-serif';
-          ctx.fillStyle = '#E85D04'; // Turuncu
-          ctx.fillText(`TABLE ${qrCode.tableNumber}`, 80, 650);
-
-          // Alt çizgi (masa nosu altına)
-          ctx.fillStyle = '#000000';
-          ctx.fillRect(80, 670, 250, 10);
-
-          // Sağ Panel - QR Kod
-          const qrSize = 500; // Biraz daha büyük
-          const qrX = rightPanelX + 20;
-          const qrY = (canvas.height - qrSize) / 2;
-
-          // Dış çerçeve (kalın)
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 12;
-          ctx.strokeRect(qrX - 30, qrY - 30, qrSize + 60, qrSize + 60);
-
-          // İç çerçeve
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 8;
-          ctx.strokeRect(qrX - 15, qrY - 15, qrSize + 30, qrSize + 30);
-
-          // Beyaz arka plan (QR için)
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(qrX, qrY, qrSize, qrSize);
-
-          // QR kodu çiz
-          ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
-
-          // Ortaya Logo Ekle (Eğer logo varsa)
-          const logoUrl = settings?.branding?.logo || authenticatedRestaurant?.logo;
-
-          const continueDrawing = () => {
-            // "SCAN ME" yazıları (4 köşede)
-            ctx.font = 'bold 16px Arial';
-            ctx.fillStyle = '#000000';
-            ctx.textAlign = 'center';
-
-            // Üst
-            ctx.fillText('SCAN ME', qrX + qrSize / 2, qrY - 40);
-
-            // Alt
-            ctx.fillText('SCAN ME', qrX + qrSize / 2, qrY + qrSize + 55);
-
-            // Sol (döndürülmüş)
-            ctx.save();
-            ctx.translate(qrX - 40, qrY + qrSize / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.fillText('SCAN ME', 0, 0);
-            ctx.restore();
-
-            // Sağ (döndürülmüş)
-            ctx.save();
-            ctx.translate(qrX + qrSize + 40, qrY + qrSize / 2);
-            ctx.rotate(Math.PI / 2);
-            ctx.fillText('SCAN ME', 0, 0);
-            ctx.restore();
-
-            canvas.toBlob((blob) => resolve(blob));
-          };
-
-          if (logoUrl) {
-            const logoImg = new Image();
-            logoImg.crossOrigin = 'anonymous';
-            logoImg.onload = () => {
-              const logoSize = qrSize * 0.22; // QR boyutunun %22'si
-              const lx = qrX + (qrSize - logoSize) / 2;
-              const ly = qrY + (qrSize - logoSize) / 2;
-
-              // Logo arkasına beyaz alan (köşeleri hafif yuvarlatılmış)
-              ctx.fillStyle = '#ffffff';
-              ctx.beginPath();
-              if (ctx.roundRect) {
-                ctx.roundRect(lx - 5, ly - 5, logoSize + 10, logoSize + 10, 8);
-              } else {
-                ctx.fillRect(lx - 5, ly - 5, logoSize + 10, logoSize + 10);
-              }
-              ctx.fill();
-
-              // Logoyu çiz
-              ctx.drawImage(logoImg, lx, ly, logoSize, logoSize);
-              continueDrawing();
-            };
-            logoImg.onerror = () => continueDrawing();
-            logoImg.src = logoUrl;
-          } else {
-            continueDrawing();
-          }
-        };
-        img.onerror = () => {
-          console.error('Failed to load QR image for canvas.');
-          resolve(null);
-        };
-        img.src = qrCode.qrCode;
+        canvas.toBlob((blob) => resolve(blob));
       });
     } catch (e) {
       console.error('QR card generation error:', e);
@@ -859,12 +817,12 @@ export default function QRCodesPage() {
                       <div className="bg-white p-2 rounded-lg shadow-sm relative">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={qr.qrCode} alt={qr.name} className="w-32 h-32 object-contain" />
-                        {(settings?.branding?.logo || authenticatedRestaurant?.logo) && (
+                        {(settings?.branding?.logo || authenticatedRestaurant?.logo || '/logo.png') && (
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                             <div className="w-8 h-8 bg-white p-0.5 rounded shadow-sm border border-gray-100">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
-                                src={settings?.branding?.logo || authenticatedRestaurant?.logo}
+                                src={settings?.branding?.logo || authenticatedRestaurant?.logo || '/logo.png'}
                                 alt="logo"
                                 className="w-full h-full object-contain"
                                 onError={(e) => (e.currentTarget.parentElement!.style.display = 'none')}
