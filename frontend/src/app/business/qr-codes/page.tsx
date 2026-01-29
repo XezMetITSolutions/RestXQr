@@ -442,15 +442,15 @@ export default function QRCodesPage() {
 
       // QR Ortasına Logo
       if (logoImg) {
-        // Okunabilliği artırmak için logo boyutunu biraz küçültüyoruz (0.25 -> 0.18)
-        const logoCenterSize = qrSize * 0.18;
+        // Logo boyutunu biraz artırıyoruz (0.18 -> 0.22)
+        const logoCenterSize = qrSize * 0.22;
         const lcx = qrX + (qrSize - logoCenterSize) / 2;
         const lcy = qrY + (qrSize - logoCenterSize) / 2;
         const centerX = lcx + logoCenterSize / 2;
         const centerY = lcy + logoCenterSize / 2;
 
         // Logo arkasına dairesel beyaz alan (Quiet Zone)
-        const radius = (logoCenterSize / 2) + 12; // Logodan biraz daha büyük bir daire
+        const radius = (logoCenterSize / 2) + 10; // Logodan biraz daha büyük bir daire
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
