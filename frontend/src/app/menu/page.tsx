@@ -58,7 +58,9 @@ function MenuPageContent() {
 
 
 
-  const currentRestaurant = isClient ? (() => {
+  const currentRestaurantStore = useRestaurantStore(state => state.currentRestaurant);
+
+  const currentRestaurant = isClient ? (currentRestaurantStore || (() => {
     const hostname = window.location.hostname;
     const subdomain = hostname.split('.')[0];
     const mainDomains = ['localhost', 'www', 'guzellestir', 'restxqr'];
@@ -67,7 +69,7 @@ function MenuPageContent() {
       return restaurants.find((r: any) => r.username === 'aksaray');
     }
     return restaurants.find((r: any) => r.username === subdomain);
-  })() : null;
+  })()) : null;
 
   // Use settings from currentRestaurant if available (fetched from backend), 
   // otherwise fallback to localSettings (for backward compatibility/demo)
@@ -395,24 +397,38 @@ function MenuPageContent() {
   // Fetch data on mount
   useEffect(() => {
     setIsClient(true);
-    setImageCacheVersion(Date.now()); // Set version on client to avoid hydration mismatch
-    // Restaurants yoksa fetch et
-    if (restaurants.length === 0) {
-      fetchRestaurants();
-    }
-    // Restaurant varsa menüyü fetch et
-    if (currentRestaurant?.id) {
-      fetchRestaurantMenu(currentRestaurant.id);
-    }
+    setImageCacheVersion(Date.now());
+
+    const initializeMenu = async () => {
+      if (typeof window === 'undefined') return;
+
+      const hostname = window.location.hostname;
+      const subdomain = hostname.split('.')[0];
+      const mainDomains = ['localhost', 'www', 'guzellestir', 'restxqr', 'kroren'];
+      const targetSubdomain = mainDomains.includes(subdomain) ? 'aksaray' : subdomain;
+
+      // Sadece bu restoranın verilerini fetch et (tüm restoranları değil)
+      // Bu işlem kategori ve ürünleri de tek seferde getirir
+      const restaurant = await useRestaurantStore.getState().fetchRestaurantByUsername(targetSubdomain);
+
+      if (restaurant?.id) {
+        // Token ve seans işlemlerini paralel başlat
+        detectTableAndToken();
+      }
+    };
+
+    initializeMenu();
+
     try {
       const hasVisited = typeof window !== 'undefined' && sessionStorage.getItem('menuVisitedOnce');
       if (!hasVisited) {
         setShowSplash(true);
         sessionStorage.setItem('menuVisitedOnce', '1');
-        setTimeout(() => setShowSplash(false), 1600);
+        // Splash süresini 1.6s'den 0.8s'e düşürerek açılışı hızlandırıyoruz
+        setTimeout(() => setShowSplash(false), 800);
       }
     } catch { }
-  }, [restaurants.length, currentRestaurant?.id, fetchRestaurants, fetchRestaurantMenu]);
+  }, [fetchRestaurants, fetchRestaurantMenu]);
 
   // Periyodik olarak menüyü yenile (resim güncellemelerini görmek için) - 5 dakikada bir
   useEffect(() => {
