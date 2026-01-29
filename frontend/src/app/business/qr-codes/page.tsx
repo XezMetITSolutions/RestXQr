@@ -441,17 +441,30 @@ export default function QRCodesPage() {
 
       // QR Ortasına Logo
       if (logoImg) {
-        // Logoyu devasa boyuta getiriyoruz (0.32 -> 0.36)
-        const logoCenterSize = qrSize * 0.36;
+        // Logo boyutu ve konumlandırma (0.36 -> 0.28: Okunabilirlik için optimize edildi)
+        const logoCenterSize = qrSize * 0.28;
         const centerX = qrX + qrSize / 2;
         const centerY = qrY + qrSize / 2;
 
-        // Beyaz alanı çok daha küçük tutuyoruz (0.14 -> 0.12)
-        // Logo bu alanın dışına taşarak o 'bosluk' hissini yok edecek
-        const radius = qrSize * 0.12;
+        // Beyaz alan - Yuvarlatılmış Kare Tasarımı (Rounded Square)
+        // Daire yerine kare yaparak alttaki yazının kaybolmasını engelliyoruz
+        const boxSize = qrSize * 0.32;
+        const boxX = centerX - boxSize / 2;
+        const boxY = centerY - boxSize / 2;
+        const borderRadius = 25; // Yumuşak köşeler
+
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.moveTo(boxX + borderRadius, boxY);
+        ctx.lineTo(boxX + boxSize - borderRadius, boxY);
+        ctx.quadraticCurveTo(boxX + boxSize, boxY, boxX + boxSize, boxY + borderRadius);
+        ctx.lineTo(boxX + boxSize, boxY + boxSize - borderRadius);
+        ctx.quadraticCurveTo(boxX + boxSize, boxY + boxSize, boxX + boxSize - borderRadius, boxY + boxSize);
+        ctx.lineTo(boxX + borderRadius, boxY + boxSize);
+        ctx.quadraticCurveTo(boxX, boxY + boxSize, boxX, boxY + boxSize - borderRadius);
+        ctx.lineTo(boxX, boxY + borderRadius);
+        ctx.quadraticCurveTo(boxX, boxY, boxX + borderRadius, boxY);
+        ctx.closePath();
         ctx.fill();
 
         // Logo çizimi (Aspect ratio koruyarak tam ortala)
