@@ -436,27 +436,25 @@ export default function QRCodesPage() {
       const qrSize = 900;
       const qrX = (canvas.width - qrSize) / 2;
       const qrY = (canvas.height - qrSize) / 2;
-
       // QR Kodu Çiz
       ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
       // QR Ortasına Logo
       if (logoImg) {
-        // Logo boyutunu daha da artırıyoruz (0.26 -> 0.28) ve beyaz alanı minimuma indiriyoruz
-        const logoCenterSize = qrSize * 0.28;
-        const lcx = qrX + (qrSize - logoCenterSize) / 2;
-        const lcy = qrY + (qrSize - logoCenterSize) / 2;
-        const centerX = lcx + logoCenterSize / 2;
-        const centerY = lcy + logoCenterSize / 2;
+        // Logoyu devasa boyuta getiriyoruz (0.32 -> 0.36)
+        const logoCenterSize = qrSize * 0.36;
+        const centerX = qrX + qrSize / 2;
+        const centerY = qrY + qrSize / 2;
 
-        // Logo arkasına dairesel beyaz alan (Sıfıra yakın sınır)
-        const radius = (logoCenterSize / 2);
+        // Beyaz alanı çok daha küçük tutuyoruz (0.14 -> 0.12)
+        // Logo bu alanın dışına taşarak o 'bosluk' hissini yok edecek
+        const radius = qrSize * 0.12;
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Logo çizimi (Aspect ratio koruyarak ortala)
+        // Logo çizimi (Aspect ratio koruyarak tam ortala)
         const ar = logoImg.width / logoImg.height;
         let dw, dh;
         if (ar > 1) {
