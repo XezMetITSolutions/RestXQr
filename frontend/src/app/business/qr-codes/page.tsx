@@ -442,21 +442,18 @@ export default function QRCodesPage() {
 
       // QR Ortasına Logo
       if (logoImg) {
-        const logoCenterSize = qrSize * 0.25; // Kare olması için biraz daha büyük (0.25)
+        // Okunabilliği artırmak için logo boyutunu biraz küçültüyoruz (0.25 -> 0.18)
+        const logoCenterSize = qrSize * 0.18;
         const lcx = qrX + (qrSize - logoCenterSize) / 2;
         const lcy = qrY + (qrSize - logoCenterSize) / 2;
+        const centerX = lcx + logoCenterSize / 2;
+        const centerY = lcy + logoCenterSize / 2;
 
-        // Logo arkasına beyaz dairesel/oval alan
+        // Logo arkasına dairesel beyaz alan (Quiet Zone)
+        const radius = (logoCenterSize / 2) + 12; // Logodan biraz daha büyük bir daire
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-
-        // Yuvarlatılmış beyaz kutu
-        const padding = 15;
-        if ((ctx as any).roundRect) {
-          (ctx as any).roundRect(lcx - padding, lcy - padding, logoCenterSize + (padding * 2), logoCenterSize + (padding * 2), 20);
-        } else {
-          ctx.fillRect(lcx - padding, lcy - padding, logoCenterSize + (padding * 2), logoCenterSize + (padding * 2));
-        }
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
         ctx.fill();
 
         // Logo çizimi (Aspect ratio koruyarak ortala)
@@ -470,7 +467,8 @@ export default function QRCodesPage() {
           dw = logoCenterSize * ar;
         }
 
-        ctx.drawImage(logoImg, lcx + (logoCenterSize - dw) / 2, lcy + (logoCenterSize - dh) / 2, dw, dh);
+        // Logoyu dairesel alanın tam ortasına çiz
+        ctx.drawImage(logoImg, centerX - dw / 2, centerY - dh / 2, dw, dh);
       }
 
       return new Promise((resolve) => {
