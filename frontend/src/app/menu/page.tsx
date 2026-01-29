@@ -649,16 +649,16 @@ function MenuPageContent() {
           <div className="text-center px-6 animate-scaleIn">
             <div className="relative inline-flex items-center justify-center mb-3">
               <div className="absolute inset-0 -z-10 h-24 w-24 rounded-full opacity-10" style={{ backgroundColor: 'var(--brand-primary)' }} />
-              {settings.branding.logo ? (
+              {settings?.branding?.logo ? (
                 <img src={settings.branding.logo} alt="Logo" className="h-20 w-20 object-contain rounded-md shadow-sm" />
               ) : (
                 <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'var(--brand-primary)' }}>
-                  {(settings.basicInfo.name || 'Işletme').slice(0, 1)}
+                  {(settings?.basicInfo?.name || 'Işletme').slice(0, 1)}
                 </div>
               )}
             </div>
-            <div className="text-dynamic-xl font-bold text-gray-900">{settings.basicInfo.name || 'İşletme'}</div>
-            {settings.branding.showSloganOnLoading !== false && settings.basicInfo.slogan && (
+            <div className="text-dynamic-xl font-bold text-gray-900">{settings?.basicInfo?.name || 'İşletme'}</div>
+            {settings?.branding?.showSloganOnLoading !== false && settings?.basicInfo?.slogan && (
               <div className="text-dynamic-sm text-gray-600 mt-1">{settings.basicInfo.slogan}</div>
             )}
             <div className="mt-4 mx-auto h-[1px] w-40 bg-gray-200" />
@@ -702,7 +702,7 @@ function MenuPageContent() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <LanguageSelector enabledLanguages={settings.menuSettings.language} />
+              <LanguageSelector enabledLanguages={settings?.menuSettings?.language} />
               {orderingAllowed ? (
                 <Link href={`/cart?token=${token}&table=${tableNumber}`} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
                   <FaShoppingCart className="text-xl" style={{ color: primary }} />
@@ -918,7 +918,7 @@ function MenuPageContent() {
           <div className="rounded-xl p-5 shadow-lg border bg-white">
             <div className="grid grid-cols-1 gap-3">
               {/* WiFi Info */}
-              {settings.basicInfo.showWifiInMenu && (
+              {settings?.basicInfo?.showWifiInMenu && (
                 <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
                   <div className="flex items-center">
                     <span className="text-lg mr-3">📶</span>
@@ -927,12 +927,12 @@ function MenuPageContent() {
                     </span>
                   </div>
                   <span className="text-sm font-bold px-2 py-1 rounded" style={{ color: 'var(--brand-strong)', backgroundColor: 'var(--brand-surface)' }}>
-                    {settings.basicInfo.wifiPassword || 'restoran2024'}
+                    {settings?.basicInfo?.wifiPassword || 'restoran2024'}
                   </span>
                 </div>
               )}
               {/* Google Review Button - Desktop/Tablet */}
-              {settings.basicInfo.showReviewInMenu && settings.basicInfo.googleReviewLink && (
+              {settings?.basicInfo?.showReviewInMenu && settings?.basicInfo?.googleReviewLink && (
                 <div className="hidden sm:block">
                   <a
                     href={settings.basicInfo.googleReviewLink}
@@ -955,7 +955,7 @@ function MenuPageContent() {
               )}
 
               {/* Google Review Button - Mobile (Special Design) */}
-              {settings.basicInfo.showReviewInMenu && settings.basicInfo.googleReviewLink && (
+              {settings?.basicInfo?.showReviewInMenu && settings?.basicInfo?.googleReviewLink && (
                 <div className="block sm:hidden my-4">
                   <a
                     href={settings.basicInfo.googleReviewLink}
@@ -985,7 +985,7 @@ function MenuPageContent() {
                 </div>
               )}
               {/* Working Hours */}
-              {settings.basicInfo.showHoursInMenu && (
+              {settings?.basicInfo?.showHoursInMenu && (
                 <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
                   <div className="flex items-center">
                     <span className="text-lg mr-3">🕒</span>
@@ -994,7 +994,7 @@ function MenuPageContent() {
                     </span>
                   </div>
                   <span className="text-sm font-bold" style={{ color: 'var(--brand-strong)' }}>
-                    {settings.basicInfo.workingHours || '09:00 - 23:00'}
+                    {settings?.basicInfo?.workingHours || '09:00 - 23:00'}
                   </span>
                 </div>
               )}
