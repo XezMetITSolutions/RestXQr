@@ -403,15 +403,13 @@ export default function QRCodesPage() {
       const ctx = canvas.getContext('2d');
       if (!ctx) return null;
 
-      // Canvas boyutu (Dikey A5 Benzeri)
-      canvas.width = 1000;
-      canvas.height = 1400;
+      // Canvas boyutu (Kare - Sadece QR)
+      const size = 1000;
+      canvas.width = size;
+      canvas.height = size;
 
-      // Arka plan (Beyaz / Hafif Gradyan)
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, '#ffffff');
-      gradient.addColorStop(1, '#fcfcfc');
-      ctx.fillStyle = gradient;
+      // Arka plan (Beyaz)
+      ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Resim yükleme yardımcı fonksiyonu
@@ -434,88 +432,46 @@ export default function QRCodesPage() {
 
       if (!qrImg) return null;
 
-      // 1. Üst Kısım - Logo
-      if (logoImg) {
-        const logoWidth = 500;
-        const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
-        const lx = (canvas.width - logoWidth) / 2;
-        const ly = 120;
-        ctx.drawImage(logoImg, lx, ly, logoWidth, logoHeight);
-      }
-
-      // 2. Orta Kısım - Talimatlar
-      ctx.font = 'bold 48px "Helvetica Neue", Arial, sans-serif';
-      ctx.fillStyle = '#0a0a0a';
-      ctx.textAlign = 'center';
-      ctx.fillText('MENÜYÜ GÖRMEK İÇİN OKUTUN', canvas.width / 2, 620);
-
-      ctx.font = '300 32px "Helvetica Neue", Arial, sans-serif';
-      ctx.fillStyle = '#666666';
-      ctx.fillText('Scan to view our delicious menu', canvas.width / 2, 675);
-
-      // 3. QR Kod Alanı
-      const qrSize = 580;
+      // QR Kod Alanı (Tüm canvası kaplasın ama biraz margin kalsın)
+      const qrSize = 900;
       const qrX = (canvas.width - qrSize) / 2;
-      const qrY = 760;
-
-      // QR Arka Planı ve Gölge Efekti
-      ctx.shadowColor = 'rgba(0,0,0,0.08)';
-      ctx.shadowBlur = 30;
-      ctx.shadowOffsetY = 15;
-      ctx.fillStyle = '#ffffff';
-
-      // Yuvarlatılmış beyaz alan
-      const cornerRadius = 40;
-      ctx.beginPath();
-      if ((ctx as any).roundRect) {
-        (ctx as any).roundRect(qrX - 40, qrY - 40, qrSize + 80, qrSize + 80, cornerRadius);
-      } else {
-        ctx.fillRect(qrX - 40, qrY - 40, qrSize + 80, qrSize + 80);
-      }
-      ctx.fill();
-
-      // Gölgeyi sıfırla
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
+      const qrY = (canvas.height - qrSize) / 2;
 
       // QR Kodu Çiz
       ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
-      // 4. QR Ortasına Logo
+      // QR Ortasına Logo
       if (logoImg) {
-        const logoCenterSize = qrSize * 0.22;
+        const logoCenterSize = qrSize * 0.25; // Kare olması için biraz daha büyük (0.25)
         const lcx = qrX + (qrSize - logoCenterSize) / 2;
         const lcy = qrY + (qrSize - logoCenterSize) / 2;
 
-        // Logo arkasına beyaz dairesel alan
+        // Logo arkasına beyaz dairesel/oval alan
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
+
+        // Yuvarlatılmış beyaz kutu
+        const padding = 15;
         if ((ctx as any).roundRect) {
-          (ctx as any).roundRect(lcx - 10, lcy - 10, logoCenterSize + 20, logoCenterSize + 20, 15);
+          (ctx as any).roundRect(lcx - padding, lcy - padding, logoCenterSize + (padding * 2), logoCenterSize + (padding * 2), 20);
         } else {
-          ctx.fillRect(lcx - 10, lcy - 10, logoCenterSize + 20, logoCenterSize + 20);
+          ctx.fillRect(lcx - padding, lcy - padding, logoCenterSize + (padding * 2), logoCenterSize + (padding * 2));
         }
         ctx.fill();
 
-        // Logo çizimi
-        ctx.drawImage(logoImg, lcx, lcy, logoCenterSize, logoCenterSize);
+        // Logo çizimi (Aspect ratio koruyarak ortala)
+        const ar = logoImg.width / logoImg.height;
+        let dw, dh;
+        if (ar > 1) {
+          dw = logoCenterSize;
+          dh = logoCenterSize / ar;
+        } else {
+          dh = logoCenterSize;
+          dw = logoCenterSize * ar;
+        }
+
+        ctx.drawImage(logoImg, lcx + (logoCenterSize - dw) / 2, lcy + (logoCenterSize - dh) / 2, dw, dh);
       }
-
-      // 5. Alt Kısım - Masa Numarası
-      ctx.font = '900 80px "Impact", "Arial Black", sans-serif';
-      ctx.fillStyle = '#E85D04'; // Kroren Turuncusu (veya benzeri)
-      ctx.textAlign = 'center';
-      ctx.fillText(`MASA ${qrCode.tableNumber}`, canvas.width / 2, 1180);
-
-      // Süsleme Çizgisi
-      ctx.fillStyle = '#0a0a0a';
-      ctx.fillRect((canvas.width - 200) / 2, 1210, 200, 8);
-
-      // 6. Footer - Domain
-      ctx.font = 'italic 28px "Georgia", serif';
-      ctx.fillStyle = '#999999';
-      ctx.fillText('kroren.restxqr.com', canvas.width / 2, 1340);
 
       return new Promise((resolve) => {
         canvas.toBlob((blob) => resolve(blob));
