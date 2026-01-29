@@ -85,160 +85,59 @@ function MenuPageContent() {
     ? categories.filter((cat: any) => cat.restaurantId === currentRestaurant.id)
     : [];
 
-  // QR Table Number Detection - Sabit QR ile çalışır
-  useEffect(() => {
-    const detectTableAndToken = async () => {
-      if (typeof window === 'undefined') return;
+  // QR Table Number Detection Logic
+  const detectTableAndToken = async () => {
+    if (typeof window === 'undefined') return;
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const tableParam = urlParams.get('table');
-      // Check for both 'token' and 't' (short version used in QRs)
-      const tokenParam = urlParams.get('token') || urlParams.get('t');
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableParam = urlParams.get('table');
+    const tokenParam = urlParams.get('token') || urlParams.get('t');
 
-      if (tokenParam) {
-        setToken(tokenParam);
-        try {
-          const response = await apiService.verifyQRToken(tokenParam);
+    if (tokenParam) {
+      setToken(tokenParam);
+      try {
+        const response = await apiService.verifyQRToken(tokenParam);
 
-          if (response.success && response.data?.isActive) {
-            // Yeni QR okutulduysa sepeti temizle
-            const storedToken = sessionStorage.getItem('qr_token');
-            if (storedToken !== tokenParam) {
-              console.log('🧹 Yeni QR oturumu başlatılıyor, sepet ve eski sipariş bilgileri temizleniyor.');
-              clearCart();
-              // Eski sipariş bilgilerini temizle (Masa değişikliği veya yeni müşteri durumu)
-              localStorage.removeItem('pending_order_id');
-              localStorage.removeItem('pending_order_items');
-            }
+        if (response.success && response.data?.isActive) {
+          const storedToken = sessionStorage.getItem('qr_token');
+          if (storedToken !== tokenParam) {
+            console.log('🧹 Yeni QR oturumu başlatılıyor, sepet temizleniyor.');
+            clearCart();
+            localStorage.removeItem('pending_order_id');
+            localStorage.removeItem('pending_order_items');
+          }
 
-            setTokenValid(true);
-            setTokenMessage('QR kod geçerli. Menüye erişebilirsiniz.');
+          setTokenValid(true);
+          setTokenMessage('QR kod geçerli.');
 
-            // Token'dan gelen masa numarasını ayarla
-            if (response.data?.tableNumber) {
-              setTableNumber(response.data.tableNumber);
-              localStorage.setItem('tableNumber', response.data.tableNumber.toString());
-              // Masa numarası varsa sipariş vermeye izin ver
-              setOrderingAllowed(true);
-              console.log('✅ Masa numarası token\'dan alındı ve localStorage\'a kaydedildi:', response.data.tableNumber);
-              console.log('✅ Sipariş verme modu aktif edildi');
-            } else {
-              // Masa numarası yoksa sipariş vermeye izin verme
-              setOrderingAllowed(false);
-              console.log('⚠️ Masa numarası bulunamadı, sipariş verme modu devre dışı');
-            }
+          if (response.data?.tableNumber) {
+            setTableNumber(response.data.tableNumber);
+            localStorage.setItem('tableNumber', response.data.tableNumber.toString());
+            setOrderingAllowed(true);
+          } else {
+            setOrderingAllowed(false);
+          }
 
-            // Token'ı sessionStorage'a kaydet
-            sessionStorage.setItem('qr_token', tokenParam);
-            console.log('✅ Token doğrulandı:', tokenParam);
+          sessionStorage.setItem('qr_token', tokenParam);
 
-            // Session'a katıl - Aynı cihaz aynı masaya tekrar geldiğinde eski clientId'yi kullan
-            if (currentRestaurant?.id && response.data?.tableNumber) {
-              try {
-                // Aynı masa + token için eski clientId'yi kontrol et
-                const sessionStorageKey = `client_id_${currentRestaurant.id}_${response.data.tableNumber}_${tokenParam}`;
-                const existingClientId = sessionStorage.getItem(sessionStorageKey);
-                let sessionRes: any = null;
-                if (existingClientId) {
-                  // Eski clientId ile session'a geri katıl (yeni session oluşturma)
-                  console.log('🔄 Aynı cihaz aynı masaya tekrar geldi, eski clientId kullanılıyor:', existingClientId);
+          if (currentRestaurant?.id && response.data?.tableNumber) {
+            try {
+              const sessionStorageKey = `client_id_${currentRestaurant.id}_${response.data.tableNumber}_${tokenParam}`;
+              const existingClientId = sessionStorage.getItem(sessionStorageKey);
+              let sessionRes: any = null;
+              if (existingClientId) {
+                const sessionKey = `${currentRestaurant.id}-${response.data.tableNumber}-${tokenParam}`;
+                const sessionInfo = await apiService.getSession(sessionKey, existingClientId);
 
-                  // Önce session bilgilerini al
-                  const sessionKey = `${currentRestaurant.id}-${response.data.tableNumber}-${tokenParam}`;
-                  const sessionInfo = await apiService.getSession(sessionKey, existingClientId);
+                if (sessionInfo.success && sessionInfo.data) {
+                  setSessionKey(sessionKey);
+                  setClientId(existingClientId);
+                  setActiveUsersCount(sessionInfo.data.activeUsersCount || 1);
+                  sessionStorage.setItem('session_key', sessionKey);
+                  sessionStorage.setItem('client_id', existingClientId);
 
-                  if (sessionInfo.success && sessionInfo.data) {
-                    // Session hala aktif, eski clientId'yi kullan
-                    setSessionKey(sessionKey);
-                    setClientId(existingClientId);
-                    setActiveUsersCount(sessionInfo.data.activeUsersCount || 1);
-                    sessionStorage.setItem('session_key', sessionKey);
-                    sessionStorage.setItem('client_id', existingClientId);
-
-                    // Session'dan sepeti yükle
-                    if (sessionInfo.data.cart && sessionInfo.data.cart.length > 0) {
-                      sessionInfo.data.cart.forEach((item: any) => {
-                        addItem({
-                          itemId: item.itemId || item.id,
-                          name: item.name,
-                          price: item.price,
-                          quantity: item.quantity,
-                          image: item.image,
-                          notes: item.notes,
-                          preparationTime: item.preparationTime
-                        });
-                      });
-                      console.log('✅ Sepet session\'dan yüklendi:', sessionInfo.data.cart.length, 'ürün');
-                    }
-
-                    console.log('✅ Eski session\'a geri katıldı:', {
-                      sessionKey,
-                      clientId: existingClientId,
-                      activeUsers: sessionInfo.data.activeUsersCount
-                    });
-                  } else {
-                    // Session bulunamadı veya geçersiz, eski clientId ile yeni session oluştur
-                    sessionRes = await apiService.joinSession(
-                      currentRestaurant.id,
-                      response.data.tableNumber,
-                      tokenParam,
-                      existingClientId // Eski clientId'yi gönder
-                    );
-
-                    if (sessionRes && sessionRes.success && sessionRes.data) {
-                      setSessionKey(sessionRes.data.sessionKey);
-                      setClientId(sessionRes.data.clientId);
-                      setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
-                      sessionStorage.setItem('session_key', sessionRes.data.sessionKey);
-                      sessionStorage.setItem('client_id', sessionRes.data.clientId);
-                      sessionStorage.setItem(sessionStorageKey, sessionRes.data.clientId);
-
-                      if (sessionRes.data.cart && sessionRes.data.cart.length > 0) {
-                        sessionRes.data.cart.forEach((item: any) => {
-                          addItem({
-                            itemId: item.itemId || item.id,
-                            name: item.name,
-                            price: item.price,
-                            quantity: item.quantity,
-                            image: item.image,
-                            notes: item.notes,
-                            preparationTime: item.preparationTime
-                          });
-                        });
-                      }
-                    }
-                  }
-                } else {
-                  // İlk kez bu masaya katılıyor, yeni session oluştur
-                  sessionRes = await apiService.joinSession(
-                    currentRestaurant.id,
-                    response.data.tableNumber,
-                    tokenParam
-                  );
-                }
-
-                // Yeni session oluşturulduysa bilgileri kaydet
-                if (sessionRes && sessionRes.success && sessionRes.data) {
-                  setSessionKey(sessionRes.data.sessionKey);
-                  setClientId(sessionRes.data.clientId);
-                  setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
-
-                  // Session bilgilerini sessionStorage'a kaydet (kalıcı)
-                  sessionStorage.setItem('session_key', sessionRes.data.sessionKey);
-                  sessionStorage.setItem('client_id', sessionRes.data.clientId);
-                  // Bu masa + token için clientId'yi kaydet (tekrar geldiğinde kullanmak için)
-                  sessionStorage.setItem(sessionStorageKey, sessionRes.data.clientId);
-
-                  console.log('✅ Yeni session\'a katıldı:', {
-                    sessionKey: sessionRes.data.sessionKey,
-                    clientId: sessionRes.data.clientId,
-                    activeUsers: sessionRes.data.activeUsersCount
-                  });
-
-                  // Session'dan sepeti yükle
-                  if (sessionRes.data.cart && sessionRes.data.cart.length > 0) {
-                    // Sepeti cart store'a yükle
-                    sessionRes.data.cart.forEach((item: any) => {
+                  if (sessionInfo.data.cart && sessionInfo.data.cart.length > 0) {
+                    sessionInfo.data.cart.forEach((item: any) => {
                       addItem({
                         itemId: item.itemId || item.id,
                         name: item.name,
@@ -249,150 +148,148 @@ function MenuPageContent() {
                         preparationTime: item.preparationTime
                       });
                     });
-                    console.log('✅ Sepet session\'dan yüklendi:', sessionRes.data.cart.length, 'ürün');
-                  }
-                }
-              } catch (error) {
-                console.error('Session join hatası:', error);
-              }
-            }
-          } else {
-            // Token deaktifse veya geçersizse, masa numarası varsa yeni token oluştur
-            if (tableParam) {
-              console.log('⚠️ Token geçersiz veya deaktif, yeni token oluşturuluyor...');
-              try {
-                // Backend'den restoran bilgisini al (subdomain'den)
-                const subdomain = window.location.hostname.split('.')[0];
-                const restaurantRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurants/username/${subdomain}`);
-                if (restaurantRes.ok) {
-                  const restaurantData = await restaurantRes.json();
-                  if (restaurantData.success && restaurantData.data) {
-                    // Yeni token oluştur
-                    const newTokenRes = await apiService.generateQRToken({
-                      restaurantId: restaurantData.data.id,
-                      tableNumber: parseInt(tableParam),
-                      duration: 24
-                    });
-                    if (newTokenRes.success && newTokenRes.data?.token) {
-                      // Yeni token ile URL'i güncelle
-                      const newUrl = `${window.location.origin}/menu/?token=${newTokenRes.data.token}&table=${tableParam}`;
-                      window.history.replaceState({}, '', newUrl);
-                      sessionStorage.setItem('qr_token', newTokenRes.data.token);
-                      setTokenValid(true);
-                      setTokenMessage('Yeni QR kod oluşturuldu. Menüye erişebilirsiniz.');
-                      setTableNumber(parseInt(tableParam));
-                      localStorage.setItem('tableNumber', tableParam);
-                      console.log('✅ Yeni token oluşturuldu ve masa numarası kaydedildi:', newTokenRes.data.token);
-                      return;
-                    }
-                  }
-                }
-              } catch (error) {
-                console.error('Yeni token oluşturma hatası:', error);
-              }
-            }
-
-            // Oturum devamlılığı için, masa parametresi varsa yeni token üretelim
-            if (currentRestaurant?.id && tableParam) {
-              try {
-                const gen = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr/generate`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    restaurantId: currentRestaurant.id,
-                    tableNumber: parseInt(tableParam),
-                    duration: 2
-                  })
-                });
-                const genData = await gen.json();
-                if (genData.success) {
-                  sessionStorage.setItem('qr-session-token', genData.data.token);
-                  setTokenValid(true);
-                  setTokenMessage('Yeni QR oturumu oluşturuldu. Menüye erişebilirsiniz.');
-                  // Masa numarasını set et
-                  if (tableParam) {
-                    setTableNumber(parseInt(tableParam));
-                    localStorage.setItem('tableNumber', tableParam);
-                    console.log('✅ Masa numarası yeni token ile ayarlandı ve localStorage\'a kaydedildi:', tableParam);
                   }
                 } else {
-                  setTokenValid(false);
-                  setTokenMessage('QR kod geçersiz veya süresi dolmuş. Lütfen yeni bir QR kod tarayın.');
-                  return;
+                  sessionRes = await apiService.joinSession(
+                    currentRestaurant.id,
+                    response.data.tableNumber,
+                    tokenParam,
+                    existingClientId
+                  );
+
+                  if (sessionRes && sessionRes.success && sessionRes.data) {
+                    setSessionKey(sessionRes.data.sessionKey);
+                    setClientId(sessionRes.data.clientId);
+                    setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
+                    sessionStorage.setItem('session_key', sessionRes.data.sessionKey);
+                    sessionStorage.setItem('client_id', sessionRes.data.clientId);
+                    sessionStorage.setItem(sessionStorageKey, sessionRes.data.clientId);
+                  }
                 }
-              } catch (e) {
-                setTokenValid(false);
-                setTokenMessage('QR kod doğrulanamadı. Lütfen yeni bir QR kod tarayın.');
-                return;
+              } else {
+                sessionRes = await apiService.joinSession(
+                  currentRestaurant.id,
+                  response.data.tableNumber,
+                  tokenParam
+                );
               }
-            } else {
-              setTokenValid(false);
-              setTokenMessage('QR kod geçersiz veya süresi dolmuş. Lütfen yeni bir QR kod tarayın.');
-              return; // Token geçersizse devam etme
+
+              if (sessionRes && sessionRes.success && sessionRes.data) {
+                setSessionKey(sessionRes.data.sessionKey);
+                setClientId(sessionRes.data.clientId);
+                setActiveUsersCount(sessionRes.data.activeUsersCount || 1);
+                sessionStorage.setItem('session_key', sessionRes.data.sessionKey);
+                sessionStorage.setItem('client_id', sessionRes.data.clientId);
+                sessionStorage.setItem(sessionStorageKey, sessionRes.data.clientId);
+              }
+            } catch (error) {
+              console.error('Session join hatası:', error);
             }
           }
-        } catch (error) {
-          console.error('❌ Token doğrulama hatası:', error);
-          setTokenValid(false);
-          setTokenMessage('QR kod doğrulanamadı. Lütfen yeni bir QR kod tarayın.');
-          return;
-        }
-      }
-
-      // Masa numarası kontrolü
-      if (tableParam) {
-        const tableNum = parseInt(tableParam);
-
-        if (!isNaN(tableNum) && tableNum > 0) {
-          // Masa numarasını her durumda set et
-          setTableNumber(tableNum);
-          localStorage.setItem('tableNumber', tableNum.toString());
-          // Masa numarası varsa sipariş vermeye izin ver
-          setOrderingAllowed(true);
-          console.log('✅ Masa numarası URL parametresinden ayarlandı ve localStorage\'a kaydedildi:', tableNum);
-          console.log('✅ Sipariş verme modu aktif edildi');
-
-          // Token yoksa yeni QR token oluştur (eski sistem için)
-          if (!tokenParam) {
-            const storedToken = sessionStorage.getItem('qr_token');
-            if (storedToken) {
-              setToken(storedToken);
-            }
+        } else {
+          if (tableParam) {
             try {
-              if (currentRestaurant?.id) {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr/generate`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    restaurantId: currentRestaurant.id,
-                    tableNumber: tableNum,
-                    duration: 2 // 2 saat
-                  })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                  console.log('Masa oturumu başlatıldı:', {
-                    masa: tableNum,
-                    token: data.data.token,
-                    süre: '2 saat'
+              const subdomain = window.location.hostname.split('.')[0];
+              const restaurantRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurants/username/${subdomain}`);
+              if (restaurantRes.ok) {
+                const restaurantData = await restaurantRes.json();
+                if (restaurantData.success && restaurantData.data) {
+                  const newTokenRes = await apiService.generateQRToken({
+                    restaurantId: restaurantData.data.id,
+                    tableNumber: parseInt(tableParam),
+                    duration: 24
                   });
-
-                  // Token'ı sessionStorage'a kaydet (sayfa yenilenirse tekrar oluşturma)
-                  sessionStorage.setItem('qr-session-token', data.data.token);
+                  if (newTokenRes.success && newTokenRes.data?.token) {
+                    const newUrl = `${window.location.origin}/menu/?token=${newTokenRes.data.token}&table=${tableParam}`;
+                    window.history.replaceState({}, '', newUrl);
+                    sessionStorage.setItem('qr_token', newTokenRes.data.token);
+                    setTokenValid(true);
+                    setTableNumber(parseInt(tableParam));
+                    localStorage.setItem('tableNumber', tableParam);
+                    return;
+                  }
                 }
               }
             } catch (error) {
-              console.error('Session token oluşturma hatası:', error);
+              console.error('Yeni token oluşturma hatası:', error);
             }
+          }
+
+          if (currentRestaurant?.id && tableParam) {
+            try {
+              const gen = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  restaurantId: currentRestaurant.id,
+                  tableNumber: parseInt(tableParam),
+                  duration: 2
+                })
+              });
+              const genData = await gen.json();
+              if (genData.success) {
+                sessionStorage.setItem('qr-session-token', genData.data.token);
+                setTokenValid(true);
+                setTableNumber(parseInt(tableParam));
+                localStorage.setItem('tableNumber', tableParam);
+              } else {
+                setTokenValid(false);
+                setTokenMessage('QR kod geçersiz veya süresi dolmuş.');
+                return;
+              }
+            } catch (e) {
+              setTokenValid(false);
+              setTokenMessage('QR kod doğrulanamadı.');
+              return;
+            }
+          } else {
+            setTokenValid(false);
+            setTokenMessage('QR kod geçersiz veya süresi dolmuş.');
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('❌ Token doğrulama hatası:', error);
+        // Timeout veya network hatası durumunda bir kez daha denemeye izin ver veya kullanıcıya bildir
+        setTokenValid(false);
+        setTokenMessage('Sunucuyla bağlantı kurulamadı. Lütfen internetinizi kontrol edip tekrar deneyin.');
+        return;
+      }
+    }
+
+    if (tableParam) {
+      const tableNum = parseInt(tableParam);
+      if (!isNaN(tableNum) && tableNum > 0) {
+        setTableNumber(tableNum);
+        localStorage.setItem('tableNumber', tableNum.toString());
+        setOrderingAllowed(true);
+
+        if (!tokenParam) {
+          const storedToken = sessionStorage.getItem('qr_token');
+          if (storedToken) setToken(storedToken);
+          try {
+            if (currentRestaurant?.id) {
+              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  restaurantId: currentRestaurant.id,
+                  tableNumber: tableNum,
+                  duration: 2
+                })
+              });
+              const data = await response.json();
+              if (data.success) {
+                sessionStorage.setItem('qr-session-token', data.data.token);
+              }
+            }
+          } catch (error) {
+            console.error('Session token oluşturma hatası:', error);
           }
         }
       }
-    };
-
-    detectTableAndToken();
-  }, [setTableNumber, currentRestaurant]);
+    }
+  };
 
   // Fetch data on mount
   useEffect(() => {
