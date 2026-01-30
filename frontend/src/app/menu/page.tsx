@@ -316,6 +316,10 @@ function MenuPageContent() {
           setTableNumber(tNum);
           setOrderingAllowed(true); // Instant unlock
         }
+      } else if (!tableParam) {
+        // Eğer URL'de masa numarası yoksa, state'i sıfırla (Genel Menü modu)
+        setTableNumber(0);
+        setOrderingAllowed(false);
       }
     }
   }, []);
