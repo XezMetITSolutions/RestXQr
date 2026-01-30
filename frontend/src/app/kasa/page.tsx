@@ -334,6 +334,10 @@ export default function KasaPanel() {
       if (data.success && data.data?.drinkStationRouting?.floors) {
         setFloors(data.data.drinkStationRouting.floors);
       }
+      // Get total QR count from settings
+      if (data.success && data.data?.qrCount) {
+        setTotalTables(Number(data.data.qrCount));
+      }
     } catch (error) {
       console.error('Katlar alınamadı:', error);
     }
@@ -968,8 +972,8 @@ export default function KasaPanel() {
                         }
                       }}
                       className={`aspect-square rounded-2xl font-black text-xl flex flex-col items-center justify-center gap-1 transition-all shadow-md relative ${hasOrder
-                          ? 'bg-gradient-to-br from-green-500 to-green-600 text-white hover:scale-105 hover:shadow-xl cursor-pointer'
-                          : 'bg-white text-gray-400 hover:bg-gray-50 cursor-default'
+                        ? 'bg-gradient-to-br from-green-500 to-green-600 text-white hover:scale-105 hover:shadow-xl cursor-pointer'
+                        : 'bg-white text-gray-400 hover:bg-gray-50 cursor-default'
                         }`}
                     >
                       <span className="text-2xl">{tableNum}</span>
