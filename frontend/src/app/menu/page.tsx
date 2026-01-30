@@ -96,6 +96,17 @@ function MenuPageContent() {
 
     if (tokenParam) {
       setToken(tokenParam);
+
+      // OPTIMISTIC UPDATE: Hemen butonları aktif et (Kullanıcı beklemesin)
+      // Geçersizse zaten aşağıdaki catch veya else bloklarında tokenValid=false olup hata ekranı gelecek
+      if (tableParam) {
+        const tNum = parseInt(tableParam);
+        if (!isNaN(tNum) && tNum > 0) {
+          setTableNumber(tNum);
+          setOrderingAllowed(true);
+        }
+      }
+
       try {
         const response = await apiService.verifyQRToken(tokenParam);
 
