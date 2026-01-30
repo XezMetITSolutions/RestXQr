@@ -582,8 +582,8 @@ export default function KasaPanel() {
     }
   };
 
-}
-  };
+};
+
 
 const handleMergeTables = async () => {
   if (!mergeSource || !mergeTarget) return alert('Lütfen iki masa seçiniz');
