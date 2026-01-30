@@ -98,6 +98,8 @@ export default function KasaPanel() {
   // Floor states
   const [floors, setFloors] = useState<any[]>([]);
   const [activeFloor, setActiveFloor] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');  // New: View mode toggle
+  const [totalTables, setTotalTables] = useState(50);  // Default 50 tables
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
@@ -908,11 +910,85 @@ export default function KasaPanel() {
           </div>
         )}
 
+        {/* View Mode Toggle - Only for RESTORAN */}
+        {activeSource === 'restoran' && (
+          <div className="flex gap-2 mb-6 justify-end">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${viewMode === 'list'
+                ? 'bg-gray-900 text-white shadow-md'
+                : 'bg-white text-gray-500 hover:bg-gray-100'
+                }`}
+            >
+              📋 LİSTE
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${viewMode === 'grid'
+                ? 'bg-gray-900 text-white shadow-md'
+                : 'bg-white text-gray-500 hover:bg-gray-100'
+                }`}
+            >
+              🏠 TÜM MASALAR
+            </button>
+          </div>
+        )}
+
         {loading && orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="font-black text-gray-400 animate-pulse">SİPARİŞLER ÇEKİLİYOR...</p>
           </div>
+        ) : activeSource === 'restoran' && viewMode === 'grid' ? (
+          // TABLE GRID VIEW - Show all tables
+          (() => {
+            const currentFloor = floors.find(f => f.name === activeFloor);
+            const startTable = currentFloor ? Number(currentFloor.startTable) : 1;
+            const endTable = currentFloor ? Number(currentFloor.endTable) : totalTables;
+            const allTableNumbers = Array.from({ length: endTable - startTable + 1 }, (_, i) => startTable + i);
+
+            return (
+              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4">
+                {allTableNumbers.map(tableNum => {
+                  const tableOrder = orders.find(o => o.orderType === 'dine_in' && o.tableNumber === tableNum);
+                  const hasOrder = !!tableOrder;
+                  const orderCount = hasOrder && tableOrder.originalOrders ? tableOrder.originalOrders.length : (hasOrder ? 1 : 0);
+                  const remaining = hasOrder ? (Number(tableOrder.totalAmount || 0) - Number(tableOrder.paidAmount || 0) - Number(tableOrder.discountAmount || 0)) : 0;
+
+                  return (
+                    <button
+                      key={tableNum}
+                      onClick={() => {
+                        if (hasOrder && tableOrder) {
+                          setSelectedOrder(tableOrder);
+                          setUndoStack([]);
+                          setShowPaymentModal(true);
+                          setManualAmount('');
+                          setPaymentTab('full');
+                        }
+                      }}
+                      className={`aspect-square rounded-2xl font-black text-xl flex flex-col items-center justify-center gap-1 transition-all shadow-md relative ${hasOrder
+                          ? 'bg-gradient-to-br from-green-500 to-green-600 text-white hover:scale-105 hover:shadow-xl cursor-pointer'
+                          : 'bg-white text-gray-400 hover:bg-gray-50 cursor-default'
+                        }`}
+                    >
+                      <span className="text-2xl">{tableNum}</span>
+                      {hasOrder && (
+                        <>
+                          {orderCount > 1 && (
+                            <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                              {orderCount}
+                            </span>
+                          )}
+                          <span className="text-[10px] font-bold opacity-90">{remaining.toFixed(0)}₺</span>
+                        </>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()
         ) : orders.filter(o => activeSource === 'restoran' ? o.orderType === 'dine_in' : o.orderType !== 'dine_in').length === 0 ? (
           <div className="bg-white/50 border-2 border-dashed border-gray-300 rounded-3xl p-20 text-center">
             <FaReceipt className="text-6xl text-gray-300 mx-auto mb-4" />
