@@ -357,8 +357,20 @@ export default function KasaPanel() {
 
     if (shouldPrint) {
       try {
+        let targetPrintId = orderId;
+
+        // Handle Grouped ID for printing
+        if (orderId.includes('grouped')) {
+          const grouped = orders.find(o => o.id === orderId);
+          if (grouped && grouped.originalOrders && grouped.originalOrders.length > 0) {
+            // Use the first (or most relevant) order ID for the print-info endpoint
+            // The backend should ideally handle the table printing based on this ID
+            targetPrintId = grouped.originalOrders[0].id;
+          }
+        }
+
         // Bilgi fişi yazdır (kasa yazıcısından)
-        const printInfoUrl = `${API_URL}/orders/${orderId}/print-info`;
+        const printInfoUrl = `${API_URL}/orders/${targetPrintId}/print-info`;
         await fetch(printInfoUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -461,43 +473,13 @@ export default function KasaPanel() {
           }
         }
 
-        fetchOrders(); // Refresh to get improved data
+        // Fiş Modalını Tetikle
+        setReceiptModalData({
+          orderId,
+          updatedOrder,
+          isPartial
+        });
 
-        const remaining = (Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0));
-
-        if (isPartial && remaining > 0.05) {
-          // Success notification silenced
-          setSelectedItemIndexes([]);
-          setManualAmount('');
-          setCashAmount('');
-          setCardAmount('');
-
-          if (selectedOrder) {
-            setSelectedOrder({
-              ...selectedOrder,
-              paidAmount: updatedOrder.paidAmount,
-              cashierNote: updatedOrder.cashierNote
-            });
-          }
-          // User requested modal to close even after partial payment
-          setShowPaymentModal(false);
-          setSelectedOrder(null);
-          setShowCashPad(false);
-        } else {
-          if (updatedOrder?.tableNumber) {
-            fetch(`${API_URL}/qr/deactivate-by-table`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                restaurantId: restaurantId,
-                tableNumber: updatedOrder.tableNumber
-              })
-            }).catch(console.error);
-          }
-          setShowPaymentModal(false);
-          setSelectedOrder(null);
-          setShowCashPad(false);
-        }
         return;
       }
 
@@ -1629,14 +1611,14 @@ export default function KasaPanel() {
 
       {/* RECEIPT CONFIRMATION MODAL */}
       {receiptModalData && (
-        <div className="fixed inset-0 bg-black/80 z-[120] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-gray-100 transform scale-100 transition-all">
             <div className="p-8 text-center">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FaReceipt className="text-4xl text-green-600" />
               </div>
               <h3 className="text-2xl font-black text-gray-800 mb-2">TAHSİLAT TAMAMLANDI</h3>
-              <p className="text-gray-500 font-bold text-lg">Fiş yazdırmak ister misiniz?</p>
+              <p className="text-gray-500 font-bold text-lg">Fiş ister misiniz?</p>
             </div>
 
             <div className="grid grid-cols-2 divide-x divide-gray-100 border-t border-gray-100">
