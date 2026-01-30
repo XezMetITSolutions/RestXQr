@@ -277,6 +277,14 @@ router.post('/', async (req, res) => {
       console.log('✅ Found restaurant:', { username: restaurantId, id: actualRestaurantId });
     }
 
+    // Safety check for UUID format
+    if (typeof actualRestaurantId !== 'string' || !actualRestaurantId.includes('-')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid restaurantId format. Must be a valid UUID or username.'
+      });
+    }
+
     // İçecek kategorisi kontrolü - İçecekler otomatik onaylansın
     let hasDrinks = false;
     let hasFood = false;
@@ -348,7 +356,10 @@ router.post('/', async (req, res) => {
 
       // Resolve a valid menuItemId: prefer provided UUID; else try name lookup; else create placeholder
       let resolvedMenuItemId = it.menuItemId;
-      const looksLikeUuid = typeof resolvedMenuItemId === 'string' && resolvedMenuItemId.length >= 8 && resolvedMenuItemId.includes('-');
+      const looksLikeUuid = typeof resolvedMenuItemId === 'string' &&
+        resolvedMenuItemId.length >= 8 &&
+        resolvedMenuItemId.includes('-');
+
       if (!resolvedMenuItemId || !looksLikeUuid) {
         try {
           // Try find by name within this restaurant
@@ -425,8 +436,16 @@ router.post('/', async (req, res) => {
       confirmationTime: 60 // Frontend'e 60 saniye bilgisi gönder
     });
   } catch (error) {
-    console.error('POST /orders error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    console.error('❌ POST /orders CRITICAL ERROR:', {
+      message: error.message,
+      stack: error.stack,
+      body: req.body
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Sipariş oluşturulurken sunucu hatası oluştu',
+      error: error.message
+    });
   }
 });
 
