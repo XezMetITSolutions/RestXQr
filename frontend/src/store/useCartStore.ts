@@ -67,21 +67,25 @@ const useCartStore = create<CartState>()(
       restaurantId: null, // Restaurant ID
 
       addItem: (item) => {
+        // Ensure price is a number
+        const price = typeof item.price === 'string' ? parseFloat(item.price) : Number(item.price);
+        const safeItem = { ...item, price: isNaN(price) ? 0 : price };
+
         const state = get();
         const items = [...state.items];
         const existingItemIndex = items.findIndex(i =>
-          i.itemId === item.itemId &&
+          i.itemId === safeItem.itemId &&
           // Check if variants match or both are null/undefined
-          ((!i.variant && !item.variant) || (i.variant && item.variant && i.variant.name === item.variant.name))
+          ((!i.variant && !safeItem.variant) || (i.variant && safeItem.variant && i.variant.name === safeItem.variant.name))
         );
 
         // Yeni ürün eklenirken sipariş durumunu idle'a çevir (hazırlanan ürünleri etkilemez)
         if (existingItemIndex >= 0) {
           // Item already exists, update quantity
-          items[existingItemIndex].quantity += item.quantity;
+          items[existingItemIndex].quantity += safeItem.quantity;
         } else {
           // Add new item
-          items.push({ ...item, id: generateId() });
+          items.push({ ...safeItem, id: generateId() });
         }
 
         // Önceki sipariş bilgilerini koruyoruz - ödeme tamamlanana kadar kalmalı

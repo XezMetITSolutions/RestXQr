@@ -563,7 +563,7 @@ function CartPageContent() {
                           </button>
                         </div>
                         <span className="font-bold text-sm" style={{ color: primary }}>
-                          ₺{(item.price * item.quantity).toFixed(2)}
+                          ₺{(Number(item.price) * item.quantity).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -634,7 +634,7 @@ function CartPageContent() {
                           {`${item.quantity} Adet × ₺${item.price}`}
                         </span>
                         <span className="font-bold text-lg" style={{ color: primary }}>
-                          {`₺${(item.price * item.quantity).toFixed(2)}`}
+                          {`₺${(Number(item.price) * item.quantity).toFixed(2)}`}
                         </span>
                       </div>
                     </div>
@@ -689,7 +689,7 @@ function CartPageContent() {
                         </button>
                       </div>
                       <p className="text-xs text-gray-600 mb-2">
-                        ₺{item.price.toFixed(2)}
+                        ₺{Number(item.price).toFixed(2)}
                       </p>
 
                       <div className="flex justify-between items-center">
@@ -709,7 +709,7 @@ function CartPageContent() {
                           </button>
                         </div>
                         <span className="font-semibold text-dynamic-sm" style={{ color: primary }}>
-                          ₺{(item.price * item.quantity).toFixed(2)}
+                          ₺{(Number(item.price) * item.quantity).toFixed(2)}
                         </span>
                       </div>
                     </div>
