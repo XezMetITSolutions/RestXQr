@@ -1302,11 +1302,28 @@ export default function KasaPanel() {
                           if (!confirm('Alınan tutar borçtan az! Kalanı borç olarak bırakmak istiyor musunuz?')) return;
                         }
 
-                        await handlePayment(selectedOrder.id, {
+                        // Determine if this is a partial payment for specific items
+                        const isPayingForSpecificItems = paymentTab === 'partial' && selectedItemIndexes.length > 0;
+
+                        let updatedOrderData = {
                           ...selectedOrder,
                           paidAmount: Number(selectedOrder.paidAmount || 0) + targetPaymentAmount,
                           cashierNote: (selectedOrder.cashierNote || '') + ` [NAKİT: ${received}₺ -> P.ÜSTÜ: ${(received - targetPaymentAmount).toFixed(2)}₺]`
-                        }, true);
+                        };
+
+                        // If paying for specific items, remove them from the order
+                        if (isPayingForSpecificItems) {
+                          const remainingItems = selectedOrder.items.filter((_, idx) => !selectedItemIndexes.includes(idx));
+                          const newTotal = remainingItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
+                          updatedOrderData = {
+                            ...updatedOrderData,
+                            items: remainingItems,
+                            totalAmount: newTotal,
+                            paidAmount: 0  // Reset paid amount since we removed the paid items
+                          };
+                        }
+
+                        await handlePayment(selectedOrder.id, updatedOrderData, true);
 
                         setCashReceived('');
                         setShowCashPad(false);
@@ -1455,12 +1472,15 @@ export default function KasaPanel() {
 
                             <button onClick={() => {
                               let val = 0;
+                              let isPayingForSpecificItems = false;
+
                               if (paymentTab === 'partial') {
                                 // Priority: 1. Manual Entry, 2. Selected Items
                                 if (manualAmount && Number(manualAmount) > 0) {
                                   val = Number(manualAmount);
                                 } else if (selectedItemIndexes.length > 0) {
                                   val = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
+                                  isPayingForSpecificItems = true;
                                 } else {
                                   return alert('Lütfen ürün seçin veya tutar girin.');
                                 }
@@ -1470,11 +1490,25 @@ export default function KasaPanel() {
 
                               if (val <= 0) return alert('Geçersiz Tutar');
 
-                              handlePayment(selectedOrder.id, {
+                              let updatedOrderData = {
                                 ...selectedOrder,
                                 paidAmount: Number(selectedOrder.paidAmount || 0) + val,
                                 cashierNote: (selectedOrder.cashierNote || '') + ' [KART]'
-                              }, true);
+                              };
+
+                              // If paying for specific items, remove them from the order
+                              if (isPayingForSpecificItems) {
+                                const remainingItems = selectedOrder.items.filter((_, idx) => !selectedItemIndexes.includes(idx));
+                                const newTotal = remainingItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
+                                updatedOrderData = {
+                                  ...updatedOrderData,
+                                  items: remainingItems,
+                                  totalAmount: newTotal,
+                                  paidAmount: 0  // Reset paid amount since we removed the paid items
+                                };
+                              }
+
+                              handlePayment(selectedOrder.id, updatedOrderData, true);
                             }} className="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
                               <FaCreditCard /> KART
                             </button>
