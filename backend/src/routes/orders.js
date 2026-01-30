@@ -430,6 +430,103 @@ router.post('/', async (req, res) => {
   }
 });
 
+
+// POST /api/orders/merge
+router.post('/merge', async (req, res) => {
+  try {
+    const { restaurantId, sourceTableId, targetTableId } = req.body;
+    console.log('Merge Request:', req.body);
+
+    if (!restaurantId || !sourceTableId || !targetTableId) {
+      return res.status(400).json({ success: false, message: 'Missing parameters' });
+    }
+
+    if (sourceTableId === targetTableId) {
+      return res.status(400).json({ success: false, message: 'Tables must be different' });
+    }
+
+    const sourceTableNumber = typeof sourceTableId === 'string' ? parseInt(sourceTableId.replace('table-', '')) : sourceTableId;
+    const targetTableNumber = typeof targetTableId === 'string' ? parseInt(targetTableId.replace('table-', '')) : targetTableId;
+
+    // Find active orders
+    const sourceOrder = await Order.findOne({
+      where: {
+        restaurantId,
+        tableNumber: sourceTableNumber,
+        status: { [Op.in]: ['pending', 'preparing', 'ready', 'approved'] },
+        approved: true
+      }
+    });
+
+    const targetOrder = await Order.findOne({
+      where: {
+        restaurantId,
+        tableNumber: targetTableNumber,
+        status: { [Op.in]: ['pending', 'preparing', 'ready', 'approved'] },
+        approved: true
+      }
+    });
+
+    if (!sourceOrder) {
+      return res.status(404).json({ success: false, message: 'Source table has no active order' });
+    }
+
+    // If target has no order, just move source to target
+    if (!targetOrder) {
+      sourceOrder.tableNumber = targetTableNumber;
+      await sourceOrder.save();
+
+      // Notify updates
+      const { publish } = require('../lib/realtime');
+      publish('order_update', {
+        orderId: sourceOrder.id,
+        restaurantId,
+        status: sourceOrder.status,
+        tableNumber: targetTableNumber
+      });
+
+      return res.json({ success: true, message: 'Table moved successfully' });
+    }
+
+    // If both exist, merge items
+    // Move items from source to target
+    await OrderItem.update(
+      { orderId: targetOrder.id },
+      { where: { orderId: sourceOrder.id } }
+    );
+
+    // Update target totals
+    targetOrder.totalAmount = Number(targetOrder.totalAmount) + Number(sourceOrder.totalAmount);
+    await targetOrder.save();
+
+    // Delete source order
+    await sourceOrder.destroy();
+
+    // Notify updates
+    const { publish } = require('../lib/realtime');
+    publish('order_update', {
+      orderId: targetOrder.id,
+      restaurantId,
+      status: targetOrder.status,
+      tableNumber: targetTableNumber
+    });
+
+    // Also notify source table is now empty 
+    publish('order_update', {
+      orderId: sourceOrder.id,
+      restaurantId,
+      status: 'cancelled',
+      tableNumber: sourceTableNumber
+    });
+
+    res.json({ success: true, message: 'Tables merged successfully' });
+
+  } catch (error) {
+    console.error('Merge error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 // DELETE /api/orders/bulk?restaurantId=... (MUST BE BEFORE /:id route)
 router.delete('/bulk', async (req, res) => {
   try {
