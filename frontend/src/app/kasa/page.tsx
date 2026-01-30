@@ -396,6 +396,8 @@ export default function KasaPanel() {
       if (selectedOrder) {
         setSelectedOrder({
           ...selectedOrder,
+          items: updatedOrder.items,
+          totalAmount: updatedOrder.totalAmount,
           paidAmount: updatedOrder.paidAmount,
           cashierNote: updatedOrder.cashierNote
         });
