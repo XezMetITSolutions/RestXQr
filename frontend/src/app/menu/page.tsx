@@ -951,7 +951,7 @@ function MenuPageContent() {
             return (
               <div key={category.id} id={`category-${category.id}`} className="scroll-mt-40">
                 <div className="flex items-center gap-3 mb-4 sticky top-[170px] z-10 py-2 -mx-3 px-3 backdrop-blur-md bg-white/80 border-b border-gray-100/50 shadow-sm transition-all duration-300">
-                  <h3 className="text-xl font-bold text-gray-800 border-l-4 pl-3"
+                  <h3 className="text-lg font-bold text-gray-800 border-l-4 pl-3"
                     style={{
                       borderColor: designSettings?.primaryColor || 'var(--brand-primary)',
                       color: designSettings?.primaryColor || 'var(--brand-primary)'
