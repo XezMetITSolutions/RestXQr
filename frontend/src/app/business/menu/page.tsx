@@ -37,7 +37,8 @@ import {
   FaClock,
   FaBoxOpen,
   FaProjectDiagram,
-  FaExchangeAlt
+  FaExchangeAlt,
+  FaFileDownload
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
@@ -176,7 +177,11 @@ export default function MenuManagement() {
 
   // Quick Edit States
   const [quickEditItem, setQuickEditItem] = useState<any>(null);
-  const [quickEditData, setQuickEditData] = useState({ name: '', price: '', category: '', kitchenStation: '' });
+  const [quickEditData, setQuickEditData] = useState({ name: '', description: '', price: '', category: '', kitchenStation: '' });
+
+  // Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
 
 
 
@@ -493,11 +498,11 @@ export default function MenuManagement() {
     }
   };
 
-  // Quick Edit Handlers
   const handleQuickEdit = (item: any) => {
     setQuickEditItem(item);
     setQuickEditData({
       name: item.name || '',
+      description: item.description || '',
       price: item.price.toString(),
       category: item.categoryId || '',
       kitchenStation: item.kitchenStation || ''
@@ -513,7 +518,7 @@ export default function MenuManagement() {
         price: parseFloat(quickEditData.price),
         categoryId: quickEditData.category,
         kitchenStation: quickEditData.kitchenStation,
-        description: quickEditItem.description,
+        description: quickEditData.description,
         imageUrl: quickEditItem.imageUrl || quickEditItem.image,
         isAvailable: quickEditItem.isAvailable,
         isPopular: quickEditItem.isPopular
@@ -600,12 +605,57 @@ export default function MenuManagement() {
     }
   };
 
+
+  const handleExportCSV = () => {
+    // CSV Header
+    const headers = ['ID', 'Ürün Adı', 'Açıklama', 'Fiyat', 'Kategori', 'İstasyon', 'Durum'];
+
+    // Data Rows
+    const rows = items.map(item => {
+      const categoryName = categories.find(c => c.id === item.categoryId)?.name || '';
+      const stationName = stations.find(s => s.id === item.kitchenStation)?.name || '';
+      const status = item.isAvailable !== false ? 'Mevcut' : 'Tükendi';
+
+      return [
+        item.id,
+        `"${(item.name || '').replace(/"/g, '""')}"`,
+        `"${(item.description || '').replace(/"/g, '""')}"`,
+        item.price,
+        `"${categoryName.replace(/"/g, '""')}"`,
+        `"${stationName.replace(/"/g, '""')}"`,
+        status
+      ].join(',');
+    });
+
+    // Combine Header and Rows
+    const csvContent = [headers.join(','), ...rows].join('\n');
+
+    // Create Blob with BOM for Excel compatibility
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    // Trigger Download
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `menu-export-${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Bulk actions
   const handleSelectAll = () => {
-    if (selectedItems.length === filteredItems.length) {
-      setSelectedItems([]);
+    const currentPageIds = paginatedItems.map(item => item.id);
+    const allSelected = currentPageIds.every(id => selectedItems.includes(id));
+
+    if (allSelected) {
+      setSelectedItems(selectedItems.filter(id => !currentPageIds.includes(id)));
     } else {
-      setSelectedItems(filteredItems.map(item => item.id));
+      const newSelected = [...selectedItems];
+      currentPageIds.forEach(id => {
+        if (!newSelected.includes(id)) newSelected.push(id);
+      });
+      setSelectedItems(newSelected);
     }
   };
 
@@ -1158,8 +1208,6 @@ export default function MenuManagement() {
     }
   };
 
-  // Filtrelenmiş ürünler
-  // Filtrelenmiş ürünler
   const filteredItems = useMemo(() => {
     let result = items;
 
@@ -1213,6 +1261,19 @@ export default function MenuManagement() {
 
     return result;
   }, [items, searchTerm, selectedCategory, statusFilter, activeTab, showOutOfStock, selectedStation, stations, mappingFilter]);
+
+  // Sayfalama sıfırlama (filtre değişince)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredItems]);
+
+  // Sayfalanmış ürünler
+  const paginatedItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredItems.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredItems, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden" style={{ zoom: '0.8' }}>
@@ -1356,6 +1417,15 @@ export default function MenuManagement() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 <span><TranslatedText>Toplu İçe Aktar</TranslatedText></span>
+              </button>
+
+              {/* CSV'ye Aktar */}
+              <button
+                onClick={handleExportCSV}
+                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold"
+              >
+                <FaFileDownload className="text-white text-xl" />
+                <span className="font-bold"><TranslatedText>CSV'ye Aktar</TranslatedText></span>
               </button>
 
               {/* Toplu Çeviri */}
@@ -1507,7 +1577,7 @@ export default function MenuManagement() {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           <input
                             type="checkbox"
-                            checked={selectedItems.length === filteredItems.length && filteredItems.length > 0}
+                            checked={paginatedItems.length > 0 && paginatedItems.every(item => selectedItems.includes(item.id))}
                             onChange={handleSelectAll}
                             className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                           />
@@ -1533,7 +1603,7 @@ export default function MenuManagement() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredItems.map(item => (
+                      {paginatedItems.map(item => (
                         <tr key={item.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <input
@@ -1687,6 +1757,19 @@ export default function MenuManagement() {
 
                                   <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">
+                                      {t('Açıklama')}
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={quickEditData.description}
+                                      onChange={(e) => setQuickEditData({ ...quickEditData, description: e.target.value })}
+                                      className="w-full px-2 py-1 text-sm border rounded"
+                                      placeholder={t('Ürün açıklaması...')}
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">
                                       {t('Fiyat (₺)')}
                                     </label>
                                     <input
@@ -1759,7 +1842,7 @@ export default function MenuManagement() {
 
               {/* Mobile Card View */}
               <div className="md:hidden space-y-3">
-                {filteredItems.map(item => (
+                {paginatedItems.map(item => (
                   <div key={item.id} className="bg-white rounded-lg shadow-sm border p-4">
                     <div className="flex items-start gap-3">
                       <img
@@ -1874,6 +1957,16 @@ export default function MenuManagement() {
                                   className="w-full px-2 py-1.5 text-sm border rounded bg-white"
                                 />
                               </div>
+                              <div>
+                                <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">{t('Açıklama')}</label>
+                                <textarea
+                                  value={quickEditData.description}
+                                  onChange={(e) => setQuickEditData({ ...quickEditData, description: e.target.value })}
+                                  rows={2}
+                                  className="w-full px-2 py-1.5 text-sm border rounded bg-white"
+                                  placeholder={t('Ürün açıklaması...')}
+                                />
+                              </div>
                               <div className="grid grid-cols-2 gap-2">
                                 <div>
                                   <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">{t('Fiyat (₺)')}</label>
@@ -1936,6 +2029,85 @@ export default function MenuManagement() {
             </div>
           )}
 
+
+
+          {/* Pagination Controls */}
+          {!loading && activeTab === 'items' && filteredItems.length > 0 && (
+            <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span>{t('Toplam')} {filteredItems.length} {t('ürün')}</span>
+                <span className="text-gray-300">|</span>
+                <span>{t('Sayfa')} {currentPage} / {totalPages}</span>
+                <span className="text-gray-300">|</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="border rounded px-2 py-1 bg-gray-50"
+                >
+                  <option value={20}>20 {t('ürün/sayfa')}</option>
+                  <option value={50}>50 {t('ürün/sayfa')}</option>
+                  <option value={100}>100 {t('ürün/sayfa')}</option>
+                  <option value={200}>200 {t('ürün/sayfa')}</option>
+                </select>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={t('İlk Sayfa')}
+                >
+                  &laquo;
+                </button>
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {t('Önceki')}
+                </button>
+
+                <div className="flex gap-1 overflow-hidden">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let p = currentPage - 2 + i;
+                    if (currentPage < 3) p = i + 1;
+                    if (currentPage > totalPages - 2) p = totalPages - 4 + i;
+                    if (p < 1 || p > totalPages) return null;
+
+                    return (
+                      <button
+                        key={p}
+                        onClick={() => setCurrentPage(p)}
+                        className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium transition-colors ${currentPage === p
+                          ? 'bg-purple-600 text-white'
+                          : 'border hover:bg-gray-50'
+                          }`}
+                      >
+                        {p}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {t('Sonraki')}
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={t('Son Sayfa')}
+                >
+                  &raquo;
+                </button>
+              </div>
+            </div>
+          )}
 
           {!loading && activeTab === 'combos' && (
             <div className="space-y-6">

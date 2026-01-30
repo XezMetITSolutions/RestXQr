@@ -785,6 +785,9 @@ export default function QRCodesPage() {
                           </div>
                         )}
                       </div>
+                      <div className="mt-2 font-bold text-lg text-gray-900">
+                        <TranslatedText>Masa</TranslatedText> {qr.tableNumber}
+                      </div>
                       <div className="flex gap-2 mt-3">
                         {floor && (
                           <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
