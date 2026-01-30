@@ -88,6 +88,13 @@ export default function KasaPanel() {
   const [tableEditOrder, setTableEditOrder] = useState<Order | null>(null);
   const [newTableNumber, setNewTableNumber] = useState('');
 
+  // Receipt Modal State
+  const [receiptModalData, setReceiptModalData] = useState<{
+    orderId: string;
+    updatedOrder: any;
+    isPartial: boolean;
+  } | null>(null);
+
   // Floor states
   const [floors, setFloors] = useState<any[]>([]);
   const [activeFloor, setActiveFloor] = useState<string>('all');
@@ -344,6 +351,70 @@ export default function KasaPanel() {
     }
   }, [restaurantId]);
 
+  const finalizePaymentAfterReceiptChoice = async (shouldPrint: boolean) => {
+    if (!receiptModalData) return;
+    const { orderId, updatedOrder, isPartial } = receiptModalData;
+
+    if (shouldPrint) {
+      try {
+        // Bilgi fişi yazdır (kasa yazıcısından)
+        const printInfoUrl = `${API_URL}/orders/${orderId}/print-info`;
+        await fetch(printInfoUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cashierName: 'Kasa Paneli' })
+        });
+      } catch (printErr) {
+        console.error('Fiş yazdırma hatası:', printErr);
+      }
+    }
+
+    // Cleanup Logic (Copied from original handlePayment)
+    fetchOrders();
+
+    const remaining = (Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0));
+
+    if (isPartial && remaining > 0.05) {
+      // Partial payment success - Keep modal open
+      setSelectedItemIndexes([]);
+      setManualAmount('');
+      setCashAmount('');
+      setCardAmount('');
+
+      if (selectedOrder) {
+        setSelectedOrder({
+          ...selectedOrder,
+          paidAmount: updatedOrder.paidAmount,
+          cashierNote: updatedOrder.cashierNote
+        });
+      }
+
+      // Close ONLY the cash pad (if open), keep the main payment modal open
+      setShowCashPad(false);
+
+      // Do NOT close these:
+      // setShowPaymentModal(false);
+      // setSelectedOrder(null);
+    } else {
+      if (updatedOrder?.tableNumber) {
+        fetch(`${API_URL}/qr/deactivate-by-table`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            restaurantId: restaurantId,
+            tableNumber: updatedOrder.tableNumber
+          })
+        }).then(() => console.log('✅ QR Code deactivated for table')).catch(err => console.error('Failed to deactivate QR:', err));
+      }
+      setShowPaymentModal(false);
+      setSelectedOrder(null);
+      setShowCashPad(false);
+    }
+
+    // Reset Modal State
+    setReceiptModalData(null);
+  };
+
   const handlePayment = async (orderId: string, updatedOrder?: any, isPartial = false) => {
     try {
       console.log('💰 Kasa: Ödeme işlemi başlatılıyor:', { orderId, isPartial });
@@ -457,60 +528,23 @@ export default function KasaPanel() {
       if (data.success) {
         console.log('✅ Ödeme başarıyla tamamlandı');
 
-        // Fiş yazdırma onayı
-        if (confirm('Tahsilat tamamlandı. Fiş yazdırmak istiyor musunuz?')) {
-          try {
-            // Bilgi fişi yazdır (kasa yazıcısından)
-            const printInfoUrl = `${API_URL}/orders/${orderId}/print-info`;
-            await fetch(printInfoUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ cashierName: 'Kasa Paneli' })
-            });
-          } catch (printErr) {
-            console.error('Fiş yazdırma hatası:', printErr);
-          }
-        }
+        // Fiş yazdırma onayı yerine Modal açıyoruz
+        // Eski confirm kodunu kaldırdık ve yeni akışı bağladık
 
-        // Baskı sonuçlarını kontrol et
+        // Baskı sonuçlarını kontrol et (Mutfak fişleri vs için)
         if (data.data?.printResults) {
           await handlePrintFailover(data, orderId, false);
         }
 
-        fetchOrders();
+        // Fiş Modalını Tetikle
+        setReceiptModalData({
+          orderId,
+          updatedOrder,
+          isPartial
+        });
 
-        if (isPartial && remaining > 0.05) {
-          // Success notification silenced
-          setSelectedItemIndexes([]);
-          setManualAmount('');
-          setCashAmount('');
-          setCardAmount('');
-          if (selectedOrder) {
-            setSelectedOrder({
-              ...selectedOrder,
-              paidAmount: updatedOrder.paidAmount,
-              cashierNote: updatedOrder.cashierNote
-            });
-          }
-          // User requested modal to close even after partial payment
-          setShowPaymentModal(false);
-          setSelectedOrder(null);
-          setShowCashPad(false);
-        } else {
-          if (updatedOrder?.tableNumber) {
-            fetch(`${API_URL}/qr/deactivate-by-table`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                restaurantId: restaurantId,
-                tableNumber: updatedOrder.tableNumber
-              })
-            }).then(() => console.log('✅ QR Code deactivated for table')).catch(err => console.error('Failed to deactivate QR:', err));
-          }
-          setShowPaymentModal(false);
-          setSelectedOrder(null);
-          setShowCashPad(false);
-        }
+        // Return here, let the modal handle the rest
+        return;
       } else {
         console.error('❌ Payment API başarısız response:', data);
       }
@@ -1588,6 +1622,38 @@ export default function KasaPanel() {
                   <FaCheck /> Kaydet
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RECEIPT CONFIRMATION MODAL */}
+      {receiptModalData && (
+        <div className="fixed inset-0 bg-black/80 z-[120] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-gray-100 transform scale-100 transition-all">
+            <div className="p-8 text-center">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaReceipt className="text-4xl text-green-600" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-800 mb-2">TAHSİLAT TAMAMLANDI</h3>
+              <p className="text-gray-500 font-bold text-lg">Fiş yazdırmak ister misiniz?</p>
+            </div>
+
+            <div className="grid grid-cols-2 divide-x divide-gray-100 border-t border-gray-100">
+              <button
+                onClick={() => finalizePaymentAfterReceiptChoice(false)}
+                className="py-6 bg-gray-50 text-gray-500 font-black hover:bg-gray-100 transition-colors uppercase tracking-widest text-sm flex items-center justify-center gap-2"
+              >
+                <FaTimesCircle className="text-lg" />
+                HAYIR
+              </button>
+              <button
+                onClick={() => finalizePaymentAfterReceiptChoice(true)}
+                className="py-6 bg-green-500 text-white font-black hover:bg-green-600 transition-colors uppercase tracking-widest text-sm flex items-center justify-center gap-2"
+              >
+                <FaPrint className="text-lg" />
+                EVET
+              </button>
             </div>
           </div>
         </div>
