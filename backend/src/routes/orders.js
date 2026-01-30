@@ -644,12 +644,21 @@ router.put('/:id', async (req, res) => {
                   codePage: 'CP857'
                 });
 
-                // Yazdır
-                const printResult = await printerService.printOrderAdvanced(stationId, {
+                // Yazdır - ASYNC (Dont await)
+                printerService.printOrderAdvanced(stationId, {
                   orderNumber: order.id.substring(0, 8),
                   tableNumber: order.tableNumber || 'Paket',
                   items: stationItems
+                }).then(printResult => {
+                  if (printResult.success) {
+                    console.log(`✅ ${stationId} (${printerConfig.ip}) istasyonuna yazdırıldı`);
+                  } else {
+                    console.error(`❌ ${stationId} (${printerConfig.ip}) yazdırma hatası:`, printResult.error);
+                  }
+                }).catch(err => {
+                  console.error(`❌ ${stationId} background print error:`, err);
                 });
+
 
                 if (printResult.success) {
                   console.log(`✅ ${stationId} (${printerConfig.ip}) istasyonuna yazdırıldı`);
