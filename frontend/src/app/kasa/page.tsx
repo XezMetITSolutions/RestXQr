@@ -1672,19 +1672,27 @@ export default function KasaPanel() {
                 </div>
               </div>
 
-              <div className="p-6 bg-gray-900 border-t border-gray-800 flex gap-4">
+              <div className="p-6 bg-gray-900 border-t border-gray-800 flex flex-col gap-3">
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => handleManualPrint(printingOrderId, true)}
+                    disabled={isPrinting}
+                    className="flex-1 py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-2xl font-black transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <FaPrint /> TEKRAR DENE
+                  </button>
+                  <button
+                    onClick={() => { setShowDebugModal(false); setDebugLogs([]); }}
+                    className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black transition-all"
+                  >
+                    KAPAT
+                  </button>
+                </div>
                 <button
-                  onClick={() => handleManualPrint(printingOrderId, true)}
-                  disabled={isPrinting}
-                  className="flex-1 py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-2xl font-black transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  onClick={() => router.push('/kasa/debug-payments')}
+                  className="w-full py-4 bg-red-600/20 text-red-500 rounded-2xl font-bold border border-red-500/30 hover:bg-red-600 hover:text-white transition-all text-sm uppercase tracking-widest"
                 >
-                  <FaPrint /> TEKRAR DENE
-                </button>
-                <button
-                  onClick={() => { setShowDebugModal(false); setDebugLogs([]); }}
-                  className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black transition-all"
-                >
-                  KAPAT
+                  ÖDEME SENARYO TESTİ (HİBRİT/PARÇALI)
                 </button>
               </div>
             </div>
