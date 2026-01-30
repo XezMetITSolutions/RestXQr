@@ -55,6 +55,11 @@ export default function KasaPanel() {
   const [undoStack, setUndoStack] = useState<Order[]>([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
+  // Merge Modal State
+  const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
+  const [mergeSource, setMergeSource] = useState<string>('');
+  const [mergeTarget, setMergeTarget] = useState<string>('');
+
   // Refactored State
   const [paymentTab, setPaymentTab] = useState<'full' | 'partial' | 'hybrid'>('full');
   const [selectedItemIndexes, setSelectedItemIndexes] = useState<number[]>([]);
