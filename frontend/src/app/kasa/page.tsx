@@ -101,6 +101,16 @@ export default function KasaPanel() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');  // New: View mode toggle
   const [totalTables, setTotalTables] = useState(50);  // Default 50 tables
 
+  const addLog = (message: string, type: string = 'info') => {
+    const log = {
+      timestamp: new Date().toLocaleTimeString(),
+      message,
+      type
+    };
+    setDebugLogs(prev => [log, ...prev].slice(0, 50));
+    console.log(`[DEBUG] ${type.toUpperCase()}: ${message}`);
+  };
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
   // Yetki kontrolü (State-based to prevent hydration errors)
@@ -360,6 +370,9 @@ export default function KasaPanel() {
   const finalizePaymentAfterReceiptChoice = async (shouldPrint: boolean) => {
     if (!receiptModalData) return;
     const { orderId, updatedOrder, isPartial } = receiptModalData;
+    const remaining = (Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0));
+
+    addLog(`finalizePaymentAfterReceiptChoice: shouldPrint=${shouldPrint}, orderId=${orderId}, isPartial=${isPartial}`, 'info');
 
     if (shouldPrint) {
       try {
@@ -369,31 +382,32 @@ export default function KasaPanel() {
         if (orderId.includes('grouped')) {
           const grouped = orders.find(o => o.id === orderId);
           if (grouped && grouped.originalOrders && grouped.originalOrders.length > 0) {
-            // Use the first (or most relevant) order ID for the print-info endpoint
-            // The backend should ideally handle the table printing based on this ID
             targetPrintId = grouped.originalOrders[0].id;
+            addLog(`Printing grouped order. Using child ID: ${targetPrintId}`, 'debug');
           }
         }
 
-        // Bilgi fişi yazdır (kasa yazıcısından)
+        addLog(`Requesting print-info for ${targetPrintId}`, 'network');
         const printInfoUrl = `${API_URL}/orders/${targetPrintId}/print-info`;
-        await fetch(printInfoUrl, {
+        const pResp = await fetch(printInfoUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cashierName: 'Kasa Paneli' })
         });
+        const pData = await pResp.json();
+        addLog(`Print result: ${pData.success ? 'Success' : 'Failed'}`, pData.success ? 'success' : 'error');
       } catch (printErr) {
+        addLog(`Print Error: ${printErr}`, 'error');
         console.error('Fiş yazdırma hatası:', printErr);
       }
     }
 
-    // Cleanup Logic (Copied from original handlePayment)
+    // Cleanup Logic
+    addLog(`Cleaning up UI state. remaining: ${remaining}`, 'debug');
     fetchOrders();
 
-    const remaining = (Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0));
-
     if (isPartial && remaining > 0.05) {
-      // Partial payment success - Keep modal open
+      addLog(`Keeping modal open for remaining balance: ${remaining}`, 'info');
       setSelectedItemIndexes([]);
       setManualAmount('');
       setCashAmount('');
@@ -408,14 +422,9 @@ export default function KasaPanel() {
           cashierNote: updatedOrder.cashierNote
         });
       }
-
-      // Close ONLY the cash pad (if open), keep the main payment modal open
       setShowCashPad(false);
-
-      // Do NOT close these:
-      // setShowPaymentModal(false);
-      // setSelectedOrder(null);
     } else {
+      addLog(`Full payment or last partial. Closing modals.`, 'info');
       if (updatedOrder?.tableNumber) {
         fetch(`${API_URL}/qr/deactivate-by-table`, {
           method: 'POST',
@@ -424,27 +433,25 @@ export default function KasaPanel() {
             restaurantId: restaurantId,
             tableNumber: updatedOrder.tableNumber
           })
-        }).then(() => console.log('✅ QR Code deactivated for table')).catch(err => console.error('Failed to deactivate QR:', err));
+        }).then(() => addLog('QR Deactivated', 'success')).catch(err => addLog(`QR Deactivate Failed: ${err}`, 'error'));
       }
       setShowPaymentModal(false);
       setSelectedOrder(null);
       setShowCashPad(false);
     }
 
-    // Reset Modal State
     setReceiptModalData(null);
+    addLog(`Payment flow completed.`, 'success');
   };
 
   const handlePayment = async (orderId: string, updatedOrder?: any, isPartial = false) => {
     try {
-      console.log('💰 Kasa: Ödeme işlemi başlatılıyor:', { orderId, isPartial });
+      addLog(`handlePayment: orderId=${orderId}, isPartial=${isPartial}`, 'info');
 
       if (orderId.includes('grouped')) {
+        addLog(`Processing grouped order: ${orderId}`, 'debug');
         const groupedOrder = orders.find(o => o.id === orderId);
         const tableOrders = groupedOrder?.originalOrders || [];
-        const tableNumber = groupedOrder?.tableNumber;
-
-        console.log('📋 Gruplu ödeme tespit edildi:', { tableNumber, orderCount: tableOrders.length });
 
         const updatePromises = tableOrders.map(async (tableOrder) => {
           const payload: any = {
@@ -458,11 +465,9 @@ export default function KasaPanel() {
           };
 
           const remaining = Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0);
-          if (remaining <= 0.05) {
-            payload.status = 'completed';
-          }
+          if (remaining <= 0.05) payload.status = 'completed';
 
-          console.log('💰 Gerçek sipariş ödeme güncelleniyor:', tableOrder.id);
+          addLog(`Updating child order: ${tableOrder.id}`, 'network');
           const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -472,26 +477,22 @@ export default function KasaPanel() {
         });
 
         const responses = await Promise.all(updatePromises);
-        console.log('✅ Tüm masa ödemeleri güncellendi');
+        addLog(`All table orders updated. Count: ${responses.length}`, 'success');
 
-        // Baskı sonuçlarını kontrol et
         for (let i = 0; i < responses.length; i++) {
           if (responses[i].data?.printResults) {
+            addLog(`Found printResults for child order ${i}, checking failover...`, 'debug');
             await handlePrintFailover(responses[i], tableOrders[i].id, false);
           }
         }
 
-        // Fiş Modalını Tetikle
-        setReceiptModalData({
-          orderId,
-          updatedOrder,
-          isPartial
-        });
-
+        addLog(`Triggering receipt modal for grouped order.`, 'info');
+        setReceiptModalData({ orderId, updatedOrder, isPartial });
         return;
       }
 
       // Normal order
+      addLog(`Updating normal order: ${orderId}`, 'network');
       const payload: any = {
         status: isPartial ? 'ready' : 'completed',
         items: updatedOrder?.items,
@@ -503,9 +504,7 @@ export default function KasaPanel() {
       };
 
       const remaining = Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0);
-      if (remaining <= 0.05) {
-        payload.status = 'completed';
-      }
+      if (remaining <= 0.05) payload.status = 'completed';
 
       const response = await fetch(`${API_URL}/orders/${orderId}`, {
         method: 'PUT',
@@ -516,29 +515,25 @@ export default function KasaPanel() {
       const data = await response.json();
 
       if (data.success) {
-        console.log('✅ Ödeme başarıyla tamamlandı');
-
-        // Fiş yazdırma onayı yerine Modal açıyoruz
-        // Eski confirm kodunu kaldırdık ve yeni akışı bağladık
-
-        // Baskı sonuçlarını kontrol et (Mutfak fişleri vs için)
+        addLog(`Order update success. checking printResults...`, 'success');
         if (data.data?.printResults) {
           await handlePrintFailover(data, orderId, false);
         }
 
-        // Fiş Modalını Tetikle
+        addLog(`Triggering receipt modal. ModalData will be set.`, 'info');
         setReceiptModalData({
           orderId,
           updatedOrder,
           isPartial
         });
+        addLog(`receiptModalData set: ${orderId}`, 'debug');
 
-        // Return here, let the modal handle the rest
         return;
       } else {
-        console.error('❌ Payment API başarısız response:', data);
+        addLog(`Order update FAILED: ${JSON.stringify(data)}`, 'error');
       }
     } catch (error) {
+      addLog(`handlePayment Exception: ${error}`, 'error');
       console.error('💥 Ödeme hatası:', error);
     }
   };
@@ -1770,6 +1765,15 @@ export default function KasaPanel() {
         </div>
       )}
 
-    </div >
+      {/* DEBUG BUTTON */}
+      <button
+        onClick={() => setShowDebugModal(true)}
+        className="fixed bottom-4 right-4 z-[999] p-4 bg-gray-900 border-2 border-white/20 text-white rounded-full shadow-2xl hover:bg-black transition-all flex items-center gap-2 group"
+      >
+        <FaPrint />
+        <span className="max-w-0 overflow-hidden group-hover:max-w-[100px] transition-all whitespace-nowrap text-xs font-bold">DEBUG</span>
+      </button>
+
+    </div>
   );
 }
