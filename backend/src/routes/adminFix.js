@@ -445,6 +445,10 @@ END;
                     BEGIN
                         ALTER TABLE menu_items ADD COLUMN is_popular BOOLEAN DEFAULT false;
                     EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN translations JSONB DEFAULT '{}'::jsonb;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
                 END $$;
             `);
             console.log('✅ Updated all menu_items columns');
