@@ -215,7 +215,27 @@ class PrinterService {
      */
     updateStationPrinter(station, config) {
         if (this.stations[station]) {
-            this.stations[station] = { ...this.stations[station], ...config };
+            // Eğer yeni bir istasyon anahtarı (ID) belirtildiyse ve mevcut olandan farklıysa
+            if (config.newStationKey && config.newStationKey !== station) {
+                const newKey = config.newStationKey;
+
+                // Eski verileri yeni anahtara taşı
+                this.stations[newKey] = {
+                    ...this.stations[station],
+                    ...config
+                };
+
+                // newStationKey alanını temizle (kaydedilmemesi için)
+                delete this.stations[newKey].newStationKey;
+
+                // Eski anahtarı sil
+                delete this.stations[station];
+                console.log(`♻️ İstasyon yeniden adlandırıldı: ${station} -> ${newKey}`);
+            } else {
+                // Sadece güncelle
+                this.stations[station] = { ...this.stations[station], ...config };
+            }
+
             this.saveConfig(); // Değişiklikleri kaydet
         }
     }

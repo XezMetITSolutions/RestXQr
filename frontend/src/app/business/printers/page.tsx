@@ -27,9 +27,26 @@ function PrinterManagementContent() {
     const [testingStation, setTestingStation] = useState<string | null>(null);
     const [editingStation, setEditingStation] = useState<Station | null>(null);
 
+    const [availableStations, setAvailableStations] = useState<string[]>([]);
+
     useEffect(() => {
         loadStations();
+        loadAvailableStations();
     }, []);
+
+    const loadAvailableStations = async () => {
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
+            const apiUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+            const res = await fetch(`${apiUrl}/printers/kitchen-stations`);
+            const data = await res.json();
+            if (data.success) {
+                setAvailableStations(data.data);
+            }
+        } catch (error) {
+            console.error('Error loading stations:', error);
+        }
+    };
 
     const loadStations = async () => {
         try {
@@ -75,7 +92,8 @@ function PrinterManagementContent() {
                     port: station.port,
                     enabled: station.enabled,
                     type: station.type,
-                    language: station.language || 'tr'
+                    language: station.language || 'tr',
+                    newStationKey: station.id // Frontend'de ID'yi değiştirmiş olabiliriz, backend'de kontrol edilecek
                 })
             });
 
@@ -243,6 +261,26 @@ function PrinterManagementContent() {
                                                         className="w-full px-3 py-2 border rounded-lg text-sm"
                                                         placeholder="Mutfak Yazıcısı"
                                                     />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        İstasyon Anahtarı (ID)
+                                                        <span className="text-xs text-gray-400 ml-1">(Ürün yönlendirmesi için)</span>
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={editingStation.id || ''}
+                                                        list="station-suggestions"
+                                                        onChange={e => setEditingStation({ ...editingStation, id: e.target.value })}
+                                                        className="w-full px-3 py-2 border rounded-lg text-sm bg-yellow-50 font-mono"
+                                                        placeholder="Örn: kavurma"
+                                                    />
+                                                    <datalist id="station-suggestions">
+                                                        {availableStations.map(s => (
+                                                            <option key={s} value={s} />
+                                                        ))}
+                                                    </datalist>
                                                 </div>
 
                                                 <div>

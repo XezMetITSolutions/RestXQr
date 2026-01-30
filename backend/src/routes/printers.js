@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
 router.put('/:station', async (req, res) => {
     try {
         const { station } = req.params;
-        const { name, ip, port, enabled, type, language } = req.body;
+        const { name, ip, port, enabled, type, language, newStationKey } = req.body;
 
         printerService.updateStationPrinter(station, {
             name,
@@ -33,13 +33,17 @@ router.put('/:station', async (req, res) => {
             port: port || 9100,
             enabled: enabled !== undefined ? enabled : true,
             type: type || 'epson',
-            language: language || 'tr' // Varsayılan Türkçe
+            language: language || 'tr', // Varsayılan Türkçe
+            newStationKey
         });
+
+        // Eğer key değiştiyse yanıtta yeni key'i kullan
+        const finalStationKey = newStationKey || station;
 
         res.json({
             success: true,
-            message: `${station} yazıcısı güncellendi`,
-            data: printerService.stations[station]
+            message: `${finalStationKey} yazıcısı güncellendi`,
+            data: printerService.stations[finalStationKey]
         });
     } catch (error) {
         console.error('Printer update error:', error);
@@ -141,6 +145,47 @@ router.post('/print-order', async (req, res) => {
         }
     } catch (error) {
         console.error('Multi-station print error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * @route   GET /api/printers/kitchen-stations
+ * @desc    Veritabanındaki mutfak istasyonu isimlerini getir
+ * @access  Private
+ */
+router.get('/kitchen-stations', async (req, res) => {
+    try {
+        const { MenuItem, MenuCategory, sequelize } = require('../models');
+
+        // MenuItems'dan distinct kitchen_station'ları al
+        const [itemStations] = await sequelize.query(`
+            SELECT DISTINCT kitchen_station 
+            FROM menu_items 
+            WHERE kitchen_station IS NOT NULL AND kitchen_station != ''
+        `);
+
+        // Categories'den distinct kitchen_station'ları al
+        const [catStations] = await sequelize.query(`
+            SELECT DISTINCT kitchen_station 
+            FROM menu_categories 
+            WHERE kitchen_station IS NOT NULL AND kitchen_station != ''
+        `);
+
+        // Birleştir ve unique yap
+        const allStations = new Set();
+        itemStations.forEach(s => allStations.add(s.kitchen_station));
+        catStations.forEach(s => allStations.add(s.kitchen_station));
+
+        // Standart istasyonları ekle (eğer yoksa)
+        ['kavurma', 'ramen', 'kebap', 'manti', 'icecek1', 'icecek2', 'ortakasa', 'bar'].forEach(s => allStations.add(s));
+
+        res.json({
+            success: true,
+            data: Array.from(allStations).sort()
+        });
+    } catch (error) {
+        console.error('Kitchen stations fetch error:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
