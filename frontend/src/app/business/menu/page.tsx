@@ -3508,20 +3508,7 @@ export default function MenuManagement() {
                       <p className="text-xs text-gray-500 mt-1">İstasyonların görüntülenme sırası</p>
                     </div>
 
-                    {/* Printer IP Address */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Printer (Yazıcı) IP Adresi</TranslatedText>
-                      </label>
-                      <input
-                        type="text"
-                        value={stationFormData.ipAddress}
-                        onChange={(e) => setStationFormData({ ...stationFormData, ipAddress: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
-                        placeholder="Örn: 192.168.1.100"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Bu istasyona bağlı olan termal yazıcının IP adresini girin.</p>
-                    </div>
+
                   </form>
 
                   <div className="flex justify-end gap-3 mt-6 pt-6 border-t">

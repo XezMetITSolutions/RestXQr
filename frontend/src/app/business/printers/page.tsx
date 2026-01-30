@@ -362,6 +362,10 @@ function PrinterManagementContent() {
                                                         <p className="font-mono text-sm font-semibold">{station.port}</p>
                                                     </div>
                                                     <div className="bg-gray-50 p-3 rounded-lg">
+                                                        <p className="text-xs text-gray-600">İstasyon ID</p>
+                                                        <p className="font-mono text-sm font-semibold text-purple-700">{station.id}</p>
+                                                    </div>
+                                                    <div className="bg-gray-50 p-3 rounded-lg">
                                                         <p className="text-xs text-gray-600">Dil</p>
                                                         <p className="font-semibold text-sm">
                                                             {station.language === 'zh' ? '🇨🇳 中文 (Çince)' : '🇹🇷 Türkçe'}
