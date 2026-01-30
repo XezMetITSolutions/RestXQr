@@ -70,6 +70,7 @@ function PrinterManagementContent() {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    name: station.name,
                     ip: station.ip,
                     port: station.port,
                     enabled: station.enabled,
@@ -231,6 +232,19 @@ function PrinterManagementContent() {
                                         {/* Configuration Form */}
                                         {editingStation?.id === station.id ? (
                                             <div className="space-y-3">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Yazıcı Adı
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={editingStation.name || ''}
+                                                        onChange={e => setEditingStation({ ...editingStation, name: e.target.value })}
+                                                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                                                        placeholder="Mutfak Yazıcısı"
+                                                    />
+                                                </div>
+
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                                         IP Adresi

@@ -25,9 +25,10 @@ router.get('/', async (req, res) => {
 router.put('/:station', async (req, res) => {
     try {
         const { station } = req.params;
-        const { ip, port, enabled, type, language } = req.body;
+        const { name, ip, port, enabled, type, language } = req.body;
 
         printerService.updateStationPrinter(station, {
+            name,
             ip,
             port: port || 9100,
             enabled: enabled !== undefined ? enabled : true,
