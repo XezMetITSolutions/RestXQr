@@ -18,6 +18,54 @@ router.get('/', async (req, res) => {
 });
 
 /**
+ * @route   POST /api/printers
+ * @desc    Yeni yazıcı istasyonu ekle
+ * @access  Private
+ */
+router.post('/', async (req, res) => {
+    try {
+        const { id, ...config } = req.body;
+        const stationId = id || config.newStationKey; // Frontend id veya newStationKey gönderebilir
+
+        if (!stationId) {
+            return res.status(400).json({ success: false, error: 'Station ID is required' });
+        }
+
+        printerService.addOrUpdateStation(stationId, config);
+
+        res.json({
+            success: true,
+            message: 'Yazıcı eklendi',
+            data: printerService.stations[stationId]
+        });
+    } catch (error) {
+        console.error('Printer create error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * @route   DELETE /api/printers/:station
+ * @desc    Yazıcı istasyonunu sil
+ * @access  Private
+ */
+router.delete('/:station', async (req, res) => {
+    try {
+        const { station } = req.params;
+        const result = printerService.deleteStation(station);
+
+        if (result) {
+            res.json({ success: true, message: 'Yazıcı silindi' });
+        } else {
+            res.status(404).json({ success: false, error: 'Printer not found' });
+        }
+    } catch (error) {
+        console.error('Printer delete error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
  * @route   PUT /api/printers/:station
  * @desc    İstasyon yazıcı ayarlarını güncelle
  * @access  Private

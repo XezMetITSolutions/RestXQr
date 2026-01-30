@@ -252,6 +252,18 @@ class PrinterService {
     }
 
     /**
+     * İstasyon sil
+     */
+    deleteStation(stationId) {
+        if (this.stations[stationId]) {
+            delete this.stations[stationId];
+            this.saveConfig();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Metni belirtilen dile çevir
      */
     async translateProductName(text, targetLanguage = 'zh') {
