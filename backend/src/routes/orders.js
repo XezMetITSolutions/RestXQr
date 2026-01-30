@@ -139,12 +139,14 @@ router.get('/', async (req, res) => {
         where.status = status;
       }
 
-      // OPTIMIZATION: If querying for active orders, limit to last 3 hours
-      // This prevents fetching old 'stuck' orders that slow down the system
+      // Removed the 3-hour optimization as it was causing orders to disappear 
+      // when stay duration exceeded 3h or during clock sync issues.
+      /*
       if (['pending', 'preparing', 'ready'].some(s => status.includes(s))) {
         const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
         where.created_at = { [Op.gte]: threeHoursAgo };
       }
+      */
     } else if (tableNumber) {
       // Masa numarası ile sorgulanıyorsa ve status belirtilmemişse, sadece aktif siparişleri getir
       where.tableNumber = tableNumber;
@@ -161,12 +163,19 @@ router.get('/', async (req, res) => {
       where.approved = false;
     }
 
-    console.log('🎯 Final SQL Where:', where);
+    console.log(`🎯 GET /api/orders construction:`, {
+      resId: restaurantId,
+      finalId: actualRestaurantId,
+      statusFilter: status,
+      where: JSON.stringify(where)
+    });
 
     const orders = await Order.findAll({
       where,
       order: [['created_at', 'DESC']]
     });
+
+    console.log(`📊 Found ${orders.length} orders in DB for these filters.`);
 
     const restaurantForRouting = await Restaurant.findByPk(actualRestaurantId);
 
