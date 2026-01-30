@@ -478,7 +478,13 @@ export default function QRCodesPage() {
       ctx.font = 'bold 80px Arial, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const text = `Masa ${qrCode.tableNumber}`;
+      // "Masa Genel Menü" yerine sadece "Genel Menü" yazsın
+      let text = '';
+      if (qrCode.tableNumber && String(qrCode.tableNumber).toLowerCase().includes('genel')) {
+        text = 'Genel Menü';
+      } else {
+        text = `Masa ${qrCode.tableNumber}`;
+      }
       ctx.fillText(text, canvas.width / 2, size + (bottomPadding / 2) - 10);
 
       return new Promise((resolve) => {
@@ -542,6 +548,55 @@ export default function QRCodesPage() {
     } catch (e) {
       console.error('Single QR card download error:', e);
       showToast(getStatic('İndirme hatası'), 'error');
+    }
+  };
+
+  const handleDownloadGeneralQR = async () => {
+    try {
+      showToast(getStatic('Genel QR hazırlanıyor...'), 'success');
+
+      // Determine public domain
+      // If we are on business.domain.com, we want domain.com/menu
+      // If localhost:3000, we want localhost:3000/menu (assuming separate ports or path routing)
+      // Usually business panel is subdomain.
+
+      let host = window.location.host;
+      if (host.startsWith('business.')) {
+        host = host.replace('business.', '');
+      }
+      const menuUrl = `${window.location.protocol}//${host}/menu`;
+
+      // Generate Data URL for QR Code
+      const QRCode = require('qrcode');
+      const qrDataUrl = await QRCode.toDataURL(menuUrl, { errorCorrectionLevel: 'H', margin: 1, width: 900 });
+
+      // Create dummy QRCodeData object
+      const generalQR: QRCodeData = {
+        id: 'general-menu',
+        restaurantId: authenticatedRestaurant?.id || '',
+        tableNumber: 'Genel Menü',
+        token: 'public',
+        qrCode: qrDataUrl,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: true,
+        type: 'general'
+      };
+
+      const blob = await generateQRCardBlob(generalQR);
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `General_Menu_QR.png`;
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast(getStatic('Genel QR indirildi!'), 'success');
+      }
+
+    } catch (e) {
+      console.error('General QR error:', e);
+      showToast(getStatic('Hata oluştu'), 'error');
     }
   };
 
@@ -610,6 +665,13 @@ export default function QRCodesPage() {
                 <LanguageSelector enabledLanguages={settings?.menuSettings?.language} />
                 <button onClick={reloadQRCodes} className="p-2 text-gray-600 hover:text-blue-600" title="Yenile">
                   <FaSync className={loading ? 'animate-spin' : ''} />
+                </button>
+                <button
+                  onClick={handleDownloadGeneralQR}
+                  className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 flex items-center gap-2 shadow-sm border border-gray-200"
+                >
+                  <FaQrcode />
+                  <span className="hidden sm:inline"><TranslatedText>Genel Menü QR</TranslatedText></span>
                 </button>
                 <button
                   onClick={() => setShowCreateModal(true)}
