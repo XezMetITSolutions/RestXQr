@@ -685,9 +685,26 @@ router.put('/:id', async (req, res) => {
     if (tableNumber !== undefined) order.tableNumber = tableNumber;
     if (paidAmount !== undefined) order.paidAmount = paidAmount;
     if (discountAmount !== undefined) order.discountAmount = discountAmount;
+    if (totalAmount !== undefined) order.totalAmount = totalAmount;
     if (discountReason) order.discountReason = discountReason;
     if (cashierNote) order.cashierNote = cashierNote;
     if (approved !== undefined) order.approved = approved;
+
+    // Sync items if provided
+    if (items && Array.isArray(items)) {
+      const { OrderItem } = require('../models');
+      await OrderItem.destroy({ where: { orderId: id } });
+      for (const item of items) {
+        await OrderItem.create({
+          orderId: id,
+          menuItemId: item.menuItemId || item.id,
+          quantity: item.quantity,
+          unitPrice: item.price || item.unitPrice,
+          totalPrice: (item.price || item.unitPrice) * item.quantity,
+          notes: item.notes || ''
+        });
+      }
+    }
 
     await order.save();
 

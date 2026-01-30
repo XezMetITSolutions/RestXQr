@@ -141,21 +141,25 @@ export default function KasaPanel() {
     let amount = 0;
     if (paymentTab === 'partial') {
       // Priority: 1. Manual Entry, 2. Selected Items
-      if (manualAmount && Number(manualAmount) > 0) {
-        amount = Number(manualAmount);
+      const manualNum = parseFloat(manualAmount);
+      if (!isNaN(manualNum) && manualNum > 0) {
+        amount = manualNum;
       } else if (selectedItemIndexes.length > 0) {
-        amount = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
+        amount = selectedItemIndexes.reduce((s, i) => s + (parseFloat(String(selectedOrder.items[i].price || 0)) * parseFloat(String(selectedOrder.items[i].quantity || 1))), 0);
       } else {
         alert('Lütfen ürün seçin veya tutar girin.');
         return;
       }
     } else {
-      amount = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
+      const tot = parseFloat(String(selectedOrder.totalAmount || 0));
+      const paid = parseFloat(String(selectedOrder.paidAmount || 0));
+      const disc = parseFloat(String(selectedOrder.discountAmount || 0));
+      amount = parseFloat((tot - paid - disc).toFixed(2));
     }
 
-    if (amount <= 0) return alert("Geçersiz Tutar");
+    if (amount <= 0) return alert("Tutarda ödenecek bakiye görünmüyor.");
 
-    setTargetPaymentAmount(amount);
+    setTargetPaymentAmount(parseFloat(amount.toFixed(2)));
     setCashReceived('');
     setShowCashPad(true);
   };
@@ -446,29 +450,25 @@ export default function KasaPanel() {
 
   const handlePayment = async (orderId: string, updatedOrder?: any, isPartial = false) => {
     try {
-      addLog(`handlePayment: orderId=${orderId}, isPartial=${isPartial}`, 'info');
+      addLog(`handlePayment: id=${orderId}, part=${isPartial}`, 'info');
 
       if (orderId.includes('grouped')) {
-        addLog(`Processing grouped order: ${orderId}`, 'debug');
+        addLog(`Grouped order update: ${orderId}`, 'debug');
         const groupedOrder = orders.find(o => o.id === orderId);
-        const tableOrders = groupedOrder?.originalOrders || [];
+        const childOrders = groupedOrder?.originalOrders || [];
 
-        const updatePromises = tableOrders.map(async (tableOrder) => {
+        const updatePromises = childOrders.map(async (child) => {
           const payload: any = {
             status: isPartial ? 'ready' : 'completed',
-            items: updatedOrder?.items,
-            totalAmount: updatedOrder?.totalAmount,
-            paidAmount: updatedOrder?.paidAmount,
-            discountAmount: updatedOrder?.discountAmount,
-            discountReason: updatedOrder?.discountReason,
             cashierNote: updatedOrder?.cashierNote
           };
 
-          const remaining = Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0);
-          if (remaining <= 0.05) payload.status = 'completed';
+          // If full payment, match paidAmount to total per child order
+          if (!isPartial) {
+            payload.paidAmount = child.totalAmount;
+          }
 
-          addLog(`Updating child order: ${tableOrder.id}`, 'network');
-          const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
+          const response = await fetch(`${API_URL}/orders/${child.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -477,22 +477,22 @@ export default function KasaPanel() {
         });
 
         const responses = await Promise.all(updatePromises);
-        addLog(`All table orders updated. Count: ${responses.length}`, 'success');
+        const anyFailed = responses.some(r => !r.success);
+        if (anyFailed) addLog('Some child orders failed to update', 'warning');
 
+        // Handle printing for any successful child order that has print info
         for (let i = 0; i < responses.length; i++) {
-          if (responses[i].data?.printResults) {
-            addLog(`Found printResults for child order ${i}, checking failover...`, 'debug');
-            await handlePrintFailover(responses[i], tableOrders[i].id, false);
+          if (responses[i].success && responses[i].data?.printResults) {
+            await handlePrintFailover(responses[i], childOrders[i].id, false);
           }
         }
 
-        addLog(`Triggering receipt modal for grouped order.`, 'info');
         setReceiptModalData({ orderId, updatedOrder, isPartial });
         return;
       }
 
       // Normal order
-      addLog(`Updating normal order: ${orderId}`, 'network');
+      addLog(`Updating order: ${orderId}`, 'network');
       const payload: any = {
         status: isPartial ? 'ready' : 'completed',
         items: updatedOrder?.items,
@@ -500,11 +500,12 @@ export default function KasaPanel() {
         paidAmount: updatedOrder?.paidAmount,
         discountAmount: updatedOrder?.discountAmount,
         discountReason: updatedOrder?.discountReason,
-        cashierNote: updatedOrder?.cashierNote
+        cashierNote: updatedOrder?.cashierNote,
+        approved: updatedOrder?.approved
       };
 
-      const remaining = Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0);
-      if (remaining <= 0.05) payload.status = 'completed';
+      const rem = Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0);
+      if (rem <= 0.05) payload.status = 'completed';
 
       const response = await fetch(`${API_URL}/orders/${orderId}`, {
         method: 'PUT',
@@ -515,26 +516,16 @@ export default function KasaPanel() {
       const data = await response.json();
 
       if (data.success) {
-        addLog(`Order update success. checking printResults...`, 'success');
         if (data.data?.printResults) {
           await handlePrintFailover(data, orderId, false);
         }
-
-        addLog(`Triggering receipt modal. ModalData will be set.`, 'info');
-        setReceiptModalData({
-          orderId,
-          updatedOrder,
-          isPartial
-        });
-        addLog(`receiptModalData set: ${orderId}`, 'debug');
-
-        return;
+        setReceiptModalData({ orderId, updatedOrder, isPartial });
       } else {
-        addLog(`Order update FAILED: ${JSON.stringify(data)}`, 'error');
+        addLog(`Update FAILED: ${JSON.stringify(data)}`, 'error');
       }
     } catch (error) {
-      addLog(`handlePayment Exception: ${error}`, 'error');
-      console.error('💥 Ödeme hatası:', error);
+      addLog(`Exception: ${error}`, 'error');
+      console.error('Payment Error:', error);
     }
   };
 
@@ -1558,27 +1549,30 @@ export default function KasaPanel() {
                       <div className="flex flex-col gap-3">
                         {paymentTab === 'hybrid' ? (
                           <button onClick={() => {
-                            const cash = Number(cashAmount) || 0;
-                            const card = Number(cardAmount) || 0;
-                            const total = cash + card;
-                            if (total <= 0) return alert('Geçersiz Tutar!');
+                            const cash = parseFloat(cashAmount) || 0;
+                            const card = parseFloat(cardAmount) || 0;
+                            const total = parseFloat((cash + card).toFixed(2));
+                            if (total <= 0) return alert('Lütfen tutar giriniz!');
                             if (cash < 0 || card < 0) return alert('Negatif tutar girilemez!');
 
                             let note = selectedOrder.cashierNote || '';
                             if (cash > 0) note += ` [NAKİT: ${cash.toFixed(2)}₺]`;
                             if (card > 0) note += ` [KART: ${card.toFixed(2)}₺]`;
 
+                            const prevPaidValue = parseFloat(String(selectedOrder.paidAmount || 0));
+                            const newPaidTotalValue = parseFloat((prevPaidValue + total).toFixed(2));
+
                             const updatedOrderData = {
                               ...selectedOrder,
-                              paidAmount: Number(selectedOrder.paidAmount || 0) + total,
+                              paidAmount: newPaidTotalValue,
                               cashierNote: note
                             };
 
                             // Calculate if this is truly a partial payment (has remaining balance)
                             const currentTotal = parseFloat(String(updatedOrderData.totalAmount || 0));
-                            const currentPaid = parseFloat(String(updatedOrderData.paidAmount || 0));
-                            const currentDiscount = parseFloat(String(updatedOrderData.discountAmount || 0));
-                            const remaining = parseFloat((currentTotal - currentPaid - currentDiscount).toFixed(2));
+                            const currentPaidFinal = parseFloat(String(updatedOrderData.paidAmount || 0));
+                            const currentDiscountFinal = parseFloat(String(updatedOrderData.discountAmount || 0));
+                            const remaining = parseFloat((currentTotal - currentPaidFinal - currentDiscountFinal).toFixed(2));
 
                             const isTrulyPartial = remaining > 0.05;
 
