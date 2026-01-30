@@ -968,9 +968,15 @@ export default function KasaPanel() {
                       </div>
                       <div className="flex gap-3 mt-6">
                         {hasPermission('cashier_process_payment') && (
-                          <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
-                            ÖDEME AL
-                          </button>
+                          order.approved ? (
+                            <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
+                              ÖDEME AL
+                            </button>
+                          ) : (
+                            <div className="flex-1 py-4 bg-gray-100 text-gray-400 rounded-2xl font-black border border-gray-200 flex items-center justify-center cursor-not-allowed text-xs">
+                              ÖNCE ONAYLA
+                            </div>
+                          )
                         )}
 
                         {order.approved === false && hasPermission('cashier_approve_orders') && (
