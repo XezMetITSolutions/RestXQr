@@ -175,7 +175,9 @@ export default function KasaPanel() {
     if (!restaurantId) return;
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}`);
+      // Optimize: Only fetch active orders (pending, preparing, ready)
+      // This drastically reduces load time by ignoring thousands of completed/cancelled orders
+      const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}&status=pending,preparing,ready`);
       const data = await response.json();
       if (data.success) {
         const normalizedOrders: Order[] = (data.data || []).map((order: any) => ({

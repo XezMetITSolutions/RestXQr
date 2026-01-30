@@ -133,7 +133,11 @@ router.get('/', async (req, res) => {
     const where = { restaurantId: actualRestaurantId };
 
     if (status && status !== 'all') {
-      where.status = status;
+      if (status.includes(',')) {
+        where.status = { [Op.in]: status.split(',') };
+      } else {
+        where.status = status;
+      }
     } else if (tableNumber) {
       // Masa numarası ile sorgulanıyorsa ve status belirtilmemişse, sadece aktif siparişleri getir
       where.tableNumber = tableNumber;
