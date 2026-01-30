@@ -41,7 +41,7 @@ export default function PaymentDebugPage() {
     const fetchOrders = async (resId: string) => {
         try {
             setLoading(true);
-            const resp = await fetch(`${API_URL}/orders?restaurantId=${resId}&status=active`);
+            const resp = await fetch(`${API_URL}/orders?restaurantId=${resId}&status=pending,preparing,ready`);
             const data = await resp.json();
             if (data.success) {
                 setOrders(data.data.filter((o: any) => o.status !== 'completed' && o.status !== 'cancelled'));
