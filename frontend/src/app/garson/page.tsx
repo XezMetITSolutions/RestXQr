@@ -25,6 +25,7 @@ interface Order {
   items: OrderItem[];
   approved?: boolean;
   paymentInfo?: string;
+  originalOrders?: Order[];
 }
 
 interface WaiterCall {
@@ -361,6 +362,54 @@ export default function GarsonPanel() {
     }
   };
 
+  // Masa Numarasını API ile Güncelle
+  const handleUpdateTable = async () => {
+    if (!orderToChangeTable || !newTableNumber) return;
+    const tableNum = parseInt(newTableNumber);
+
+    if (isNaN(tableNum) || tableNum < 0) {
+      alert('Lütfen geçerli bir masa numarası girin!');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const isGrouped = orderToChangeTable.id.includes('grouped');
+      const tableOrders = isGrouped ? orderToChangeTable.originalOrders || [] : [orderToChangeTable];
+
+      if (tableOrders.length === 0) return;
+
+      const results = await Promise.all(tableOrders.map(async (order) => {
+        const response = await fetch(`${API_URL}/orders/${order.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ tableNumber: tableNum })
+        });
+        return response.json();
+      }));
+
+      const allSuccess = results.every(r => r.success);
+
+      if (allSuccess) {
+        console.log(`✅ Masa ${orderToChangeTable.tableNumber} -> ${tableNum} olarak güncellendi`);
+        // UI'ı güncelle
+        setShowTableModal(false);
+        setOrderToChangeTable(null);
+        setNewTableNumber('');
+        fetchOrders(true);
+      } else {
+        alert('Bazı siparişler güncellenirken bir hata oluştu.');
+      }
+    } catch (error) {
+      console.error('❌ Masa güncelleme hatası:', error);
+      alert('Masa güncellenirken teknik bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Sipariş detaylarını aç
   const openOrderDetails = (order: Order) => {
     setSelectedOrder(order);
@@ -416,7 +465,8 @@ export default function GarsonPanel() {
         .filter((note, index, arr) => arr.indexOf(note) === index)
         .filter(note => note && !note.includes('Ödeme yöntemi') && !note.includes('Debug Simülasyonu') && !note.includes('Bahşiş') && !note.includes('Bağış'))
         .join(' | ') || (latestOrder.notes ? latestOrder.notes.replace(/Ödeme yöntemi:[^|]*?(?:\||$)/g, '').replace(/Bahşiş:[^|]*?(?:\||$)/g, '').replace(/Bağış:[^|]*?(?:\||$)/g, '').replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:[^|]*?(?:\||$)/gi, '').trim() : ''),
-      paymentInfo: tableOrders.map(o => o.notes).filter(Boolean).find(note => note && note.includes('Ödeme yöntemi')) || ''
+      paymentInfo: tableOrders.map(o => o.notes).filter(Boolean).find(note => note && note.includes('Ödeme yöntemi')) || '',
+      originalOrders: tableOrders
     };
   };
 
@@ -775,24 +825,11 @@ export default function GarsonPanel() {
                 İptal
               </button>
               <button
-                onClick={() => {
-                  const tableNum = parseInt(newTableNumber);
-                  if (tableNum > 0 && tableNum <= 100) {
-                    setOrders(prevOrders =>
-                      prevOrders.map(o =>
-                        o.id === orderToChangeTable.id ? { ...o, tableNumber: tableNum } : o
-                      )
-                    );
-                    setShowTableModal(false);
-                    setOrderToChangeTable(null);
-                    setNewTableNumber('');
-                  } else {
-                    alert('Lütfen 1-100 arasında geçerli bir masa numarası girin!');
-                  }
-                }}
-                className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-colors"
+                onClick={handleUpdateTable}
+                className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-colors disabled:opacity-50"
+                disabled={loading}
               >
-                ✨ Değiştir
+                {loading ? 'Güncelleniyor...' : '✨ Değiştir'}
               </button>
             </div>
           </div>

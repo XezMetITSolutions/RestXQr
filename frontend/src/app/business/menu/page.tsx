@@ -226,7 +226,6 @@ export default function MenuManagement() {
     description: '',
     order: 0,
     isActive: true,
-    kitchenStation: '',
     translations: {},
     discountPercentage: '',
     discountStartDate: '',
@@ -829,7 +828,6 @@ export default function MenuManagement() {
       description: '',
       order: categories.length,
       isActive: true,
-      kitchenStation: '',
       translations: {},
       discountPercentage: '',
       discountStartDate: '',
@@ -846,7 +844,6 @@ export default function MenuManagement() {
       description: category.description || '',
       order: category.order || 0,
       isActive: category.isActive !== false,
-      kitchenStation: category.kitchenStation || '',
       translations: category.translations || {},
       discountPercentage: category.discountPercentage?.toString() || '',
       discountStartDate: category.discountStartDate || '',
@@ -2262,14 +2259,7 @@ export default function MenuManagement() {
                         </span>
                       </div>
 
-                      {category.kitchenStation && (
-                        <div className="mb-3">
-                          <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                            <FaFire className="mr-1" />
-                            {stations.find(s => s.id === category.kitchenStation || s.name.toLowerCase() === category.kitchenStation?.toLowerCase())?.name || category.kitchenStation}
-                          </span>
-                        </div>
-                      )}
+                      {/* İstasyon bilgisi kategoriden kaldırıldı, ürün seviyesinde yönetilecek */}
 
                       <div>
                         <p className="text-sm text-gray-500 mb-4">
@@ -3483,27 +3473,7 @@ export default function MenuManagement() {
                       />
                     </div>
 
-                    {/* Mutfak İstasyonu */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <TranslatedText>Varsayılan Mutfak İstasyonu</TranslatedText>
-                      </label>
-                      <select
-                        value={categoryFormData.kitchenStation}
-                        onChange={(e) => setCategoryFormData({ ...categoryFormData, kitchenStation: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      >
-                        <option value="">{t('İstasyon Seçin')}</option>
-                        {stations.sort((a, b) => a.order - b.order).map(station => (
-                          <option key={station.id} value={station.id}>
-                            {station.emoji} {station.name}
-                          </option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {t('Bu kategorideki ürünler varsayılan olarak hangi istasyona gidecek?')}
-                      </p>
-                    </div>
+                    {/* Mutfak İstasyonu seçimi kategoriden kaldırıldı, ürün seviyesinde yönetilecek */}
 
                     {/* Durum */}
                     <div className="flex items-center gap-4">
@@ -3541,8 +3511,7 @@ export default function MenuManagement() {
                                 name: categoryFormData.name,
                                 description: categoryFormData.description,
                                 order: categoryFormData.order,
-                                isActive: categoryFormData.isActive,
-                                kitchenStation: categoryFormData.kitchenStation
+                                isActive: categoryFormData.isActive
                               });
                               console.log('Kategori güncellendi:', editingCategory);
                               // Menüyü yeniden yükle
@@ -3556,7 +3525,6 @@ export default function MenuManagement() {
                                 description: categoryFormData.description,
                                 order: categories.length,
                                 isActive: categoryFormData.isActive,
-                                kitchenStation: categoryFormData.kitchenStation,
                                 discountPercentage: categoryFormData.discountPercentage ? parseInt(categoryFormData.discountPercentage) : null,
                                 discountStartDate: categoryFormData.discountStartDate || null,
                                 discountEndDate: categoryFormData.discountEndDate || null
@@ -3578,7 +3546,6 @@ export default function MenuManagement() {
                           description: '',
                           order: categories.length,
                           isActive: true,
-                          kitchenStation: '',
                           translations: {},
                           discountPercentage: '',
                           discountStartDate: '',

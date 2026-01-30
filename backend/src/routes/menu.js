@@ -119,7 +119,7 @@ router.get('/:restaurantId/menu/categories', async (req, res) => {
 router.post('/:restaurantId/menu/categories', async (req, res) => {
   try {
     const { restaurantId } = req.params;
-    const { name, description, order, isActive, kitchenStation } = req.body;
+    const { name, description, order, isActive } = req.body;
 
     // Verify restaurant exists
     const restaurant = await Restaurant.findByPk(restaurantId);
@@ -154,8 +154,7 @@ router.post('/:restaurantId/menu/categories', async (req, res) => {
       name: categoryName,
       description: categoryDescription || null,
       displayOrder: order !== undefined ? order : 0,
-      isActive: isActive !== undefined ? isActive : true,
-      kitchenStation: kitchenStation || null
+      isActive: isActive !== undefined ? isActive : true
     });
 
     res.status(201).json({
@@ -176,7 +175,7 @@ router.post('/:restaurantId/menu/categories', async (req, res) => {
 router.put('/:restaurantId/menu/categories/:categoryId', async (req, res) => {
   try {
     const { restaurantId, categoryId } = req.params;
-    const { name, description, order, isActive, kitchenStation } = req.body;
+    const { name, description, order, isActive } = req.body;
 
     const category = await MenuCategory.findOne({
       where: { id: categoryId, restaurantId }
@@ -205,17 +204,8 @@ router.put('/:restaurantId/menu/categories/:categoryId', async (req, res) => {
       name: categoryName,
       description: categoryDescription,
       displayOrder: order !== undefined ? order : category.displayOrder,
-      isActive: isActive !== undefined ? isActive : category.isActive,
-      kitchenStation: kitchenStation !== undefined ? kitchenStation : category.kitchenStation
+      isActive: isActive !== undefined ? isActive : category.isActive
     });
-
-    // If kitchenStation is updated, update all items in this category
-    if (kitchenStation !== undefined) {
-      await MenuItem.update(
-        { kitchenStation },
-        { where: { categoryId: category.id } }
-      );
-    }
 
     res.json({
       success: true,
@@ -418,7 +408,7 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       allergens: allergens || [],
       portion: portion || null,
       portionSize: portion || null,
-      kitchenStation: kitchenStation || category.kitchenStation || null,
+      kitchenStation: kitchenStation || null,
       variations: req.body.variations || [],
       options: req.body.options || [],
       type: req.body.type || 'single',

@@ -200,7 +200,7 @@ router.get('/', async (req, res) => {
         it.menuItem?.categoryId,
         it.menuItem?.kitchenStation || it.menuItem?.category?.kitchenStation
       );
-      const itemStation = drinkStation || it.menuItem?.kitchenStation || it.menuItem?.category?.kitchenStation || 'default';
+      const itemStation = drinkStation || it.menuItem?.kitchenStation || 'default';
 
       list.push({
         id: it.menuItemId || it.id,
