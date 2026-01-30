@@ -1302,10 +1302,28 @@ export default function KasaPanel() {
                 </div>
 
                 {/* Sol Alt Toplam */}
-                <div className="p-4 bg-white border-t border-gray-200 shrink-0">
-                  <div className="flex justify-between items-center text-sm mb-1">
-                    <span className="text-gray-500 text-xs font-bold uppercase">Toplam Tutar</span>
-                    <span className="text-gray-900 font-bold">{Number(selectedOrder.totalAmount).toFixed(2)}₺</span>
+                <div className="p-4 bg-white border-t border-gray-200 shrink-0 space-y-1">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-gray-400 font-bold uppercase tracking-widest">Sipariş Toplamı</span>
+                    <span className="text-gray-600 font-bold">{Number(selectedOrder.totalAmount).toFixed(2)}₺</span>
+                  </div>
+                  {Number(selectedOrder.paidAmount) > 0 && (
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="text-blue-500 font-bold uppercase tracking-widest">Ödenen Miktar</span>
+                      <span className="text-blue-600 font-bold">-{Number(selectedOrder.paidAmount).toFixed(2)}₺</span>
+                    </div>
+                  )}
+                  {Number(selectedOrder.discountAmount) > 0 && (
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="text-red-500 font-bold uppercase tracking-widest">İndirim</span>
+                      <span className="text-red-600 font-bold">-{Number(selectedOrder.discountAmount).toFixed(2)}₺</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center bg-green-50 px-4 py-3 rounded-2xl mt-2 border border-green-100">
+                    <span className="text-green-800 font-black text-xs uppercase tracking-tighter">KALAN BORÇ</span>
+                    <span className="text-green-600 font-black text-2xl font-mono tracking-tighter">
+                      {(Number(selectedOrder.totalAmount) - Number(selectedOrder.paidAmount) - Number(selectedOrder.discountAmount)).toFixed(2)}₺
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1382,9 +1400,12 @@ export default function KasaPanel() {
                         // Determine if this is a partial payment for specific items
                         const isPayingForSpecificItems = paymentTab === 'partial' && selectedItemIndexes.length > 0;
 
+                        const prevPaid = parseFloat(String(selectedOrder.paidAmount || 0));
+                        const newPaidTotal = parseFloat((prevPaid + targetPaymentAmount).toFixed(2));
+
                         let updatedOrderData = {
                           ...selectedOrder,
-                          paidAmount: Number(selectedOrder.paidAmount || 0) + targetPaymentAmount,
+                          paidAmount: newPaidTotal,
                           cashierNote: (selectedOrder.cashierNote || '') + ` [NAKİT: ${received}₺ -> P.ÜSTÜ: ${(received - targetPaymentAmount).toFixed(2)}₺]`
                         };
 
@@ -1484,6 +1505,13 @@ export default function KasaPanel() {
                               className="w-full p-4 pt-8 bg-gray-50 border-2 border-gray-200 rounded-xl text-2xl font-bold text-center focus:border-blue-500 outline-none"
                               placeholder="0.00"
                             />
+                            {manualAmount && Number(manualAmount) > 0 && (
+                              <div className="mt-2 text-center text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 py-1 rounded-full">
+                                BU ÖDEMEDEN SONRA KALAN: {
+                                  (parseFloat(String(selectedOrder.totalAmount || 0)) - parseFloat(String(selectedOrder.paidAmount || 0)) - parseFloat(String(selectedOrder.discountAmount || 0)) - parseFloat(manualAmount)).toFixed(2)
+                                }₺
+                              </div>
+                            )}
                           </div>
 
                           <div className="text-center text-xs text-gray-400 font-bold">
@@ -1585,9 +1613,12 @@ export default function KasaPanel() {
 
                               if (val <= 0) return alert('Geçersiz Tutar');
 
+                              const prevPaidValue = parseFloat(String(selectedOrder.paidAmount || 0));
+                              const newPaidTotalValue = parseFloat((prevPaidValue + val).toFixed(2));
+
                               let updatedOrderData = {
                                 ...selectedOrder,
-                                paidAmount: Number(selectedOrder.paidAmount || 0) + val,
+                                paidAmount: newPaidTotalValue,
                                 cashierNote: (selectedOrder.cashierNote || '') + ' [KART]'
                               };
 
