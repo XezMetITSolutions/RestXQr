@@ -45,6 +45,7 @@ interface WaiterCall {
 export default function KasaPanel() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [calls, setCalls] = useState<WaiterCall[]>([]);
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string>('');
@@ -182,7 +183,9 @@ export default function KasaPanel() {
       setLoading(true);
       // Optimize: Only fetch active orders (pending, preparing, ready)
       // This drastically reduces load time by ignoring thousands of completed/cancelled orders
-      const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}&status=pending,preparing,ready`);
+      // BUT for daily revenue we need today's completed orders too.
+      // So we fetch all today's orders.
+      const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}`);
       const data = await response.json();
       if (data.success) {
         const normalizedOrders: Order[] = (data.data || []).map((order: any) => ({
@@ -260,7 +263,7 @@ export default function KasaPanel() {
 
         const filteredOrders = (() => {
           const filtered = normalizedOrders.filter(order => {
-            if (order.status === 'pending' || order.status === 'preparing' || order.status === 'ready' || order.status === 'completed') return true;
+            if (order.status === 'pending' || order.status === 'preparing' || order.status === 'ready') return true;
             return false;
           });
 
@@ -273,6 +276,8 @@ export default function KasaPanel() {
 
           return groupedOrders;
         })();
+
+        setAllOrders(normalizedOrders);
         setOrders(filteredOrders);
       }
     } catch (error) {
@@ -811,13 +816,13 @@ export default function KasaPanel() {
           <div className="flex items-center gap-8">
             <div className="text-center group">
               <div className="text-2xl font-black text-green-600 group-hover:scale-110 transition-transform">
-                {orders.filter(o => o.status === 'completed').reduce((s, o) => s + (Number(o.totalAmount) || 0), 0).toFixed(2)}₺
+                {allOrders.filter(o => o.status === 'completed').reduce((s, o) => s + (Number(o.totalAmount) || 0), 0).toFixed(2)}₺
               </div>
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">GÜNLÜK CİRO</div>
             </div>
             <div className="text-center group">
               <div className="text-2xl font-black text-orange-500 group-hover:scale-110 transition-transform">
-                {orders.filter(o => o.status === 'ready').reduce((s, o) => s + ((Number(o.totalAmount) || 0) - (Number(o.paidAmount) || 0) - (Number(o.discountAmount) || 0)), 0).toFixed(2)}₺
+                {orders.reduce((s, o) => s + ((Number(o.totalAmount) || 0) - (Number(o.paidAmount) || 0) - (Number(o.discountAmount) || 0)), 0).toFixed(2)}₺
               </div>
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">BEKLEYEN TAHSİLAT</div>
             </div>
