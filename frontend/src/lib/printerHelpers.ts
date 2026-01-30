@@ -123,23 +123,27 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         y += 20;
     } else {
         // Kitchen basic header
-        ctx.font = 'bold 44px sans-serif';
+        ctx.font = 'bold 54px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(`MASA ${data.tableNumber}`, width / 2, y);
-        y += 55;
-        ctx.font = '22px sans-serif';
-        ctx.fillText(`#${data.orderNumber}`, width / 2, y);
-        y += 30;
+        y += 65;
+
+        // Remove order number (UUID) as requested
+        // ctx.font = '22px sans-serif';
+        // ctx.fillText(`#${data.orderNumber}`, width / 2, y);
+        // y += 30;
+
+        ctx.font = 'bold 24px sans-serif';
         ctx.fillText(new Date().toLocaleString('tr-TR'), width / 2, y);
-        y += 40;
+        y += 45;
         drawDashedLine(y);
-        y += 20;
+        y += 25;
     }
 
     // 5. Items
     ctx.textAlign = 'left';
     data.items.forEach((item) => {
-        ctx.font = '28px sans-serif';
+        ctx.font = 'bold 34px sans-serif';
         const qtyText = `${item.quantity} x `;
         const nameText = item.name;
 
@@ -151,14 +155,25 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
             ctx.textAlign = 'left';
         }
 
-        y += 35;
+        y += 45;
 
         if (item.notes) {
-            ctx.font = 'italic 20px sans-serif';
-            ctx.fillText(`   NOT: ${item.notes}`, 15, y);
-            y += 25;
+            // "Not kalın harflerle olsun altı çizgili olsun"
+            ctx.font = 'bold 26px sans-serif';
+            const noteText = `   NOT: ${item.notes}`;
+            ctx.fillText(noteText, 15, y);
+
+            // Draw underline for the note
+            const textWidth = ctx.measureText(noteText).width;
+            ctx.beginPath();
+            ctx.moveTo(15, y + 28);
+            ctx.lineTo(15 + textWidth, y + 28);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            y += 35;
         }
-        y += 10;
+        y += 12;
     });
 
     // 6. Summary Section

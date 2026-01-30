@@ -45,6 +45,7 @@ function CartPageContent() {
   const [clientId, setClientId] = useState<string | null>(null);
   const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
   const [token, setToken] = useState<string>('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const currentRestaurant = isClient ? (() => {
     const hostname = window.location.hostname;
@@ -81,7 +82,7 @@ function CartPageContent() {
       }
 
       if (urlToken && storedQrToken && urlToken !== storedQrToken) {
-        console.log('🧹 Token mismatch detected in cart, clearing stale order data.');
+        console.log('Sweep: Token mismatch detected in cart, clearing stale order data.');
         localStorage.removeItem('pending_order_id');
         localStorage.removeItem('pending_order_items');
       }
@@ -126,7 +127,7 @@ function CartPageContent() {
   useEffect(() => {
     if (!isClient || !settings?.paymentSettings) return;
 
-    console.log('🔄 Cart Settings Updated:', {
+    console.log('Sweep Check: Cart Settings Updated:', {
       restaurantId: currentRestaurant?.id,
       restaurantName: currentRestaurant?.name,
       allowCard: settings?.paymentSettings?.allowCardPayment,
@@ -241,7 +242,7 @@ function CartPageContent() {
   const handlePayment = async () => {
     if (isSubmitting) return;
 
-    console.log('💳 ÖDE ME İŞLEMİ BAŞLADI:', {
+    console.log('💳 ÖDEME İŞLEMİ BAŞLADI:', {
       timestamp: new Date().toLocaleString(),
       paymentMethod,
       tipAmount: tipAmount + '₺',
@@ -283,6 +284,7 @@ function CartPageContent() {
       if (!restaurantId) {
         console.error('❌ RESTORAN ID BULUNAMADI!');
         alert('Restoran bilgisi alınamadı. Lütfen sayfayı yenileyip tekrar deneyin.');
+        setIsSubmitting(false);
         return;
       }
 
@@ -338,29 +340,7 @@ function CartPageContent() {
           createdAt: response.data?.created_at
         });
 
-        // Sipariş ID'sini kaydet - Removed
         const orderId = response.data?.id;
-        // if (orderId) {
-        //   setPendingOrderId(orderId);
-
-        //   // Yeni siparişteki ürünleri hazırla
-        //   const newOrderItems = (items || []).map(item => ({
-        //     itemId: item.itemId || item.id,
-        //     name: typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün'),
-        //     price: item.price,
-        //     quantity: item.quantity,
-        //     notes: item.notes || '',
-        //     image: item.image
-        //   }));
-
-        //   // Eski siparişlerdeki ürünlerle birleştir (ek sipariş durumunda)
-        //   const allOrderItems = [...pendingOrderItems, ...newOrderItems];
-        //   setPendingOrderItems(allOrderItems);
-
-        //   // localStorage'a kaydet (sayfa yenilendiğinde kaybolmasın)
-        //   localStorage.setItem('pending_order_id', orderId);
-        //   localStorage.setItem('pending_order_items', JSON.stringify(allOrderItems));
-        // }
 
         // Session'a sipariş tamamlandı bildirimi gönder
         if (sessionKey && clientId && orderId) {
@@ -378,24 +358,30 @@ function CartPageContent() {
         setTipAmount(0);
         setDonationAmount(0);
 
+        // Success ekranını göster
+        setShowSuccess(true);
+        setIsSubmitting(false);
+
         // Sepetten sonra kullanıcıyı menüye yönlendir (sepet boş görünmesin)
         if (typeof window !== 'undefined') {
           setTimeout(() => {
             window.location.href = `/menu?token=${token}&table=${tableNumber}`;
-          }, 1500);
+          }, 4000); // 4 saniye sonra yönlendir (başarı mesajını görsün)
         }
 
         console.log('✅ Sipariş verildi, sepet temizlendi.');
       } else {
         console.error('❌ SİPARİŞ BAŞARISIZ:', response);
         alert('❌ Sipariş gönderilemedi. Lütfen tekrar deneyin.');
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('❌ SİPARİŞ HATASI:', error);
       alert('❌ Sipariş gönderilemedi. Lütfen tekrar deneyin.');
-    } finally {
       setIsSubmitting(false);
-      console.log('🏁 Ödeme işlemi tamamlandı');
+    } finally {
+      // setIsSubmitting true kalsın ki başarı durumunda buton tıklanamasın
+      console.log('🏁 Ödeme işlemi flow sonu');
     }
   };
 
@@ -412,8 +398,42 @@ function CartPageContent() {
   if (!isClient) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
+    );
+  }
+
+  // Başarı Ekranı
+  if (showSuccess) {
+    return (
+      <>
+        <SetBrandColor />
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-300">
+          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 scale-110 animate-bounce">
+            <svg className="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <TranslatedText>Siparişiniz Alındı!</TranslatedText>
+          </h1>
+          <p className="text-gray-600 mb-8 max-w-xs mx-auto">
+            <TranslatedText>Siparişiniz mutfağa iletildi. Afiyet olsun!</TranslatedText>
+          </p>
+          <div className="space-y-4 w-full max-w-xs">
+            <button
+              onClick={() => window.location.href = `/menu?token=${token}&table=${tableNumber}`}
+              className="w-full py-4 rounded-xl font-bold text-white shadow-lg transition-transform active:scale-95"
+              style={{ backgroundColor: primary }}
+            >
+              <TranslatedText>Menüye Dön</TranslatedText>
+            </button>
+            <p className="text-xs text-gray-400">
+              <TranslatedText>4 saniye içinde otomatik olarak yönlendirileceksiniz...</TranslatedText>
+            </p>
+          </div>
+        </div>
+      </>
     );
   }
 
