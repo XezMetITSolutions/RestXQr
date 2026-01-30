@@ -12,6 +12,7 @@ interface Order {
     discountAmount: number;
     status: string;
     cashierNote?: string;
+    items?: any[];
 }
 
 export default function PaymentDebugPage() {
@@ -61,12 +62,14 @@ export default function PaymentDebugPage() {
         }
     };
 
-    const testPayment = async (order: Order, type: 'partial' | 'hybrid' | 'full') => {
+    const testPayment = async (order: Order, type: 'partial' | 'hybrid' | 'full' | 'product') => {
         addLog(`${type.toUpperCase()} ödeme testi başlatılıyor - Masa ${order.tableNumber}`, 'info');
 
         let amount = 0;
         let note = `[DEBUG TEST: ${type.toUpperCase()}]`;
         const remaining = order.totalAmount - order.paidAmount - order.discountAmount;
+
+        let items = order.items || [];
 
         if (type === 'partial') {
             amount = 10;
@@ -74,6 +77,15 @@ export default function PaymentDebugPage() {
         } else if (type === 'hybrid') {
             amount = Math.min(20, remaining);
             note += ` ${amount / 2} Nakit + ${amount / 2} Kart`;
+        } else if (type === 'product') {
+            if (items.length > 0) {
+                const itemToPay = items[0];
+                amount = parseFloat(String(itemToPay.price || 0)) * parseFloat(String(itemToPay.quantity || 1));
+                items = items.slice(1); // Birinci ürünü öde/sil
+                note += ` [ÜRÜN ÖDEME: ${itemToPay.name}]`;
+            } else {
+                return addLog('Siparişte ürün yok!', 'error');
+            }
         } else {
             amount = remaining;
             note += ' Tam Ödeme';
@@ -83,13 +95,25 @@ export default function PaymentDebugPage() {
 
         // Zorunlu sayısal dönüşüm ve temizlik
         const currentPaid = parseFloat(String(order.paidAmount || 0));
-        const newPaidAmount = parseFloat((currentPaid + amount).toFixed(2));
+        let newPaidAmount = parseFloat((currentPaid + amount).toFixed(2));
+        let newTotalAmount = order.totalAmount;
 
-        const payload = {
+        if (type === 'product') {
+            // Ürün ödemesinde toplam tutar düşer, ödenen miktar sıfırlanır (logic consistency)
+            newTotalAmount = items.reduce((s, i) => s + (parseFloat(String(i.price || 0)) * parseFloat(String(i.quantity || 1))), 0);
+            newPaidAmount = 0;
+        }
+
+        const payload: any = {
             status: isPartial ? 'ready' : 'completed',
             paidAmount: newPaidAmount,
+            totalAmount: newTotalAmount,
             cashierNote: (order.cashierNote || '') + ' ' + note,
         };
+
+        if (type === 'product') {
+            payload.items = items;
+        }
 
         addLog(`Hesaplama: ${currentPaid} + ${amount} = ${newPaidAmount}`, 'debug');
 
@@ -152,24 +176,31 @@ export default function PaymentDebugPage() {
                                         <span className="bg-blue-50 text-blue-600 px-4 py-1 rounded-full font-bold text-sm uppercase">{(order.totalAmount - order.paidAmount).toFixed(2)}₺ KALAN</span>
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-2 gap-3">
                                         <button
                                             onClick={() => testPayment(order, 'partial')}
-                                            className="py-3 bg-yellow-500 text-white rounded-xl font-bold text-xs hover:bg-yellow-600 transition-all flex flex-col items-center gap-1"
+                                            className="py-3 bg-yellow-500 text-white rounded-xl font-bold text-xs hover:bg-yellow-600 transition-all flex flex-col items-center gap-1 shadow-sm"
                                         >
                                             <FaMoneyBillWave />
-                                            <span>PARÇALI TEST</span>
+                                            <span>10₺ PARÇALI</span>
+                                        </button>
+                                        <button
+                                            onClick={() => testPayment(order, 'product')}
+                                            className="py-3 bg-purple-500 text-white rounded-xl font-bold text-xs hover:bg-purple-600 transition-all flex flex-col items-center gap-1 shadow-sm"
+                                        >
+                                            <FaReceipt />
+                                            <span>İLK ÜRÜNÜ ÖDE</span>
                                         </button>
                                         <button
                                             onClick={() => testPayment(order, 'hybrid')}
-                                            className="py-3 bg-blue-500 text-white rounded-xl font-bold text-xs hover:bg-blue-600 transition-all flex flex-col items-center gap-1"
+                                            className="py-3 bg-blue-500 text-white rounded-xl font-bold text-xs hover:bg-blue-600 transition-all flex flex-col items-center gap-1 shadow-sm"
                                         >
                                             <FaCreditCard />
                                             <span>HİBRİT TEST</span>
                                         </button>
                                         <button
                                             onClick={() => testPayment(order, 'full')}
-                                            className="py-3 bg-green-600 text-white rounded-xl font-bold text-xs hover:bg-green-700 transition-all flex flex-col items-center gap-1"
+                                            className="py-3 bg-green-600 text-white rounded-xl font-bold text-xs hover:bg-green-700 transition-all flex flex-col items-center gap-1 shadow-sm"
                                         >
                                             <FaCheckCircle />
                                             <span>TAM ÖDEME</span>
