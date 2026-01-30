@@ -437,6 +437,8 @@ export default function KasaPanel() {
       setShowCashPad(false);
     } else {
       addLog(`Full payment or last partial. Closing modals.`, 'info');
+      // Automatic QR deactivation is disabled to prevent permanent table QRs from 'disappearing'
+      /*
       if (updatedOrder?.tableNumber) {
         fetch(`${API_URL}/qr/deactivate-by-table`, {
           method: 'POST',
@@ -447,6 +449,7 @@ export default function KasaPanel() {
           })
         }).then(() => addLog('QR Deactivated', 'success')).catch(err => addLog(`QR Deactivate Failed: ${err}`, 'error'));
       }
+      */
       setShowPaymentModal(false);
       setSelectedOrder(null);
       setShowCashPad(false);
