@@ -49,9 +49,37 @@ export default function ReportsPage() {
     router.push('/isletme-giris');
   };
 
-  // Feature kontrolü - erişim yok sayfası göster
-  // Önce feature kontrolünü yap, sonra diğer işlemleri yap
   const hasFeatureAccess = hasBasicReports || hasAdvancedAnalytics;
+
+  // API'den siparişleri çek
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!authenticatedRestaurant?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await apiService.getOrders(authenticatedRestaurant.id);
+
+        if (response.success && response.data) {
+          const normalized = (response.data || []).map((o: any) => ({
+            ...o,
+            items: typeof o.items === 'string' ? JSON.parse(o.items) : (Array.isArray(o.items) ? o.items : [])
+          }));
+          setOrders(normalized);
+        }
+      } catch (error) {
+        console.error('Siparişler yüklenirken hata:', error);
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [authenticatedRestaurant?.id]);
 
   if (!hasFeatureAccess) {
     return (
@@ -241,35 +269,6 @@ export default function ReportsPage() {
     }
   };
 
-  // API'den siparişleri çek
-  useEffect(() => {
-    const fetchOrders = async () => {
-      if (!authenticatedRestaurant?.id) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const response = await apiService.getOrders(authenticatedRestaurant.id);
-
-        if (response.success && response.data) {
-          const normalized = (response.data || []).map((o: any) => ({
-            ...o,
-            items: typeof o.items === 'string' ? JSON.parse(o.items) : (Array.isArray(o.items) ? o.items : [])
-          }));
-          setOrders(normalized);
-        }
-      } catch (error) {
-        console.error('Siparişler yüklenirken hata:', error);
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, [authenticatedRestaurant?.id]);
 
   // Bugünkü siparişleri filtrele
   const todayOrders = orders.filter(order => {

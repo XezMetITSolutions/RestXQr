@@ -50,10 +50,6 @@ export function useFeature(featureId: string): boolean {
 
   // Demo panelde tüm özellikler aktif
   const isDemo = detectDemoRoute();
-  if (isDemo) {
-    console.log('📦 useFeature: Demo mode - all features enabled');
-    return true;
-  }
 
   // Real-time data fetch için subdomain'i al ve backend'den çek
   useEffect(() => {
@@ -82,7 +78,6 @@ export function useFeature(featureId: string): boolean {
       });
   }, [fetchRestaurantByUsername]);
 
-  // Debug logging
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const subdomain = getActiveSubdomain();
@@ -98,6 +93,12 @@ export function useFeature(featureId: string): boolean {
       });
     }
   }, [featureId, authenticatedRestaurant, restaurants?.length]);
+
+  // Demo panelde tüm özellikler aktif
+  if (isDemo) {
+    console.log('📦 useFeature: Demo mode - all features enabled');
+    return true;
+  }
 
   // Plan bazlı özellik kontrolü - bazı özellikler plan'a göre otomatik aktif
   const checkFeatureByPlan = (plan: string | undefined, featureId: string): boolean => {
@@ -143,7 +144,7 @@ export function useFeature(featureId: string): boolean {
   // Önce authenticated restaurant'ı kontrol et
   if (authenticatedRestaurant) {
     console.log('🔐 useFeature: Using authenticated restaurant features:', authenticatedRestaurant.features);
-    const plan = authenticatedRestaurant.subscriptionPlan || authenticatedRestaurant.subscription_plan;
+    const plan = authenticatedRestaurant.subscription?.plan || (authenticatedRestaurant as any).subscriptionPlan || (authenticatedRestaurant as any).subscription_plan;
     // Önce plan bazlı kontrolü yap
     if (checkFeatureByPlan(plan, featureId)) {
       console.log('✅ useFeature: Feature enabled by plan:', { plan, featureId });
@@ -160,7 +161,7 @@ export function useFeature(featureId: string): boolean {
 
     if (restaurant) {
       console.log('🏪 useFeature: Using restaurant from store:', restaurant.features);
-      const plan = restaurant.subscriptionPlan || restaurant.subscription_plan;
+      const plan = restaurant.subscription?.plan || (restaurant as any).subscriptionPlan || (restaurant as any).subscription_plan;
       // Önce plan bazlı kontrolü yap
       if (checkFeatureByPlan(plan, featureId)) {
         console.log('✅ useFeature: Feature enabled by plan:', { plan, featureId });
