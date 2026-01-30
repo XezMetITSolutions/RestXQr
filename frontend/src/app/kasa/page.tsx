@@ -285,8 +285,16 @@ export default function KasaPanel() {
         };
 
         const filteredOrders = (() => {
+          const now = Date.now();
           const filtered = normalizedOrders.filter(order => {
-            if (order.status === 'pending' || order.status === 'preparing' || order.status === 'ready') return true;
+            // Keep active orders
+            if (['pending', 'preparing', 'ready'].includes(order.status)) return true;
+
+            // Keep recently completed orders (for 60 seconds) so they don't vanish instantly
+            if (order.status === 'completed' || order.status === 'cancelled') {
+              const updatedAt = new Date(order.updated_at || order.created_at).getTime();
+              if (now - updatedAt < 60000) return true;
+            }
             return false;
           });
 
@@ -453,19 +461,38 @@ export default function KasaPanel() {
       addLog(`handlePayment: id=${orderId}, part=${isPartial}`, 'info');
 
       if (orderId.includes('grouped')) {
-        addLog(`Grouped order update: ${orderId}`, 'debug');
+        addLog(`Distributing payment for grouped order: ${orderId}`, 'debug');
         const groupedOrder = orders.find(o => o.id === orderId);
         const childOrders = groupedOrder?.originalOrders || [];
 
+        // Calculate delta payment to distribute
+        const oldGroupPaid = childOrders.reduce((sum, o) => sum + parseFloat(String(o.paidAmount || 0)), 0);
+        const newGroupPaid = parseFloat(String(updatedOrder?.paidAmount || 0));
+        let deltaToDistribute = parseFloat((newGroupPaid - oldGroupPaid).toFixed(2));
+
         const updatePromises = childOrders.map(async (child) => {
           const payload: any = {
-            status: isPartial ? 'ready' : 'completed',
+            status: isPartial ? (child.status || 'ready') : 'completed',
             cashierNote: updatedOrder?.cashierNote
           };
 
-          // If full payment, match paidAmount to total per child order
           if (!isPartial) {
             payload.paidAmount = child.totalAmount;
+          } else if (deltaToDistribute > 0) {
+            const childTotal = parseFloat(String(child.totalAmount || 0));
+            const childAlreadyPaid = parseFloat(String(child.paidAmount || 0));
+            const childRemaining = parseFloat((childTotal - childAlreadyPaid).toFixed(2));
+
+            const paymentForThisChild = Math.min(deltaToDistribute, childRemaining);
+            payload.paidAmount = parseFloat((childAlreadyPaid + paymentForThisChild).toFixed(2));
+            deltaToDistribute = parseFloat((deltaToDistribute - paymentForThisChild).toFixed(2));
+
+            // If this specific child is now fully paid, it should be marked completed
+            if (payload.paidAmount >= (childTotal - 0.05)) {
+              payload.status = 'completed';
+            } else {
+              payload.status = 'ready';
+            }
           }
 
           const response = await fetch(`${API_URL}/orders/${child.id}`, {
