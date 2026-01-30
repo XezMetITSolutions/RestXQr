@@ -1405,7 +1405,11 @@ export default function KasaPanel() {
                           };
                         }
 
-                        await handlePayment(selectedOrder.id, updatedOrderData, true);
+                        // Calculate if this is truly a partial payment (has remaining balance)
+                        const remaining = (Number(updatedOrderData.totalAmount || 0) - Number(updatedOrderData.paidAmount || 0) - Number(updatedOrderData.discountAmount || 0));
+                        const isTrulyPartial = remaining > 0.05;
+
+                        await handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
 
                         setCashReceived('');
                         setShowCashPad(false);
@@ -1537,11 +1541,17 @@ export default function KasaPanel() {
                             if (cash > 0) note += ` [NAKİT: ${cash.toFixed(2)}₺]`;
                             if (card > 0) note += ` [KART: ${card.toFixed(2)}₺]`;
 
-                            handlePayment(selectedOrder.id, {
+                            const updatedOrderData = {
                               ...selectedOrder,
                               paidAmount: Number(selectedOrder.paidAmount || 0) + total,
                               cashierNote: note
-                            }, true);
+                            };
+
+                            // Calculate if this is truly a partial payment (has remaining balance)
+                            const remaining = (Number(updatedOrderData.totalAmount || 0) - Number(updatedOrderData.paidAmount || 0) - Number(updatedOrderData.discountAmount || 0));
+                            const isTrulyPartial = remaining > 0.05;
+
+                            handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
                             setCashAmount(''); setCardAmount('');
                           }} className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-black transition-colors flex justify-center items-center gap-2 shadow-xl">
                             <FaCheckCircle /> HİBRİT TAHSİL ET
@@ -1590,7 +1600,11 @@ export default function KasaPanel() {
                                 };
                               }
 
-                              handlePayment(selectedOrder.id, updatedOrderData, true);
+                              // Calculate if this is truly a partial payment (has remaining balance)
+                              const remaining = (Number(updatedOrderData.totalAmount || 0) - Number(updatedOrderData.paidAmount || 0) - Number(updatedOrderData.discountAmount || 0));
+                              const isTrulyPartial = remaining > 0.05;
+
+                              handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
                             }} className="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
                               <FaCreditCard /> KART
                             </button>
