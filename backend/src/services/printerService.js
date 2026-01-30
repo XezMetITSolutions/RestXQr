@@ -91,6 +91,15 @@ class PrinterService {
                 characterSet: CharacterSet.PC857_TURKISH,
                 codePage: 'CP857'
             },
+            kasa: {
+                name: 'KASA',
+                ip: '', // Manuel girilecek
+                port: 9100,
+                enabled: true,
+                type: PrinterTypes.EPSON,
+                characterSet: CharacterSet.PC857_TURKISH,
+                codePage: 'CP857'
+            },
             test: {
                 name: 'Test Yazıcısı',
                 ip: '', // Manuel girilecek
@@ -472,19 +481,19 @@ class PrinterService {
             const restaurantSettings = restaurant?.settings || {};
             const printerSettings = restaurantSettings?.printerSettings || {};
             const brandingSettings = restaurantSettings?.branding || {};
-            
+
             // Logo ayarlarını kontrol et
             const showLogo = printerSettings.showLogo !== false; // Default true
             const logoUrl = restaurant?.logo || brandingSettings?.logo;
-            
+
             // Logo ve restoran adı
             printer.alignCenter();
-            
+
             // Logo yazdırma (sadece showLogo true ise ve logo varsa)
             if (showLogo && logoUrl) {
                 try {
                     let logoPath = null;
-                    
+
                     // Logo path kontrolü - URL ise indir, local path ise kullan
                     if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
                         // URL'den logo indir ve geçici olarak kaydet
@@ -493,16 +502,16 @@ class PrinterService {
                             if (!fs.existsSync(tempDir)) {
                                 fs.mkdirSync(tempDir, { recursive: true });
                             }
-                            
+
                             const urlParts = new URL(logoUrl);
                             const ext = path.extname(urlParts.pathname) || '.png';
                             const tempLogoPath = path.join(tempDir, `logo_${Date.now()}${ext}`);
-                            
+
                             // URL'den dosyayı indir
                             await new Promise((resolve, reject) => {
                                 const protocol = logoUrl.startsWith('https://') ? https : http;
                                 const file = fs.createWriteStream(tempLogoPath);
-                                
+
                                 protocol.get(logoUrl, (response) => {
                                     if (response.statusCode !== 200) {
                                         reject(new Error(`HTTP ${response.statusCode}`));
@@ -514,11 +523,11 @@ class PrinterService {
                                         resolve();
                                     });
                                 }).on('error', (err) => {
-                                    fs.unlinkSync(tempLogoPath).catch(() => {});
+                                    fs.unlinkSync(tempLogoPath).catch(() => { });
                                     reject(err);
                                 });
                             });
-                            
+
                             logoPath = tempLogoPath;
                             console.log('Logo URL\'den indirildi:', tempLogoPath);
                         } catch (downloadError) {
@@ -532,18 +541,18 @@ class PrinterService {
                         }
                     } else {
                         // Local file path
-                        logoPath = path.isAbsolute(logoUrl) 
-                            ? logoUrl 
+                        logoPath = path.isAbsolute(logoUrl)
+                            ? logoUrl
                             : path.join(__dirname, '../../', logoUrl);
                     }
-                    
+
                     // Logo dosyasını yazdır
                     if (logoPath && fs.existsSync(logoPath)) {
                         await printer.printImage(logoPath);
-                        
+
                         // Geçici dosyayı sil (eğer URL'den indirildiyse)
                         if (logoPath.includes('/temp/logo_')) {
-                            fs.unlinkSync(logoPath).catch(() => {});
+                            fs.unlinkSync(logoPath).catch(() => { });
                         }
                     } else if (logoPath) {
                         console.warn('Logo dosyası bulunamadı:', logoPath);

@@ -226,7 +226,7 @@ router.get('/kitchen-stations', async (req, res) => {
         catStations.forEach(s => allStations.add(s.kitchen_station));
 
         // Standart istasyonları ekle (eğer yoksa)
-        ['kavurma', 'ramen', 'kebap', 'manti', 'icecek1', 'icecek2', 'ortakasa', 'bar'].forEach(s => allStations.add(s));
+        ['kavurma', 'ramen', 'kebap', 'manti', 'icecek1', 'icecek2', 'ortakasa', 'bar', 'kasa'].forEach(s => allStations.add(s));
 
         res.json({
             success: true,

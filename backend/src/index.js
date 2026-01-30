@@ -1451,6 +1451,70 @@ app.get('/api/admin/repair-kroren-images', async (req, res) => {
   }
 });
 
+// Kasa istasyonu ekleme endpoint'i
+app.get('/api/debug/add-kasa-station', async (req, res) => {
+  console.log('💰 Add Kasa station endpoint called');
+  try {
+    const { Restaurant } = require('./models');
+    const restaurant = await Restaurant.findOne({ where: { username: 'kroren' } });
+
+    if (!restaurant) {
+      return res.status(404).json({ success: false, message: 'Kroren restoranı bulunamadı' });
+    }
+
+    let stations = restaurant.kitchenStations || [];
+    let updated = false;
+
+    // İstasyon listesine ekle
+    if (!stations.find(s => s.id === 'kasa')) {
+      stations.push({
+        id: 'kasa',
+        name: 'Kasa',
+        emoji: '💰',
+        color: '#10b981',
+        order: stations.length + 1
+      });
+      updated = true;
+    }
+
+    // Printer konfigürasyonuna ekle
+    let printerConfig = restaurant.printerConfig || {};
+    if (!printerConfig['kasa']) {
+      printerConfig['kasa'] = {
+        ip: '',
+        port: 9100,
+        enabled: true
+      };
+      updated = true;
+    }
+
+    if (updated) {
+      await restaurant.update({
+        kitchenStations: stations,
+        printerConfig: printerConfig
+      });
+      console.log('✅ Kasa station added to Kroren');
+    }
+
+    res.json({
+      success: true,
+      message: updated ? 'Kasa istasyonu başarıyla eklendi.' : 'Kasa istasyonu zaten mevcut.',
+      data: {
+        kitchenStations: restaurant.kitchenStations,
+        printerConfig: restaurant.printerConfig
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Add Kasa Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Kasa istasyonu eklenirken bir hata oluştu',
+      error: error.message
+    });
+  }
+});
+
 // Popüler ürünleri sıfırlama endpoint'i
 app.get('/api/debug/reset-popular', async (req, res) => {
   console.log('🗑️ Reset popular endpoint called');
