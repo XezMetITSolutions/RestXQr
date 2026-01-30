@@ -39,15 +39,21 @@ class ApiService {
 
       // Subdomain'i ve token'i her zaman gönder
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
         'X-Subdomain': subdomain || 'kroren', // Fallback olarak kroren kullan
       };
+
+      // FormData gönderiliyorsa Content-Type set edilmemeli (browser otomatik halleder)
+      if (!(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+      }
 
       // Copy any existing headers from options
       if (options.headers) {
         const optHeaders = options.headers as Record<string, string>;
         Object.keys(optHeaders).forEach(key => {
-          headers[key] = optHeaders[key];
+          if (optHeaders[key] !== 'undefined') {
+            headers[key] = optHeaders[key];
+          }
         });
       }
 
@@ -597,6 +603,17 @@ class ApiService {
     return this.request<any>('/settings', {
       method: 'PUT',
       body: JSON.stringify(settings),
+    });
+  }
+
+  async uploadImage(file: File, folder: string = 'restaurants') {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('folder', folder);
+
+    return this.request<any>('/upload/image', {
+      method: 'POST',
+      body: formData
     });
   }
 

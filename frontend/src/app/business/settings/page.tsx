@@ -119,7 +119,8 @@ function SettingsPageContent() {
     exportSettings,
     validateSubdomain,
     fetchSettings,
-    saveSettings
+    saveSettings,
+    uploadLogo
   } = useBusinessSettingsStore();
 
   const [isClient, setIsClient] = useState(false);
@@ -1305,13 +1306,21 @@ function SettingsPageContent() {
                           <input id="logoFileInput" type="file" accept="image/*" className="hidden" onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
-                            if (file.size > 2 * 1024 * 1024) { alert('Max 2MB'); return; }
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                              const dataUrl = reader.result as string;
-                              updateBranding({ logo: dataUrl });
-                            };
-                            reader.readAsDataURL(file);
+                            if (file.size > 2 * 1024 * 1024) {
+                              alert(getStatic('Logo boyutu 2MB\'dan küçük olmalıdır.'));
+                              return;
+                            }
+
+                            try {
+                              console.log('🚀 Logo yükleniyor...');
+                              await uploadLogo(file);
+                              // URL güncellendikten sonra mutlaka genel ayarları da kaydet
+                              await saveSettings();
+                              console.log('✅ Logo başarıyla yüklendi ve kaydedildi');
+                            } catch (error) {
+                              console.error('❌ Logo yükleme hatası:', error);
+                              alert(getStatic('Logo yüklenirken bir hata oluştu.'));
+                            }
                           }} />
                           <div
                             className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors cursor-pointer"

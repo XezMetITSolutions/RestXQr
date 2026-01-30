@@ -1451,6 +1451,53 @@ app.get('/api/admin/repair-kroren-images', async (req, res) => {
   }
 });
 
+// Popüler ürünleri sıfırlama endpoint'i
+app.get('/api/debug/reset-popular', async (req, res) => {
+  console.log('🗑️ Reset popular endpoint called');
+  try {
+    const { MenuItem } = require('./models');
+
+    // Şu an popüler olan ürünleri bul
+    const popularItems = await MenuItem.findAll({
+      where: { isPopular: true },
+      attributes: ['id', 'name']
+    });
+
+    if (popularItems.length === 0) {
+      return res.json({
+        success: true,
+        message: 'Şu anda popüler olarak işaretlenmiş ürün bulunmamaktadır.',
+        updatedCount: 0
+      });
+    }
+
+    // Tüm ürünleri güncelle
+    const [updateCount] = await MenuItem.update(
+      { isPopular: false },
+      {
+        where: { isPopular: true }
+      }
+    );
+
+    console.log(`✅ Success: Unmarked ${updateCount} popular items`);
+
+    res.json({
+      success: true,
+      message: `${updateCount} üründen popüler işareti başarıyla kaldırıldı.`,
+      updatedCount: updateCount,
+      previouslyPopular: popularItems.map(item => item.name)
+    });
+
+  } catch (error) {
+    console.error('❌ Reset Popular Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Popüler ürünler sıfırlanırken bir hata oluştu',
+      error: error.message
+    });
+  }
+});
+
 // Kayıp resimleri bulma endpoint'i
 app.get('/api/debug/missing-images', async (req, res) => {
   try {

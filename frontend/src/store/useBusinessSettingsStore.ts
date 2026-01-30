@@ -45,6 +45,7 @@ interface BusinessSettingsState {
   // Backend Sync Actions
   fetchSettings: () => Promise<void>;
   saveSettings: () => Promise<void>;
+  uploadLogo: (file: File) => Promise<string>;
 }
 
 import { apiService } from '@/services/api';
@@ -608,15 +609,27 @@ export const useBusinessSettingsStore = create<BusinessSettingsState>()(
         try {
           const response = await apiService.getSettings();
           if (response.success && response.data) {
-            // Backend'den gelen verileri mevcut settings ile birleştir
-            set((state) => ({
-              settings: {
-                ...state.settings,
-                ...response.data
-              },
-              isLoading: false
-            }));
-            console.log('✅ Settings fetched from backend');
+            // Backend'den gelen verileri mevcut settings ile derin birleştir
+            // Bu sayede backend'den gelen eksik veriler (örn. logo) yerel state'i bozmaz
+            set((state) => {
+              const deepMerge = (target: any, source: any) => {
+                const result = { ...target };
+                for (const key in source) {
+                  if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                    result[key] = deepMerge(target[key] || {}, source[key]);
+                  } else {
+                    result[key] = source[key];
+                  }
+                }
+                return result;
+              };
+
+              return {
+                settings: deepMerge(state.settings, response.data),
+                isLoading: false
+              };
+            });
+            console.log('✅ Settings fetched and deep merged from backend');
           }
         } catch (error) {
           console.error('❌ Error fetching settings:', error);
@@ -635,6 +648,33 @@ export const useBusinessSettingsStore = create<BusinessSettingsState>()(
           set({ isLoading: false });
         } catch (error) {
           console.error('❌ Error saving settings:', error);
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      uploadLogo: async (file: File) => {
+        set({ isLoading: true });
+        try {
+          const response = await apiService.uploadImage(file, 'branding');
+          if (response.success && response.data?.imageUrl) {
+            const imageUrl = response.data.imageUrl;
+            set((state) => ({
+              settings: {
+                ...state.settings,
+                branding: {
+                  ...state.settings.branding,
+                  logo: imageUrl
+                }
+              },
+              isLoading: false
+            }));
+            console.log('✅ Logo uploaded and saved to store:', imageUrl);
+            return imageUrl;
+          }
+          throw new Error('Logo yükleme başarısız');
+        } catch (error) {
+          console.error('❌ Error uploading logo:', error);
           set({ isLoading: false });
           throw error;
         }
