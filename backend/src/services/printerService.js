@@ -2,6 +2,8 @@ const { ThermalPrinter, PrinterTypes, CharacterSet } = require('node-thermal-pri
 const iconv = require('iconv-lite');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+const http = require('http');
 
 const CONFIG_FILE = path.join(__dirname, '../../printer-config.json');
 
@@ -434,7 +436,7 @@ class PrinterService {
     /**
      * Bilgi Fişi Yazdır (Kasa için)
      */
-    async printInformationReceipt(station, orderData) {
+    async printInformationReceipt(station, orderData, restaurant = null) {
         const stationConfig = this.stations[station];
 
         if (!stationConfig || !stationConfig.enabled || !stationConfig.ip) {
@@ -465,27 +467,112 @@ class PrinterService {
             const isConnected = await printer.isPrinterConnected();
             if (!isConnected) throw new Error('Printer not connected');
 
+            // Restoran bilgilerini al
+            const restaurantName = restaurant?.name || orderData.restaurantName || 'RESTORAN';
+            const restaurantSettings = restaurant?.settings || {};
+            const printerSettings = restaurantSettings?.printerSettings || {};
+            const brandingSettings = restaurantSettings?.branding || {};
+            
+            // Logo ayarlarını kontrol et
+            const showLogo = printerSettings.showLogo !== false; // Default true
+            const logoUrl = restaurant?.logo || brandingSettings?.logo;
+            
             // Logo ve restoran adı
             printer.alignCenter();
-            // Logo path assumes backend root correctly
-            const path = require('path');
-            const logoPath = path.join(__dirname, '../../Kroren_Logo.png');
-            try {
-                // Not: node-thermal-printer image desteği bağımlılık gerektirebilir (jimp/canvas)
-                // Eğer hata alırsak sadece text yazdıracağız.
-                await printer.printImage(logoPath);
-            } catch (e) {
-                console.warn('Logo yazdırılamadı, text ile devam ediliyor:', e.message);
+            
+            // Logo yazdırma (sadece showLogo true ise ve logo varsa)
+            if (showLogo && logoUrl) {
+                try {
+                    let logoPath = null;
+                    
+                    // Logo path kontrolü - URL ise indir, local path ise kullan
+                    if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+                        // URL'den logo indir ve geçici olarak kaydet
+                        try {
+                            const tempDir = path.join(__dirname, '../../temp');
+                            if (!fs.existsSync(tempDir)) {
+                                fs.mkdirSync(tempDir, { recursive: true });
+                            }
+                            
+                            const urlParts = new URL(logoUrl);
+                            const ext = path.extname(urlParts.pathname) || '.png';
+                            const tempLogoPath = path.join(tempDir, `logo_${Date.now()}${ext}`);
+                            
+                            // URL'den dosyayı indir
+                            await new Promise((resolve, reject) => {
+                                const protocol = logoUrl.startsWith('https://') ? https : http;
+                                const file = fs.createWriteStream(tempLogoPath);
+                                
+                                protocol.get(logoUrl, (response) => {
+                                    if (response.statusCode !== 200) {
+                                        reject(new Error(`HTTP ${response.statusCode}`));
+                                        return;
+                                    }
+                                    response.pipe(file);
+                                    file.on('finish', () => {
+                                        file.close();
+                                        resolve();
+                                    });
+                                }).on('error', (err) => {
+                                    fs.unlinkSync(tempLogoPath).catch(() => {});
+                                    reject(err);
+                                });
+                            });
+                            
+                            logoPath = tempLogoPath;
+                            console.log('Logo URL\'den indirildi:', tempLogoPath);
+                        } catch (downloadError) {
+                            console.warn('Logo URL\'den indirilemedi, text ile devam ediliyor:', downloadError.message);
+                            printer.bold(true);
+                            printer.setTextDoubleHeight();
+                            printer.println(this.encodeText(restaurantName));
+                            printer.setTextNormal();
+                            printer.bold(false);
+                            logoPath = null;
+                        }
+                    } else {
+                        // Local file path
+                        logoPath = path.isAbsolute(logoUrl) 
+                            ? logoUrl 
+                            : path.join(__dirname, '../../', logoUrl);
+                    }
+                    
+                    // Logo dosyasını yazdır
+                    if (logoPath && fs.existsSync(logoPath)) {
+                        await printer.printImage(logoPath);
+                        
+                        // Geçici dosyayı sil (eğer URL'den indirildiyse)
+                        if (logoPath.includes('/temp/logo_')) {
+                            fs.unlinkSync(logoPath).catch(() => {});
+                        }
+                    } else if (logoPath) {
+                        console.warn('Logo dosyası bulunamadı:', logoPath);
+                        printer.bold(true);
+                        printer.setTextDoubleHeight();
+                        printer.println(this.encodeText(restaurantName));
+                        printer.setTextNormal();
+                        printer.bold(false);
+                    }
+                } catch (e) {
+                    console.warn('Logo yazdırılamadı, text ile devam ediliyor:', e.message);
+                    printer.bold(true);
+                    printer.setTextDoubleHeight();
+                    printer.println(this.encodeText(restaurantName));
+                    printer.setTextNormal();
+                    printer.bold(false);
+                }
+            } else {
+                // Logo yoksa veya showLogo false ise sadece restoran adını yazdır
                 printer.bold(true);
                 printer.setTextDoubleHeight();
-                printer.println('KROREN KADIKOY');
+                printer.println(this.encodeText(restaurantName));
                 printer.setTextNormal();
                 printer.bold(false);
             }
 
             printer.newLine();
             printer.bold(true);
-            printer.println(this.encodeText('KROREN KADIKOY'));
+            printer.println(this.encodeText(restaurantName));
             printer.bold(false);
             printer.drawLine();
 

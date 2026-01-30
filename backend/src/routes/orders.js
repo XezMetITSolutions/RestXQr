@@ -712,9 +712,7 @@ router.put('/:id', async (req, res) => {
                 item.menuItem?.kitchenStation
               );
               const station = drinkStation || item.menuItem?.kitchenStation || 'default';
-              if (!itemsByStation[station]) {
-                itemsByStation[station] = [];
-              }
+              if (!itemsByStation[station]) itemsByStation[station] = [];
               itemsByStation[station].push({
                 name: item.menuItem?.name || 'Ürün',
                 quantity: item.quantity,
@@ -723,14 +721,22 @@ router.put('/:id', async (req, res) => {
               });
             }
 
+            // Kasa yazıcısına da bir kopyasını gönder (Sipariş Fişi olarak)
+            const cashierStation = restaurant.printerConfig['kasa'] ? 'kasa' : (restaurant.printerConfig['default'] ? 'default' : Object.keys(restaurant.printerConfig)[0]);
+            if (cashierStation && !itemsByStation[cashierStation]) {
+              itemsByStation[cashierStation] = orderItems.map(it => ({
+                name: it.menuItem?.name || 'Ürün',
+                quantity: it.quantity,
+                notes: it.notes || '',
+                translations: it.menuItem?.translations || {}
+              }));
+            }
+
             // Her istasyona yazdır
             for (const [stationId, stationItems] of Object.entries(itemsByStation)) {
               const printerConfig = restaurant.printerConfig[stationId];
-
               if (printerConfig && printerConfig.enabled && printerConfig.ip) {
                 console.log(`🖨️ ${stationId} istasyonuna yazdırılıyor (${printerConfig.ip})...`);
-
-                // PrinterService'e istasyon ekle/güncelle
                 printerService.addOrUpdateStation(stationId, {
                   name: stationId,
                   ip: printerConfig.ip,
@@ -741,27 +747,11 @@ router.put('/:id', async (req, res) => {
                   codePage: 'CP857'
                 });
 
-                // Yazdır - ASYNC (Dont await)
-                printerService.printOrderAdvanced(stationId, {
+                const printResult = await printerService.printOrderAdvanced(stationId, {
                   orderNumber: order.id.substring(0, 8),
                   tableNumber: order.tableNumber || 'Paket',
                   items: stationItems
-                }).then(printResult => {
-                  if (printResult.success) {
-                    console.log(`✅ ${stationId} (${printerConfig.ip}) istasyonuna yazdırıldı`);
-                  } else {
-                    console.error(`❌ ${stationId} (${printerConfig.ip}) yazdırma hatası:`, printResult.error);
-                  }
-                }).catch(err => {
-                  console.error(`❌ ${stationId} background print error:`, err);
                 });
-
-
-                if (printResult.success) {
-                  console.log(`✅ ${stationId} (${printerConfig.ip}) istasyonuna yazdırıldı`);
-                } else {
-                  console.error(`❌ ${stationId} (${printerConfig.ip}) yazdırma hatası:`, printResult.error);
-                }
 
                 printResults.push({
                   stationId,
@@ -771,15 +761,12 @@ router.put('/:id', async (req, res) => {
                   ip: printerConfig.ip,
                   stationItems
                 });
-              } else {
-                console.log(`⚠️ ${stationId} istasyonu için yazıcı yapılandırılmamış`);
               }
             }
-            order.printResults = printResults; // Geçici olarak ekle
+            order.printResults = printResults;
           }
         } catch (printError) {
           console.error('❌ Yazdırma hatası:', printError);
-          // Yazdırma hatası sipariş onayını engellemez
         }
       } catch (err) {
         console.error('❌ Onay bildirimi gönderilirken hata:', err);
@@ -877,40 +864,16 @@ router.put('/:id', async (req, res) => {
           return res.json({ success: true, data: responseData });
         }
 
-        const orderItems = await OrderItem.findAll({
-          where: { orderId: order.id },
-          include: [{
-            model: MenuItem,
-            as: 'menuItem',
-            attributes: ['name', 'kitchenStation', 'categoryId', 'translations']
-          }]
-        });
+        // Kasa yazıcısını belirle (Öncelik: 'kasa' -> 'default')
+        const cashierStationId = restaurant.printerConfig['kasa'] ? 'kasa' : (restaurant.printerConfig['default'] ? 'default' : Object.keys(restaurant.printerConfig)[0]);
 
-        // İstasyonlara göre grupla
-        const itemsByStation = {};
-        for (const item of orderItems) {
-          const drinkStation = resolveDrinkStationForTable(
-            restaurant,
-            order.tableNumber,
-            item.menuItem?.categoryId,
-            item.menuItem?.kitchenStation
-          );
-          const station = drinkStation || item.menuItem?.kitchenStation || 'default';
-          if (!itemsByStation[station]) itemsByStation[station] = [];
-          itemsByStation[station].push({
-            name: item.menuItem?.name || 'Ürün',
-            quantity: item.quantity,
-            notes: (item.notes || '') + ' (ÖDEME ALINDI)',
-            translations: item.menuItem?.translations || {}
-          });
-        }
-
-        for (const [stationId, stationItems] of Object.entries(itemsByStation)) {
-          const printerConfig = restaurant.printerConfig ? restaurant.printerConfig[stationId] : null;
+        if (cashierStationId) {
+          const printerConfig = restaurant.printerConfig[cashierStationId];
 
           if (printerConfig && printerConfig.enabled && printerConfig.ip) {
-            printerService.addOrUpdateStation(stationId, {
-              name: stationId,
+            console.log(`🖨️ KASA FİŞİ (Ödeme) yazdırılıyor: ${cashierStationId} (${printerConfig.ip})...`);
+            printerService.addOrUpdateStation(cashierStationId, {
+              name: cashierStationId,
               ip: printerConfig.ip,
               port: printerConfig.port || 9100,
               enabled: true,
@@ -919,19 +882,25 @@ router.put('/:id', async (req, res) => {
               codePage: 'CP857'
             });
 
-            const printResult = await printerService.printOrderAdvanced(stationId, {
+            // Bilgi fişi formatında ödeme özeti yazdır
+            const printResult = await printerService.printInformationReceipt(cashierStationId, {
               orderNumber: order.id.substring(0, 8),
               tableNumber: order.tableNumber || 'Paket',
-              items: stationItems
-            });
+              items: orderItems.map(it => ({
+                name: it.menuItem?.name || 'Ürün',
+                quantity: it.quantity,
+                price: Number(it.unitPrice)
+              })),
+              cashierName: order.cashierNote?.includes('KART') ? 'KARTLI ÖDEME' : 'NAKİT ÖDEME'
+            }, restaurant);
 
             printResults.push({
-              stationId,
+              stationId: cashierStationId,
               success: printResult.success,
               error: printResult.error,
               isLocalIP: printResult.isLocalIP,
               ip: printerConfig.ip,
-              stationItems
+              type: 'payment_receipt'
             });
           }
         }
@@ -1220,7 +1189,7 @@ router.post('/:id/print-info', async (req, res) => {
         tableNumber: tableNumber || 'Paket',
         items: consolidatedItems,
         cashierName: cashierName || 'Kasiyer'
-      });
+      }, restaurant);
 
       if (printResult.success) {
         log(`Bilgi fişi başarıyla yazdırıldı: ${targetStation} (${printerConfig.ip})`, 'success');
