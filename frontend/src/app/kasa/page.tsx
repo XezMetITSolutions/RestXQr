@@ -1311,7 +1311,6 @@ export default function KasaPanel() {
                         setCashReceived('');
                         setShowCashPad(false);
                         // setShowPaymentModal(false); // Do not close modal here, let handlePayment decide
-                        setTimeout(() => alert('Tahsilat onaylandı'), 100);
                       }}
                       className="w-full py-5 bg-green-600 text-white rounded-[20px] font-black text-2xl shadow-xl hover:bg-green-700 transition-all flex justify-center items-center gap-3 active:scale-95">
                       <FaCheckCircle />
