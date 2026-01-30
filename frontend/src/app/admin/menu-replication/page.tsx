@@ -38,10 +38,20 @@ export default function MenuReplicationPage() {
         setResult(null);
 
         try {
-            // Try using the relative path first, assuming proxy is set up or backend is on same origin
-            // Otherwise fallback to typical backend port 3001
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const endpoint = `${apiUrl}/api/restaurants/replicate-menu`;
+            // Build the endpoint correctly handling potential trailing slashes and /api suffix
+            let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+            // Remove trailing slash if exists
+            if (apiUrl.endsWith('/')) {
+                apiUrl = apiUrl.slice(0, -1);
+            }
+
+            // Ensure we don't have double /api if apiUrl already includes it
+            const endpoint = apiUrl.endsWith('/api')
+                ? `${apiUrl}/restaurants/replicate-menu`
+                : `${apiUrl}/api/restaurants/replicate-menu`;
+
+            console.log('🔗 Calling Replicate Menu API at:', endpoint);
 
             const response = await fetch(endpoint, {
                 method: 'POST',
