@@ -81,11 +81,17 @@ export default function PaymentDebugPage() {
 
         const isPartial = type !== 'full' && (remaining - amount > 0.05);
 
+        // Zorunlu sayısal dönüşüm ve temizlik
+        const currentPaid = parseFloat(String(order.paidAmount || 0));
+        const newPaidAmount = parseFloat((currentPaid + amount).toFixed(2));
+
         const payload = {
             status: isPartial ? 'ready' : 'completed',
-            paidAmount: Number(order.paidAmount) + amount,
+            paidAmount: newPaidAmount,
             cashierNote: (order.cashierNote || '') + ' ' + note,
         };
+
+        addLog(`Hesaplama: ${currentPaid} + ${amount} = ${newPaidAmount}`, 'debug');
 
         try {
             addLog(`API isteği gönderiliyor: ${JSON.stringify(payload)}`, 'network');
