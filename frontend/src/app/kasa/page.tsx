@@ -1401,7 +1401,11 @@ export default function KasaPanel() {
                         }
 
                         // Calculate if this is truly a partial payment (has remaining balance)
-                        const remaining = (Number(updatedOrderData.totalAmount || 0) - Number(updatedOrderData.paidAmount || 0) - Number(updatedOrderData.discountAmount || 0));
+                        const currentTotal = parseFloat(String(updatedOrderData.totalAmount || 0));
+                        const currentPaid = parseFloat(String(updatedOrderData.paidAmount || 0));
+                        const currentDiscount = parseFloat(String(updatedOrderData.discountAmount || 0));
+                        const remaining = parseFloat((currentTotal - currentPaid - currentDiscount).toFixed(2));
+
                         const isTrulyPartial = remaining > 0.05;
 
                         await handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
@@ -1543,7 +1547,11 @@ export default function KasaPanel() {
                             };
 
                             // Calculate if this is truly a partial payment (has remaining balance)
-                            const remaining = (Number(updatedOrderData.totalAmount || 0) - Number(updatedOrderData.paidAmount || 0) - Number(updatedOrderData.discountAmount || 0));
+                            const currentTotal = parseFloat(String(updatedOrderData.totalAmount || 0));
+                            const currentPaid = parseFloat(String(updatedOrderData.paidAmount || 0));
+                            const currentDiscount = parseFloat(String(updatedOrderData.discountAmount || 0));
+                            const remaining = parseFloat((currentTotal - currentPaid - currentDiscount).toFixed(2));
+
                             const isTrulyPartial = remaining > 0.05;
 
                             handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
@@ -1596,7 +1604,11 @@ export default function KasaPanel() {
                               }
 
                               // Calculate if this is truly a partial payment (has remaining balance)
-                              const remaining = (Number(updatedOrderData.totalAmount || 0) - Number(updatedOrderData.paidAmount || 0) - Number(updatedOrderData.discountAmount || 0));
+                              const currentTotal = parseFloat(String(updatedOrderData.totalAmount || 0));
+                              const currentPaid = parseFloat(String(updatedOrderData.paidAmount || 0));
+                              const currentDiscount = parseFloat(String(updatedOrderData.discountAmount || 0));
+                              const remaining = parseFloat((currentTotal - currentPaid - currentDiscount).toFixed(2));
+
                               const isTrulyPartial = remaining > 0.05;
 
                               handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
