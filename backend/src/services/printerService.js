@@ -355,27 +355,28 @@ class PrinterService {
 
             printer.alignCenter();
             printer.bold(true);
-            printer.setTextDoubleHeight();
 
-            // İstasyon adını encode et
-            const stationName = this.encodeText(stationConfig.name.toUpperCase(), codePage);
+            // Header: Masa Bilgisi (BÜYÜK)
+            printer.setTextDoubleHeight();
+            printer.setTextDoubleWidth();
+            const tableHeader = language === 'zh' ? `桌号: ${orderData.tableNumber}` : `MASA: ${orderData.tableNumber}`;
+            printer.println(this.encodeText(tableHeader, codePage));
+
+            // İstasyon adı (Normal Boyut)
+            printer.setTextNormal();
+            const stationName = this.encodeText(`[ ${stationConfig.name.toUpperCase()} ]`, codePage);
             printer.println(stationName);
 
-            printer.setTextNormal();
             printer.bold(false);
             printer.drawLine();
             printer.newLine();
 
-            // Sipariş bilgileri - Dile göre
+            // Sipariş bilgileri - Tarih (ID kaldırıldı)
             printer.alignLeft();
 
             if (language === 'zh') {
-                printer.println(`订单号: ${orderData.orderNumber}`);
-                printer.println(`桌号: ${orderData.tableNumber}`);
                 printer.println(`时间: ${new Date().toLocaleString('zh-CN')}`);
             } else {
-                printer.println(`Siparis No: ${orderData.orderNumber}`);
-                printer.println(`Masa: ${orderData.tableNumber}`);
                 printer.println(`Tarih: ${new Date().toLocaleString('tr-TR')}`);
             }
 
@@ -383,6 +384,7 @@ class PrinterService {
             printer.newLine();
 
             // Ürünler
+            printer.setTextDoubleHeight(); // Ürünleri daha büyük yapalım
             printer.bold(true);
             const productsHeader = language === 'zh' ? '产品:' : 'URUNLER:';
             const productsHeaderEncoded = this.encodeText(productsHeader, codePage);
@@ -396,10 +398,9 @@ class PrinterService {
                 // Ürün adını dile göre çevir
                 let itemName = item.name;
                 if (language === 'zh' && item.nameChinese) {
-                    // Eğer ürünün Çince adı varsa onu kullan
                     itemName = item.nameChinese;
+
                 } else if (language === 'zh') {
-                    // Yoksa çevir (gelecekte API ile)
                     itemName = await this.translateProductName(item.name, 'zh');
                 }
 
@@ -417,6 +418,7 @@ class PrinterService {
                 printer.newLine();
             }
 
+            printer.setTextNormal(); // Normal boyuta dön
             printer.drawLine();
             printer.newLine();
             printer.alignCenter();
