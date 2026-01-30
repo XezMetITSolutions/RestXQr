@@ -527,159 +527,170 @@ function MenuPageContent() {
     setActiveSubcategory(subcategoryId);
   };
 
-  const addToCart = (item: any) => {
-    try {
-      const cartItem = {
-        itemId: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: 1,
-        image: item.image,
-        preparationTime: item.preparationTime
-      };
+  // Image URL resolution logic from render loop
+  let imageUrl = item.image;
+  if (item.imageUrl) {
+    if (item.imageUrl.startsWith('http')) {
+      imageUrl = item.imageUrl;
+    } else if (item.imageUrl.startsWith('/uploads/')) {
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+      imageUrl = `${baseUrl}${item.imageUrl}`;
+    } else {
+      imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}`;
+    }
+  }
 
-      addItem(cartItem);
-      setToastVisible(true);
+  const cartItem = {
+    itemId: item.id,
+    name: item.name,
+    price: item.price,
+    quantity: 1,
+    image: imageUrl,
+    preparationTime: item.preparationTime
+  };
 
-      console.log('✅ Sepete eklendi! Toplam ürün:', cartItems.length + 1);
+  addItem(cartItem);
+  setToastVisible(true);
 
-      // Auto hide toast after 3 seconds
-      setTimeout(() => setToastVisible(false), 3000);
-    } catch (error) {
-      console.error('❌ Sepete ekleme hatası:', error);
+  console.log('✅ Sepete eklendi! Toplam ürün:', cartItems.length + 1);
+
+  // Auto hide toast after 3 seconds
+  setTimeout(() => setToastVisible(false), 3000);
+} catch (error) {
+  console.error('❌ Sepete ekleme hatası:', error);
+}
+  };
+
+const openModal = (item: any) => {
+  setSelectedItem(item);
+  setIsModalOpen(true);
+};
+
+const closeModal = () => {
+  setIsModalOpen(false);
+  setSelectedItem(null);
+};
+
+
+const showDebugInfo = () => {
+  const debugData = {
+    timestamp: new Date().toLocaleString(),
+    restaurant: {
+      id: currentRestaurant?.id,
+      name: currentRestaurant?.name,
+      username: currentRestaurant?.username
+    },
+    cart: {
+      itemCount: cartItems.length,
+      items: cartItems.map(i => ({
+        name: i.name,
+        quantity: i.quantity,
+        price: i.price + '₺'
+      })),
+      total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) + '₺'
+    },
+    table: tableNumber || 'Belirtilmemiş',
+    menu: {
+      totalItems: items.length,
+      categories: filteredCategories.length
     }
   };
 
-  const openModal = (item: any) => {
-    setSelectedItem(item);
-    setIsModalOpen(true);
-  };
+  console.log('🐛 DEBUG BİLGİLERİ:', debugData);
+  alert(JSON.stringify(debugData, null, 2));
+};
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedItem(null);
-  };
-
-
-  const showDebugInfo = () => {
-    const debugData = {
-      timestamp: new Date().toLocaleString(),
-      restaurant: {
-        id: currentRestaurant?.id,
-        name: currentRestaurant?.name,
-        username: currentRestaurant?.username
-      },
-      cart: {
-        itemCount: cartItems.length,
-        items: cartItems.map(i => ({
-          name: i.name,
-          quantity: i.quantity,
-          price: i.price + '₺'
-        })),
-        total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) + '₺'
-      },
-      table: tableNumber || 'Belirtilmemiş',
-      menu: {
-        totalItems: items.length,
-        categories: filteredCategories.length
-      }
-    };
-
-    console.log('🐛 DEBUG BİLGİLERİ:', debugData);
-    alert(JSON.stringify(debugData, null, 2));
-  };
-
-  const MenuSkeleton = () => (
-    <div className="container mx-auto px-3 py-2 animate-pulse">
-      {[1, 2, 3, 4, 5, 6].map(i => (
-        <div key={i} className="bg-white rounded-lg shadow-sm border p-3 flex mb-3">
-          <div className="h-20 w-20 rounded-lg bg-gray-200 flex-shrink-0" />
-          <div className="ml-3 flex-grow">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-            <div className="h-3 bg-gray-100 rounded w-full mb-1" />
-            <div className="h-3 bg-gray-100 rounded w-5/6" />
-            <div className="flex justify-between items-center mt-3">
-              <div className="h-4 bg-gray-200 rounded w-16" />
-              <div className="h-3 bg-gray-100 rounded w-20" />
-            </div>
+const MenuSkeleton = () => (
+  <div className="container mx-auto px-3 py-2 animate-pulse">
+    {[1, 2, 3, 4, 5, 6].map(i => (
+      <div key={i} className="bg-white rounded-lg shadow-sm border p-3 flex mb-3">
+        <div className="h-20 w-20 rounded-lg bg-gray-200 flex-shrink-0" />
+        <div className="ml-3 flex-grow">
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+          <div className="h-3 bg-gray-100 rounded w-full mb-1" />
+          <div className="h-3 bg-gray-100 rounded w-5/6" />
+          <div className="flex justify-between items-center mt-3">
+            <div className="h-4 bg-gray-200 rounded w-16" />
+            <div className="h-3 bg-gray-100 rounded w-20" />
           </div>
         </div>
-      ))}
-    </div>
-  );
-
-  // Token geçersizse menüyü gizle
-  if (tokenValid === false) {
-    return (
-      <>
-        <SetBrandColor />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
-            <div className="mb-4">
-              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">QR Kod Geçersiz</h2>
-              <p className="text-gray-600 mb-4">{tokenMessage}</p>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-yellow-800">
-                  Bu QR kod ödeme tamamlandıktan sonra geçersiz hale gelir.
-                  Yeni bir QR kod tarayarak menüye erişebilirsiniz.
-                </p>
-              </div>
-              <button
-                onClick={() => window.location.reload()}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Tekrar Dene
-              </button>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  if (!isClient) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    );
-  }
+    ))}
+  </div>
+);
 
+// Token geçersizse menüyü gizle
+if (tokenValid === false) {
   return (
     <>
       <SetBrandColor />
-      {showSplash && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white animate-fadeIn">
-          <div className="text-center px-6 animate-scaleIn">
-            <div className="relative inline-flex items-center justify-center mb-3">
-              <div className="absolute inset-0 -z-10 h-24 w-24 rounded-full opacity-10" style={{ backgroundColor: 'var(--brand-primary)' }} />
-              {(() => {
-                const isKroren = typeof window !== 'undefined' && window.location.hostname.includes('kroren');
-                const logo = isKroren ? '/Kroren_Logo.png' : settings?.branding?.logo;
-                return logo ? (
-                  <img src={logo} alt="Logo" className="h-20 w-20 object-contain rounded-md shadow-sm" />
-                ) : (
-                  <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'var(--brand-primary)' }}>
-                    {(settings?.basicInfo?.name || 'Işletme').slice(0, 1)}
-                  </div>
-                );
-              })()}
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+          <div className="mb-4">
+            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </div>
-            <div className="text-dynamic-xl font-bold text-gray-900">{settings?.basicInfo?.name || 'İşletme'}</div>
-            {settings?.branding?.showSloganOnLoading !== false && settings?.basicInfo?.slogan && (
-              <div className="text-dynamic-sm text-gray-600 mt-1">{settings?.basicInfo?.slogan}</div>
-            )}
-            <div className="mt-4 mx-auto h-[1px] w-40 bg-gray-200" />
-            <div className="mt-3 w-40 h-1 bg-gray-100 rounded overflow-hidden mx-auto">
-              <div className="h-full bg-brand animate-progress" />
+            <h2 className="text-xl font-bold text-gray-900 mb-2">QR Kod Geçersiz</h2>
+            <p className="text-gray-600 mb-4">{tokenMessage}</p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-yellow-800">
+                Bu QR kod ödeme tamamlandıktan sonra geçersiz hale gelir.
+                Yeni bir QR kod tarayarak menüye erişebilirsiniz.
+              </p>
             </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Tekrar Dene
+            </button>
           </div>
-          <style jsx>{`
+        </div>
+      </div>
+    </>
+  );
+}
+
+if (!isClient) {
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
+}
+
+return (
+  <>
+    <SetBrandColor />
+    {showSplash && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white animate-fadeIn">
+        <div className="text-center px-6 animate-scaleIn">
+          <div className="relative inline-flex items-center justify-center mb-3">
+            <div className="absolute inset-0 -z-10 h-24 w-24 rounded-full opacity-10" style={{ backgroundColor: 'var(--brand-primary)' }} />
+            {(() => {
+              const isKroren = typeof window !== 'undefined' && window.location.hostname.includes('kroren');
+              const logo = isKroren ? '/Kroren_Logo.png' : settings?.branding?.logo;
+              return logo ? (
+                <img src={logo} alt="Logo" className="h-20 w-20 object-contain rounded-md shadow-sm" />
+              ) : (
+                <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'var(--brand-primary)' }}>
+                  {(settings?.basicInfo?.name || 'Işletme').slice(0, 1)}
+                </div>
+              );
+            })()}
+          </div>
+          <div className="text-dynamic-xl font-bold text-gray-900">{settings?.basicInfo?.name || 'İşletme'}</div>
+          {settings?.branding?.showSloganOnLoading !== false && settings?.basicInfo?.slogan && (
+            <div className="text-dynamic-sm text-gray-600 mt-1">{settings?.basicInfo?.slogan}</div>
+          )}
+          <div className="mt-4 mx-auto h-[1px] w-40 bg-gray-200" />
+          <div className="mt-3 w-40 h-1 bg-gray-100 rounded overflow-hidden mx-auto">
+            <div className="h-full bg-brand animate-progress" />
+          </div>
+        </div>
+        <style jsx>{`
             @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
             @keyframes scaleIn { from { transform: scale(.96); opacity: .4 } to { transform: scale(1); opacity: 1 } }
             @keyframes progress { 0% { transform: translateX(-100%) } 100% { transform: translateX(0) } }
@@ -687,431 +698,431 @@ function MenuPageContent() {
             .animate-scaleIn { animation: scaleIn 300ms ease-out }
             .animate-progress { animation: progress 900ms ease-out forwards }
           `}</style>
-        </div>
-      )}
-      <Toast message="Ürün sepete eklendi!" visible={toastVisible} onClose={() => setToastVisible(false)} />
-      <main className="min-h-screen pb-20 overflow-x-hidden">
-        {/* Sipariş verme modu banner'ı kaldırıldı user isteği üzerine */}
+      </div>
+    )}
+    <Toast message="Ürün sepete eklendi!" visible={toastVisible} onClose={() => setToastVisible(false)} />
+    <main className="min-h-screen pb-20 overflow-x-hidden">
+      {/* Sipariş verme modu banner'ı kaldırıldı user isteği üzerine */}
 
-        {/* Header */}
-        <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-20">
-          <div className="container mx-auto px-3 py-3 flex justify-between items-center">
-            <div className="flex items-center">
-              <h1 className="text-dynamic-lg font-bold text-primary">
-                <TranslatedText>Menü</TranslatedText>
-              </h1>
-              {tableNumber > 0 && (
-                <div className="ml-2 flex items-center gap-2">
-                  <div className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
-                    {currentRestaurant?.name || 'Restoran'} Masa {tableNumber}
-                  </div>
-                  {activeUsersCount > 1 && (
-                    <div className="px-2 py-1 rounded-lg text-xs bg-blue-100 text-blue-700 flex items-center gap-1">
-                      <FaUsers className="text-xs" />
-                      <span>{activeUsersCount} kişi</span>
-                    </div>
-                  )}
+      {/* Header */}
+      <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-20">
+        <div className="container mx-auto px-3 py-3 flex justify-between items-center">
+          <div className="flex items-center">
+            <h1 className="text-dynamic-lg font-bold text-primary">
+              <TranslatedText>Menü</TranslatedText>
+            </h1>
+            {tableNumber > 0 && (
+              <div className="ml-2 flex items-center gap-2">
+                <div className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
+                  {currentRestaurant?.name || 'Restoran'} Masa {tableNumber}
                 </div>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <LanguageSelector enabledLanguages={settings?.menuSettings?.language} />
-              {orderingAllowed ? (
-                <Link href={`/cart?token=${token}&table=${tableNumber}`} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                  <FaShoppingCart className="text-xl" style={{ color: primary }} />
-                  {cartItems.length > 0 && (
-                    <span className="absolute -top-1 -right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" style={{ backgroundColor: primary }}>
-                      {cartItems.length}
-                    </span>
-                  )}
-                </Link>
-              ) : (
-                <div className="relative p-2 rounded-lg cursor-not-allowed">
-                  <FaShoppingCart className="text-xl text-gray-400" />
-                  <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                    </svg>
+                {activeUsersCount > 1 && (
+                  <div className="px-2 py-1 rounded-lg text-xs bg-blue-100 text-blue-700 flex items-center gap-1">
+                    <FaUsers className="text-xs" />
+                    <span>{activeUsersCount} kişi</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <LanguageSelector enabledLanguages={settings?.menuSettings?.language} />
+            {orderingAllowed ? (
+              <Link href={`/cart?token=${token}&table=${tableNumber}`} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <FaShoppingCart className="text-xl" style={{ color: primary }} />
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" style={{ backgroundColor: primary }}>
+                    {cartItems.length}
                   </span>
+                )}
+              </Link>
+            ) : (
+              <div className="relative p-2 rounded-lg cursor-not-allowed">
+                <FaShoppingCart className="text-xl text-gray-400" />
+                <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                  </svg>
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Search */}
+      <div className="pt-16 px-3 flex items-center mb-4 max-w-full">
+        <input
+          type="text"
+          className="border rounded p-2 w-full mr-2 max-w-full"
+          placeholder={searchPlaceholder}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      {/* Anlık Duyurular Slider */}
+      <div className="px-3 mb-4">
+        <div className="relative overflow-hidden rounded-lg shadow-lg">
+          <div
+            className="flex animate-dynamic-slide"
+            style={{
+              width: `${Math.max((settings?.basicInfo?.menuSpecialContents?.length || 2), 2) * 100}%`
+            }}
+          >
+            {(settings?.basicInfo?.menuSpecialContents?.length > 0) ? (
+              (settings?.basicInfo?.menuSpecialContents || []).map((content: any, idx: number) => (
+                <div key={content.id || idx} className="w-full text-white p-3 bg-brand-gradient">
+                  <div className="flex items-center">
+                    <span className="text-lg mr-2">{content.emoji || '🎉'}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-sm line-clamp-1">
+                        <TranslatedText>{content.title}</TranslatedText>
+                      </div>
+                      <div className="text-xs opacity-90 line-clamp-2">
+                        <TranslatedText>{content.description}</TranslatedText>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-        </header>
-
-        {/* Search */}
-        <div className="pt-16 px-3 flex items-center mb-4 max-w-full">
-          <input
-            type="text"
-            className="border rounded p-2 w-full mr-2 max-w-full"
-            placeholder={searchPlaceholder}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        {/* Anlık Duyurular Slider */}
-        <div className="px-3 mb-4">
-          <div className="relative overflow-hidden rounded-lg shadow-lg">
-            <div
-              className="flex animate-dynamic-slide"
-              style={{
-                width: `${Math.max((settings?.basicInfo?.menuSpecialContents?.length || 2), 2) * 100}%`
-              }}
-            >
-              {(settings?.basicInfo?.menuSpecialContents?.length > 0) ? (
-                (settings?.basicInfo?.menuSpecialContents || []).map((content: any, idx: number) => (
-                  <div key={content.id || idx} className="w-full text-white p-3 bg-brand-gradient">
-                    <div className="flex items-center">
-                      <span className="text-lg mr-2">{content.emoji || '🎉'}</span>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-semibold text-sm line-clamp-1">
-                          <TranslatedText>{content.title}</TranslatedText>
-                        </div>
-                        <div className="text-xs opacity-90 line-clamp-2">
-                          <TranslatedText>{content.description}</TranslatedText>
-                        </div>
+              ))
+            ) : (
+              <>
+                <div className="w-full text-white p-3 bg-brand-gradient">
+                  <div className="flex items-center">
+                    <span className="text-lg mr-2">🎉</span>
+                    <div>
+                      <div className="font-semibold text-sm">
+                        <TranslatedText>{settings?.basicInfo?.dailySpecialTitle || 'Bugüne Özel!'}</TranslatedText>
+                      </div>
+                      <div className="text-xs opacity-90">
+                        <TranslatedText>{settings?.basicInfo?.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}</TranslatedText>
                       </div>
                     </div>
                   </div>
-                ))
-              ) : (
-                <>
-                  <div className="w-full text-white p-3 bg-brand-gradient">
-                    <div className="flex items-center">
-                      <span className="text-lg mr-2">🎉</span>
-                      <div>
-                        <div className="font-semibold text-sm">
-                          <TranslatedText>{settings?.basicInfo?.dailySpecialTitle || 'Bugüne Özel!'}</TranslatedText>
-                        </div>
-                        <div className="text-xs opacity-90">
-                          <TranslatedText>{settings?.basicInfo?.dailySpecialDesc || 'Tüm tatlılarda %20 indirim - Sadece bugün geçerli'}</TranslatedText>
-                        </div>
+                </div>
+                <div className="w-full text-white p-3 bg-brand-gradient">
+                  <div className="flex items-center">
+                    <span className="text-lg mr-2">🍲</span>
+                    <div>
+                      <div className="font-semibold text-sm">
+                        <TranslatedText>{settings?.basicInfo?.soupOfDayTitle || 'Günün Çorbası'}</TranslatedText>
+                      </div>
+                      <div className="text-xs opacity-90">
+                        <TranslatedText>{settings?.basicInfo?.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}</TranslatedText>
                       </div>
                     </div>
                   </div>
-                  <div className="w-full text-white p-3 bg-brand-gradient">
-                    <div className="flex items-center">
-                      <span className="text-lg mr-2">🍲</span>
-                      <div>
-                        <div className="font-semibold text-sm">
-                          <TranslatedText>{settings?.basicInfo?.soupOfDayTitle || 'Günün Çorbası'}</TranslatedText>
-                        </div>
-                        <div className="text-xs opacity-90">
-                          <TranslatedText>{settings?.basicInfo?.soupOfDayDesc || 'Ezogelin çorbası - Ev yapımı lezzet'}</TranslatedText>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
+      </div>
 
-        <style jsx>{`
+      <style jsx>{`
           @keyframes dynamic-slide {
             ${(() => {
-            const contents = settings?.basicInfo?.menuSpecialContents || [];
-            const count = Math.max(contents.length || 2, 2);
-            if (count <= 1) return '0% { transform: translateX(0); } 100% { transform: translateX(0); }';
+          const contents = settings?.basicInfo?.menuSpecialContents || [];
+          const count = Math.max(contents.length || 2, 2);
+          if (count <= 1) return '0% { transform: translateX(0); } 100% { transform: translateX(0); }';
 
-            let keyframes = '';
-            const step = 100 / count;
-            for (let i = 0; i < count; i++) {
-              const start = i * step;
-              const end = (i + 1) * step - 5; // Stay for most of the time
-              const nextStart = (i + 1) * step;
+          let keyframes = '';
+          const step = 100 / count;
+          for (let i = 0; i < count; i++) {
+            const start = i * step;
+            const end = (i + 1) * step - 5; // Stay for most of the time
+            const nextStart = (i + 1) * step;
 
-              keyframes += `${start}%, ${end}% { transform: translateX(-${(i * 100) / count}%); }\n`;
-            }
-            keyframes += `100% { transform: translateX(0); }`;
-            return keyframes;
-          })()}
+            keyframes += `${start}%, ${end}% { transform: translateX(-${(i * 100) / count}%); }\n`;
+          }
+          keyframes += `100% { transform: translateX(0); }`;
+          return keyframes;
+        })()}
           }
           .animate-dynamic-slide {
             animation: dynamic-slide ${Math.max((settings?.basicInfo?.menuSpecialContents?.length || 2), 2) * 4}s infinite ease-in-out;
           }
         `}</style>
 
-        {/* Categories */}
-        <div className="pb-2 overflow-x-auto max-w-full">
-          <div className="flex px-3 space-x-2 min-w-max max-w-full">
-            {loading && menuCategories.length === 0 ? (
-              [1, 2, 3, 4].map(i => (
-                <div key={i} className="px-3 py-1.5 rounded-full bg-gray-200 w-20 h-8 animate-pulse" />
-              ))
-            ) : (
-              menuCategories.map((category) => (
-                <button
-                  key={category.id}
-                  className={`px-3 py-1.5 rounded-full whitespace-nowrap text-dynamic-sm ${activeCategory === category.id
-                    ? 'btn-gradient'
-                    : 'bg-brand-surface text-gray-700'
-                    }`}
-                  onClick={() => handleCategoryChange(category.id)}
-                >
-                  {category.name}
-                </button>
-              ))
-            )}
-          </div>
+      {/* Categories */}
+      <div className="pb-2 overflow-x-auto max-w-full">
+        <div className="flex px-3 space-x-2 min-w-max max-w-full">
+          {loading && menuCategories.length === 0 ? (
+            [1, 2, 3, 4].map(i => (
+              <div key={i} className="px-3 py-1.5 rounded-full bg-gray-200 w-20 h-8 animate-pulse" />
+            ))
+          ) : (
+            menuCategories.map((category) => (
+              <button
+                key={category.id}
+                className={`px-3 py-1.5 rounded-full whitespace-nowrap text-dynamic-sm ${activeCategory === category.id
+                  ? 'btn-gradient'
+                  : 'bg-brand-surface text-gray-700'
+                  }`}
+                onClick={() => handleCategoryChange(category.id)}
+              >
+                {category.name}
+              </button>
+            ))
+          )}
         </div>
+      </div>
 
-        {/* Subcategories - Backend'de subcategory yok, bu kısım kaldırıldı */}
+      {/* Subcategories - Backend'de subcategory yok, bu kısım kaldırıldı */}
 
-        {/* Menu Items */}
-        <div className="container mx-auto px-3 py-2 max-w-full">
-          <div className="grid grid-cols-1 gap-3 max-w-full">
-            {loading && filteredItems.length === 0 ? (
-              <MenuSkeleton />
-            ) : (
-              filteredItems.map((item: any, idx: number) => (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-lg shadow-sm border p-3 flex max-w-full cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]"
-                  onClick={() => openModal(item)}
-                >
-                  <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                    <Image
-                      src={item.imageUrl ?
-                        (item.imageUrl.startsWith('http') ?
-                          `${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}` :
-                          (() => {
-                            // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
-                            if (item.imageUrl.startsWith('/uploads/')) {
-                              const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
-                              return `${baseUrl}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
-                            }
-                            return `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
-                          })())
-                        : '/placeholder-food.jpg'}
-                      alt={typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Menu item')}
-                      width={80}
-                      height={80}
-                      className="object-cover w-full h-full rounded-lg"
-                      unoptimized={!item.imageUrl}
-                      priority={idx < 4}
-                    />
-                    {item.isPopular && (
-                      <div className="absolute top-0 left-0 text-white text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--brand-strong)' }}>
-                        <FaStar className="inline-block mr-1" size={8} />
-                        <TranslatedText>Popüler</TranslatedText>
+      {/* Menu Items */}
+      <div className="container mx-auto px-3 py-2 max-w-full">
+        <div className="grid grid-cols-1 gap-3 max-w-full">
+          {loading && filteredItems.length === 0 ? (
+            <MenuSkeleton />
+          ) : (
+            filteredItems.map((item: any, idx: number) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-lg shadow-sm border p-3 flex max-w-full cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]"
+                onClick={() => openModal(item)}
+              >
+                <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                  <Image
+                    src={item.imageUrl ?
+                      (item.imageUrl.startsWith('http') ?
+                        `${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}` :
+                        (() => {
+                          // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
+                          if (item.imageUrl.startsWith('/uploads/')) {
+                            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                            return `${baseUrl}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
+                          }
+                          return `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
+                        })())
+                      : '/placeholder-food.jpg'}
+                    alt={typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Menu item')}
+                    width={80}
+                    height={80}
+                    className="object-cover w-full h-full rounded-lg"
+                    unoptimized={!item.imageUrl}
+                    priority={idx < 4}
+                  />
+                  {item.isPopular && (
+                    <div className="absolute top-0 left-0 text-white text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--brand-strong)' }}>
+                      <FaStar className="inline-block mr-1" size={8} />
+                      <TranslatedText>Popüler</TranslatedText>
+                    </div>
+                  )}
+                </div>
+                <div className="ml-3 flex-grow min-w-0 flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-semibold text-dynamic-sm truncate">
+                        {item.translations?.[language]?.name || (typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün'))}
+                      </h3>
+                      <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: primary }}>{item.price} ₺</span>
+                    </div>
+                    <p className="text-xs text-gray-600 line-clamp-2 mb-2 break-words">
+                      {item.translations?.[language]?.description || (typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || ''))}
+                    </p>
+
+                    {/* Allergens */}
+                    {item.allergens && item.allergens.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-1">
+                        {item.allergens.slice(0, 3).map((allergen: any, i: number) => (
+                          <span key={i} className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-full">
+                            {typeof allergen === 'string' ? allergen : (allergen[language as keyof typeof allergen] || allergen.tr || allergen.en)}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
-                  <div className="ml-3 flex-grow min-w-0 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-semibold text-dynamic-sm truncate">
-                          {item.translations?.[language]?.name || (typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün'))}
-                        </h3>
-                        <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: primary }}>{item.price} ₺</span>
-                      </div>
-                      <p className="text-xs text-gray-600 line-clamp-2 mb-2 break-words">
-                        {item.translations?.[language]?.description || (typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || ''))}
-                      </p>
 
-                      {/* Allergens */}
-                      {item.allergens && item.allergens.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-1">
-                          {item.allergens.slice(0, 3).map((allergen: any, i: number) => (
-                            <span key={i} className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-full">
-                              {typeof allergen === 'string' ? allergen : (allergen[language as keyof typeof allergen] || allergen.tr || allergen.en)}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex justify-end mt-1">
-                      <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                        <FaPlus size={8} />
-                        <TranslatedText>Detaylar & Ekle</TranslatedText>
-                      </span>
-                    </div>
+                  <div className="flex justify-end mt-1">
+                    <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                      <FaPlus size={8} />
+                      <TranslatedText>Detaylar & Ekle</TranslatedText>
+                    </span>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              </div>
+            ))
+          )}
         </div>
+      </div>
 
-        {/* Sabit Duyurular */}
-        <div className="container mx-auto px-3 py-4 mb-20">
-          <div className="rounded-xl p-5 shadow-lg border bg-white">
-            <div className="grid grid-cols-1 gap-3">
-              {/* WiFi Info */}
-              {settings?.basicInfo?.showWifiInMenu && (
-                <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
-                  <div className="flex items-center">
-                    <span className="text-lg mr-3">📶</span>
-                    <span className="text-sm font-medium text-gray-700">
-                      <TranslatedText>WiFi Şifresi</TranslatedText>
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold px-2 py-1 rounded" style={{ color: 'var(--brand-strong)', backgroundColor: 'var(--brand-surface)' }}>
-                    {settings?.basicInfo?.wifiPassword || 'restoran2024'}
+      {/* Sabit Duyurular */}
+      <div className="container mx-auto px-3 py-4 mb-20">
+        <div className="rounded-xl p-5 shadow-lg border bg-white">
+          <div className="grid grid-cols-1 gap-3">
+            {/* WiFi Info */}
+            {settings?.basicInfo?.showWifiInMenu && (
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
+                <div className="flex items-center">
+                  <span className="text-lg mr-3">📶</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    <TranslatedText>WiFi Şifresi</TranslatedText>
                   </span>
                 </div>
-              )}
-              {/* Google Review Button - Desktop/Tablet */}
-              {settings?.basicInfo?.showReviewInMenu && settings?.basicInfo?.googleReviewLink && (
-                <div className="hidden sm:block">
-                  <a
-                    href={settings?.basicInfo?.googleReviewLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-white hover:bg-gray-50"
-                    style={{ textDecoration: 'none', borderLeftColor: 'var(--brand-primary)' }}
-                  >
-                    <div className="flex items-center">
-                      <span className="text-lg mr-3">⭐</span>
-                      <span className="text-sm font-medium text-gray-800">
-                        <TranslatedText>Google'da Değerlendir</TranslatedText>
-                      </span>
-                    </div>
-                    <button className="text-xs font-semibold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-secondary">
-                      <TranslatedText>Yorum Yap</TranslatedText>
-                    </button>
-                  </a>
-                </div>
-              )}
-
-              {/* Google Review Button - Mobile (Special Design) */}
-              {settings?.basicInfo?.showReviewInMenu && settings?.basicInfo?.googleReviewLink && (
-                <div className="block sm:hidden my-4">
-                  <a
-                    href={settings?.basicInfo?.googleReviewLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="relative overflow-hidden block rounded-xl shadow-lg transform transition active:scale-95"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-90 z-0"></div>
-                    <div className="absolute -right-6 -top-6 bg-white opacity-10 rounded-full w-24 h-24 z-0"></div>
-                    <div className="absolute -left-6 -bottom-6 bg-white opacity-10 rounded-full w-20 h-20 z-0"></div>
-
-                    <div className="relative z-10 p-4 flex items-center justify-between text-white">
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-2xl">⭐</span>
-                          <span className="font-bold text-lg"><TranslatedText>Bizi Değerlendir!</TranslatedText></span>
-                        </div>
-                        <span className="text-xs opacity-90"><TranslatedText>Deneyimini Google'da paylaş</TranslatedText></span>
-                      </div>
-                      <div className="bg-white text-blue-600 rounded-full p-2 shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </div>
-                  </a>
-                </div>
-              )}
-              {/* Working Hours */}
-              {settings?.basicInfo?.showHoursInMenu && (
-                <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
-                  <div className="flex items-center">
-                    <span className="text-lg mr-3">🕒</span>
-                    <span className="text-sm font-medium text-gray-700">
-                      <TranslatedText>Çalışma Saatleri</TranslatedText>
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold" style={{ color: 'var(--brand-strong)' }}>
-                    {settings?.basicInfo?.workingHours || '09:00 - 23:00'}
-                  </span>
-                </div>
-              )}
-              {/* Instagram Button */}
-              {settings?.basicInfo?.showInstagramInMenu && (
+                <span className="text-sm font-bold px-2 py-1 rounded" style={{ color: 'var(--brand-strong)', backgroundColor: 'var(--brand-surface)' }}>
+                  {settings?.basicInfo?.wifiPassword || 'restoran2024'}
+                </span>
+              </div>
+            )}
+            {/* Google Review Button - Desktop/Tablet */}
+            {settings?.basicInfo?.showReviewInMenu && settings?.basicInfo?.googleReviewLink && (
+              <div className="hidden sm:block">
                 <a
-                  href={settings?.basicInfo?.instagram || "https://instagram.com/restoranadi"}
+                  href={settings?.basicInfo?.googleReviewLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-white hover:bg-gray-50"
-                  style={{ textDecoration: 'none', borderLeftColor: '#E1306C' }}
+                  style={{ textDecoration: 'none', borderLeftColor: 'var(--brand-primary)' }}
                 >
                   <div className="flex items-center">
-                    <span className="text-lg mr-3">📱</span>
+                    <span className="text-lg mr-3">⭐</span>
                     <span className="text-sm font-medium text-gray-800">
-                      <TranslatedText>Instagram'da Takip Et</TranslatedText>
+                      <TranslatedText>Google'da Değerlendir</TranslatedText>
                     </span>
                   </div>
-                  <button className="text-sm font-bold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-primary">
-                    @{settings?.basicInfo?.instagram?.replace('https://instagram.com/', '').replace('https://www.instagram.com/', '') || 'restoranadi'}
+                  <button className="text-xs font-semibold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-secondary">
+                    <TranslatedText>Yorum Yap</TranslatedText>
                   </button>
                 </a>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Google Review Button - Mobile (Special Design) */}
+            {settings?.basicInfo?.showReviewInMenu && settings?.basicInfo?.googleReviewLink && (
+              <div className="block sm:hidden my-4">
+                <a
+                  href={settings?.basicInfo?.googleReviewLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative overflow-hidden block rounded-xl shadow-lg transform transition active:scale-95"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-90 z-0"></div>
+                  <div className="absolute -right-6 -top-6 bg-white opacity-10 rounded-full w-24 h-24 z-0"></div>
+                  <div className="absolute -left-6 -bottom-6 bg-white opacity-10 rounded-full w-20 h-20 z-0"></div>
+
+                  <div className="relative z-10 p-4 flex items-center justify-between text-white">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-2xl">⭐</span>
+                        <span className="font-bold text-lg"><TranslatedText>Bizi Değerlendir!</TranslatedText></span>
+                      </div>
+                      <span className="text-xs opacity-90"><TranslatedText>Deneyimini Google'da paylaş</TranslatedText></span>
+                    </div>
+                    <div className="bg-white text-blue-600 rounded-full p-2 shadow-lg">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            )}
+            {/* Working Hours */}
+            {settings?.basicInfo?.showHoursInMenu && (
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4" style={{ borderLeftColor: 'var(--brand-subtle)' }}>
+                <div className="flex items-center">
+                  <span className="text-lg mr-3">🕒</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    <TranslatedText>Çalışma Saatleri</TranslatedText>
+                  </span>
+                </div>
+                <span className="text-sm font-bold" style={{ color: 'var(--brand-strong)' }}>
+                  {settings?.basicInfo?.workingHours || '09:00 - 23:00'}
+                </span>
+              </div>
+            )}
+            {/* Instagram Button */}
+            {settings?.basicInfo?.showInstagramInMenu && (
+              <a
+                href={settings?.basicInfo?.instagram || "https://instagram.com/restoranadi"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 transition group bg-white hover:bg-gray-50"
+                style={{ textDecoration: 'none', borderLeftColor: '#E1306C' }}
+              >
+                <div className="flex items-center">
+                  <span className="text-lg mr-3">📱</span>
+                  <span className="text-sm font-medium text-gray-800">
+                    <TranslatedText>Instagram'da Takip Et</TranslatedText>
+                  </span>
+                </div>
+                <button className="text-sm font-bold px-3 py-1 rounded-lg shadow group-hover:scale-105 transition btn-primary">
+                  @{settings?.basicInfo?.instagram?.replace('https://instagram.com/', '').replace('https://www.instagram.com/', '') || 'restoranadi'}
+                </button>
+              </a>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 shadow-lg z-30">
-          <div className="container mx-auto flex justify-around max-w-full px-2">
-            <Link href={`/menu?token=${token}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
-              <FaUtensils className="mb-0.5" size={16} />
-              <span className="text-[10px]"><TranslatedText>Menü</TranslatedText></span>
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 shadow-lg z-30">
+        <div className="container mx-auto flex justify-around max-w-full px-2">
+          <Link href={`/menu?token=${token}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
+            <FaUtensils className="mb-0.5" size={16} />
+            <span className="text-[10px]"><TranslatedText>Menü</TranslatedText></span>
+          </Link>
+          {orderingAllowed ? (
+            <Link href={`/cart?token=${token}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
+              <div className="relative">
+                <FaShoppingCart className="mb-0.5" size={16} />
+                {isClient && cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 text-white text-[8px] rounded-full w-3 h-3 flex items-center justify-center" style={{ backgroundColor: primary }}>
+                    {cartCount}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px]"><TranslatedText>Sepet</TranslatedText></span>
             </Link>
-            {orderingAllowed ? (
-              <Link href={`/cart?token=${token}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
-                <div className="relative">
-                  <FaShoppingCart className="mb-0.5" size={16} />
-                  {isClient && cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 text-white text-[8px] rounded-full w-3 h-3 flex items-center justify-center" style={{ backgroundColor: primary }}>
-                      {cartCount}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[10px]"><TranslatedText>Sepet</TranslatedText></span>
-              </Link>
-            ) : (
-              <div className="flex flex-col items-center text-gray-400 cursor-not-allowed">
-                <div className="relative">
-                  <FaShoppingCart className="mb-0.5" size={16} />
-                  <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                    </svg>
-                  </span>
-                </div>
-                <span className="text-[10px]"><TranslatedText>Kapalı</TranslatedText></span>
+          ) : (
+            <div className="flex flex-col items-center text-gray-400 cursor-not-allowed">
+              <div className="relative">
+                <FaShoppingCart className="mb-0.5" size={16} />
+                <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                  </svg>
+                </span>
               </div>
-            )}
-            {orderingAllowed ? (
-              <Link href={`/garson-cagir?token=${token}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
+              <span className="text-[10px]"><TranslatedText>Kapalı</TranslatedText></span>
+            </div>
+          )}
+          {orderingAllowed ? (
+            <Link href={`/garson-cagir?token=${token}&table=${tableNumber}`} className="flex flex-col items-center" style={{ color: primary }}>
+              <FaBell className="mb-0.5" size={16} />
+              <span className="text-[10px]"><TranslatedText>Garson Çağır</TranslatedText></span>
+            </Link>
+          ) : (
+            <div className="flex flex-col items-center text-gray-400 cursor-not-allowed">
+              <div className="relative">
                 <FaBell className="mb-0.5" size={16} />
-                <span className="text-[10px]"><TranslatedText>Garson Çağır</TranslatedText></span>
-              </Link>
-            ) : (
-              <div className="flex flex-col items-center text-gray-400 cursor-not-allowed">
-                <div className="relative">
-                  <FaBell className="mb-0.5" size={16} />
-                  <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                    </svg>
-                  </span>
-                </div>
-                <span className="text-[10px]"><TranslatedText>Kapalı</TranslatedText></span>
+                <span className="absolute top-0 right-0 w-full h-full flex items-center justify-center text-red-500 opacity-70">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                  </svg>
+                </span>
               </div>
-            )}
-          </div>
-        </nav>
-      </main>
+              <span className="text-[10px]"><TranslatedText>Kapalı</TranslatedText></span>
+            </div>
+          )}
+        </div>
+      </nav>
+    </main>
 
-      {/* Menu Item Modal */}
-      {selectedItem && (
-        <MenuItemModal
-          item={selectedItem}
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          imageCacheVersion={imageCacheVersion}
-        />
-      )}
+    {/* Menu Item Modal */}
+    {selectedItem && (
+      <MenuItemModal
+        item={selectedItem}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        imageCacheVersion={imageCacheVersion}
+      />
+    )}
 
-    </>
-  );
+  </>
+);
 }
 
 export default function MenuPage() {

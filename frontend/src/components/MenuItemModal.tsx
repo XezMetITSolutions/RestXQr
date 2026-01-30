@@ -33,13 +33,37 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
   const currentPrice = selectedVariant ? selectedVariant.price : item.price;
 
   const handleAddToCart = useCallback(() => {
+    // Resolve image URL
+    let imageUrl = item.image;
+    const finalImage = item.imageUrl || item.image;
+
+    if (finalImage) {
+      if (finalImage.startsWith('http')) {
+        imageUrl = finalImage;
+      } else if (finalImage.startsWith('/uploads/')) {
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+        imageUrl = `${baseUrl}${finalImage}`;
+      } else {
+        // Standard relative path (e.g. /images/...) - assume it needs backend base URL if not http
+        // But wait, existing logic says: `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}` for standard cases in MenuPage
+        // logic in Modal render: `${baseUrl}${finalImage}` ... wait, the Modal render logic seems to prefer baseUrl for everything relative?
+        // Let's look at lines 96-102:
+        // if http -> use as is.
+        // else -> baseUrl + finalImage.
+        // baseUrl is constructed by removing /api from API_URL.
+
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+        imageUrl = `${baseUrl}${finalImage}`;
+      }
+    }
+
     addItem({
       itemId: item.id,
       name: typeof item.name === 'string' ? { en: item.name, tr: item.name } : item.name,
       price: currentPrice,
       variant: selectedVariant || undefined,
       quantity,
-      image: item.image,
+      image: imageUrl,
       notes: notes.trim() || undefined
     });
     onClose();
