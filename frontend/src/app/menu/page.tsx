@@ -303,6 +303,23 @@ function MenuPageContent() {
     }
   };
 
+  // Immediate token check on mount - independent of restaurant fetch
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenParam = urlParams.get('token') || urlParams.get('t');
+      const tableParam = urlParams.get('table');
+
+      if (tokenParam && tableParam) {
+        const tNum = parseInt(tableParam);
+        if (!isNaN(tNum) && tNum > 0) {
+          setTableNumber(tNum);
+          setOrderingAllowed(true); // Instant unlock
+        }
+      }
+    }
+  }, []);
+
   // Fetch data on mount
   useEffect(() => {
     setIsClient(true);
