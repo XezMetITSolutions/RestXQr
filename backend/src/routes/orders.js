@@ -680,15 +680,20 @@ router.options('*', (req, res) => {
 
 // PUT /api/orders/:id (status update) - MUST BE AFTER /bulk route
 router.put('/:id', async (req, res) => {
+  // PUT /api/orders/:id
   try {
     const { id } = req.params;
+    const { status, items, totalAmount, tableNumber, paidAmount, discountAmount, discountReason, cashierNote, approved } = req.body;
+
+    console.log(`📝 Order Update Request: ${id}`, { status, itemsIn: items?.length });
+
     if (id.startsWith('table-') && id.endsWith('-grouped')) {
       return res.status(400).json({
         success: false,
         message: 'Grouped order ids are virtual. Update individual orders instead.'
       });
     }
-    const { status, items, totalAmount, tableNumber, paidAmount, discountAmount, discountReason, cashierNote, approved } = req.body;
+
     const allowed = ['pending', 'preparing', 'ready', 'completed', 'cancelled'];
     if (status && !allowed.includes(status)) {
       return res.status(400).json({ success: false, message: 'invalid status' });
@@ -700,45 +705,34 @@ router.put('/:id', async (req, res) => {
     const oldApproved = order.approved;
 
     // Sync items and update order
-    console.log(`📝 Order Update Payload:`, { id, status, itemsIn: items?.length, paidAmount, totalAmount });
+    if (status) order.status = status;
+    if (tableNumber !== undefined) order.tableNumber = tableNumber;
+    if (paidAmount !== undefined) order.paidAmount = paidAmount;
+    if (discountAmount !== undefined) order.discountAmount = discountAmount;
+    if (totalAmount !== undefined) order.totalAmount = totalAmount;
+    if (discountReason) order.discountReason = discountReason;
+    if (cashierNote) order.cashierNote = cashierNote;
+    if (approved !== undefined) order.approved = approved;
 
-    try {
-      if (status) order.status = status;
-      if (tableNumber !== undefined) order.tableNumber = tableNumber;
-      if (paidAmount !== undefined) order.paidAmount = paidAmount;
-      if (discountAmount !== undefined) order.discountAmount = discountAmount;
-      if (totalAmount !== undefined) order.totalAmount = totalAmount;
-      if (discountReason) order.discountReason = discountReason;
-      if (cashierNote) order.cashierNote = cashierNote;
-      if (approved !== undefined) order.approved = approved;
+    if (items && Array.isArray(items)) {
+      // Atomic-like sync: delete and recreate items
+      await OrderItem.destroy({ where: { orderId: id } });
+      for (const item of items) {
+        const mId = item.menuItemId || item.id;
+        if (!mId) continue;
 
-      if (items && Array.isArray(items)) {
-        // Atomic-like sync: delete and recreate items
-        await OrderItem.destroy({ where: { orderId: id } });
-        for (const item of items) {
-          const mId = item.menuItemId || item.id;
-          if (!mId) continue;
-
-          await OrderItem.create({
-            orderId: id,
-            menuItemId: mId,
-            quantity: Number(item.quantity || 1),
-            unitPrice: parseFloat(String(item.price || item.unitPrice || 0)),
-            totalPrice: parseFloat(String((item.price || item.unitPrice || 0) * (item.quantity || 1))),
-            notes: item.notes || ''
-          });
-        }
+        await OrderItem.create({
+          orderId: id,
+          menuItemId: mId,
+          quantity: Number(item.quantity || 1),
+          unitPrice: parseFloat(String(item.price || item.unitPrice || 0)),
+          totalPrice: parseFloat(String((item.price || item.unitPrice || 0) * (item.quantity || 1))),
+          notes: item.notes || ''
+        });
       }
-
-      await order.save();
-    } catch (saveError) {
-      console.error('❌ Order Update Error:', saveError);
-      return res.status(500).json({
-        success: false,
-        message: 'Order update failed',
-        error: saveError.message
-      });
     }
+
+    await order.save();
 
     // Sipariş onaylandığında (false -> true) bildirim gönder VE YAZDIR
     const { publish } = require('../lib/realtime');
@@ -1006,7 +1000,7 @@ router.put('/:id', async (req, res) => {
     res.json({ success: true, data: responseData });
   } catch (error) {
     console.error('PUT /orders/:id error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 });
 
