@@ -661,6 +661,141 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// POST /api/restaurants/replicate-menu - Replicate menu from source to target restaurant
+router.post('/replicate-menu', async (req, res) => {
+  const { sequelize } = require('../models');
+  let transaction;
+
+  try {
+    const { sourceRestaurantId, targetRestaurantId } = req.body;
+
+    if (!sourceRestaurantId || !targetRestaurantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Source and target restaurant IDs are required'
+      });
+    }
+
+    if (sourceRestaurantId === targetRestaurantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Source and target restaurants must be different'
+      });
+    }
+
+    // Start transaction
+    transaction = await sequelize.transaction();
+
+    // 1. Get Source and Target Restaurants
+    const sourceRestaurant = await Restaurant.findByPk(sourceRestaurantId, { transaction });
+    const targetRestaurant = await Restaurant.findByPk(targetRestaurantId, { transaction });
+
+    if (!sourceRestaurant || !targetRestaurant) {
+      await transaction.rollback();
+      return res.status(404).json({
+        success: false,
+        message: 'One or both restaurants not found'
+      });
+    }
+
+    console.log(`🚀 Starting menu replication from ${sourceRestaurant.name} to ${targetRestaurant.name}`);
+
+    // 2. Clear Target Restaurant Menu
+    await MenuItem.destroy({ where: { restaurantId: targetRestaurantId }, transaction });
+    await MenuCategory.destroy({ where: { restaurantId: targetRestaurantId }, transaction });
+
+    console.log('✅ Cleared target restaurant menu');
+
+    // 3. Copy Configuration (Kitchen Stations & Printer Config)
+    await targetRestaurant.update({
+      kitchenStations: sourceRestaurant.kitchenStations,
+      printerConfig: sourceRestaurant.printerConfig
+    }, { transaction });
+
+    console.log('✅ Copied configurations');
+
+    // 4. Fetch Source Categories with Items
+    const sourceCategories = await MenuCategory.findAll({
+      where: { restaurantId: sourceRestaurantId },
+      include: [{ model: MenuItem, as: 'items' }],
+      order: [['displayOrder', 'ASC']],
+      transaction
+    });
+
+    console.log(`📦 Found ${sourceCategories.length} categories to copy`);
+
+    // 5. Re-create Categories and Items
+    for (const sourceCategory of sourceCategories) {
+      // Create Category
+      const newCategory = await MenuCategory.create({
+        restaurantId: targetRestaurantId,
+        name: sourceCategory.name,
+        description: sourceCategory.description,
+        displayOrder: sourceCategory.displayOrder,
+        isActive: sourceCategory.isActive,
+        kitchenStation: sourceCategory.kitchenStation,
+        discountPercentage: sourceCategory.discountPercentage,
+        discountStartDate: sourceCategory.discountStartDate,
+        discountEndDate: sourceCategory.discountEndDate
+      }, { transaction });
+
+      // Create Items for this Category
+      if (sourceCategory.items && sourceCategory.items.length > 0) {
+        const itemsToCreate = sourceCategory.items.map(item => ({
+          restaurantId: targetRestaurantId,
+          categoryId: newCategory.id,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          imageUrl: item.imageUrl,
+          videoUrl: item.videoUrl,
+          videoThumbnail: item.videoThumbnail,
+          videoDuration: item.videoDuration,
+          isAvailable: item.isAvailable,
+          isPopular: item.isPopular,
+          preparationTime: item.preparationTime,
+          calories: item.calories,
+          ingredients: item.ingredients,
+          allergens: item.allergens,
+          portionSize: item.portionSize,
+          displayOrder: item.displayOrder,
+          subcategory: item.subcategory,
+          portion: item.portion,
+          kitchenStation: item.kitchenStation,
+          variations: item.variations,
+          options: item.options,
+          type: item.type,
+          bundleItems: item.bundleItems,
+          translations: item.translations,
+          discountedPrice: item.discountedPrice,
+          discountPercentage: item.discountPercentage,
+          discountStartDate: item.discountStartDate,
+          discountEndDate: item.discountEndDate
+        }));
+
+        await MenuItem.bulkCreate(itemsToCreate, { transaction });
+      }
+    }
+
+    await transaction.commit();
+    console.log('✨ Menu replication completed successfully');
+
+    res.json({
+      success: true,
+      message: 'Menu replicated successfully'
+    });
+
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    console.error('Menu replication error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error during menu replication',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
 
 

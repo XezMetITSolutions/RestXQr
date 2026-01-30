@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
+import {
   FaChartBar,
   FaUsers,
   FaBuilding,
@@ -25,7 +25,9 @@ import {
   FaFileAlt,
   FaCrown,
   FaRocket,
-  FaHeadset
+  FaHeadset,
+  FaExchangeAlt
+
 } from 'react-icons/fa';
 
 interface AdminLayoutProps {
@@ -35,11 +37,11 @@ interface AdminLayoutProps {
   headerActions?: React.ReactNode;
 }
 
-export default function AdminLayout({ 
-  children, 
-  title, 
+export default function AdminLayout({
+  children,
+  title,
   description = "Sistem yönetim paneli",
-  headerActions 
+  headerActions
 }: AdminLayoutProps) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -66,14 +68,14 @@ export default function AdminLayout({
               <p className="text-sm text-blue-200 font-medium">Süper Yönetici</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-all"
           >
             <FaTimes className="text-xl" />
           </button>
         </div>
-        
+
         {/* Sidebar Navigation */}
         <div className="flex-1 overflow-y-auto p-6">
           <nav className="space-y-3">
@@ -85,11 +87,10 @@ export default function AdminLayout({
               </h3>
               <ul className="space-y-2">
                 <li>
-                  <Link 
-                    href="/admin" 
-                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${
-                      title === 'Süper Yönetici Paneli' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
-                    }`}
+                  <Link
+                    href="/admin"
+                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Süper Yönetici Paneli' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                      }`}
                   >
                     <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Süper Yönetici Paneli' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
                       <FaChartBar className="text-lg" />
@@ -98,11 +99,10 @@ export default function AdminLayout({
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    href="/admin/restaurants" 
-                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${
-                      title === 'Restoran Yönetimi' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
-                    }`}
+                  <Link
+                    href="/admin/restaurants"
+                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Restoran Yönetimi' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                      }`}
                   >
                     <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Restoran Yönetimi' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
                       <FaBuilding className="text-lg" />
@@ -111,11 +111,22 @@ export default function AdminLayout({
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    href="/admin/plans" 
-                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${
-                      title === 'Plan Yönetimi' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
-                    }`}
+                  <Link
+                    href="/admin/menu-replication"
+                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Menu Replication' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                      }`}
+                  >
+                    <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Menu Replication' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
+                      <FaExchangeAlt className="text-lg" />
+                    </div>
+                    <span className="font-medium">Menu Kopyalama</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/admin/plans"
+                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Plan Yönetimi' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                      }`}
                   >
                     <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Plan Yönetimi' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
                       <FaCrown className="text-lg" />
@@ -124,11 +135,10 @@ export default function AdminLayout({
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    href="/admin/restaurant-features" 
-                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${
-                      title === 'Restoran Özellik Yönetimi' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
-                    }`}
+                  <Link
+                    href="/admin/restaurant-features"
+                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Restoran Özellik Yönetimi' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                      }`}
                   >
                     <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Restoran Özellik Yönetimi' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
                       <FaCogs className="text-lg" />
@@ -139,11 +149,10 @@ export default function AdminLayout({
                 {/* Kullanıcı Yönetimi - Restoran Yönetimi'ne entegre edildi */}
                 {/* QR Kod Yönetimi - Admin panelinden kaldırıldı, restoranlar kendi QR kodlarını oluşturur */}
                 <li>
-                  <Link 
-                    href="/admin/notifications" 
-                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${
-                      title === 'Bildirim Yönetimi' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
-                    }`}
+                  <Link
+                    href="/admin/notifications"
+                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Bildirim Yönetimi' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                      }`}
                   >
                     <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Bildirim Yönetimi' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
                       <FaBell className="text-lg" />
@@ -152,11 +161,10 @@ export default function AdminLayout({
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    href="/admin/settings" 
-                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${
-                      title === 'Ayarlar' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
-                    }`}
+                  <Link
+                    href="/admin/settings"
+                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Ayarlar' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                      }`}
                   >
                     <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Ayarlar' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
                       <FaCog className="text-lg" />
@@ -175,11 +183,10 @@ export default function AdminLayout({
               </h3>
               <ul className="space-y-2">
                 <li>
-                  <Link 
-                    href="/admin/subscriptions" 
-                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${
-                      title === 'Abonelik Yönetimi' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
-                    }`}
+                  <Link
+                    href="/admin/subscriptions"
+                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Abonelik Yönetimi' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                      }`}
                   >
                     <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Abonelik Yönetimi' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
                       <FaCreditCard className="text-lg" />
@@ -188,11 +195,10 @@ export default function AdminLayout({
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    href="/admin/support" 
-                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${
-                      title === 'Destek Talepleri' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
-                    }`}
+                  <Link
+                    href="/admin/support"
+                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Destek Talepleri' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                      }`}
                   >
                     <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Destek Talepleri' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
                       <FaHeadset className="text-lg" />
@@ -206,7 +212,7 @@ export default function AdminLayout({
 
             {/* Çıkış */}
             <div className="mt-8 pt-6 border-t border-white/10">
-              <button 
+              <button
                 onClick={handleLogout}
                 className="group flex items-center p-4 rounded-xl hover:bg-red-500/20 text-blue-100 hover:text-red-200 w-full transition-all duration-200"
               >
@@ -222,7 +228,7 @@ export default function AdminLayout({
 
       {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -235,7 +241,7 @@ export default function AdminLayout({
           <div className="px-8 py-6">
             <div className="flex justify-between items-center">
               <div className="flex items-center">
-                <button 
+                <button
                   onClick={() => setSidebarOpen(true)}
                   className="lg:hidden mr-6 p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
                 >
