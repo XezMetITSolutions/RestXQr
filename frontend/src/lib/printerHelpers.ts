@@ -39,7 +39,8 @@ export interface ReceiptData {
 
 export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanvasElement> => {
     const canvas = document.createElement('canvas');
-    const width = 384;
+    // 576px is standard for 80mm thermal printers
+    const width = 576;
     canvas.width = width;
     canvas.height = 3000;
     const ctx = canvas.getContext('2d');
@@ -73,7 +74,7 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
                 img.onerror = resolve; // Continue even if logo fails
             });
             if (img.complete && img.width > 0) {
-                const logoSize = 120;
+                const logoSize = 160;
                 ctx.drawImage(img, (width - logoSize) / 2, y, logoSize, logoSize);
                 y += logoSize + 15;
             }
@@ -84,33 +85,33 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
 
     // 2. Restaurant Name
     if (data.header) {
-        ctx.font = 'bold 24px sans-serif';
+        ctx.font = 'bold 36px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(data.header.toUpperCase(), width / 2, y);
-        y += 35;
+        y += 45;
     }
 
     // Separator
     drawDashedLine(y);
-    y += 10;
+    y += 15;
 
     // 3. Check & Table (Large Bold)
     if (data.type === 'BILL') {
         ctx.textAlign = 'left';
-        ctx.font = 'bold 32px sans-serif';
+        ctx.font = 'bold 44px sans-serif';
         ctx.fillText(`Cek : ${data.checkNumber || data.orderNumber.slice(-3)}`, 15, y);
-        y += 45;
+        y += 55;
         ctx.fillText(`Masa : MASA - ${data.tableNumber}`, 15, y);
-        y += 60;
+        y += 70;
 
         // 4. Info Grid
-        ctx.font = '22px sans-serif';
+        ctx.font = '28px sans-serif';
         const drawGridRow = (left: string, right: string) => {
             ctx.textAlign = 'left';
             ctx.fillText(left, 15, y);
             ctx.textAlign = 'right';
             ctx.fillText(right, width - 15, y);
-            y += 28;
+            y += 35;
         };
 
         const now = new Date();
@@ -120,30 +121,25 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         y += 10;
 
         drawDashedLine(y);
-        y += 20;
+        y += 25;
     } else {
         // Kitchen basic header
-        ctx.font = 'bold 54px sans-serif';
+        ctx.font = 'bold 72px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(`MASA ${data.tableNumber}`, width / 2, y);
-        y += 65;
+        y += 90;
 
-        // Remove order number (UUID) as requested
-        // ctx.font = '22px sans-serif';
-        // ctx.fillText(`#${data.orderNumber}`, width / 2, y);
-        // y += 30;
-
-        ctx.font = 'bold 24px sans-serif';
+        ctx.font = 'bold 32px sans-serif';
         ctx.fillText(new Date().toLocaleString('tr-TR'), width / 2, y);
-        y += 45;
+        y += 60;
         drawDashedLine(y);
-        y += 25;
+        y += 35;
     }
 
     // 5. Items
     ctx.textAlign = 'left';
     data.items.forEach((item) => {
-        ctx.font = 'bold 34px sans-serif';
+        ctx.font = 'bold 44px sans-serif';
         const qtyText = `${item.quantity} x `;
         const nameText = item.name;
 
@@ -155,74 +151,74 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
             ctx.textAlign = 'left';
         }
 
-        y += 45;
+        y += 55;
 
         if (item.notes) {
             // "Not kalın harflerle olsun altı çizgili olsun"
-            ctx.font = 'bold 26px sans-serif';
+            ctx.font = 'bold 34px sans-serif';
             const noteText = `   NOT: ${item.notes}`;
             ctx.fillText(noteText, 15, y);
 
             // Draw underline for the note
             const textWidth = ctx.measureText(noteText).width;
             ctx.beginPath();
-            ctx.moveTo(15, y + 28);
-            ctx.lineTo(15 + textWidth, y + 28);
-            ctx.lineWidth = 2;
+            ctx.moveTo(15, y + 36);
+            ctx.lineTo(15 + textWidth, y + 36);
+            ctx.lineWidth = 3;
             ctx.stroke();
 
-            y += 35;
+            y += 45;
         }
-        y += 12;
+        y += 15;
     });
 
     // 6. Summary Section
     if (data.type === 'BILL') {
-        y += 10;
+        y += 20;
         // Ara Toplam
-        ctx.font = 'bold 26px sans-serif';
+        ctx.font = 'bold 34px sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText("ARA TOPLAM", 15, y);
         ctx.textAlign = 'right';
         ctx.fillText(`${(data.subtotal || data.total || 0).toFixed(2)} TL`, width - 15, y);
-        y += 45;
+        y += 55;
 
         drawDashedLine(y);
-        y += 15;
+        y += 20;
 
         // Tax Breakdown
         if (data.taxDetails) {
-            ctx.font = '22px sans-serif';
+            ctx.font = '28px sans-serif';
             ctx.textAlign = 'left';
             ctx.fillText(`${data.taxDetails.name} (${data.taxDetails.rate}%)`, 15, y);
-            y += 30;
+            y += 35;
 
             ctx.fillText(`${(data.subtotal || data.total || 0).toFixed(2)} TL`, 15, y);
             ctx.textAlign = 'right';
             ctx.fillText(`${data.taxDetails.amount.toFixed(2)} KDV ${data.taxDetails.net.toFixed(2)} NET`, width - 15, y);
-            y += 40;
+            y += 45;
         }
 
         // Toplam
-        ctx.font = 'bold 36px sans-serif';
+        ctx.font = 'bold 48px sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText("TOPLAM", 15, y);
         ctx.textAlign = 'right';
         ctx.fillText(`${(data.total || 0).toFixed(2)} TL`, width - 15, y);
-        y += 50;
+        y += 65;
 
         drawDashedLine(y);
     }
 
     // Footer
     if (data.footer) {
-        y += 30;
-        ctx.font = '20px sans-serif';
+        y += 40;
+        ctx.font = '26px sans-serif';
         ctx.textAlign = 'center';
         const lines = data.footer.split('\n');
         lines.forEach(line => {
             ctx.fillText(line, width / 2, y);
-            y += 26;
+            y += 32;
         });
     }
 
