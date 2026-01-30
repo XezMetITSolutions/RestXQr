@@ -39,67 +39,73 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/restaurants/username/:username - Get restaurant by username (subdomain)
+// GET /api/restaurants/username/:username - Get restaurant by username (subdomain)
 router.get('/username/:username', async (req, res) => {
   try {
     const { username } = req.params;
+    console.log(`🔍 Fetching restaurant by username: ${username}`);
 
+    // 1. Fetch Restaurant Basics
     const restaurant = await Restaurant.findOne({
       where: { username },
-      attributes: { exclude: ['password'] },
-      include: [
-        {
-          model: MenuCategory,
-          as: 'categories',
-          include: [
-            {
-              model: MenuItem,
-              as: 'items'
-            }
-          ]
-        }
-      ]
+      attributes: { exclude: ['password'] }
     });
 
     if (!restaurant) {
+      console.warn(`⚠️ Restaurant not found for username: ${username}`);
       return res.status(404).json({
         success: false,
         message: 'Restaurant not found'
       });
     }
 
+    // 2. Fetch Categories
+    const categories = await MenuCategory.findAll({
+      where: { restaurantId: restaurant.id },
+      order: [['displayOrder', 'ASC']]
+    });
+
+    // 3. Fetch Items
+    const items = await MenuItem.findAll({
+      where: { restaurantId: restaurant.id },
+      order: [['displayOrder', 'ASC']]
+    });
+
+    // 4. Assemble the Tree manually (more robust than Sequelize include)
+    const restaurantData = restaurant.toJSON();
+
+    // Convert categories to plain objects
+    const categoryList = categories.map(c => c.toJSON());
+
+    // Map items to categories
+    categoryList.forEach(category => {
+      category.items = items.filter(item => item.categoryId === category.id);
+    });
+
+    // Add unassigned items to a "catch-all" or just attach all items for redundancy if needed by frontend
+    // The frontend expects: restaurant.categories[].items
+    restaurantData.categories = categoryList;
+
+    // Also attach flat menuItems list if frontend uses it directly (some store logic does)
+    restaurantData.menuItems = items;
+
+    console.log(`✅ Restaurant found: ${restaurant.name} with ${categories.length} categories and ${items.length} items`);
+
     res.json({
       success: true,
-      data: restaurant
+      data: restaurantData
     });
+
   } catch (error) {
-    console.error('Get restaurant by username error:', error);
+    console.error('❌ Get restaurant by username error:', error);
 
-    try {
-      const { username } = req.params;
-      const restaurant = await Restaurant.findOne({
-        where: { username },
-        attributes: { exclude: ['password'] }
-      });
-
-      if (!restaurant) {
-        return res.status(404).json({
-          success: false,
-          message: 'Restaurant not found'
-        });
-      }
-
-      return res.json({
-        success: true,
-        data: restaurant,
-        warning: 'Partial data returned (menu includes unavailable)'
-      });
-    } catch (fallbackError) {
-      console.error('Get restaurant by username fallback error:', fallbackError);
-      return res.status(500).json({
-        success: false,
-        message: 'Internal server error'
-      });
-    }
+    // Return detailed error for debugging (remove in high-security prod, but vital for now)
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' || true ? error.message : undefined, // Force show error
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
