@@ -912,80 +912,125 @@ function MenuPageContent() {
         {/* Subcategories - Backend'de subcategory yok, bu kısım kaldırıldı */}
 
         {/* Menu Items */}
-        <div className="container mx-auto px-3 py-2 max-w-full">
-          <div className="grid grid-cols-1 gap-3 max-w-full">
-            {loading && filteredItems.length === 0 ? (
-              <MenuSkeleton />
-            ) : (
-              filteredItems.map((item: any, idx: number) => (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-lg shadow-sm border p-3 flex max-w-full cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]"
-                  onClick={() => openModal(item)}
-                >
-                  <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                    <Image
-                      src={item.imageUrl ?
-                        (item.imageUrl.startsWith('http') ?
-                          `${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}` :
-                          (() => {
-                            // Eğer path /uploads/ ile başlıyorsa base URL'den /api kısmını çıkar
-                            if (item.imageUrl.startsWith('/uploads/')) {
-                              const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
-                              return `${baseUrl}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
-                            }
-                            return `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
-                          })())
-                        : '/placeholder-food.jpg'}
-                      alt={typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Menu item')}
-                      width={80}
-                      height={80}
-                      className="object-cover w-full h-full rounded-lg"
-                      unoptimized={!item.imageUrl}
-                      priority={idx < 4}
-                    />
-                    {item.isPopular && (
-                      <div className="absolute top-0 left-0 text-white text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--brand-strong)' }}>
-                        <FaStar className="inline-block mr-1" size={8} />
-                        <TranslatedText>Popüler</TranslatedText>
-                      </div>
-                    )}
-                  </div>
-                  <div className="ml-3 flex-grow min-w-0 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-semibold text-dynamic-sm truncate">
-                          {item.translations?.[language]?.name || (typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün'))}
-                        </h3>
-                        <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: primary }}>{item.price} ₺</span>
-                      </div>
-                      <p className="text-xs text-gray-600 line-clamp-2 mb-2 break-words">
-                        {item.translations?.[language]?.description || (typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || ''))}
-                      </p>
+        {/* Vertical Menu List */}
+        <div className="pb-24 px-3 space-y-8">
+          {menuCategories.map((category) => {
+            if (category.id === 'popular' && search.trim() !== '') return null; // Hide popular during search
 
-                      {/* Allergens */}
-                      {item.allergens && item.allergens.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-1">
-                          {item.allergens.slice(0, 3).map((allergen: any, i: number) => (
-                            <span key={i} className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-full">
-                              {typeof allergen === 'string' ? allergen : (allergen[language as keyof typeof allergen] || allergen.tr || allergen.en)}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+            // Get items for this category
+            let categoryItems = [];
+            if (category.id === 'popular') {
+              categoryItems = getPopularItems();
+            } else {
+              categoryItems = getItemsByCategory(category.id);
+            }
 
-                    <div className="flex justify-end mt-1">
-                      <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                        <FaPlus size={8} />
-                        <TranslatedText>Detaylar & Ekle</TranslatedText>
-                      </span>
-                    </div>
-                  </div>
+            // Apply search filter if exists
+            if (search.trim() !== '') {
+              categoryItems = categoryItems.filter((item: any) => {
+                const itemName = item.translations?.[language]?.name || (typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || ''));
+                const itemDesc = item.translations?.[language]?.description || (typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || ''));
+                return itemName.toLowerCase().includes(search.toLowerCase()) ||
+                  itemDesc.toLowerCase().includes(search.toLowerCase());
+              });
+            }
+
+            // Access currentRestaurant.designSettings safely
+            const designSettings = currentRestaurant?.designSettings;
+
+            if (categoryItems.length === 0) return null;
+
+            return (
+              <div key={category.id} id={`category-${category.id}`} className="scroll-mt-40">
+                <div className="flex items-center gap-3 mb-4 sticky top-[170px] z-10 py-2 -mx-3 px-3 backdrop-blur-md bg-white/80 border-b border-gray-100/50 shadow-sm transition-all duration-300">
+                  <h3 className="text-xl font-bold text-gray-800 border-l-4 pl-3"
+                    style={{
+                      borderColor: designSettings?.primaryColor || 'var(--brand-primary)',
+                      color: designSettings?.primaryColor || 'var(--brand-primary)'
+                    }}>
+                    {category.name}
+                  </h3>
                 </div>
-              ))
-            )}
-          </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {categoryItems.map((item: any) => {
+                    // Image URL resolution
+                    let imageUrl = item.image;
+                    if (item.imageUrl) {
+                      if (item.imageUrl.startsWith('http')) {
+                        imageUrl = `${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
+                      } else if (item.imageUrl.startsWith('/uploads/')) {
+                        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '');
+                        imageUrl = `${baseUrl}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
+                      } else {
+                        imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}v=${imageCacheVersion}`;
+                      }
+                    } else {
+                      imageUrl = '/placeholder-food.jpg';
+                    }
+
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => openModal(item)}
+                        className="bg-white rounded-lg shadow-sm border p-3 flex max-w-full cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]"
+                      >
+                        <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                          <Image
+                            src={imageUrl}
+                            alt={typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Menu item')}
+                            width={80}
+                            height={80}
+                            className="object-cover w-full h-full rounded-lg"
+                            unoptimized={!item.imageUrl}
+                          />
+                          {item.isPopular && (
+                            <div className="absolute top-0 left-0 text-white text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--brand-strong)' }}>
+                              <FaStar className="inline-block mr-1" size={8} />
+                              <TranslatedText>Popüler</TranslatedText>
+                            </div>
+                          )}
+                          {/* Add Button Overlay */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!orderingAllowed) {
+                                alert('Sipariş vermek için lütfen QR kodu tekrar okutunuz.');
+                                return;
+                              }
+                              addToCart(item);
+                            }}
+                            disabled={!orderingAllowed}
+                            className={`absolute bottom-1 right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-md active:scale-90 transition-all z-10 ${orderingAllowed
+                                ? 'bg-white text-black'
+                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              }`}
+                            style={orderingAllowed ? { color: designSettings?.primaryColor || 'var(--brand-primary)' } : {}}
+                          >
+                            <FaPlus size={12} />
+                          </button>
+                        </div>
+
+                        <div className="ml-3 flex-grow min-w-0 flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between items-start">
+                              <h3 className="font-semibold text-dynamic-sm truncate">
+                                {item.translations?.[language]?.name || (typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün'))}
+                              </h3>
+                              <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: designSettings?.primaryColor || 'var(--brand-primary)' }}>{item.price} ₺</span>
+                            </div>
+                            <p className="text-xs text-gray-600 line-clamp-2 mb-2 break-words">
+                              {item.translations?.[language]?.description || (typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || ''))}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Sabit Duyurular */}
