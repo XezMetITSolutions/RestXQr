@@ -5,8 +5,25 @@ const { Op } = Sequelize;
 const { Order, OrderItem, Restaurant, MenuItem, MenuCategory, QRToken } = require('../models');
 const waiterCalls = require('../lib/waiterStore');
 
-const resolveDrinkStationForTable = (restaurant, tableNumber, menuItemCategoryId) => {
+const resolveDrinkStationForTable = (restaurant, tableNumber, menuItemCategoryId, itemKitchenStation = '') => {
   try {
+    // KROREN SPECIAL LOGIC
+    if (restaurant?.username === 'kroren' || restaurant?.name === 'Kroren' || restaurant?.name === 'Kroren Restaurant') {
+      // Sadece içecek/bar istasyonu olan ürünler için bu kuralı uygula
+      // Veya itemKitchenStation 'icecek' içeriyorsa
+      if (itemKitchenStation && (
+        itemKitchenStation.toLowerCase().includes('icecek') ||
+        itemKitchenStation.toLowerCase().includes('bar') ||
+        itemKitchenStation.toLowerCase().includes('drink')
+      )) {
+        const t = Number(tableNumber);
+        if (Number.isFinite(t)) {
+          if (t >= 1 && t <= 18) return 'icecek1';
+          if (t >= 19 && t <= 42) return 'icecek2';
+        }
+      }
+    }
+
     const cfg = restaurant?.settings?.drinkStationRouting;
     if (!cfg?.drinkCategoryId || !Array.isArray(cfg?.floors) || cfg.floors.length === 0) return null;
     if (!tableNumber) return null;
@@ -165,7 +182,8 @@ router.get('/', async (req, res) => {
       const drinkStation = resolveDrinkStationForTable(
         restaurantForRouting,
         orderForItem?.tableNumber,
-        it.menuItem?.categoryId
+        it.menuItem?.categoryId,
+        it.menuItem?.kitchenStation || it.menuItem?.category?.kitchenStation
       );
       const itemStation = drinkStation || it.menuItem?.kitchenStation || it.menuItem?.category?.kitchenStation || 'default';
 
@@ -578,7 +596,8 @@ router.put('/:id', async (req, res) => {
               const drinkStation = resolveDrinkStationForTable(
                 restaurant,
                 order.tableNumber,
-                item.menuItem?.categoryId
+                item.menuItem?.categoryId,
+                item.menuItem?.kitchenStation
               );
               const station = drinkStation || item.menuItem?.kitchenStation || 'default';
               if (!itemsByStation[station]) {
@@ -752,7 +771,8 @@ router.put('/:id', async (req, res) => {
           const drinkStation = resolveDrinkStationForTable(
             restaurant,
             order.tableNumber,
-            item.menuItem?.categoryId
+            item.menuItem?.categoryId,
+            item.menuItem?.kitchenStation
           );
           const station = drinkStation || item.menuItem?.kitchenStation || 'default';
           if (!itemsByStation[station]) itemsByStation[station] = [];
@@ -884,7 +904,8 @@ router.post('/:id/print', async (req, res) => {
       const drinkStation = resolveDrinkStationForTable(
         restaurant,
         order.tableNumber,
-        item.menuItem?.categoryId
+        item.menuItem?.categoryId,
+        item.menuItem?.kitchenStation
       );
       const station = drinkStation || item.menuItem?.kitchenStation || 'default';
       if (!itemsByStation[station]) {
