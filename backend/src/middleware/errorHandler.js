@@ -83,8 +83,8 @@ const errorHandler = (err, req, res, next) => {
     // General error response
     res.status(500).json({
         success: false,
-        message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? err.message : 'An error occurred'
+        message: err.message, // Force expose error message
+        error: err.message // Duplicate for safety
     });
 };
 

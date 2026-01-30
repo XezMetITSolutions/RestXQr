@@ -1000,7 +1000,7 @@ router.put('/:id', async (req, res) => {
     res.json({ success: true, data: responseData });
   } catch (error) {
     console.error('PUT /orders/:id error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    res.status(500).json({ success: false, message: error.message, error: error.message });
   }
 });
 
