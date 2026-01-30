@@ -245,10 +245,14 @@ router.get('/', async (req, res) => {
         ...o.toJSON(),
         items: orderItems
       };
-    }).filter(order => order.items.length > 0); // İçecek dışında ürünü olmayan siparişleri kaldır
+    });
 
+    // Kasa/Debug için hepsi kalsın, mutfak için boşalanlar elensin
+    const finalData = (req.query.from === 'cashier' || req.query.from === 'debug')
+      ? data
+      : data.filter(order => order.items.length > 0);
 
-    res.json({ success: true, data });
+    res.json({ success: true, data: finalData });
   } catch (error) {
     console.error('GET /orders error:', error);
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
@@ -679,24 +683,25 @@ router.put('/:id', async (req, res) => {
 
     const oldApproved = order.approved;
 
-    // Alanları güncelle
-    const previousStatus = order.status;
-    if (status) order.status = status;
-    if (tableNumber !== undefined) order.tableNumber = tableNumber;
-    if (paidAmount !== undefined) order.paidAmount = paidAmount;
-    if (discountAmount !== undefined) order.discountAmount = discountAmount;
-    if (totalAmount !== undefined) order.totalAmount = totalAmount;
-    if (discountReason) order.discountReason = discountReason;
-    if (cashierNote) order.cashierNote = cashierNote;
-    if (approved !== undefined) order.approved = approved;
+    // Sync items and update order with transaction
+    const { sequelize } = require('../models');
+    const transaction = await sequelize.transaction();
 
-    // Sync items if provided
     try {
+      if (status) order.status = status;
+      if (tableNumber !== undefined) order.tableNumber = tableNumber;
+      if (paidAmount !== undefined) order.paidAmount = paidAmount;
+      if (discountAmount !== undefined) order.discountAmount = discountAmount;
+      if (totalAmount !== undefined) order.totalAmount = totalAmount;
+      if (discountReason) order.discountReason = discountReason;
+      if (cashierNote) order.cashierNote = cashierNote;
+      if (approved !== undefined) order.approved = approved;
+
       if (items && Array.isArray(items)) {
-        await OrderItem.destroy({ where: { orderId: id } });
+        await OrderItem.destroy({ where: { orderId: id }, transaction });
         for (const item of items) {
           const mId = item.menuItemId || item.id;
-          if (!mId) throw new Error('menuItemId or id is required for items');
+          if (!mId) throw new Error('menuItemId or id is required');
 
           await OrderItem.create({
             orderId: id,
@@ -705,16 +710,18 @@ router.put('/:id', async (req, res) => {
             unitPrice: parseFloat(String(item.price || item.unitPrice || 0)),
             totalPrice: parseFloat(String((item.price || item.unitPrice || 0) * (item.quantity || 1))),
             notes: item.notes || ''
-          });
+          }, { transaction });
         }
       }
 
-      await order.save();
+      await order.save({ transaction });
+      await transaction.commit();
     } catch (saveError) {
-      console.error('❌ Order Save Error:', saveError);
+      await transaction.rollback();
+      console.error('❌ Order Update Transaction Error:', saveError);
       return res.status(500).json({
         success: false,
-        message: 'Internal server error during order save',
+        message: 'Order update failed',
         error: saveError.message
       });
     }

@@ -42,7 +42,7 @@ export default function PaymentDebugPage() {
     const fetchOrders = async (resId: string) => {
         try {
             setLoading(true);
-            const resp = await fetch(`${API_URL}/orders?restaurantId=${resId}&status=pending,preparing,ready`);
+            const resp = await fetch(`${API_URL}/orders?restaurantId=${resId}&status=pending,preparing,ready&from=debug`);
             const data = await resp.json();
             if (data.success) {
                 const normalized = (data.data || []).map((o: any) => ({

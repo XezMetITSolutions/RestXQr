@@ -208,7 +208,7 @@ export default function KasaPanel() {
       // This drastically reduces load time by ignoring thousands of completed/cancelled orders
       // BUT for daily revenue we need today's completed orders too.
       // So we fetch all today's orders.
-      const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}`);
+      const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}&from=cashier`);
       const data = await response.json();
       if (data.success) {
         const normalizedOrders: Order[] = (data.data || []).map((order: any) => ({
