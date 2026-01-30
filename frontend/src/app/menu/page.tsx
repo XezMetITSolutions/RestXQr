@@ -751,19 +751,23 @@ function MenuPageContent() {
               <h1 className="text-dynamic-lg font-bold text-primary">
                 <TranslatedText>Menü</TranslatedText>
               </h1>
-              {tableNumber > 0 && (
-                <div className="ml-2 flex items-center gap-2">
-                  <div className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
-                    {currentRestaurant?.name || 'Restoran'} Masa {tableNumber}
-                  </div>
-                  {activeUsersCount > 1 && (
-                    <div className="px-2 py-1 rounded-lg text-xs bg-blue-100 text-blue-700 flex items-center gap-1">
-                      <FaUsers className="text-xs" />
-                      <span>{activeUsersCount} kişi</span>
-                    </div>
+              <div className="ml-2 flex items-center gap-2">
+                <div className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
+                  {tableNumber > 0 ? (
+                    <>
+                      {currentRestaurant?.name || 'Restoran'} <TranslatedText>Masa</TranslatedText> {tableNumber}
+                    </>
+                  ) : (
+                    <TranslatedText>Genel Menü</TranslatedText>
                   )}
                 </div>
-              )}
+                {tableNumber > 0 && activeUsersCount > 1 && (
+                  <div className="px-2 py-1 rounded-lg text-xs bg-blue-100 text-blue-700 flex items-center gap-1">
+                    <FaUsers className="text-xs" />
+                    <span>{activeUsersCount} kişi</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <LanguageSelector enabledLanguages={settings?.menuSettings?.language} />
@@ -1002,8 +1006,8 @@ function MenuPageContent() {
                             }}
                             disabled={!orderingAllowed}
                             className={`absolute bottom-1 right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-md active:scale-90 transition-all z-10 ${orderingAllowed
-                                ? 'bg-white text-black'
-                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              ? 'bg-white text-black'
+                              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                               }`}
                             style={orderingAllowed ? { color: designSettings?.primaryColor || 'var(--brand-primary)' } : {}}
                           >
