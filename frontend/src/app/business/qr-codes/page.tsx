@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import JSZip from 'jszip';
+import QRCode from 'qrcode';
 import {
   FaQrcode,
   FaPlus,
@@ -567,7 +568,6 @@ export default function QRCodesPage() {
       const menuUrl = `${window.location.protocol}//${host}/menu`;
 
       // Generate Data URL for QR Code
-      const QRCode = require('qrcode');
       const qrDataUrl = await QRCode.toDataURL(menuUrl, { errorCorrectionLevel: 'H', margin: 1, width: 900 });
 
       // Create dummy QRCodeData object
