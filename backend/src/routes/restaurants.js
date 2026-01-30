@@ -41,15 +41,21 @@ router.get('/', async (req, res) => {
 // GET /api/restaurants/username/:username - Get restaurant by username (subdomain)
 // GET /api/restaurants/username/:username - Get restaurant by username (subdomain)
 router.get('/username/:username', async (req, res) => {
-  try {
-    const { username } = req.params;
-    console.log(`🔍 Fetching restaurant by username: ${username}`);
+  const { username } = req.params;
+  console.log(`🔍 Fetching restaurant by username: ${username}`);
 
-    // 1. Fetch Restaurant Basics
-    const restaurant = await Restaurant.findOne({
-      where: { username },
-      attributes: { exclude: ['password'] }
-    });
+  try {
+    // 1. Fetch Restaurant Basics (Crucial Step)
+    let restaurant;
+    try {
+      restaurant = await Restaurant.findOne({
+        where: { username },
+        attributes: { exclude: ['password'] }
+      });
+    } catch (dbError) {
+      console.error('❌ Database error fetching restaurant:', dbError);
+      throw new Error('Database connection failed while fetching restaurant');
+    }
 
     if (!restaurant) {
       console.warn(`⚠️ Restaurant not found for username: ${username}`);
@@ -59,52 +65,78 @@ router.get('/username/:username', async (req, res) => {
       });
     }
 
-    // 2. Fetch Categories
-    const categories = await MenuCategory.findAll({
-      where: { restaurantId: restaurant.id },
-      order: [['displayOrder', 'ASC']]
-    });
-
-    // 3. Fetch Items
-    const items = await MenuItem.findAll({
-      where: { restaurantId: restaurant.id },
-      order: [['displayOrder', 'ASC']]
-    });
-
-    // 4. Assemble the Tree manually (more robust than Sequelize include)
+    // Initialize response data
     const restaurantData = restaurant.toJSON();
+    restaurantData.categories = [];
+    restaurantData.menuItems = [];
+    let partialData = false;
+    let errorDetails = [];
 
-    // Convert categories to plain objects
-    const categoryList = categories.map(c => c.toJSON());
+    // 2. Fetch Categories (Optional/Recoverable)
+    let categories = [];
+    try {
+      categories = await MenuCategory.findAll({
+        where: { restaurantId: restaurant.id },
+        order: [['displayOrder', 'ASC']]
+      });
+    } catch (catError) {
+      console.error('⚠️ Failed to fetch categories:', catError.message);
+      partialData = true;
+      errorDetails.push('Categories could not be loaded');
+    }
 
-    // Map items to categories
-    categoryList.forEach(category => {
-      category.items = items.filter(item => item.categoryId === category.id);
-    });
+    // 3. Fetch Items (Optional/Recoverable)
+    let items = [];
+    if (!partialData) {
+      try {
+        items = await MenuItem.findAll({
+          where: { restaurantId: restaurant.id },
+          order: [['displayOrder', 'ASC']]
+        });
+      } catch (itemError) {
+        console.error('⚠️ Failed to fetch menu items:', itemError.message);
+        partialData = true;
+        errorDetails.push('Menu items could not be loaded');
+      }
+    }
 
-    // Add unassigned items to a "catch-all" or just attach all items for redundancy if needed by frontend
-    // The frontend expects: restaurant.categories[].items
-    restaurantData.categories = categoryList;
+    // 4. Assemble the Tree manually if data is available
+    if (!partialData) {
+      try {
+        const categoryList = categories.map(c => c.toJSON());
 
-    // Also attach flat menuItems list if frontend uses it directly (some store logic does)
-    restaurantData.menuItems = items;
+        // Map items to categories
+        categoryList.forEach(category => {
+          category.items = items.filter(item => item.categoryId === category.id);
+        });
 
-    console.log(`✅ Restaurant found: ${restaurant.name} with ${categories.length} categories and ${items.length} items`);
+        restaurantData.categories = categoryList;
+        restaurantData.menuItems = items;
 
+        console.log(`✅ Restaurant found: ${restaurant.name} with ${categories.length} categories and ${items.length} items`);
+      } catch (assemblyError) {
+        console.error('❌ Error assembling menu tree:', assemblyError);
+        partialData = true;
+        errorDetails.push('Menu structure assembly failed');
+      }
+    }
+
+    // Return what we have, even if incomplete
     res.json({
       success: true,
-      data: restaurantData
+      data: restaurantData,
+      warning: partialData ? 'Some data could not be loaded' : undefined,
+      errors: partialData ? errorDetails : undefined
     });
 
-  } catch (error) {
-    console.error('❌ Get restaurant by username error:', error);
+  } catch (criticalError) {
+    console.error('❌ Critical error in getRestaurantByUsername:', criticalError);
 
-    // Return detailed error for debugging (remove in high-security prod, but vital for now)
     res.status(500).json({
       success: false,
       message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' || true ? error.message : undefined, // Force show error
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: process.env.NODE_ENV === 'development' || true ? criticalError.message : undefined,
+      stack: process.env.NODE_ENV === 'development' ? criticalError.stack : undefined
     });
   }
 });
