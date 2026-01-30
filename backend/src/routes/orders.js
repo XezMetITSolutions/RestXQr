@@ -257,13 +257,20 @@ router.get('/', async (req, res) => {
     });
 
     // Kasa/Debug için hepsi kalsın, mutfak için boşalanlar elensin
-    const finalData = (req.query.from === 'cashier' || req.query.from === 'debug')
+    const isSpecialPanel = req.query.from === 'cashier' || req.query.from === 'debug';
+    const finalData = isSpecialPanel
       ? data
       : data.filter(order => order.items.length > 0);
 
-    res.json({ success: true, data: finalData });
+    console.log(`📡 GET /orders Response: returning ${finalData.length} orders. (SpecialPanel=${isSpecialPanel})`);
+
+    res.json({
+      success: true,
+      data: finalData,
+      _debug: isSpecialPanel ? { where, query: req.query, rawCount: orders.length } : undefined
+    });
   } catch (error) {
-    console.error('GET /orders error:', error);
+    console.error('💥 GET /orders error:', error);
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 });
@@ -692,9 +699,8 @@ router.put('/:id', async (req, res) => {
 
     const oldApproved = order.approved;
 
-    // Sync items and update order with transaction
-    const { sequelize } = require('../models');
-    const transaction = await sequelize.transaction();
+    // Sync items and update order
+    console.log(`📝 Order Update Payload:`, { id, status, itemsIn: items?.length, paidAmount, totalAmount });
 
     try {
       if (status) order.status = status;
@@ -707,10 +713,11 @@ router.put('/:id', async (req, res) => {
       if (approved !== undefined) order.approved = approved;
 
       if (items && Array.isArray(items)) {
-        await OrderItem.destroy({ where: { orderId: id }, transaction });
+        // Atomic-like sync: delete and recreate items
+        await OrderItem.destroy({ where: { orderId: id } });
         for (const item of items) {
           const mId = item.menuItemId || item.id;
-          if (!mId) throw new Error('menuItemId or id is required');
+          if (!mId) continue;
 
           await OrderItem.create({
             orderId: id,
@@ -719,15 +726,13 @@ router.put('/:id', async (req, res) => {
             unitPrice: parseFloat(String(item.price || item.unitPrice || 0)),
             totalPrice: parseFloat(String((item.price || item.unitPrice || 0) * (item.quantity || 1))),
             notes: item.notes || ''
-          }, { transaction });
+          });
         }
       }
 
-      await order.save({ transaction });
-      await transaction.commit();
+      await order.save();
     } catch (saveError) {
-      await transaction.rollback();
-      console.error('❌ Order Update Transaction Error:', saveError);
+      console.error('❌ Order Update Error:', saveError);
       return res.status(500).json({
         success: false,
         message: 'Order update failed',

@@ -45,12 +45,21 @@ export default function PaymentDebugPage() {
             const resp = await fetch(`${API_URL}/orders?restaurantId=${resId}&status=pending,preparing,ready&from=debug`);
             const data = await resp.json();
             if (data.success) {
+                if (data._debug) {
+                    const d = data._debug;
+                    addLog(`[BACKEND DB] Bulunan: ${d.rawCount}, Filtre: ${JSON.stringify(d.where)}`, 'debug');
+                }
+
                 const normalized = (data.data || []).map((o: any) => ({
                     ...o,
                     totalAmount: Number(o.totalAmount) || 0,
                     paidAmount: Number(o.paidAmount) || 0,
                     discountAmount: Number(o.discountAmount) || 0
                 })).filter((o: any) => o.status !== 'completed' && o.status !== 'cancelled');
+
+                if (data.data?.length > 0 && normalized.length === 0) {
+                    addLog(`UYARI: ${data.data.length} sipariş geldi ama hepsi 'completed/cancelled' olduğu için gizlendi.`, 'warning');
+                }
 
                 setOrders(normalized);
                 addLog(`Siparişler yüklendi: ${normalized.length} adet`, 'success');
