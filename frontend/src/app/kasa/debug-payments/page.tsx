@@ -91,17 +91,20 @@ export default function PaymentDebugPage() {
             note += ' Tam Ödeme';
         }
 
-        const isPartial = type !== 'full' && (remaining - amount > 0.05);
+        const isPartial = type !== 'full' && (parseFloat((remaining - amount).toFixed(2)) > 0.05);
 
         // Zorunlu sayısal dönüşüm ve temizlik
         const currentPaid = parseFloat(String(order.paidAmount || 0));
-        let newPaidAmount = parseFloat((currentPaid + amount).toFixed(2));
+        const currentDiscount = parseFloat(String(order.discountAmount || 0));
+
+        let newPaidAmount = parseFloat((currentPaid + (type === 'product' ? 0 : amount)).toFixed(2));
         let newTotalAmount = order.totalAmount;
 
         if (type === 'product') {
-            // Ürün ödemesinde toplam tutar düşer, ödenen miktar sıfırlanır (logic consistency)
-            newTotalAmount = items.reduce((s, i) => s + (parseFloat(String(i.price || 0)) * parseFloat(String(i.quantity || 1))), 0);
-            newPaidAmount = 0;
+            // Ürün ödemesinde ürün listeden kalkar, toplam tutar o ürün kadar düşer.
+            // Önceki ödenen miktar (paidAmount) korunur.
+            newTotalAmount = parseFloat((order.totalAmount - amount).toFixed(2));
+            newPaidAmount = currentPaid;
         }
 
         const payload: any = {
@@ -112,10 +115,15 @@ export default function PaymentDebugPage() {
         };
 
         if (type === 'product') {
-            payload.items = items;
+            // Backend'e gönderilecek ürün listesinde her ürün için 'menuItemId' olduğundan emin ol
+            payload.items = items.map(it => ({
+                ...it,
+                menuItemId: it.menuItemId || it.id // Backend 'menuItemId' bekliyor
+            }));
         }
 
-        addLog(`Hesaplama: ${currentPaid} + ${amount} = ${newPaidAmount}`, 'debug');
+        addLog(`İşlem: Mevcut(${currentPaid}) + Ödenen(${type === 'product' ? 0 : amount}) = Yeni(${newPaidAmount})`, 'debug');
+        if (type === 'product') addLog(`Ürün Çıkarıldı: ${amount}₺. Yeni Toplam: ${newTotalAmount}`, 'debug');
 
         try {
             addLog(`API isteği gönderiliyor: ${JSON.stringify(payload)}`, 'network');
@@ -127,21 +135,15 @@ export default function PaymentDebugPage() {
             const data = await resp.json();
 
             if (data.success) {
-                addLog(`Ödeme BAŞARILI. API Response: ${JSON.stringify(data.data)}`, 'success');
-                addLog(`Frontend Durumu: isPartial=${isPartial}, remaining=${(remaining - amount).toFixed(2)}`, 'debug');
-
-                if (isPartial) {
-                    addLog("HÜKÜM: Modal açık kalmalı (Frontend logic check)", "warning");
-                } else {
-                    addLog("HÜKÜM: Modal kapanmalı (Frontend logic check)", "warning");
-                }
+                addLog(`Ödeme BAŞARILI.`, 'success');
+                addLog(`Frontend Durumu: isPartial=${isPartial}, remaining=${parseFloat((newTotalAmount - newPaidAmount - currentDiscount).toFixed(2))}`, 'debug');
 
                 fetchOrders(restaurantId);
             } else {
-                addLog(`Ödeme BAŞARISIZ: ${data.message}`, 'error');
+                addLog(`HATA: ${data.message || JSON.stringify(data.error)}`, 'error');
             }
         } catch (err) {
-            addLog(`Ödeme Hatası: ${err}`, 'error');
+            addLog(`Sistem Hatası: ${err}`, 'error');
         }
     };
 

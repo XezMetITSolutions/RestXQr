@@ -691,22 +691,33 @@ router.put('/:id', async (req, res) => {
     if (approved !== undefined) order.approved = approved;
 
     // Sync items if provided
-    if (items && Array.isArray(items)) {
-      const { OrderItem } = require('../models');
-      await OrderItem.destroy({ where: { orderId: id } });
-      for (const item of items) {
-        await OrderItem.create({
-          orderId: id,
-          menuItemId: item.menuItemId || item.id,
-          quantity: item.quantity,
-          unitPrice: item.price || item.unitPrice,
-          totalPrice: (item.price || item.unitPrice) * item.quantity,
-          notes: item.notes || ''
-        });
-      }
-    }
+    try {
+      if (items && Array.isArray(items)) {
+        await OrderItem.destroy({ where: { orderId: id } });
+        for (const item of items) {
+          const mId = item.menuItemId || item.id;
+          if (!mId) throw new Error('menuItemId or id is required for items');
 
-    await order.save();
+          await OrderItem.create({
+            orderId: id,
+            menuItemId: mId,
+            quantity: Number(item.quantity || 1),
+            unitPrice: parseFloat(String(item.price || item.unitPrice || 0)),
+            totalPrice: parseFloat(String((item.price || item.unitPrice || 0) * (item.quantity || 1))),
+            notes: item.notes || ''
+          });
+        }
+      }
+
+      await order.save();
+    } catch (saveError) {
+      console.error('❌ Order Save Error:', saveError);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error during order save',
+        error: saveError.message
+      });
+    }
 
     // Sipariş onaylandığında (false -> true) bildirim gönder VE YAZDIR
     const { publish } = require('../lib/realtime');
