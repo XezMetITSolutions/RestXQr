@@ -403,10 +403,12 @@ export default function QRCodesPage() {
       const ctx = canvas.getContext('2d');
       if (!ctx) return null;
 
-      // Canvas boyutu (Kare - Sadece QR)
+
+      // Canvas boyutu (Dikey Kart Formatı)
       const size = 1000;
+      const bottomPadding = 150; // Metin için alt boşluk
       canvas.width = size;
-      canvas.height = size;
+      canvas.height = size + bottomPadding;
 
       // Arka plan (Beyaz)
       ctx.fillStyle = '#ffffff';
@@ -437,7 +439,7 @@ export default function QRCodesPage() {
       // QR Kod Alanı (Tüm canvası kaplasın ama biraz margin kalsın)
       const qrSize = 900;
       const qrX = (canvas.width - qrSize) / 2;
-      const qrY = (canvas.height - qrSize) / 2;
+      const qrY = 50; // Üstten biraz boşluk
       // QR Kodu Çiz
       ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
@@ -470,6 +472,14 @@ export default function QRCodesPage() {
 
         ctx.drawImage(logoImg, centerX - dw / 2, centerY - dh / 2, dw, dh);
       }
+
+      // Masa Numarası Yazısı
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 80px Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const text = `Masa ${qrCode.tableNumber}`;
+      ctx.fillText(text, canvas.width / 2, size + (bottomPadding / 2) - 10);
 
       return new Promise((resolve) => {
         canvas.toBlob((blob) => resolve(blob));
