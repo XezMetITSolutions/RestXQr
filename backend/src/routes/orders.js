@@ -256,18 +256,15 @@ router.get('/', async (req, res) => {
       };
     });
 
-    // Kasa/Debug için hepsi kalsın, mutfak için boşalanlar elensin
-    const isSpecialPanel = req.query.from === 'cashier' || req.query.from === 'debug';
-    const finalData = isSpecialPanel
-      ? data
-      : data.filter(order => order.items.length > 0);
+    // Kasa/Debug için hepsi kalsın, mutfak için de (artık filtrelemeyelim, frontend halletsin)
+    const finalData = data;
 
-    console.log(`📡 GET /orders Response: returning ${finalData.length} orders. (SpecialPanel=${isSpecialPanel})`);
+    console.log(`📡 GET /orders Response: returning ${finalData.length} orders.`);
 
     res.json({
       success: true,
       data: finalData,
-      _debug: isSpecialPanel ? { where, query: req.query, rawCount: orders.length } : undefined
+      _debug: { where, query: req.query, rawCount: orders.length }
     });
   } catch (error) {
     console.error('💥 GET /orders error:', error);
