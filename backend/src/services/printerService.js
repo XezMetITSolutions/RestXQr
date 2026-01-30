@@ -1,3 +1,4 @@
+
 const { ThermalPrinter, PrinterTypes, CharacterSet } = require('node-thermal-printer');
 const iconv = require('iconv-lite');
 const fs = require('fs');
@@ -410,9 +411,13 @@ class PrinterService {
                 printer.bold(false);
 
                 if (item.notes) {
+                    printer.bold(true);
+                    printer.underline(true);
                     const noteLabel = language === 'zh' ? '备注: ' : 'NOT: ';
                     const notes = this.encodeText(`   ${noteLabel}${item.notes}`, codePage);
                     printer.println(notes);
+                    printer.underline(false);
+                    printer.bold(false);
                 }
 
                 printer.newLine();
