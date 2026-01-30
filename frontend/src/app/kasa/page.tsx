@@ -390,7 +390,7 @@ export default function KasaPanel() {
         const remaining = (Number(updatedOrder?.totalAmount || 0) - Number(updatedOrder?.paidAmount || 0) - Number(updatedOrder?.discountAmount || 0));
 
         if (isPartial && remaining > 0.05) {
-          alert('✅ Kısmi ödeme alındı. Kalan tutar güncellendi.');
+          // Success notification silenced
           setSelectedItemIndexes([]);
           setManualAmount('');
           setCashAmount('');
@@ -475,7 +475,7 @@ export default function KasaPanel() {
         fetchOrders();
 
         if (isPartial && remaining > 0.05) {
-          alert('✅ Kısmi ödeme alındı. Kalan tutar güncellendi.');
+          // Success notification silenced
           setSelectedItemIndexes([]);
           setManualAmount('');
           setCashAmount('');
@@ -689,7 +689,10 @@ export default function KasaPanel() {
 
     if (localTasks > 0) {
       if (bridgeSuccessCount === localTasks) {
-        if (!showDebug) alert('✅ Yazıcıya yerel köprü üzerinden başarıyla gönderildi!');
+        // Silently succeed as per user request
+        if (showDebug) {
+          console.log('✅ Yazıcıya yerel köprü üzerinden başarıyla gönderildi!');
+        }
       } else {
         if (!showDebug) alert('❌ Bazı yazıcılara gönderilemedi. Yerel köprü açık mı?');
       }
