@@ -22,6 +22,28 @@ export async function GET() {
     }
 }
 
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const response = await fetch(`${API_BASE_URL}/printers`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        const data = await response.json();
+        return NextResponse.json(data);
+    } catch (error) {
+        console.error('Proxy error:', error);
+        return NextResponse.json(
+            { success: false, error: 'Failed to create printer' },
+            { status: 500 }
+        );
+    }
+}
+
 export async function PUT(request: Request) {
     try {
         const body = await request.json();

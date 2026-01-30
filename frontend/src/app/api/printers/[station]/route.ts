@@ -84,3 +84,24 @@ export async function PUT(
         );
     }
 }
+
+export async function DELETE(
+    request: Request,
+    { params }: { params: { station: string } }
+) {
+    try {
+        const { station } = params;
+        const response = await fetch(`${API_BASE_URL}/printers/${station}`, {
+            method: 'DELETE',
+        });
+
+        const data = await response.json();
+        return NextResponse.json(data);
+    } catch (error) {
+        console.error('Proxy error:', error);
+        return NextResponse.json(
+            { success: false, error: 'Failed to delete printer' },
+            { status: 500 }
+        );
+    }
+}
