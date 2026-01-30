@@ -166,6 +166,9 @@ function SettingsPageContent() {
   // Simple integration connect modal state
   const [integrationModal, setIntegrationModal] = useState<null | { name: string }>(null);
 
+  // Yazıcı önizleme tipi
+  const [previewType, setPreviewType] = useState<'kitchen' | 'customer'>('kitchen');
+
   // Service counts state for one-time services
   const [serviceCounts, setServiceCounts] = useState({
     personel: 0,
@@ -451,7 +454,7 @@ function SettingsPageContent() {
 
   const BRIDGE_URL = 'http://localhost:3005';
 
-  const handleTestPrint = async () => {
+  const handleTestPrint = async (type: 'kitchen' | 'customer' = previewType) => {
     const ip = settings?.printerSettings?.testIpAddress;
     if (!ip) {
       alert(getStatic('Lütfen geçerli bir IP adresi girin.'));
@@ -459,21 +462,33 @@ function SettingsPageContent() {
     }
 
     try {
-      // Use Method 5 (Image Print) via Bridge
       const dummyData = {
-        orderNumber: "TEST-001",
-        tableNumber: "TEST",
+        orderNumber: "8521-4569",
+        tableNumber: "1",
+        checkNumber: "50",
+        staffName: "Sukru",
+        logo: settings.branding?.logo || authenticatedRestaurant?.logo,
+        type: type === 'kitchen' ? 'KITCHEN' : 'BILL',
+        header: type === 'kitchen' ? (settings.printerSettings?.kitchenHeader || settings.basicInfo?.name) : (settings.printerSettings?.customerHeader || settings.basicInfo?.name),
+        footer: type === 'kitchen' ? settings.printerSettings?.kitchenFooter : settings.printerSettings?.customerFooter,
+        showPrices: type === 'customer' ? settings.printerSettings?.showPricesOnCustomer : false,
+        subtotal: 65.00,
         items: [
-          { name: "RestXQR Test", quantity: 1, notes: "Türkçe Karakter: ĞÜŞİÖÇ" },
-          { name: "Image Print Info", quantity: 1, notes: "Mode: Canvas to Image" },
-          { name: "Chinese Test", quantity: 1, translations: { zh: { name: "你好世界 (Hello World)" } } }
-        ]
+          { name: "Sprite", quantity: 1, price: 65.00 }
+        ],
+        taxDetails: {
+          name: "Icecek",
+          rate: 10,
+          amount: 5.91,
+          net: 59.09
+        },
+        total: 65.00
       };
 
-      const success = await printReceiptViaBridge(BRIDGE_URL, ip, dummyData);
+      const success = await printReceiptViaBridge(BRIDGE_URL, ip, dummyData as any);
 
       if (success) {
-        alert(getStatic('✅ Test yazdırma başarılı! (Görüntü Modu)'));
+        alert(`${getStatic('✅ Test yazdırma başarılı!')} (${type === 'kitchen' ? getStatic('Mutfak') : getStatic('Kasa')})`);
       } else {
         throw new Error('Local bridge request failed');
       }
@@ -1950,48 +1965,149 @@ function SettingsPageContent() {
                           <TranslatedText>Yazıcı & Fiş Ayarları</TranslatedText>
                         </h3>
                         <p className="text-sm text-gray-500">
-                          <TranslatedText>Müşteri fişlerini ve mutfak dökümlerini bu bölümden özelleştirin.</TranslatedText>
+                          <TranslatedText>Mutfak dökümlerini ve müşteri fişlerini bu bölümden özelleştirin.</TranslatedText>
                         </p>
                       </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleSave('printer')}
+                          disabled={isLoading}
+                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
+                        >
+                          {isLoading ? <FaSpinner className="animate-spin" /> : <FaSave />}
+                          <TranslatedText>Kaydet</TranslatedText>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Tab Selection for Preview & Settings */}
+                    <div className="flex border-b mb-6">
                       <button
-                        onClick={() => handleSave('printer')}
-                        disabled={isLoading}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
+                        onClick={() => setPreviewType('kitchen')}
+                        className={`px-6 py-3 font-medium text-sm transition-colors relative ${previewType === 'kitchen' ? 'text-purple-600' : 'text-gray-500 hover:text-gray-700'}`}
                       >
-                        {isLoading ? <FaSpinner className="animate-spin" /> : <FaSave />}
-                        <TranslatedText>Kaydet</TranslatedText>
+                        <div className="flex items-center gap-2">
+                          <FaUtensils size={14} />
+                          <TranslatedText>Mutfak Fişi (Sipariş)</TranslatedText>
+                        </div>
+                        {previewType === 'kitchen' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-600"></div>}
+                      </button>
+                      <button
+                        onClick={() => setPreviewType('customer')}
+                        className={`px-6 py-3 font-medium text-sm transition-colors relative ${previewType === 'customer' ? 'text-purple-600' : 'text-gray-500 hover:text-gray-700'}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <FaCreditCard size={14} />
+                          <TranslatedText>Kasa Fişi (Müşteri)</TranslatedText>
+                        </div>
+                        {previewType === 'customer' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-600"></div>}
                       </button>
                     </div>
 
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                       {/* Sol Kolon - Ayarlar */}
                       <div className="space-y-8">
-                        {/* Fiş İçeriği */}
-                        <div className="space-y-4">
-                          <h4 className="font-bold text-gray-700 uppercase text-xs tracking-wider"><TranslatedText>Fiş İçeriği</TranslatedText></h4>
+                        {previewType === 'kitchen' ? (
+                          <div className="space-y-6 animate-fadeIn">
+                            <h4 className="font-bold text-gray-700 uppercase text-xs tracking-wider flex items-center gap-2">
+                              <FaUtensils className="text-purple-500" />
+                              <TranslatedText>Mutfak Fişi Yapılandırması</TranslatedText>
+                            </h4>
 
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Fiş Üst Bilgi (Header)</TranslatedText></label>
-                              <textarea
-                                value={settings.printerSettings?.receiptHeader || ''}
-                                onChange={(e) => updatePrinterSettings({ receiptHeader: e.target.value })}
-                                className="w-full px-3 py-2 border rounded-lg text-sm"
-                                placeholder={getStatic('Mağaza Adı, Vergi No vb.')}
-                                rows={2}
-                              />
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Fiş Üst Bilgi (Mutfak İçin Ekstra)</TranslatedText></label>
+                                <textarea
+                                  value={settings.printerSettings?.kitchenHeader || ''}
+                                  onChange={(e) => updatePrinterSettings({ kitchenHeader: e.target.value })}
+                                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                                  placeholder={getStatic('Örn: ACİL SİPARİŞ, MUTFAK KOPYASI')}
+                                  rows={2}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Fiş Alt Bilgi (Mutfak İçin Ekstra)</TranslatedText></label>
+                                <textarea
+                                  value={settings.printerSettings?.kitchenFooter || ''}
+                                  onChange={(e) => updatePrinterSettings({ kitchenFooter: e.target.value })}
+                                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                                  placeholder={getStatic('Örn: Afiyet olsun, kontrollü teslim ediniz.')}
+                                  rows={2}
+                                />
+                              </div>
                             </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Fiş Alt Bilgi (Footer)</TranslatedText></label>
-                              <textarea
-                                value={settings.printerSettings?.receiptFooter || ''}
-                                onChange={(e) => updatePrinterSettings({ receiptFooter: e.target.value })}
-                                className="w-full px-3 py-2 border rounded-lg text-sm"
-                                placeholder={getStatic('Teşekkür ederiz, afiyet olsun vb.')}
-                                rows={2}
-                              />
+
+                            <div className="p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                              <p className="text-xs text-gray-600 italic">
+                                * <TranslatedText>Mutfak fişinde ürün fiyatları ve toplam tutar varsayılan olarak gösterilmez.</TranslatedText>
+                              </p>
                             </div>
                           </div>
+                        ) : (
+                          <div className="space-y-6 animate-fadeIn">
+                            <h4 className="font-bold text-gray-700 uppercase text-xs tracking-wider flex items-center gap-2">
+                              <FaCreditCard className="text-purple-500" />
+                              <TranslatedText>Kasa Fişi Yapılandırması</TranslatedText>
+                            </h4>
+
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Müşteri Fişi Üst Bilgi</TranslatedText></label>
+                                <textarea
+                                  value={settings.printerSettings?.customerHeader || ''}
+                                  onChange={(e) => updatePrinterSettings({ customerHeader: e.target.value })}
+                                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                                  placeholder={getStatic('Mağaza Adı, Vergi Bilgileri vb.')}
+                                  rows={2}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Müşteri Fişi Alt Bilgi</TranslatedText></label>
+                                <textarea
+                                  value={settings.printerSettings?.customerFooter || ''}
+                                  onChange={(e) => updatePrinterSettings({ customerFooter: e.target.value })}
+                                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                                  placeholder={getStatic('Teşekkür ederiz, tekrar bekleriz.')}
+                                  rows={2}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={settings.printerSettings?.showPricesOnCustomer !== false}
+                                  onChange={(e) => updatePrinterSettings({ showPricesOnCustomer: e.target.checked })}
+                                  className="w-4 h-4 text-purple-600"
+                                />
+                                <span className="text-sm font-medium"><TranslatedText>Fiyatları Göster</TranslatedText></span>
+                              </label>
+                              <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={settings.printerSettings?.showTotalOnCustomer !== false}
+                                  onChange={(e) => updatePrinterSettings({ showTotalOnCustomer: e.target.checked })}
+                                  className="w-4 h-4 text-purple-600"
+                                />
+                                <span className="text-sm font-medium"><TranslatedText>Toplam Tutarı Göster</TranslatedText></span>
+                              </label>
+                              <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={settings.printerSettings?.showTaxOnCustomer !== false}
+                                  onChange={(e) => updatePrinterSettings({ showTaxOnCustomer: e.target.checked })}
+                                  className="w-4 h-4 text-purple-600"
+                                />
+                                <span className="text-sm font-medium"><TranslatedText>KDV Detayı Göster</TranslatedText></span>
+                              </label>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Ortak Ayarlar */}
+                        <div className="space-y-4 pt-4 border-t">
+                          <h4 className="font-bold text-gray-500 uppercase text-[10px] tracking-widest"><TranslatedText>Genel Yazdırma Ayarları</TranslatedText></h4>
 
                           <div className="grid grid-cols-2 gap-4">
                             <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
@@ -2030,23 +2146,9 @@ function SettingsPageContent() {
                               />
                               <span className="text-sm font-medium"><TranslatedText>Sipariş No Göster</TranslatedText></span>
                             </label>
-                            <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                              <input
-                                type="checkbox"
-                                checked={settings.printerSettings?.showNotes !== false}
-                                onChange={(e) => updatePrinterSettings({ showNotes: e.target.checked })}
-                                className="w-4 h-4 text-purple-600"
-                              />
-                              <span className="text-sm font-medium"><TranslatedText>Notlar Göster</TranslatedText></span>
-                            </label>
                           </div>
-                        </div>
 
-                        {/* Teknik Ayarlar */}
-                        <div className="space-y-4 pt-4 border-t">
-                          <h4 className="font-bold text-gray-700 uppercase text-xs tracking-wider"><TranslatedText>Teknik Yapılandırma</TranslatedText></h4>
-
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-2 gap-4 pt-2">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Kağıt Genişliği</TranslatedText></label>
                               <select
@@ -2059,141 +2161,146 @@ function SettingsPageContent() {
                               </select>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Kopya Sayısı</TranslatedText></label>
-                              <input
-                                type="number"
-                                min="1"
-                                max="5"
-                                value={settings.printerSettings?.copies || 1}
-                                onChange={(e) => updatePrinterSettings({ copies: parseInt(e.target.value) })}
-                                className="w-full px-3 py-2 border rounded-lg text-sm"
-                              />
-                            </div>
-                          </div>
-
-                          <label className="flex items-center gap-3 p-3 bg-purple-50 border border-purple-100 rounded-lg cursor-not-allowed opacity-75">
-                            <input
-                              type="checkbox"
-                              checked={settings.printerSettings?.autoPrintOrders}
-                              onChange={(e) => updatePrinterSettings({ autoPrintOrders: e.target.checked })}
-                              className="w-4 h-4 text-purple-600"
-                            />
-                            <div>
-                              <span className="text-sm font-bold text-purple-800"><TranslatedText>Sipariş Geldiğinde Otomatik Yazdır</TranslatedText></span>
-                              <p className="text-xs text-purple-600"><TranslatedText>Bu özellik Cloud Connector gerektirir.</TranslatedText></p>
-                            </div>
-                          </label>
-
-                          <div className="pt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2"><TranslatedText>Test Çıktısı Adresi (Printer IP)</TranslatedText></label>
-                            <div className="flex gap-2">
+                              <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Test Yazıcı IP</TranslatedText></label>
                               <input
                                 type="text"
                                 value={settings.printerSettings?.testIpAddress || ''}
                                 onChange={(e) => updatePrinterSettings({ testIpAddress: e.target.value })}
-                                className="flex-1 px-3 py-2 border rounded-lg text-sm font-mono"
-                                placeholder="Örn: 192.168.1.100"
+                                className="w-full px-3 py-2 border rounded-lg text-sm font-mono"
+                                placeholder="192.168.1.100"
                               />
-                              <button
-                                onClick={(e) => { e.preventDefault(); handleTestPrint(); }}
-                                className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-bold hover:bg-black transition-colors"
-                              >
-                                <TranslatedText>Test Çıktısı Al</TranslatedText>
-                              </button>
                             </div>
                           </div>
+
+                          <button
+                            onClick={(e) => { e.preventDefault(); handleTestPrint(previewType); }}
+                            className="w-full py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
+                          >
+                            <FaPrint />
+                            <TranslatedText>Test Çıktısı Al</TranslatedText>
+                            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded uppercase font-bold tracking-wider">
+                              {previewType === 'kitchen' ? getStatic('Mutfak') : getStatic('Kasa')}
+                            </span>
+                          </button>
                         </div>
                       </div>
 
-                      {/* Sağ Kolon - Mutfak Fişi Önizleme */}
+                      {/* Sağ Kolon - Fiş Önizleme */}
                       <div className="bg-gray-100 p-8 rounded-2xl flex flex-col items-center">
-                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6"><TranslatedText>Mutfak Fişi Önizleme</TranslatedText></div>
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                          {previewType === 'kitchen' ? getStatic('Mutfak Fişi Önizleme') : getStatic('Kasa Fişi Önizleme')}
+                        </div>
 
                         {/* Termal Kağıt Görünümü */}
-                        <div className={`bg-white shadow-2xl p-6 min-h-[400px] transition-all duration-300 ${settings.printerSettings?.paperWidth === '58mm' ? 'w-[250px]' : 'w-[320px]'} relative overflow-hidden`}>
+                        <div className={`bg-white shadow-2xl p-6 min-h-[500px] transition-all duration-300 ${settings.printerSettings?.paperWidth === '58mm' ? 'w-[250px]' : 'w-[320px]'} relative overflow-hidden flex flex-col font-mono`}>
                           {/* Kağıt Kesik Çizgisi */}
                           <div className="absolute top-0 left-0 w-full h-1 bg-gray-200" style={{ backgroundImage: 'linear-gradient(to right, white 50%, #f3f4f6 50%)', backgroundSize: '10px 100%' }}></div>
 
-                          <div className="space-y-4 text-gray-800 font-mono">
-                            {/* Logo - showLogo true ise göster */}
+                          <div className="space-y-4 text-black flex-1">
+                            {/* Logo */}
                             {settings.printerSettings?.showLogo && (settings.branding?.logo || authenticatedRestaurant?.logo) && (
-                              <div className="flex justify-center mb-3">
-                                <img 
-                                  src={settings.branding?.logo || authenticatedRestaurant?.logo || ''} 
-                                  alt="Logo" 
-                                  className="max-h-16 max-w-full object-contain"
-                                  onError={(e) => {
-                                    // Logo yüklenemezse gizle
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                  }}
-                                />
+                              <div className="flex justify-center mb-4">
+                                <div className="w-24 h-24 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-gray-200">
+                                  <img
+                                    src={settings.branding?.logo || authenticatedRestaurant?.logo || ''}
+                                    alt="Logo"
+                                    className="max-h-full max-w-full object-contain"
+                                  />
+                                </div>
                               </div>
                             )}
 
-                            {/* Fiş Üst Bilgi (Header) */}
-                            {settings.printerSettings?.receiptHeader && (
-                              <div className="text-center text-xs text-gray-600 border-b border-dashed border-gray-300 pb-2 mb-2">
-                                {settings.printerSettings.receiptHeader}
-                              </div>
-                            )}
-
-                            {/* Masa/Sipariş Bilgisi */}
-                            <div className="text-center border-b border-dashed border-gray-400 pb-3">
-                              {settings.printerSettings?.showTableNumber !== false && (
-                                <div className="text-lg font-bold">MASA 15</div>
-                              )}
-                              {settings.printerSettings?.showOrderNumber !== false && (
-                                <div className="text-xs text-gray-500 mt-1">Sipariş: #12345678</div>
-                              )}
-                              {settings.printerSettings?.showDateTime !== false && (
-                                <div className="text-xs text-gray-600">{new Date().toLocaleString('tr-TR')}</div>
-                              )}
+                            {/* Restaurant Name */}
+                            <div className="text-center font-bold text-sm tracking-widest uppercase mb-2">
+                              {settings.basicInfo?.name || 'KROREN KADIKOY'}
                             </div>
 
-                            {/* Ürünler - Notlar ile birlikte */}
-                            <div className="space-y-3 text-sm">
-                              <div className="border-b border-gray-300 pb-2">
-                                <div className="font-bold text-base">2x Karışık Ramen</div>
-                                <div className="text-gray-600 mt-1">2x 什锦拉面</div>
-                                {(settings.printerSettings?.showNotes !== false) && (
-                                  <div className="text-xs text-red-600 mt-1 italic">⚠ Acılı, Soğansız</div>
-                                )}
-                              </div>
+                            {/* Separator Line */}
+                            <div className="border-b border-dashed border-gray-400"></div>
 
-                              <div className="border-b border-gray-300 pb-2">
-                                <div className="font-bold text-base">1x Dana Etli Ramen</div>
-                                <div className="text-gray-600 mt-1">1x 牛肉拉面</div>
-                                {(settings.printerSettings?.showNotes !== false) && (
-                                  <div className="text-xs text-red-600 mt-1 italic">⚠ Çok Acılı</div>
-                                )}
-                              </div>
+                            {previewType === 'customer' ? (
+                              <>
+                                {/* Check & Table Info */}
+                                <div className="space-y-1 py-2">
+                                  <div className="text-xl font-bold">Cek : 50</div>
+                                  <div className="text-xl font-bold">Masa : MASA - 1</div>
+                                </div>
 
-                              <div className="border-b border-gray-300 pb-2">
-                                <div className="font-bold text-base">3x Mantı</div>
-                                <div className="text-gray-600 mt-1">3x 饺子</div>
-                                {(settings.printerSettings?.showNotes !== false) && (
-                                  <div className="text-xs text-red-600 mt-1 italic">⚠ Acısız</div>
-                                )}
-                              </div>
+                                {/* Info Grid */}
+                                <div className="text-[10px] space-y-1 py-2">
+                                  <div className="flex justify-between">
+                                    <span>Tarih</span>
+                                    <span>{new Date().toLocaleDateString('tr-TR')} {new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Kullanici</span>
+                                    <span>Sukru</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Gelir Merkezi</span>
+                                    <span>Restoran</span>
+                                  </div>
+                                </div>
 
-                              <div className="border-b border-gray-300 pb-2">
-                                <div className="font-bold text-base">1x Izgara Tavuk</div>
-                                <div className="text-gray-600 mt-1">1x 烤鸡</div>
-                                {(settings.printerSettings?.showNotes !== false) && (
-                                  <div className="text-xs text-gray-500 mt-1 italic">Not: Az pişmiş</div>
-                                )}
-                              </div>
-                            </div>
+                                <div className="border-b border-dashed border-gray-400"></div>
 
-                            {/* Fiş Alt Bilgi (Footer) */}
-                            {settings.printerSettings?.receiptFooter && (
-                              <div className="text-center text-xs text-gray-600 border-t border-dashed border-gray-300 pt-3 mt-4">
-                                {settings.printerSettings.receiptFooter}
+                                {/* Items */}
+                                <div className="py-2 text-xs space-y-2">
+                                  <div className="flex justify-between">
+                                    <span>1 x Sprite</span>
+                                    <span>65.00 TL</span>
+                                  </div>
+                                </div>
+
+                                {/* Summary */}
+                                <div className="mt-4">
+                                  <div className="flex justify-between font-bold text-xs mb-2">
+                                    <span>ARA TOPLAM</span>
+                                    <span>65.00 TL</span>
+                                  </div>
+
+                                  <div className="border-b border-dashed border-gray-400 my-2"></div>
+
+                                  <div className="text-[10px] space-y-1 py-1">
+                                    <div className="font-bold">Icecek (10%)</div>
+                                    <div className="flex justify-between">
+                                      <span>65.00 TL</span>
+                                      <span className="font-bold">5.91 KDV 59.09 NET</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex justify-between font-bold text-lg pt-2 border-t border-dashed border-gray-400 mt-2">
+                                    <span>TOPLAM</span>
+                                    <span>65.00 TL</span>
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                {/* Kitchen View */}
+                                <div className="text-center font-bold text-2xl py-4 border-b-2 border-dashed border-gray-800">
+                                  MASA 12
+                                </div>
+                                <div className="py-4 space-y-3">
+                                  <div className="font-bold">2x Karışık Ramen</div>
+                                  <div className="italic text-red-600 text-[10px]">⚠ Acılı, Soğansız</div>
+                                  <div className="font-bold">1x Dana Etli Ramen</div>
+                                  <div className="italic text-red-600 text-[10px]">⚠ Çok Acılı</div>
+                                </div>
+                              </>
+                            )}
+
+                            {/* Footer Text */}
+                            {(previewType === 'kitchen' ? settings.printerSettings?.kitchenFooter : settings.printerSettings?.customerFooter) && (
+                              <div className="text-center text-[10px] text-gray-500 border-t border-dashed border-gray-400 pt-4 mt-8">
+                                {previewType === 'kitchen' ? settings.printerSettings?.kitchenFooter : settings.printerSettings?.customerFooter}
                               </div>
                             )}
 
-                            <div className="text-[8px] opacity-50 mt-8">
-                              RestXQr Cloud Printing System
+                            <div className="text-[8px] opacity-30 text-center mt-12 font-sans tracking-widest leading-relaxed">
+                              RESTXQR CLOUD PRINTING SYSTEM<br />
+                              E-ARSIV FATURA DEGILDIR
                             </div>
                           </div>
                           {/* Kağıt Alt Kesik Çizgisi */}

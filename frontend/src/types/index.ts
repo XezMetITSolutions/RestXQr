@@ -371,12 +371,19 @@ export interface BusinessSettings {
   printerSettings?: {
     receiptHeader?: string;
     receiptFooter?: string;
+    kitchenHeader?: string;
+    kitchenFooter?: string;
+    customerHeader?: string;
+    customerFooter?: string;
     showLogo: boolean;
     showOrderNumber: boolean;
     showTableNumber: boolean;
     showCustomerName: boolean;
     showDateTime: boolean;
     showNotes?: boolean;
+    showPricesOnCustomer?: boolean;
+    showTotalOnCustomer?: boolean;
+    showTaxOnCustomer?: boolean;
     autoPrintOrders: boolean;
     paperWidth: '58mm' | '80mm';
     copies: number;

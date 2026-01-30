@@ -6,6 +6,7 @@
 export interface ReceiptItem {
     name: string;
     quantity: number;
+    price?: number;
     notes?: string;
     translations?: {
         [lang: string]: {
@@ -18,114 +19,199 @@ export interface ReceiptItem {
 export interface ReceiptData {
     orderNumber: string;
     tableNumber: string;
+    checkNumber?: string; // e.g., "50"
+    staffName?: string; // e.g., "Sukru"
+    logo?: string; // Data URL or URL
     items: ReceiptItem[];
     type?: string; // e.g., 'KITCHEN' or 'BILL'
+    header?: string;
+    footer?: string;
+    subtotal?: number;
+    total?: number;
+    showPrices?: boolean;
+    taxDetails?: {
+        name: string;
+        rate: number;
+        amount: number;
+        net: number;
+    };
 }
 
-export const renderReceiptToCanvas = (data: ReceiptData): HTMLCanvasElement => {
+export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanvasElement> => {
     const canvas = document.createElement('canvas');
-    const width = 384; // Standard 58mm printer width (80mm would be ~576px)
-    // We'll estimate height and resize later or use a large enough initial height
+    const width = 384;
     canvas.width = width;
-    canvas.height = 2000;
+    canvas.height = 3000;
     const ctx = canvas.getContext('2d');
 
     if (!ctx) throw new Error("Could not get canvas context");
 
-    // Background
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.fillStyle = 'black';
     ctx.textBaseline = 'top';
 
-    let y = 20;
+    let y = 10;
 
-    // Header: Table Number
-    ctx.font = 'bold 44px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`MASA ${data.tableNumber}`, width / 2, y);
-    y += 55;
+    const drawDashedLine = (yCoord: number) => {
+        ctx.beginPath();
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 1;
+        ctx.moveTo(10, yCoord);
+        ctx.lineTo(width - 10, yCoord);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    };
 
-    // Order Info
-    ctx.font = '22px sans-serif';
-    ctx.fillText(`#${data.orderNumber}`, width / 2, y);
-    y += 30;
-    ctx.fillText(new Date().toLocaleString('tr-TR'), width / 2, y);
-    y += 40;
+    // 1. Logo (Large & Centered)
+    if (data.logo) {
+        try {
+            const img = new Image();
+            img.src = data.logo;
+            await new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve; // Continue even if logo fails
+            });
+            if (img.complete && img.width > 0) {
+                const logoSize = 120;
+                ctx.drawImage(img, (width - logoSize) / 2, y, logoSize, logoSize);
+                y += logoSize + 15;
+            }
+        } catch (e) {
+            console.error("Logo drawing error", e);
+        }
+    }
+
+    // 2. Restaurant Name
+    if (data.header) {
+        ctx.font = 'bold 24px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(data.header.toUpperCase(), width / 2, y);
+        y += 35;
+    }
 
     // Separator
-    ctx.beginPath();
-    ctx.lineWidth = 2;
-    ctx.moveTo(10, y);
-    ctx.lineTo(width - 10, y);
-    ctx.stroke();
-    y += 20;
+    drawDashedLine(y);
+    y += 10;
 
-    // Items
+    // 3. Check & Table (Large Bold)
+    if (data.type === 'BILL') {
+        ctx.textAlign = 'left';
+        ctx.font = 'bold 32px sans-serif';
+        ctx.fillText(`Cek : ${data.checkNumber || data.orderNumber.slice(-3)}`, 15, y);
+        y += 45;
+        ctx.fillText(`Masa : MASA - ${data.tableNumber}`, 15, y);
+        y += 60;
+
+        // 4. Info Grid
+        ctx.font = '22px sans-serif';
+        const drawGridRow = (left: string, right: string) => {
+            ctx.textAlign = 'left';
+            ctx.fillText(left, 15, y);
+            ctx.textAlign = 'right';
+            ctx.fillText(right, width - 15, y);
+            y += 28;
+        };
+
+        const now = new Date();
+        drawGridRow("Tarih", `${now.toLocaleDateString('tr-TR')} ${now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`);
+        drawGridRow("Kullanici", data.staffName || "Sukru");
+        drawGridRow("Gelir Merkezi", "Restoran");
+        y += 10;
+
+        drawDashedLine(y);
+        y += 20;
+    } else {
+        // Kitchen basic header
+        ctx.font = 'bold 44px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`MASA ${data.tableNumber}`, width / 2, y);
+        y += 55;
+        ctx.font = '22px sans-serif';
+        ctx.fillText(`#${data.orderNumber}`, width / 2, y);
+        y += 30;
+        ctx.fillText(new Date().toLocaleString('tr-TR'), width / 2, y);
+        y += 40;
+        drawDashedLine(y);
+        y += 20;
+    }
+
+    // 5. Items
     ctx.textAlign = 'left';
     data.items.forEach((item) => {
-        // Quantity and Main Name (Turkish)
-        ctx.font = 'bold 30px sans-serif';
-        const mainLine = `${item.quantity}x ${item.name}`;
+        ctx.font = '28px sans-serif';
+        const qtyText = `${item.quantity} x `;
+        const nameText = item.name;
 
-        // Wrap text if too long
-        const words = mainLine.split(' ');
-        let line = '';
-        const maxWidth = width - 40;
+        ctx.fillText(qtyText + nameText, 15, y);
 
-        for (let n = 0; n < words.length; n++) {
-            const testLine = line + words[n] + ' ';
-            const metrics = ctx.measureText(testLine);
-            if (metrics.width > maxWidth && n > 0) {
-                ctx.fillText(line, 20, y);
-                line = words[n] + ' ';
-                y += 35;
-            } else {
-                line = testLine;
-            }
+        if (data.type === 'BILL' && item.price !== undefined) {
+            ctx.textAlign = 'right';
+            ctx.fillText(`${(item.price * item.quantity).toFixed(2)} TL`, width - 15, y);
+            ctx.textAlign = 'left';
         }
-        ctx.fillText(line, 20, y);
+
         y += 35;
 
-        // Chinese Name (if available in translations or concatenated)
-        const chineseName = item.translations?.zh?.name;
-        if (chineseName) {
-            ctx.font = '26px "Microsoft YaHei", "PingFang SC", sans-serif';
-            ctx.fillText(`   ${chineseName}`, 20, y);
-            y += 35;
-        }
-
-        // Notes
         if (item.notes) {
-            ctx.font = 'italic 24px sans-serif';
-            ctx.fillStyle = '#333';
-            ctx.fillText(`   NOT: ${item.notes}`, 20, y);
-            ctx.fillStyle = 'black';
-            y += 35;
+            ctx.font = 'italic 20px sans-serif';
+            ctx.fillText(`   NOT: ${item.notes}`, 15, y);
+            y += 25;
         }
-
-        y += 15; // Padding between items
-
-        // Horizontal line between items
-        ctx.beginPath();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = '#eee';
-        ctx.moveTo(20, y);
-        ctx.lineTo(width - 20, y);
-        ctx.stroke();
-        ctx.strokeStyle = 'black';
-        y += 15;
+        y += 10;
     });
 
-    // Footer
-    y += 20;
-    ctx.font = 'bold 24px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText("RestXQr Sistemi", width / 2, y);
-    y += 60; // Extra space for cutting
+    // 6. Summary Section
+    if (data.type === 'BILL') {
+        y += 10;
+        // Ara Toplam
+        ctx.font = 'bold 26px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText("ARA TOPLAM", 15, y);
+        ctx.textAlign = 'right';
+        ctx.fillText(`${(data.subtotal || data.total || 0).toFixed(2)} TL`, width - 15, y);
+        y += 45;
 
-    // Create final cropped canvas
+        drawDashedLine(y);
+        y += 15;
+
+        // Tax Breakdown
+        if (data.taxDetails) {
+            ctx.font = '22px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`${data.taxDetails.name} (${data.taxDetails.rate}%)`, 15, y);
+            y += 30;
+
+            ctx.fillText(`${(data.subtotal || data.total || 0).toFixed(2)} TL`, 15, y);
+            ctx.textAlign = 'right';
+            ctx.fillText(`${data.taxDetails.amount.toFixed(2)} KDV ${data.taxDetails.net.toFixed(2)} NET`, width - 15, y);
+            y += 40;
+        }
+
+        // Toplam
+        ctx.font = 'bold 36px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText("TOPLAM", 15, y);
+        ctx.textAlign = 'right';
+        ctx.fillText(`${(data.total || 0).toFixed(2)} TL`, width - 15, y);
+        y += 50;
+
+        drawDashedLine(y);
+    }
+
+    // Footer
+    if (data.footer) {
+        y += 30;
+        ctx.font = '20px sans-serif';
+        ctx.textAlign = 'center';
+        const lines = data.footer.split('\n');
+        lines.forEach(line => {
+            ctx.fillText(line, width / 2, y);
+            y += 26;
+        });
+    }
+
+    y += 40;
     const finalCanvas = document.createElement('canvas');
     finalCanvas.width = width;
     finalCanvas.height = y;
@@ -139,7 +225,7 @@ export const renderReceiptToCanvas = (data: ReceiptData): HTMLCanvasElement => {
 
 export const printReceiptViaBridge = async (bridgeUrl: string, ip: string, data: ReceiptData): Promise<boolean> => {
     try {
-        const canvas = renderReceiptToCanvas(data);
+        const canvas = await renderReceiptToCanvas(data);
         const base64Image = canvas.toDataURL('image/png');
 
         const response = await fetch(`${bridgeUrl}/print-image/${ip}`, {

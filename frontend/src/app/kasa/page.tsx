@@ -452,6 +452,21 @@ export default function KasaPanel() {
       if (data.success) {
         console.log('✅ Ödeme başarıyla tamamlandı');
 
+        // Fiş yazdırma onayı
+        if (confirm('Tahsilat tamamlandı. Fiş yazdırmak istiyor musunuz?')) {
+          try {
+            // Bilgi fişi yazdır (kasa yazıcısından)
+            const printInfoUrl = `${API_URL}/orders/${orderId}/print-info`;
+            await fetch(printInfoUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ cashierName: 'Kasa Paneli' })
+            });
+          } catch (printErr) {
+            console.error('Fiş yazdırma hatası:', printErr);
+          }
+        }
+
         // Baskı sonuçlarını kontrol et
         if (data.data?.printResults) {
           await handlePrintFailover(data, orderId, false);
@@ -654,7 +669,7 @@ export default function KasaPanel() {
               if (showDebug) {
                 setDebugLogs(prev => [...prev, {
                   timestamp: new Date().toISOString(),
-                  message: `❌ Yerel köprü hatası: ${bridgeData.error}`,
+                  message: `❌ Yerel köprü hatası: Yazıcıya ulaşılamadı.`,
                   type: 'error'
                 }]);
               }

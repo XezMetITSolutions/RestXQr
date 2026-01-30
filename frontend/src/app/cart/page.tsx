@@ -142,65 +142,9 @@ function CartPageContent() {
     }
   }, [isClient, settings?.paymentSettings?.allowCardPayment, settings?.paymentSettings?.allowCashPayment, currentRestaurant?.id]);
 
-  // Aktif siparişleri çek (Geçmiş siparişler görünümü için)
+  // Aktif siparişleri çekme özelliği kaldırıldı (User isteği: geçmiş siparişleri gösterme)
   useEffect(() => {
-    if (!isClient) return;
-
-    const fetchActiveOrders = async () => {
-      let rId = currentRestaurant?.id;
-
-      // restaurantId yoksa subdomain'den bul (handlePayment'taki mantık)
-      if (!rId && typeof window !== 'undefined') {
-        try {
-          const sub = window.location.hostname.split('.')[0];
-          const base = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
-          const API = base.endsWith('/api') ? base : `${base.replace(/\/$/, '')}/api`;
-          const res = await fetch(`${API}/restaurants`);
-          const data = await res.json();
-          const found = Array.isArray(data?.data) ? data.data.find((r: any) => r.username === sub) : null;
-          rId = found?.id;
-        } catch (e) {
-          console.error('Restaurant resolve error:', e);
-        }
-      }
-
-      if (rId && tableNumber) {
-        try {
-          const base = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
-          const API = base.endsWith('/api') ? base : `${base.replace(/\/$/, '')}/api`;
-          const response = await fetch(`${API}/orders?restaurantId=${rId}&tableNumber=${tableNumber}&status=pending,preparing,ready`);
-          const data = await response.json();
-
-          if (data.success && data.data && data.data.length > 0) {
-            // En son siparişi pendingOrderId olarak al
-            const lastOrder = data.data[0];
-            setPendingOrderId(lastOrder.id);
-
-            // Tüm aktif siparişlerin ürünlerini birleştir
-            const allItems: any[] = [];
-            data.data.forEach((order: any) => {
-              if (order.items && Array.isArray(order.items)) {
-                order.items.forEach((item: any) => {
-                  allItems.push({
-                    itemId: item.id || item.menuItemId,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    image: item.image,
-                    notes: item.notes
-                  });
-                });
-              }
-            });
-            setPendingOrderItems(allItems);
-          }
-        } catch (error) {
-          console.error('Aktif siparişler çekilemedi:', error);
-        }
-      }
-    };
-
-    fetchActiveOrders();
+    // Boş useEffect
   }, [isClient, tableNumber, currentRestaurant]);
 
   // Session'dan sepet ve aktif kullanıcı sayısını güncelle (polling)
@@ -216,7 +160,7 @@ function CartPageContent() {
 
           // Sepet güncellemelerini kontrol et ve senkronize et - sadece aktif sipariş yoksa
           // Eğer zaten sipariş verilmişse (pendingOrderItems varsa), session'dan sepet yükleme
-          if (sessionRes.data.cart && Array.isArray(sessionRes.data.cart) && pendingOrderItems.length === 0) {
+          if (sessionRes.data.cart && Array.isArray(sessionRes.data.cart)) { // pendingOrderItems.length === 0 removed
             const sessionCart = sessionRes.data.cart;
             const currentCart = items;
 
@@ -394,29 +338,29 @@ function CartPageContent() {
           createdAt: response.data?.created_at
         });
 
-        // Sipariş ID'sini kaydet
+        // Sipariş ID'sini kaydet - Removed
         const orderId = response.data?.id;
-        if (orderId) {
-          setPendingOrderId(orderId);
+        // if (orderId) {
+        //   setPendingOrderId(orderId);
 
-          // Yeni siparişteki ürünleri hazırla
-          const newOrderItems = (items || []).map(item => ({
-            itemId: item.itemId || item.id,
-            name: typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün'),
-            price: item.price,
-            quantity: item.quantity,
-            notes: item.notes || '',
-            image: item.image
-          }));
+        //   // Yeni siparişteki ürünleri hazırla
+        //   const newOrderItems = (items || []).map(item => ({
+        //     itemId: item.itemId || item.id,
+        //     name: typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün'),
+        //     price: item.price,
+        //     quantity: item.quantity,
+        //     notes: item.notes || '',
+        //     image: item.image
+        //   }));
 
-          // Eski siparişlerdeki ürünlerle birleştir (ek sipariş durumunda)
-          const allOrderItems = [...pendingOrderItems, ...newOrderItems];
-          setPendingOrderItems(allOrderItems);
+        //   // Eski siparişlerdeki ürünlerle birleştir (ek sipariş durumunda)
+        //   const allOrderItems = [...pendingOrderItems, ...newOrderItems];
+        //   setPendingOrderItems(allOrderItems);
 
-          // localStorage'a kaydet (sayfa yenilendiğinde kaybolmasın)
-          localStorage.setItem('pending_order_id', orderId);
-          localStorage.setItem('pending_order_items', JSON.stringify(allOrderItems));
-        }
+        //   // localStorage'a kaydet (sayfa yenilendiğinde kaybolmasın)
+        //   localStorage.setItem('pending_order_id', orderId);
+        //   localStorage.setItem('pending_order_items', JSON.stringify(allOrderItems));
+        // }
 
         // Session'a sipariş tamamlandı bildirimi gönder
         if (sessionKey && clientId && orderId) {
@@ -434,7 +378,14 @@ function CartPageContent() {
         setTipAmount(0);
         setDonationAmount(0);
 
-        console.log('✅ Sipariş verildi, sepet temizlendi, geçmiş siparişler "bereits bestellt" bölümünde');
+        // Sepetten sonra kullanıcıyı menüye yönlendir (sepet boş görünmesin)
+        if (typeof window !== 'undefined') {
+          setTimeout(() => {
+            window.location.href = `/menu?token=${token}&table=${tableNumber}`;
+          }, 1500);
+        }
+
+        console.log('✅ Sipariş verildi, sepet temizlendi.');
       } else {
         console.error('❌ SİPARİŞ BAŞARISIZ:', response);
         alert('❌ Sipariş gönderilemedi. Lütfen tekrar deneyin.');
@@ -587,62 +538,7 @@ function CartPageContent() {
             </div>
           )}
 
-          {/* Siparişi Verilmiş Olanlar - Yeni ürün ekle bölümünün altında */}
-          {pendingOrderId && pendingOrderItems.length > 0 && items.length === 0 && (
-            <div className="mb-8">
-              <div className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-xl border-2 border-gray-200 mb-4">
-                <span className="text-2xl">📋</span>
-                <div className="text-left">
-                  <h2 className="text-lg font-bold text-gray-800">
-                    <TranslatedText>Siparişi Verilmiş Olanlar</TranslatedText>
-                  </h2>
-                  <p className="text-sm text-gray-600">
-                    {pendingOrderItems.length} ürün • <TranslatedText>Mutfakta hazırlanıyor</TranslatedText>
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="bg-blue-50 border-blue-200 border-2 rounded-xl p-4 shadow-sm">
-                  <p className="text-sm font-medium text-blue-800">
-                    <TranslatedText>👨‍🍳 Siparişiniz mutfağa iletildi. Afiyet olsun!</TranslatedText>
-                  </p>
-                </div>
-
-                {pendingOrderItems.map((item) => (
-                  <div key={item.itemId || item.id} className="bg-white rounded-xl shadow-md border-2 border-gray-100 p-4 flex opacity-90 transition-all hover:opacity-100">
-                    <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                      <Image
-                        src={item.image || '/placeholder-food.jpg'}
-                        alt={typeof item.name === 'string' ? item.name : 'Product'}
-                        width={64}
-                        height={64}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                    <div className="ml-4 flex-grow">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-bold text-gray-800">
-                          {typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün')}
-                        </h3>
-                        <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full uppercase tracking-wider">
-                          <TranslatedText>Sipariş Verildi</TranslatedText>
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-sm font-medium text-gray-500">
-                          {`${item.quantity} Adet × ₺${item.price}`}
-                        </span>
-                        <span className="font-bold text-lg" style={{ color: primary }}>
-                          {`₺${(Number(item.price) * item.quantity).toFixed(2)}`}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Siparişi Verilmiş Olanlar bölümü kaldırıldı */}
 
           {/* Normal sepet görünümü (sipariş verilmediyse) */}
           {!pendingOrderId && (!items || items.length === 0) ? (
