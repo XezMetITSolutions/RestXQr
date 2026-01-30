@@ -2030,6 +2030,15 @@ function SettingsPageContent() {
                               />
                               <span className="text-sm font-medium"><TranslatedText>Sipariş No Göster</TranslatedText></span>
                             </label>
+                            <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={settings.printerSettings?.showNotes !== false}
+                                onChange={(e) => updatePrinterSettings({ showNotes: e.target.checked })}
+                                className="w-4 h-4 text-purple-600"
+                              />
+                              <span className="text-sm font-medium"><TranslatedText>Notlar Göster</TranslatedText></span>
+                            </label>
                           </div>
                         </div>
 
@@ -2106,38 +2115,82 @@ function SettingsPageContent() {
                           <div className="absolute top-0 left-0 w-full h-1 bg-gray-200" style={{ backgroundImage: 'linear-gradient(to right, white 50%, #f3f4f6 50%)', backgroundSize: '10px 100%' }}></div>
 
                           <div className="space-y-4 text-gray-800 font-mono">
+                            {/* Logo - showLogo true ise göster */}
+                            {settings.printerSettings?.showLogo && (settings.branding?.logo || authenticatedRestaurant?.logo) && (
+                              <div className="flex justify-center mb-3">
+                                <img 
+                                  src={settings.branding?.logo || authenticatedRestaurant?.logo || ''} 
+                                  alt="Logo" 
+                                  className="max-h-16 max-w-full object-contain"
+                                  onError={(e) => {
+                                    // Logo yüklenemezse gizle
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                            )}
+
+                            {/* Fiş Üst Bilgi (Header) */}
+                            {settings.printerSettings?.receiptHeader && (
+                              <div className="text-center text-xs text-gray-600 border-b border-dashed border-gray-300 pb-2 mb-2">
+                                {settings.printerSettings.receiptHeader}
+                              </div>
+                            )}
+
                             {/* Masa/Sipariş Bilgisi */}
                             <div className="text-center border-b border-dashed border-gray-400 pb-3">
-                              <div className="text-lg font-bold">MASA 15</div>
-                              <div className="text-xs text-gray-600">{new Date().toLocaleString('tr-TR')}</div>
+                              {settings.printerSettings?.showTableNumber !== false && (
+                                <div className="text-lg font-bold">MASA 15</div>
+                              )}
+                              {settings.printerSettings?.showOrderNumber !== false && (
+                                <div className="text-xs text-gray-500 mt-1">Sipariş: #12345678</div>
+                              )}
+                              {settings.printerSettings?.showDateTime !== false && (
+                                <div className="text-xs text-gray-600">{new Date().toLocaleString('tr-TR')}</div>
+                              )}
                             </div>
 
-                            {/* Ürünler - Sadece Adet ve İsim */}
+                            {/* Ürünler - Notlar ile birlikte */}
                             <div className="space-y-3 text-sm">
                               <div className="border-b border-gray-300 pb-2">
                                 <div className="font-bold text-base">2x Karışık Ramen</div>
                                 <div className="text-gray-600 mt-1">2x 什锦拉面</div>
-                                <div className="text-xs text-red-600 mt-1 italic">⚠ Acılı, Soğansız</div>
+                                {(settings.printerSettings?.showNotes !== false) && (
+                                  <div className="text-xs text-red-600 mt-1 italic">⚠ Acılı, Soğansız</div>
+                                )}
                               </div>
 
                               <div className="border-b border-gray-300 pb-2">
                                 <div className="font-bold text-base">1x Dana Etli Ramen</div>
                                 <div className="text-gray-600 mt-1">1x 牛肉拉面</div>
-                                <div className="text-xs text-red-600 mt-1 italic">⚠ Çok Acılı</div>
+                                {(settings.printerSettings?.showNotes !== false) && (
+                                  <div className="text-xs text-red-600 mt-1 italic">⚠ Çok Acılı</div>
+                                )}
                               </div>
 
                               <div className="border-b border-gray-300 pb-2">
                                 <div className="font-bold text-base">3x Mantı</div>
                                 <div className="text-gray-600 mt-1">3x 饺子</div>
-                                <div className="text-xs text-red-600 mt-1 italic">⚠ Acısız</div>
+                                {(settings.printerSettings?.showNotes !== false) && (
+                                  <div className="text-xs text-red-600 mt-1 italic">⚠ Acısız</div>
+                                )}
                               </div>
 
                               <div className="border-b border-gray-300 pb-2">
                                 <div className="font-bold text-base">1x Izgara Tavuk</div>
                                 <div className="text-gray-600 mt-1">1x 烤鸡</div>
-                                <div className="text-xs text-gray-500 mt-1 italic">Not: Az pişmiş</div>
+                                {(settings.printerSettings?.showNotes !== false) && (
+                                  <div className="text-xs text-gray-500 mt-1 italic">Not: Az pişmiş</div>
+                                )}
                               </div>
                             </div>
+
+                            {/* Fiş Alt Bilgi (Footer) */}
+                            {settings.printerSettings?.receiptFooter && (
+                              <div className="text-center text-xs text-gray-600 border-t border-dashed border-gray-300 pt-3 mt-4">
+                                {settings.printerSettings.receiptFooter}
+                              </div>
+                            )}
 
                             <div className="text-[8px] opacity-50 mt-8">
                               RestXQr Cloud Printing System

@@ -376,6 +376,7 @@ export interface BusinessSettings {
     showTableNumber: boolean;
     showCustomerName: boolean;
     showDateTime: boolean;
+    showNotes?: boolean;
     autoPrintOrders: boolean;
     paperWidth: '58mm' | '80mm';
     copies: number;
