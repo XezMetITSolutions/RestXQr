@@ -965,61 +965,57 @@ export default function KasaPanel() {
                         )}
                       </div>
                       <div className="flex gap-3 mt-6">
-                        {hasPermission('cashier_process_payment') && (
-                          order.approved ? (
+                        {order.approved ? (
+                          hasPermission('cashier_process_payment') && (
                             <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
                               ÖDEME AL
                             </button>
-                          ) : (
-                            <div className="flex-1 py-4 bg-gray-100 text-gray-400 rounded-2xl font-black border border-gray-200 flex items-center justify-center cursor-not-allowed text-xs">
-                              ÖNCE ONAYLA
-                            </div>
                           )
-                        )}
-
-                        {order.approved === false && hasPermission('cashier_approve_orders') && (
-                          <button
-                            onClick={async () => {
-                              try {
-                                if (order.id.includes('grouped')) {
-                                  const tableOrders = order.originalOrders || [];
-                                  if (tableOrders.length === 0) {
-                                    console.error('Alt siparişler bulunamadı');
-                                    return;
-                                  }
-                                  await Promise.all(tableOrders.map(async (to) => {
-                                    const response = await fetch(`${API_URL}/orders/${to.id}`, {
+                        ) : (
+                          hasPermission('cashier_approve_orders') && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  if (order.id.includes('grouped')) {
+                                    const tableOrders = order.originalOrders || [];
+                                    if (tableOrders.length === 0) {
+                                      console.error('Alt siparişler bulunamadı');
+                                      return;
+                                    }
+                                    await Promise.all(tableOrders.map(async (to) => {
+                                      const response = await fetch(`${API_URL}/orders/${to.id}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ approved: true })
+                                      });
+                                      const data = await response.json();
+                                      if (data.data?.printResults) {
+                                        await handlePrintFailover(data, to.id, false);
+                                      }
+                                    }));
+                                  } else {
+                                    const response = await fetch(`${API_URL}/orders/${order.id}`, {
                                       method: 'PUT',
                                       headers: { 'Content-Type': 'application/json' },
                                       body: JSON.stringify({ approved: true })
                                     });
                                     const data = await response.json();
                                     if (data.data?.printResults) {
-                                      await handlePrintFailover(data, to.id, false);
+                                      await handlePrintFailover(data, order.id, false);
                                     }
-                                  }));
-                                } else {
-                                  const response = await fetch(`${API_URL}/orders/${order.id}`, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ approved: true })
-                                  });
-                                  const data = await response.json();
-                                  if (data.data?.printResults) {
-                                    await handlePrintFailover(data, order.id, false);
                                   }
+                                  fetchOrders();
+                                } catch (err) {
+                                  console.error('Approve error:', err);
+                                  alert('Onaylama sırasında hata oluştu.');
                                 }
-                                fetchOrders();
-                              } catch (err) {
-                                console.error('Approve error:', err);
-                                alert('Onaylama sırasında hata oluştu.');
-                              }
-                            }}
-                            className="flex-1 py-4 bg-green-500 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
-                          >
-                            <FaCheck />
-                            <span className="text-xs">ONAYLA</span>
-                          </button>
+                              }}
+                              className="flex-1 py-4 bg-green-500 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                            >
+                              <FaCheck />
+                              <span className="text-sm">SİPARİŞİ ONAYLA</span>
+                            </button>
+                          )
                         )}
 
 

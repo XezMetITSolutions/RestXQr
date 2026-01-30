@@ -138,10 +138,21 @@ router.get('/', async (req, res) => {
       } else {
         where.status = status;
       }
+
+      // OPTIMIZATION: If querying for active orders, limit to last 3 hours
+      // This prevents fetching old 'stuck' orders that slow down the system
+      if (['pending', 'preparing', 'ready'].some(s => status.includes(s))) {
+        const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+        where.created_at = { [Op.gte]: threeHoursAgo };
+      }
     } else if (tableNumber) {
       // Masa numarası ile sorgulanıyorsa ve status belirtilmemişse, sadece aktif siparişleri getir
       where.tableNumber = tableNumber;
       where.status = { [Op.notIn]: ['completed', 'cancelled'] };
+
+      // Limit table lookups to last 24 hours just in case
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      where.created_at = { [Op.gte]: twentyFourHoursAgo };
     }
 
     if (approved === 'true') {
