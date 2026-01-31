@@ -292,40 +292,44 @@ function BusinessDashboardContent() {
 
   // Gerçek verileri kullan
   const today = new Date();
-  const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-  const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+  today.setHours(0, 0, 0, 0);
+  const startOfDay = new Date(today);
+  const endOfDay = new Date(today);
+  endOfDay.setHours(23, 59, 59, 999);
 
-  // Bugünkü siparişler
-  const todayOrders = orders.filter(order => {
-    const orderDate = new Date(order.createdAt);
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  // Siparişleri filtrele (createdAt bazlı)
+  const todayOrders = (orders || []).filter(order => {
+    const orderDate = new Date(order.createdAt || order.created_at || '');
     return orderDate >= startOfDay && orderDate <= endOfDay;
   });
 
-  // Bugünkü ciro
-  const todayRevenue = todayOrders.reduce((total, order) => total + (Number(order.totalAmount) || 0), 0);
+  const todayRevenue = todayOrders
+    .filter(o => o.status !== 'cancelled')
+    .reduce((total, order) => total + (Number(order.totalAmount) || 0), 0);
 
-  // Bu ayki siparişler
-  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const monthlyOrders = orders.filter(order => {
-    const orderDate = new Date(order.createdAt);
+  const monthlyOrders = (orders || []).filter(order => {
+    const orderDate = new Date(order.createdAt || order.created_at || '');
     return orderDate >= startOfMonth;
   });
 
-  // Aylık ciro
-  const monthlyRevenue = monthlyOrders.reduce((total, order) => total + (Number(order.totalAmount) || 0), 0);
+  const monthlyRevenue = monthlyOrders
+    .filter(o => o.status !== 'cancelled')
+    .reduce((total, order) => total + (Number(order.totalAmount) || 0), 0);
 
   const stats = {
     todayOrders: todayOrders.length,
-    activeOrders: activeOrders.length,
+    activeOrders: (activeOrders || []).length,
     todayRevenue,
     monthlyRevenue,
     monthlyOrders: monthlyOrders.length,
-    averageRating: 0, // TODO: Rating sistemi eklendiğinde
-    customerSatisfaction: 0, // TODO: Memnuniyet sistemi eklendiğinde
-    totalMenuItems: menuItems.length,
-    activeCategories: categories.length,
-    totalWaiters: 0, // TODO: Personel sistemi eklendiğinde
-    activeTables: activeOrders.reduce((acc, order) => {
+    averageRating: 0,
+    customerSatisfaction: 0,
+    totalMenuItems: (menuItems || []).length,
+    activeCategories: (categories || []).length,
+    totalWaiters: 0,
+    activeTables: (activeOrders || []).reduce((acc, order) => {
       if (order.tableNumber && !acc.includes(order.tableNumber)) {
         acc.push(order.tableNumber);
       }
