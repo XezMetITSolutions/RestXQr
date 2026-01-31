@@ -63,7 +63,7 @@ export default function PrinterTestDebugPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     restaurantId: restaurantUsername,
-                    tableNumber: "DEBUG-99",
+                    tableNumber: 999, // Must be integer
                     items: targetItems,
                     notes: "PRINTER DEBUG TEST",
                     orderType: 'dine_in'
