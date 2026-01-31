@@ -40,8 +40,6 @@ import {
   FaExchangeAlt,
   FaFileDownload,
   FaArrowUp,
-  FaFileDownload,
-  FaArrowUp,
   FaArrowDown,
   FaImage
 } from 'react-icons/fa';
@@ -163,7 +161,7 @@ export default function MenuManagement() {
   const [campaignStartDate, setCampaignStartDate] = useState<string>('');
   const [campaignEndDate, setCampaignEndDate] = useState<string>('');
 
-  const [campaignEndDate, setCampaignEndDate] = useState<string>('');
+
 
   // Campaign Banner States
   const [bannerFile, setBannerFile] = useState<File | null>(null);
