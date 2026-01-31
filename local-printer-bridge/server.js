@@ -49,31 +49,23 @@ function encodeText(text, encoding = 'cp857') {
  * Tries: \\HOSTNAME\Printer, \\localhost\Printer, \\127.0.0.1\Printer
  */
 async function resolveWindowsPrinterPath(printerName) {
-    const hostname = os.hostname();
-    console.log(`💻 Hostname: ${hostname}`);
+    console.log(`🔎 Resolving path for printer '${printerName}'...`);
 
-    // User shared printer as "KASA" (Uppercase), but frontend sends "kasa".
-    // We will try UPPERCASE first.
+    // User shared printer as "KASA" (Uppercase).
     const shareName = printerName.toUpperCase();
 
     const candidates = [
-        // 1. Try Exact IP + UPPERCASE Share (Most likely to work)
-        `\\\\192.168.1.119\\${shareName}`,
-
-        // 2. Try localhost variations + UPPERCASE
+        // 1. Localhost variations (Confirmed by Get-SmbShare as locally shared)
         `\\\\localhost\\${shareName}`,
         `\\\\127.0.0.1\\${shareName}`,
 
-        // 3. Try Hostnames + UPPERCASE
-        `\\\\Kasa\\${shareName}`,
-        `\\\\${hostname}\\${shareName}`,
+        // 2. Explicit IP (if networked access needed)
+        `\\\\192.168.1.119\\${shareName}`,
 
-        // 4. Fallbacks (original casing)
-        `\\\\192.168.1.119\\${printerName}`,
-        `\\\\localhost\\${printerName}`
+        // 3. Hostname based
+        `\\\\${os.hostname()}\\${shareName}`,
+        `\\\\Kasa\\${shareName}`
     ];
-
-    console.log(`🔎 Resolving path for printer '${printerName}' (trying share '${shareName}')...`);
 
     for (const candidate of candidates) {
         try {
@@ -81,11 +73,12 @@ async function resolveWindowsPrinterPath(printerName) {
             console.log(`✅ Found accessible printer path: ${candidate}`);
             return candidate;
         } catch (e) {
-            // console.log(`   - Path failed: ${candidate} (${e.code})`); // Reduce noise
+            // console.log(`   - Path failed: ${candidate} (${e.code})`);
         }
     }
 
-    console.warn(`⚠️ Could not find accessible path. Last attempt defaulting to: \\\\localhost\\${shareName}`);
+    // If all checks fail, force localhost as it SHOULD work based on smbshare
+    console.warn(`⚠️ checks failed, forcing: \\\\localhost\\${shareName}`);
     return `\\\\localhost\\${shareName}`;
 }
 
