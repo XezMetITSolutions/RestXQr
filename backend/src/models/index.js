@@ -43,6 +43,7 @@ const VideoMenuItem = require('./VideoMenuItem')(sequelize, Sequelize.DataTypes)
 const Event = require('./Event')(sequelize, Sequelize.DataTypes);
 const InventoryItem = require('./InventoryItem')(sequelize, Sequelize.DataTypes);
 const AdminUser = require('./AdminUser')(sequelize, Sequelize.DataTypes);
+const SupportTicket = require('./SupportTicket')(sequelize, Sequelize.DataTypes);
 
 // Define associations
 Restaurant.hasMany(MenuCategory, { foreignKey: 'restaurantId', as: 'categories' });
@@ -106,6 +107,10 @@ Event.belongsTo(Restaurant, { foreignKey: 'restaurantId', as: 'restaurant' });
 // InventoryItem associations
 Restaurant.hasMany(InventoryItem, { foreignKey: 'restaurantId', as: 'inventoryItems' });
 InventoryItem.belongsTo(Restaurant, { foreignKey: 'restaurantId', as: 'restaurant' });
+
+// SupportTicket associations
+Restaurant.hasMany(SupportTicket, { foreignKey: 'restaurantId', as: 'supportTickets' });
+SupportTicket.belongsTo(Restaurant, { foreignKey: 'restaurantId', as: 'restaurant' });
 
 // Test connection
 const connectDB = async () => {
@@ -175,6 +180,7 @@ const connectDB = async () => {
     await Staff.sync(); // Staff tablosu
     await Order.sync(); // Order tablosu
     await OrderItem.sync(); // OrderItem tablosu
+    await SupportTicket.sync(); // SupportTicket tablosu
     console.log('✅ All database tables synchronized');
   } catch (error) {
     console.error('❌ Unable to connect to PostgreSQL:', error);
@@ -209,5 +215,6 @@ module.exports = {
   VideoMenuItem,
   Event,
   InventoryItem,
-  AdminUser
+  AdminUser,
+  SupportTicket
 };

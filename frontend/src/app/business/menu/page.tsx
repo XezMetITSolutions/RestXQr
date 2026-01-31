@@ -498,8 +498,7 @@ export default function MenuManagement() {
         if (currentRestaurantId) {
           await deleteMenuItem(currentRestaurantId, itemId);
           console.log('Ürün silindi:', itemId);
-          // Menüyü yeniden yükle
-          await fetchRestaurantMenu(currentRestaurantId);
+          // No re-fetch needed
         }
       } catch (error) {
         console.error('Ürün silinirken hata:', error);
@@ -535,7 +534,7 @@ export default function MenuManagement() {
       });
 
       setQuickEditItem(null);
-      await fetchRestaurantMenu(currentRestaurantId);
+      // No re-fetch needed, updateMenuItem updates the store state locally
     } catch (error) {
       console.error('Quick edit error:', error);
       alert('Güncellem hatası: ' + (error as Error).message);
@@ -761,7 +760,7 @@ export default function MenuManagement() {
         setSelectedItems([]);
         setShowBulkPriceModal(false);
         setBulkPriceValue('');
-        await fetchRestaurantMenu(currentRestaurantId);
+        // No re-fetch needed, updateMenuItem updates the store state locally
         alert(`${successCount} ${t('ürünün fiyatı başarıyla güncellendi')}`);
       }
     } catch (error) {
@@ -1144,7 +1143,7 @@ export default function MenuManagement() {
           }
         }
 
-        await fetchRestaurantMenu(currentRestaurantId);
+        // No re-fetch needed
         alert(`${successCount} ${t('ürün başarıyla çevrildi.')}`);
         setSelectedItems([]);
       }
@@ -1206,7 +1205,7 @@ export default function MenuManagement() {
         if (currentRestaurantId) {
           await deleteMenuCategory(currentRestaurantId, categoryId);
           console.log('Kategori silindi:', categoryId);
-          await fetchRestaurantMenu(currentRestaurantId);
+          // No re-fetch needed
         }
       } catch (error) {
         console.error('Kategori silinirken hata:', error);
@@ -1248,8 +1247,7 @@ export default function MenuManagement() {
 
       console.log('Categories re-indexed and updated matches the new order');
 
-      // Menüyü yeniden yükle
-      await fetchRestaurantMenu(currentRestaurantId);
+      // No re-fetch needed
     } catch (error) {
       console.error('Kategori sıralanırken hata:', error);
       alert(t('Kategori sıralanırken bir hata oluştu'));
@@ -2628,7 +2626,7 @@ export default function MenuManagement() {
                                         ...item,
                                         kitchenStation: newStationId
                                       });
-                                      await fetchRestaurantMenu(currentRestaurantId);
+                                      // No re-fetch needed, updateMenuItem updates the store state locally
                                     }
                                   } catch (error) {
                                     console.error('İstasyon güncellenirken hata:', error);
@@ -3460,8 +3458,7 @@ export default function MenuManagement() {
                               console.log('Update Data gönderiliyor:', updateData);
                               await updateMenuItem(currentRestaurantId, editingItem.id, updateData);
                               console.log('Ürün güncellendi:', formData);
-                              // Menüyü yeniden yükle
-                              await fetchRestaurantMenu(currentRestaurantId);
+                              // No re-fetch needed
                               alert(t('Ürün başarıyla güncellendi!'));
                             }
                           } catch (error) {
@@ -3490,8 +3487,7 @@ export default function MenuManagement() {
                               console.log('Create Data gönderiliyor:', createData);
                               await createMenuItem(currentRestaurantId, createData);
                               console.log('Yeni ürün backend\'e kaydedildi:', formData);
-                              // Menüyü yeniden yükle
-                              await fetchRestaurantMenu(currentRestaurantId);
+                              // No re-fetch needed
                               alert(t('Ürün başarıyla eklendi!'));
                             }
                           } catch (error) {
@@ -3610,7 +3606,6 @@ export default function MenuManagement() {
                               });
                               console.log('Kategori güncellendi:', editingCategory);
                               // Menüyü yeniden yükle
-                              await fetchRestaurantMenu(currentRestaurantId);
                             }
                           } else {
                             // Backend API'sine kaydet
@@ -3626,7 +3621,6 @@ export default function MenuManagement() {
                               });
                               console.log('Yeni kategori backend\'e kaydedildi');
                               // Menüyü yeniden yükle
-                              await fetchRestaurantMenu(currentRestaurantId);
                             }
                           }
                         } catch (error) {

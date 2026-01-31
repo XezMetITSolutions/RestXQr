@@ -183,32 +183,35 @@ app.get('/api/debug/update-kroren-printers', async (req, res) => {
 
     // 2. KROREN-LEVENT
     const levent = await Restaurant.findOne({ where: { username: 'kroren-levent' } });
+    if (!levent) {
+      // Try reverse username just in case
+      const leventAlt = await Restaurant.findOne({ where: { username: 'levent-kroren' } });
+      if (leventAlt) {
+        levent = leventAlt;
+      }
+    }
+
     if (levent) {
       const leventConfig = {
-        '17692021455220.027173748942849185': { name: 'RAMEN', ip: '192.168.1.151', port: 9100, enabled: true, type: 'epson' },
-        '17692021455190.20485462886666846': { name: 'KAVURMA', ip: '192.168.1.150', port: 9100, enabled: true, type: 'epson' },
-        '176960565656066': { name: 'KEBAP & SUSHI', ip: '192.168.1.149', port: 9100, enabled: true, type: 'epson' },
-        'kasa': { name: 'KASA', ip: 'kasa', port: 9100, enabled: true, type: 'epson' }
+        'kasa': { name: 'KASA', ip: '192.168.1.10', port: 9100, enabled: true, type: 'epson', language: 'tr' },
+        'ramen': { name: 'RAMEN', ip: '192.168.1.11', port: 9100, enabled: true, type: 'epson', language: 'zh' },
+        'kavurma': { name: 'KAVURMA', ip: '192.168.1.12', port: 9100, enabled: true, type: 'epson', language: 'tr' },
+        'kebap': { name: 'KEBAP & SUSHI', ip: '192.168.1.13', port: 9100, enabled: true, type: 'epson', language: 'tr' }
       };
 
       const leventStations = [
-        { id: '17692021455220.027173748942849185', name: 'RAMEN', color: '#FF0000', order: 1 },
-        { id: '17692021455190.20485462886666846', name: 'KAVURMA', color: '#FF0000', order: 2 },
-        { id: '176960565656066', name: 'KEBAP & SUSHI', color: '#FF0000', order: 3 },
-        { id: 'kasa', name: 'KASA', color: '#0000FF', order: 4 }
+        { id: 'kasa', name: 'KASA', emoji: '💰', color: '#10b981', order: 1 },
+        { id: 'ramen', name: 'RAMEN', emoji: '🍜', color: '#ef4444', order: 2 },
+        { id: 'kavurma', name: 'KAVURMA', emoji: '🥩', color: '#f59e0b', order: 3 },
+        { id: 'kebap', name: 'KEBAP & SUSHI', emoji: '🍱', color: '#8b5cf6', order: 4 }
       ];
 
-      // Update restaurant config
-      levent.printerConfig = leventConfig;
-      levent.kitchenStations = leventStations;
-
-      // Explicitly update json/jsonb fields
       await Restaurant.update(
         { printerConfig: leventConfig, kitchenStations: leventStations },
         { where: { id: levent.id } }
       );
 
-      results.push('✅ kroren-levent (Levent) güncellendi (4 Net İstasyon: Ramen, Kavurma, Kebap, Kasa)');
+      results.push(`✅ ${levent.username} güncellendi (Kasa, Ramen, Kavurma, Kebap & Sushi)`);
     }
 
     res.json({

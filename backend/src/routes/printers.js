@@ -1,15 +1,35 @@
+
 const express = require('express');
 const router = express.Router();
 const printerService = require('../services/printerService');
+const { Restaurant } = require('../models');
+
+/**
+ * Get restaurant from request (either query param or header)
+ */
+async function getTargetRestaurant(req) {
+    const restaurantId = req.query.restaurantId || req.headers['x-restaurant-id'];
+    if (!restaurantId) return null;
+    return await Restaurant.findByPk(restaurantId);
+}
 
 /**
  * @route   GET /api/printers
- * @desc    Tüm yazıcı istasyonlarını listele
- * @access  Private
+ * @desc    Tüm yazıcı istasyonlarını listele (Restoran bazlı)
  */
 router.get('/', async (req, res) => {
     try {
-        const stations = printerService.getStations();
+        const restaurant = await getTargetRestaurant(req);
+        if (!restaurant) {
+            return res.status(400).json({ success: false, error: 'Restaurant ID is required as query param ?restaurantId=...' });
+        }
+
+        const printerConfig = restaurant.printerConfig || {};
+        const stations = Object.entries(printerConfig).map(([id, config]) => ({
+            id,
+            ...config
+        }));
+
         res.json({ success: true, data: stations });
     } catch (error) {
         console.error('Printer stations list error:', error);
@@ -20,23 +40,37 @@ router.get('/', async (req, res) => {
 /**
  * @route   POST /api/printers
  * @desc    Yeni yazıcı istasyonu ekle
- * @access  Private
  */
 router.post('/', async (req, res) => {
     try {
+        const restaurant = await getTargetRestaurant(req);
+        if (!restaurant) {
+            return res.status(400).json({ success: false, error: 'Restaurant ID is required' });
+        }
+
         const { id, ...config } = req.body;
-        const stationId = id || config.newStationKey; // Frontend id veya newStationKey gönderebilir
+        const stationId = id || config.newStationKey;
 
         if (!stationId) {
             return res.status(400).json({ success: false, error: 'Station ID is required' });
         }
 
-        printerService.addOrUpdateStation(stationId, config);
+        const currentConfig = restaurant.printerConfig || {};
+        currentConfig[stationId] = {
+            name: config.name || stationId,
+            ip: config.ip,
+            port: config.port || 9100,
+            enabled: config.enabled !== undefined ? config.enabled : true,
+            type: config.type || 'epson',
+            language: config.language || 'tr'
+        };
+
+        await restaurant.update({ printerConfig: currentConfig });
 
         res.json({
             success: true,
             message: 'Yazıcı eklendi',
-            data: printerService.stations[stationId]
+            data: { id: stationId, ...currentConfig[stationId] }
         });
     } catch (error) {
         console.error('Printer create error:', error);
@@ -47,14 +81,22 @@ router.post('/', async (req, res) => {
 /**
  * @route   DELETE /api/printers/:station
  * @desc    Yazıcı istasyonunu sil
- * @access  Private
  */
 router.delete('/:station', async (req, res) => {
     try {
-        const { station } = req.params;
-        const result = printerService.deleteStation(station);
+        const restaurant = await getTargetRestaurant(req);
+        if (!restaurant) return res.status(400).json({ success: false, error: 'Restaurant ID required' });
 
-        if (result) {
+        const { station } = req.params;
+        const currentConfig = restaurant.printerConfig || {};
+
+        if (currentConfig[station]) {
+            delete currentConfig[station];
+            // Sequelize JSONB update workaround
+            await Restaurant.update(
+                { printerConfig: currentConfig },
+                { where: { id: restaurant.id } }
+            );
             res.json({ success: true, message: 'Yazıcı silindi' });
         } else {
             res.status(404).json({ success: false, error: 'Printer not found' });
@@ -68,30 +110,42 @@ router.delete('/:station', async (req, res) => {
 /**
  * @route   PUT /api/printers/:station
  * @desc    İstasyon yazıcı ayarlarını güncelle
- * @access  Private
  */
 router.put('/:station', async (req, res) => {
     try {
+        const restaurant = await getTargetRestaurant(req);
+        if (!restaurant) return res.status(400).json({ success: false, error: 'Restaurant ID required' });
+
         const { station } = req.params;
         const { name, ip, port, enabled, type, language, newStationKey } = req.body;
 
-        printerService.updateStationPrinter(station, {
-            name,
-            ip,
-            port: port || 9100,
-            enabled: enabled !== undefined ? enabled : true,
-            type: type || 'epson',
-            language: language || 'tr', // Varsayılan Türkçe
-            newStationKey
-        });
+        const currentConfig = restaurant.printerConfig || {};
 
-        // Eğer key değiştiyse yanıtta yeni key'i kullan
-        const finalStationKey = newStationKey || station;
+        const updatedData = {
+            name: name || currentConfig[station]?.name || station,
+            ip: ip || currentConfig[station]?.ip,
+            port: port || currentConfig[station]?.port || 9100,
+            enabled: enabled !== undefined ? enabled : (currentConfig[station]?.enabled !== undefined ? currentConfig[station].enabled : true),
+            type: type || currentConfig[station]?.type || 'epson',
+            language: language || currentConfig[station]?.language || 'tr'
+        };
+
+        if (newStationKey && newStationKey !== station) {
+            delete currentConfig[station];
+            currentConfig[newStationKey] = updatedData;
+        } else {
+            currentConfig[station] = updatedData;
+        }
+
+        await Restaurant.update(
+            { printerConfig: currentConfig },
+            { where: { id: restaurant.id } }
+        );
 
         res.json({
             success: true,
-            message: `${finalStationKey} yazıcısı güncellendi`,
-            data: printerService.stations[finalStationKey]
+            message: 'Yazıcı güncellendi',
+            data: { id: newStationKey || station, ...updatedData }
         });
     } catch (error) {
         console.error('Printer update error:', error);
@@ -100,37 +154,22 @@ router.put('/:station', async (req, res) => {
 });
 
 /**
- * @route   POST /api/printers/:station/print
- * @desc    Belirli bir istasyona sipariş yazdır
- * @access  Private
- */
-router.post('/:station/print', async (req, res) => {
-    try {
-        const { station } = req.params;
-        const orderData = req.body;
-
-        const result = await printerService.printOrderAdvanced(station, orderData);
-
-        if (result.success) {
-            res.json({ success: true, message: 'Yazdırma başarılı' });
-        } else {
-            res.status(400).json({ success: false, error: result.error });
-        }
-    } catch (error) {
-        console.error('Print error:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-/**
  * @route   POST /api/printers/:station/test
- * @desc    Test yazdırma
- * @access  Private
+ * @desc    Test yazdırma (DB'deki ayarlar ile)
  */
 router.post('/:station/test', async (req, res) => {
     try {
+        const restaurant = await getTargetRestaurant(req);
+        if (!restaurant) return res.status(400).json({ success: false, error: 'Restaurant ID required' });
+
         const { station } = req.params;
-        const result = await printerService.printTest(station);
+        const config = restaurant.printerConfig?.[station];
+
+        if (!config) {
+            return res.status(404).json({ success: false, error: 'Yazıcı konfigürasyonu bulunamadı' });
+        }
+
+        const result = await printerService.printTest(config);
 
         if (result.success) {
             res.json({ success: true, message: 'Test yazdırma başarılı' });
@@ -146,13 +185,18 @@ router.post('/:station/test', async (req, res) => {
 /**
  * @route   GET /api/printers/:station/status
  * @desc    Yazıcı bağlantı durumunu kontrol et
- * @access  Private
  */
 router.get('/:station/status', async (req, res) => {
     try {
-        const { station } = req.params;
-        const status = await printerService.checkPrinterStatus(station);
+        const restaurant = await getTargetRestaurant(req);
+        if (!restaurant) return res.status(400).json({ success: false, error: 'Restaurant ID required' });
 
+        const { station } = req.params;
+        const config = restaurant.printerConfig?.[station];
+
+        if (!config) return res.status(404).json({ success: false, error: 'Printer not found' });
+
+        const status = await printerService.checkPrinterStatusDirect(config);
         res.json({ success: true, data: status });
     } catch (error) {
         console.error('Printer status error:', error);
@@ -161,71 +205,38 @@ router.get('/:station/status', async (req, res) => {
 });
 
 /**
- * @route   POST /api/printers/print-order
- * @desc    Siparişi ilgili istasyonlara yazdır
- * @access  Private
- */
-router.post('/print-order', async (req, res) => {
-    try {
-        const { orderData, stations } = req.body;
-
-        // Birden fazla istasyona yazdır
-        const results = await Promise.all(
-            stations.map(station =>
-                printerService.printOrderAdvanced(station, orderData)
-            )
-        );
-
-        const allSuccess = results.every(r => r.success);
-
-        if (allSuccess) {
-            res.json({
-                success: true,
-                message: 'Tüm istasyonlara yazdırıldı',
-                results
-            });
-        } else {
-            res.status(207).json({
-                success: false,
-                message: 'Bazı yazıcılarda hata',
-                results
-            });
-        }
-    } catch (error) {
-        console.error('Multi-station print error:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-/**
  * @route   GET /api/printers/kitchen-stations
  * @desc    Veritabanındaki mutfak istasyonu isimlerini getir
- * @access  Private
  */
 router.get('/kitchen-stations', async (req, res) => {
     try {
         const { MenuItem, MenuCategory, sequelize } = require('../models');
+        const restaurantId = req.query.restaurantId;
 
-        // MenuItems'dan distinct kitchen_station'ları al
+        let whereClause = '';
+        if (restaurantId) {
+            whereClause = `WHERE restaurant_id = '${restaurantId}'`;
+        }
+
         const [itemStations] = await sequelize.query(`
             SELECT DISTINCT kitchen_station 
             FROM menu_items 
-            WHERE kitchen_station IS NOT NULL AND kitchen_station != ''
+            ${whereClause} 
+            AND kitchen_station IS NOT NULL AND kitchen_station != ''
         `);
 
-        // Categories'den distinct kitchen_station'ları al
         const [catStations] = await sequelize.query(`
             SELECT DISTINCT kitchen_station 
             FROM menu_categories 
-            WHERE kitchen_station IS NOT NULL AND kitchen_station != ''
+            ${whereClause}
+            AND kitchen_station IS NOT NULL AND kitchen_station != ''
         `);
 
-        // Birleştir ve unique yap
         const allStations = new Set();
         itemStations.forEach(s => allStations.add(s.kitchen_station));
         catStations.forEach(s => allStations.add(s.kitchen_station));
 
-        // Standart istasyonları ekle (eğer yoksa)
+        // Default stations
         ['kavurma', 'ramen', 'kebap', 'manti', 'icecek1', 'icecek2', 'ortakasa', 'bar', 'kasa'].forEach(s => allStations.add(s));
 
         res.json({
@@ -239,3 +250,4 @@ router.get('/kitchen-stations', async (req, res) => {
 });
 
 module.exports = router;
+

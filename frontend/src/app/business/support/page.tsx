@@ -29,6 +29,7 @@ import {
 import { useAuthStore } from '@/store/useAuthStore';
 import BusinessSidebar from '@/components/BusinessSidebar';
 import TranslatedText, { useTranslation } from '@/components/TranslatedText';
+import apiService from '@/services/api';
 
 interface SupportTicket {
   id: number;
@@ -69,43 +70,25 @@ export default function SupportPage() {
     }
   }, [isAuthenticated, router]);
 
-  // Destek talepleri her restoran için ayrı (boş başla, Kardeşler için demo yüklenecek)
-  useEffect(() => {
-    // Eğer Kardeşler restoranı ise demo ticket verilerini ekle
-    if (authenticatedRestaurant?.name.toLowerCase().includes('kardeşler') ||
-      authenticatedRestaurant?.name.toLowerCase().includes('kardesler')) {
-      const demoTickets: SupportTicket[] = [
-        {
-          id: 1,
-          subject: 'QR Kod Tarama Sorunu',
-          category: 'technical',
-          priority: 'high',
-          status: 'in_progress',
-          description: 'Müşteriler QR kodu taradığında menü açılmıyor.',
-          createdAt: '2024-01-15 10:30',
-          updatedAt: '2024-01-15 14:20',
-          responses: [
-            { message: 'Sorununuzu inceliyoruz, kısa süre içinde dönüş yapacağız.', from: 'Destek Ekibi', time: '2024-01-15 11:00' }
-          ]
-        },
-        {
-          id: 2,
-          subject: 'Fatura Bilgilerinde Hata',
-          category: 'billing',
-          priority: 'normal',
-          status: 'resolved',
-          description: 'Geçen ayki faturada yanlış tutar gözüküyor.',
-          createdAt: '2024-01-10 09:15',
-          updatedAt: '2024-01-12 16:45',
-          responses: [
-            { message: 'Fatura düzeltildi ve yeni fatura gönderildi.', from: 'Mali İşler', time: '2024-01-12 16:45' }
-          ]
+  // Destek taleplerini yükle
+  const fetchTickets = async () => {
+    try {
+      if (authenticatedRestaurant?.id) {
+        const response = await apiService.getSupportTickets(authenticatedRestaurant.id);
+        if (response.success && response.data) {
+          setTickets(response.data);
         }
-      ];
-      setTickets(demoTickets);
+      }
+    } catch (error) {
+      console.error('Destek talepleri yüklenemedi:', error);
     }
-    // Diğer restoranlar boş başlar
-  }, [authenticatedRestaurant]);
+  };
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      fetchTickets();
+    }
+  }, [authenticatedRestaurant, isAuthenticated]);
 
   const handleLogout = () => {
     logout();
@@ -119,29 +102,28 @@ export default function SupportPage() {
     }
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
-
-      const response = await fetch(`${API_URL}/support`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          restaurantId: authenticatedRestaurant?.id,
-          name: displayName,
-          email: displayEmail,
-          phone: authenticatedRestaurant?.phone || '',
-          subject: newTicket.subject,
-          message: newTicket.description,
-          priority: newTicket.priority
-        })
+      const response = await apiService.createSupportTicket({
+        restaurantId: authenticatedRestaurant?.id,
+        name: displayName,
+        email: displayEmail,
+        phone: authenticatedRestaurant?.phone || '',
+        subject: newTicket.subject,
+        message: newTicket.description,
+        category: newTicket.category,
+        priority: newTicket.priority
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.success) {
         alert(t('✅ Destek talebiniz başarıyla gönderildi! En kısa sürede size dönüş yapılacaktır.'));
         setShowNewTicketModal(false);
+
+        // Listeyi güncelle - Yeni talebi en başa ekle
+        if (response.data) {
+          setTickets(prev => [response.data, ...prev]);
+        } else {
+          fetchTickets(); // Data gelmediyse tam re-fetch
+        }
+
         setNewTicket({
           subject: '',
           category: 'technical',
@@ -149,7 +131,7 @@ export default function SupportPage() {
           description: ''
         });
       } else {
-        alert('❌ Hata: ' + data.message);
+        alert('❌ Hata: ' + response.message);
       }
     } catch (error) {
       console.error('Destek talebi oluşturulamadı:', error);
@@ -161,6 +143,7 @@ export default function SupportPage() {
     switch (priority) {
       case 'urgent': return 'bg-red-100 text-red-800 border-red-300';
       case 'high': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'medium': return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'normal': return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'low': return 'bg-gray-100 text-gray-800 border-gray-300';
       default: return 'bg-gray-100 text-gray-800';
@@ -169,8 +152,8 @@ export default function SupportPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'bg-yellow-100 text-yellow-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'in-progress': return 'bg-blue-100 text-blue-800';
       case 'resolved': return 'bg-green-100 text-green-800';
       case 'closed': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -179,8 +162,8 @@ export default function SupportPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'open': return t('Açık');
-      case 'in_progress': return t('İşlemde');
+      case 'pending': return t('Beklemede');
+      case 'in-progress': return t('İşlemde');
       case 'resolved': return t('Çözüldü');
       case 'closed': return t('Kapalı');
       default: return status;

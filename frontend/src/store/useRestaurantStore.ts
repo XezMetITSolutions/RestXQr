@@ -205,7 +205,6 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
   },
 
   updateRestaurant: async (id: string, updates: Partial<Restaurant>) => {
-    set({ loading: true, error: null });
     try {
       const response = await apiService.updateRestaurant(id, updates);
       if (response.success) {
@@ -227,7 +226,6 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
   },
 
   updateRestaurantFeatures: async (id: string, features: string[]) => {
-    set({ loading: true, error: null });
     try {
       const response = await apiService.updateRestaurantFeatures(id, features);
       if (response.success) {
@@ -262,7 +260,6 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
 
   // Menu API Actions
   createMenuCategory: async (restaurantId: string, data: any) => {
-    set({ loading: true, error: null });
     try {
       // Backend için veriyi dönüştür: sadece Türkçe string gönder
       const backendData = {
@@ -274,9 +271,7 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
       };
 
       console.log('🚀 Creating category:', { restaurantId, backendData });
-
       const response = await apiService.createMenuCategory(restaurantId, backendData);
-
       console.log('✅ Category created:', response);
 
       if (response.success) {
@@ -299,7 +294,6 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
   },
 
   createMenuItem: async (restaurantId: string, data: any) => {
-    set({ loading: true, error: null });
     try {
       // Backend için veriyi dönüştür: sadece Türkçe string gönder
       const backendData = {
@@ -324,9 +318,7 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
       };
 
       console.log('🚀 Creating menu item:', { restaurantId, backendData });
-
       const response = await apiService.createMenuItem(restaurantId, backendData);
-
       console.log('✅ Menu item created:', response);
 
       if (response.success) {
@@ -349,7 +341,6 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
   },
 
   updateMenuCategory: async (restaurantId: string, categoryId: string, data: any) => {
-    set({ loading: true, error: null });
     try {
       // Backend için veriyi dönüştür
       const backendData = {
@@ -380,7 +371,6 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
   },
 
   deleteMenuCategory: async (restaurantId: string, categoryId: string) => {
-    set({ loading: true, error: null });
     try {
       const response = await apiService.deleteMenuCategory(restaurantId, categoryId);
       if (response.success) {
@@ -402,7 +392,6 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
   },
 
   updateMenuItem: async (restaurantId: string, itemId: string, data: any) => {
-    set({ loading: true, error: null });
     try {
       // Backend için veriyi dönüştür
       const backendData = {
@@ -446,7 +435,6 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
   },
 
   deleteMenuItem: async (restaurantId: string, itemId: string) => {
-    set({ loading: true, error: null });
     try {
       const response = await apiService.deleteMenuItem(restaurantId, itemId);
       if (response.success) {

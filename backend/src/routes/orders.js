@@ -817,17 +817,17 @@ router.put('/:id', async (req, res) => {
               const printerConfig = restaurant.printerConfig[stationId];
               if (printerConfig && printerConfig.enabled && printerConfig.ip) {
                 console.log(`🖨️ ${stationId} istasyonuna yazdırılıyor (${printerConfig.ip})...`);
-                printerService.addOrUpdateStation(stationId, {
+
+                const printResult = await printerService.printOrderWithConfig({
                   name: stationId,
                   ip: printerConfig.ip,
                   port: printerConfig.port || 9100,
                   enabled: true,
                   type: require('node-thermal-printer').PrinterTypes.EPSON,
                   characterSet: require('node-thermal-printer').CharacterSet.PC857_TURKISH,
-                  codePage: 'CP857'
-                });
-
-                const printResult = await printerService.printOrderAdvanced(stationId, {
+                  codePage: 'CP857',
+                  language: printerConfig.language || (stationId === 'kitchen' ? 'zh' : 'tr')
+                }, {
                   orderNumber: order.id.substring(0, 8),
                   tableNumber: order.tableNumber || 'Paket',
                   items: stationItems

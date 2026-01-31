@@ -50,7 +50,7 @@ function PrinterManagementContent() {
         try {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
             const apiUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
-            const res = await fetch(`${apiUrl}/printers/kitchen-stations`);
+            const res = await fetch(`${apiUrl}/printers/kitchen-stations?restaurantId=${currentRestaurant?.id || ''}`);
             const data = await res.json();
             if (data.success) {
                 setAvailableStations(data.data);
@@ -61,25 +61,24 @@ function PrinterManagementContent() {
     };
 
     const loadStations = async () => {
+        if (!currentRestaurant?.id) return;
         try {
             setLoading(true);
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
             const apiUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
 
-            const response = await fetch(`${apiUrl}/printers`);
+            const response = await fetch(`${apiUrl}/printers?restaurantId=${currentRestaurant.id}`);
             const data = await response.json();
 
             if (data.success && data.data && data.data.length > 0) {
                 setStations(data.data);
             } else {
-                // Fallback: Mock data
-                console.warn('⚠️ API\'den veri gelmedi, mock data kullanılıyor');
-                setMockData();
+                // Fallback: Empty array - Kullanıcı kendi istasyonlarını ekleyecek
+                setStations([]);
             }
         } catch (error) {
             console.error('❌ Stations load error:', error);
-            // Hata durumunda mock data göster
-            setMockData();
+            setStations([]);
         } finally {
             setLoading(false);
         }
@@ -98,7 +97,7 @@ function PrinterManagementContent() {
             // Orijinal ID'yi kullan, çünkü backend'de bu key ile aranıyor
             const targetId = originalEditingId || station.id;
 
-            const response = await fetch(`${apiUrl}/printers/${targetId}`, {
+            const response = await fetch(`${apiUrl}/printers/${targetId}?restaurantId=${currentRestaurant?.id || ''}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -187,7 +186,7 @@ function PrinterManagementContent() {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
             const apiUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
 
-            const response = await fetch(`${apiUrl}/printers`, {
+            const response = await fetch(`${apiUrl}/printers?restaurantId=${currentRestaurant?.id || ''}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newStation)
@@ -213,7 +212,7 @@ function PrinterManagementContent() {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
             const apiUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
 
-            const response = await fetch(`${apiUrl}/printers/${stationId}`, {
+            const response = await fetch(`${apiUrl}/printers/${stationId}?restaurantId=${currentRestaurant?.id || ''}`, {
                 method: 'DELETE'
             });
 

@@ -6,13 +6,10 @@ const path = require('path');
 const https = require('https');
 const http = require('http');
 
-const CONFIG_FILE = path.join(__dirname, '../../printer-config.json');
-
 /**
  * Thermal Printer Service
  * Her istasyon için farklı yazıcı desteği
  * Türkçe ve Çince karakter desteği ile
- * Sadece node-thermal-printer kullanılıyor (stable)
  */
 
 class PrinterService {
@@ -27,43 +24,8 @@ class PrinterService {
             'ü': '\x81', 'Ü': '\x9A'
         };
 
-        // İstasyon yazıcı konfigürasyonları - Varsayılan boş, config dosyasından yüklenecek
+        // Arka planda global stations tutmaya gerek yok (artık DB'den gelecek)
         this.stations = {};
-
-        // Konfigürasyonu yükle
-        this.loadConfig();
-    }
-
-    /**
-     * Konfigürasyonu dosyadan yükle
-     */
-    loadConfig() {
-        try {
-            if (fs.existsSync(CONFIG_FILE)) {
-                const data = fs.readFileSync(CONFIG_FILE, 'utf8');
-                const savedStations = JSON.parse(data);
-                // Mevcut stations ile birleştir (kod içindeki yeni tanımları korumak için, ama kayıtlılar ezer)
-                this.stations = { ...this.stations, ...savedStations };
-                console.log('✅ Yazıcı konfigürasyonu yüklendi:', CONFIG_FILE);
-            } else {
-                console.log('ℹ️ Yazıcı konfigürasyon dosyası bulunamadı, varsayılanlar oluşturuluyor.');
-                this.saveConfig();
-            }
-        } catch (error) {
-            console.error('❌ Konfigürasyon yükleme hatası:', error);
-        }
-    }
-
-    /**
-     * Konfigürasyonu dosyaya kaydet
-     */
-    saveConfig() {
-        try {
-            fs.writeFileSync(CONFIG_FILE, JSON.stringify(this.stations, null, 2), 'utf8');
-            console.log('💾 Yazıcı konfigürasyonu kaydedildi');
-        } catch (error) {
-            console.error('❌ Konfigürasyon kaydetme hatası:', error);
-        }
     }
 
     /**
@@ -71,7 +33,6 @@ class PrinterService {
      */
     isLocalIP(ip) {
         if (!ip) return false;
-        // 192.168.x.x, 10.x.x.x, 172.16-31.x.x, 127.0.0.1, localhost
         const ipStr = String(ip);
         return ipStr.startsWith('192.168.') ||
             ipStr.startsWith('10.') ||
@@ -85,7 +46,6 @@ class PrinterService {
      */
     encodeText(text, codePage = 'CP857') {
         try {
-            // iconv-lite ile encode et
             if (iconv.encodingExists(codePage)) {
                 const encoded = iconv.encode(text, codePage);
                 return encoded.toString('binary');
@@ -93,7 +53,6 @@ class PrinterService {
         } catch (error) {
             console.warn('Encoding error, using fallback:', error);
         }
-        // Fallback: Manuel karakter değişimi
         return this.convertTurkishChars(text);
     }
 
@@ -109,190 +68,66 @@ class PrinterService {
     }
 
     /**
-     * Çince karakterler için transliteration (fallback)
-     */
-    transliterateText(text, language = 'tr') {
-        // Türkçe için
-        if (language === 'tr') {
-            const map = {
-                'ç': 'c', 'Ç': 'C',
-                'ğ': 'g', 'Ğ': 'G',
-                'ı': 'i', 'İ': 'I',
-                'ö': 'o', 'Ö': 'O',
-                'ş': 's', 'Ş': 'S',
-                'ü': 'u', 'Ü': 'U'
-            };
-            let result = text;
-            Object.keys(map).forEach(char => {
-                result = result.replace(new RegExp(char, 'g'), map[char]);
-            });
-            return result;
-        }
-
-        // Çince için (pinyin benzeri basitleştirme)
-        if (language === 'zh') {
-            // Bu kısım için bir Çince-Pinyin kütüphanesi kullanılabilir
-            // Şimdilik sadece uyarı ver
-            console.warn('⚠️ Çince karakterler destekleniyor ama yazıcı GB18030 code page gerektiriyor');
-            return text;
-        }
-
-        return text;
-    }
-
-    /**
-     * İstasyon yazıcı ayarlarını güncelle
-     */
-    updateStationPrinter(station, config) {
-        if (this.stations[station]) {
-            // Eğer yeni bir istasyon anahtarı (ID) belirtildiyse ve mevcut olandan farklıysa
-            if (config.newStationKey && config.newStationKey !== station) {
-                const newKey = config.newStationKey;
-
-                // Eski verileri yeni anahtara taşı
-                this.stations[newKey] = {
-                    ...this.stations[station],
-                    ...config
-                };
-
-                // newStationKey alanını temizle (kaydedilmemesi için)
-                delete this.stations[newKey].newStationKey;
-
-                // Eski anahtarı sil
-                delete this.stations[station];
-                console.log(`♻️ İstasyon yeniden adlandırıldı: ${station} -> ${newKey}`);
-            } else {
-                // Sadece güncelle
-                this.stations[station] = { ...this.stations[station], ...config };
-            }
-
-            this.saveConfig(); // Değişiklikleri kaydet
-        }
-    }
-
-    /**
-     * Yeni istasyon ekle veya güncelle
-     */
-    addOrUpdateStation(stationId, config) {
-        this.stations[stationId] = {
-            ...this.stations[stationId],
-            ...config
-        };
-        this.saveConfig(); // Değişiklikleri kaydet
-    }
-
-    /**
-     * İstasyon sil
-     */
-    deleteStation(stationId) {
-        if (this.stations[stationId]) {
-            delete this.stations[stationId];
-            this.saveConfig();
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Metni belirtilen dile çevir
-     */
-    async translateProductName(text, targetLanguage = 'zh') {
-        if (targetLanguage === 'zh') {
-            // Önce hazır çeviri sözlüğünden bak
-            try {
-                const chineseNames = require('../data/chinese_product_names');
-                if (chineseNames[text]) {
-                    console.log(`✅ Çince çeviri bulundu: ${text} → ${chineseNames[text]}`);
-                    return chineseNames[text];
-                }
-            } catch (error) {
-                console.warn('⚠️ Çince çeviri sözlüğü yüklenemedi:', error.message);
-            }
-        }
-
-        // Çeviri bulunamadı, orijinal metni döndür
-        // Gelecekte buraya DeepL veya Google Translate API eklenebilir
-        return text;
-    }
-
-    /**
      * Sipariş fişi yazdır (Gelişmiş - Çok dilli destekli)
+     * @param {Object} printerConfig Yazıcı konfigürasyonu {ip, port, type, enabled, language...}
+     * @param {Object} orderData Sipariş verisi
      */
-    async printOrderAdvanced(station, orderData) {
-        const stationConfig = this.stations[station];
-
-        if (!stationConfig || !stationConfig.enabled || !stationConfig.ip) {
-            console.log(`⚠️ ${station} yazıcısı devre dışı veya IP tanımlı değil`);
+    async printOrderWithConfig(printerConfig, orderData) {
+        if (!printerConfig || !printerConfig.enabled || !printerConfig.ip) {
             return { success: false, error: 'Printer not configured' };
         }
 
         // Cloud ortamında yerel IP kontrolü
         const isCloud = process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
-        if (isCloud && this.isLocalIP(stationConfig.ip)) {
-            console.log(`ℹ️ [CLOUD] Yerel IP tespiti: ${stationConfig.ip}. Bulut sunucusu yerel ağdaki yazıcıya doğrudan erişemez.`);
+        if (isCloud && this.isLocalIP(printerConfig.ip)) {
             return {
                 success: false,
-                error: `Yazıcı yerel bir IP adresine sahip (${stationConfig.ip}). Bulut sunucu doğrudan bağlanamaz. Lütfen 'Yerel Köprü' (Local Bridge) kullanın.`,
+                error: `Yazıcı yerel bir IP adresine sahip (${printerConfig.ip}). Bulut sunucu doğrudan bağlanamaz.`,
                 isLocalIP: true,
-                ip: stationConfig.ip
+                ip: printerConfig.ip
             };
         }
 
         try {
-            // Dil ayarını al (varsayılan: Türkçe)
-            const language = stationConfig.language || 'tr';
-
-            // Dile göre character set belirle
+            const language = printerConfig.language || 'tr';
             let characterSet = CharacterSet.PC857_TURKISH;
             let codePage = 'CP857';
 
             if (language === 'zh') {
-                // Çince için GB18030 kullan
                 characterSet = CharacterSet.PC936_CHINESE;
                 codePage = 'GB18030';
             }
 
             const printer = new ThermalPrinter({
-                type: stationConfig.type,
-                interface: `tcp://${stationConfig.ip}:${stationConfig.port}`,
+                type: printerConfig.type || PrinterTypes.EPSON,
+                interface: `tcp://${printerConfig.ip}:${printerConfig.port || 9100}`,
                 characterSet: characterSet,
                 removeSpecialCharacters: false,
                 lineCharacter: '-',
-                options: {
-                    timeout: 5000
-                }
+                options: { timeout: 5000 }
             });
 
             const isConnected = await printer.isPrinterConnected();
+            if (!isConnected) throw new Error('Printer not connected');
 
-            if (!isConnected) {
-                throw new Error('Printer not connected');
-            }
-
-            // Code Page ayarla
             printer.setCharacterSet(characterSet);
-
             printer.alignCenter();
             printer.bold(true);
 
-            // Header: Masa Bilgisi (BÜYÜK)
             printer.setTextDoubleHeight();
             printer.setTextDoubleWidth();
             const tableHeader = language === 'zh' ? `桌号: ${orderData.tableNumber}` : `MASA: ${orderData.tableNumber}`;
             printer.println(this.encodeText(tableHeader, codePage));
 
-            // İstasyon adı (Normal Boyut)
             printer.setTextNormal();
-            const stationName = this.encodeText(`[ ${stationConfig.name.toUpperCase()} ]`, codePage);
+            const stationName = this.encodeText(`[ ${(printerConfig.name || 'MUTFAK').toUpperCase()} ]`, codePage);
             printer.println(stationName);
 
             printer.bold(false);
             printer.drawLine();
             printer.newLine();
 
-            // Sipariş bilgileri - Tarih (ID kaldırıldı)
             printer.alignLeft();
-
             if (language === 'zh') {
                 printer.println(`时间: ${new Date().toLocaleString('zh-CN')}`);
             } else {
@@ -302,54 +137,45 @@ class PrinterService {
             printer.drawLine();
             printer.newLine();
 
-            // Ürünler
-            printer.setTextDoubleHeight(); // Ürünleri daha büyük yapalım
+            printer.setTextDoubleHeight();
             printer.bold(true);
             const productsHeader = language === 'zh' ? '产品:' : 'URUNLER:';
-            const productsHeaderEncoded = this.encodeText(productsHeader, codePage);
-            printer.println(productsHeaderEncoded);
+            printer.println(this.encodeText(productsHeader, codePage));
             printer.bold(false);
             printer.newLine();
 
             for (const item of orderData.items) {
                 printer.bold(true);
-
-                // Ürün adını dile göre çevir
                 let itemName = item.name;
-                if (language === 'zh' && item.nameChinese) {
+                if (language === 'zh' && item.translations?.zh?.name) {
+                    itemName = item.translations.zh.name;
+                } else if (language === 'zh' && item.nameChinese) {
                     itemName = item.nameChinese;
-
-                } else if (language === 'zh') {
-                    itemName = await this.translateProductName(item.name, 'zh');
                 }
 
                 const itemNameEncoded = this.encodeText(itemName, codePage);
                 printer.println(`${item.quantity}x ${itemNameEncoded}`);
-
                 printer.bold(false);
 
                 if (item.notes) {
                     printer.bold(true);
                     printer.underline(true);
                     const noteLabel = language === 'zh' ? '备注: ' : 'NOT: ';
-                    const notes = this.encodeText(`   ${noteLabel}${item.notes}`, codePage);
-                    printer.println(notes);
+                    printer.println(this.encodeText(`   ${noteLabel}${item.notes}`, codePage));
                     printer.underline(false);
                     printer.bold(false);
                 }
-
                 printer.newLine();
             }
 
-            printer.setTextNormal(); // Normal boyuta dön
+            printer.setTextNormal();
             printer.drawLine();
             printer.newLine();
             printer.alignCenter();
             printer.bold(true);
 
             const footer = language === 'zh' ? '请享用!' : 'AFIYET OLSUN!';
-            const footerEncoded = this.encodeText(footer, codePage);
-            printer.println(footerEncoded);
+            printer.println(this.encodeText(footer, codePage));
 
             printer.bold(false);
             printer.newLine();
@@ -357,41 +183,36 @@ class PrinterService {
             printer.cut();
 
             await printer.execute();
-            console.log(`✅ ${station} yazıcısına yazdırıldı (${language === 'zh' ? 'Çince' : 'Türkçe'} karakter destekli)`);
-
             return { success: true };
 
         } catch (error) {
-            console.error(`❌ ${station} yazıcı hatası:`, error);
+            console.error(`❌ Yazıcı hatası:`, error);
             return { success: false, error: error.message };
         }
     }
 
     /**
+     * Sipariş fişi yazdır (Legacy support - for backward compatibility)
+     */
+    async printOrderAdvanced(stationId, orderData) {
+        // Eğer stations içinde varsa kullan, yoksa hata
+        const config = this.stations[stationId];
+        if (!config) return { success: false, error: 'Station not found' };
+        return await this.printOrderWithConfig(config, orderData);
+    }
+
+    /**
      * Bilgi Fişi Yazdır (Kasa için)
      */
-    async printInformationReceipt(station, orderData, restaurant = null) {
-        const stationConfig = this.stations[station];
-
-        if (!stationConfig || !stationConfig.enabled || !stationConfig.ip) {
+    async printInformationReceipt(printerConfig, orderData, restaurant = null) {
+        if (!printerConfig || !printerConfig.enabled || !printerConfig.ip) {
             return { success: false, error: 'Printer not configured' };
-        }
-
-        // Cloud ortamında yerel IP kontrolü
-        const isCloud = process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
-        if (isCloud && this.isLocalIP(stationConfig.ip)) {
-            return {
-                success: false,
-                error: `Yazıcı yerel bir IP adresine sahip (${stationConfig.ip}). Lütfen 'Yerel Köprü' kullanın.`,
-                isLocalIP: true,
-                ip: stationConfig.ip
-            };
         }
 
         try {
             const printer = new ThermalPrinter({
-                type: stationConfig.type,
-                interface: `tcp://${stationConfig.ip}:${stationConfig.port}`,
+                type: printerConfig.type || PrinterTypes.EPSON,
+                interface: `tcp://${printerConfig.ip}:${printerConfig.port || 9100}`,
                 characterSet: CharacterSet.PC857_TURKISH,
                 removeSpecialCharacters: false,
                 lineCharacter: '-',
@@ -401,107 +222,55 @@ class PrinterService {
             const isConnected = await printer.isPrinterConnected();
             if (!isConnected) throw new Error('Printer not connected');
 
-            // Restoran bilgilerini al
             const restaurantName = restaurant?.name || orderData.restaurantName || 'RESTORAN';
             const restaurantSettings = restaurant?.settings || {};
             const printerSettings = restaurantSettings?.printerSettings || {};
             const brandingSettings = restaurantSettings?.branding || {};
-
-            // Logo ayarlarını kontrol et
-            const showLogo = printerSettings.showLogo !== false; // Default true
+            const showLogo = printerSettings.showLogo !== false;
             const logoUrl = restaurant?.logo || brandingSettings?.logo;
 
-            // Logo ve restoran adı
             printer.alignCenter();
 
-            // Logo yazdırma (sadece showLogo true ise ve logo varsa)
             if (showLogo && logoUrl) {
                 try {
                     let logoPath = null;
-
-                    // Logo path kontrolü - URL ise indir, local path ise kullan
                     if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
-                        // URL'den logo indir ve geçici olarak kaydet
-                        try {
-                            const tempDir = path.join(__dirname, '../../temp');
-                            if (!fs.existsSync(tempDir)) {
-                                fs.mkdirSync(tempDir, { recursive: true });
-                            }
+                        const tempDir = path.join(__dirname, '../../temp');
+                        if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+                        const ext = path.extname(new URL(logoUrl).pathname) || '.png';
+                        const tempLogoPath = path.join(tempDir, `logo_${Date.now()}${ext}`);
 
-                            const urlParts = new URL(logoUrl);
-                            const ext = path.extname(urlParts.pathname) || '.png';
-                            const tempLogoPath = path.join(tempDir, `logo_${Date.now()}${ext}`);
-
-                            // URL'den dosyayı indir
-                            await new Promise((resolve, reject) => {
-                                const protocol = logoUrl.startsWith('https://') ? https : http;
-                                const file = fs.createWriteStream(tempLogoPath);
-
-                                protocol.get(logoUrl, (response) => {
-                                    if (response.statusCode !== 200) {
-                                        reject(new Error(`HTTP ${response.statusCode}`));
-                                        return;
-                                    }
-                                    response.pipe(file);
-                                    file.on('finish', () => {
-                                        file.close();
-                                        resolve();
-                                    });
-                                }).on('error', (err) => {
-                                    fs.unlinkSync(tempLogoPath).catch(() => { });
-                                    reject(err);
-                                });
-                            });
-
-                            logoPath = tempLogoPath;
-                            console.log('Logo URL\'den indirildi:', tempLogoPath);
-                        } catch (downloadError) {
-                            console.warn('Logo URL\'den indirilemedi, text ile devam ediliyor:', downloadError.message);
-                            printer.bold(true);
-                            printer.setTextDoubleHeight();
-                            printer.println(this.encodeText(restaurantName));
-                            printer.setTextNormal();
-                            printer.bold(false);
-                            logoPath = null;
-                        }
+                        await new Promise((resolve, reject) => {
+                            const protocol = logoUrl.startsWith('https://') ? https : http;
+                            const file = fs.createWriteStream(tempLogoPath);
+                            protocol.get(logoUrl, res => {
+                                if (res.statusCode !== 200) reject(new Error(`HTTP ${res.statusCode}`));
+                                res.pipe(file);
+                                file.on('finish', () => { file.close(); resolve(); });
+                            }).on('error', err => { fs.unlinkSync(tempLogoPath).catch(() => { }); reject(err); });
+                        });
+                        logoPath = tempLogoPath;
                     } else {
-                        // Local file path
-                        logoPath = path.isAbsolute(logoUrl)
-                            ? logoUrl
-                            : path.join(__dirname, '../../', logoUrl);
+                        logoPath = path.isAbsolute(logoUrl) ? logoUrl : path.join(__dirname, '../../', logoUrl);
                     }
 
-                    // Logo dosyasını yazdır
                     if (logoPath && fs.existsSync(logoPath)) {
                         await printer.printImage(logoPath);
-
-                        // Geçici dosyayı sil (eğer URL'den indirildiyse)
-                        if (logoPath.includes('/temp/logo_')) {
-                            fs.unlinkSync(logoPath).catch(() => { });
-                        }
-                    } else if (logoPath) {
-                        console.warn('Logo dosyası bulunamadı:', logoPath);
-                        printer.bold(true);
-                        printer.setTextDoubleHeight();
+                        if (logoPath.includes('/temp/logo_')) fs.unlinkSync(logoPath).catch(() => { });
+                    } else {
+                        printer.bold(true); printer.setTextDoubleHeight();
                         printer.println(this.encodeText(restaurantName));
-                        printer.setTextNormal();
-                        printer.bold(false);
+                        printer.setTextNormal(); printer.bold(false);
                     }
                 } catch (e) {
-                    console.warn('Logo yazdırılamadı, text ile devam ediliyor:', e.message);
-                    printer.bold(true);
-                    printer.setTextDoubleHeight();
+                    printer.bold(true); printer.setTextDoubleHeight();
                     printer.println(this.encodeText(restaurantName));
-                    printer.setTextNormal();
-                    printer.bold(false);
+                    printer.setTextNormal(); printer.bold(false);
                 }
             } else {
-                // Logo yoksa veya showLogo false ise sadece restoran adını yazdır
-                printer.bold(true);
-                printer.setTextDoubleHeight();
+                printer.bold(true); printer.setTextDoubleHeight();
                 printer.println(this.encodeText(restaurantName));
-                printer.setTextNormal();
-                printer.bold(false);
+                printer.setTextNormal(); printer.bold(false);
             }
 
             printer.newLine();
@@ -510,19 +279,15 @@ class PrinterService {
             printer.bold(false);
             printer.drawLine();
 
-            // Sipariş bilgileri
             printer.alignLeft();
-            printer.println(`Cek : ${orderData.orderNumber.substring(0, 8)}`);
+            printer.println(`Cek : ${String(orderData.orderNumber || '').substring(0, 8)}`);
             printer.println(`Masa: MASA - ${orderData.tableNumber}`);
             printer.newLine();
 
             const now = new Date();
-            const dateStr = now.toLocaleDateString('tr-TR');
-            const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-
             printer.tableCustom([
                 { text: 'Tarih', align: 'LEFT', width: 0.5 },
-                { text: `${dateStr} ${timeStr}`, align: 'RIGHT', width: 0.5 }
+                { text: `${now.toLocaleDateString('tr-TR')} ${now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`, align: 'RIGHT', width: 0.5 }
             ]);
 
             printer.tableCustom([
@@ -530,19 +295,12 @@ class PrinterService {
                 { text: orderData.cashierName || 'Kasiyer', align: 'RIGHT', width: 0.5 }
             ]);
 
-            printer.tableCustom([
-                { text: 'Gelir Merkezi', align: 'LEFT', width: 0.5 },
-                { text: 'Restoran', align: 'RIGHT', width: 0.5 }
-            ]);
-
             printer.drawLine();
 
-            // Ürünler
             let subtotal = 0;
             for (const item of orderData.items) {
-                const itemTotal = Number(item.price) * Number(item.quantity);
+                const itemTotal = Number(item.price || 0) * Number(item.quantity || 1);
                 subtotal += itemTotal;
-
                 printer.println(`${item.quantity} x ${this.encodeText(item.name)}`);
             }
 
@@ -554,10 +312,7 @@ class PrinterService {
             printer.bold(false);
             printer.drawLine();
 
-            // Vergiler (KDV)
-            // Türkiye için %10 KDV
             const taxRate = 0.10;
-            // Eğer subtotal KDV dahil ise (gross ise):
             const taxAmount = subtotal - (subtotal / (1 + taxRate));
             const netAmount = subtotal - taxAmount;
 
@@ -583,7 +338,6 @@ class PrinterService {
 
             await printer.execute();
             return { success: true };
-
         } catch (error) {
             console.error(`❌ Bilgi fişi yazdırma hatası:`, error);
             return { success: false, error: error.message };
@@ -591,96 +345,52 @@ class PrinterService {
     }
 
     /**
-     * Test yazdırma (Türkçe karakterlerle)
+     * Test yazdırma
      */
-    async printTest(station) {
+    async printTest(printerConfig) {
         const testOrder = {
             orderNumber: 'TEST-' + Date.now(),
-            tableNumber: 'TEST-MASA',
+            tableNumber: 'TEST',
             items: [
-                {
-                    quantity: 2,
-                    name: 'Çiğ Köfte - Özel Şişli',
-                    notes: 'Yoğurtlu ve acılı sos'
-                },
-                {
-                    quantity: 1,
-                    name: 'İçli Köfte',
-                    notes: 'Ekstra bulgur'
-                },
-                {
-                    quantity: 3,
-                    name: 'Künefe - Fıstıklı',
-                    notes: 'Üstüne maraş dondurması'
-                }
+                { quantity: 1, name: 'Test Ürünü - Türkçe', notes: 'Türkçe karakter testi: ğüşiöç' },
+                { quantity: 2, name: '测试产品 - 中文', nameChinese: '测试产品', notes: 'Çince karakter testi' }
             ]
         };
-
-        return await this.printOrderAdvanced(station, testOrder);
+        return await this.printOrderWithConfig(printerConfig, testOrder);
     }
 
     /**
      * Yazıcı durumunu kontrol et
      */
-    async checkPrinterStatus(station) {
-        const stationConfig = this.stations[station];
-
-        if (!stationConfig || !stationConfig.ip) {
-            return {
-                connected: false,
-                error: 'Printer not configured'
-            };
+    async checkPrinterStatusDirect(printerConfig) {
+        if (!printerConfig || !printerConfig.ip) {
+            return { connected: false, error: 'Printer not configured' };
         }
 
-        // Cloud ortamında yerel IP kontrolü
         const isCloud = process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
-        if (isCloud && this.isLocalIP(stationConfig.ip)) {
-            return {
-                connected: false,
-                error: `Yerel IP tespiti (${stationConfig.ip}). Bulut üzerinden kontrol edilemez.`,
-                isLocalIP: true,
-                ip: stationConfig.ip
-            };
+        if (isCloud && this.isLocalIP(printerConfig.ip)) {
+            return { connected: false, error: `Yerel IP (${printerConfig.ip}). Bulut üzerinden ulaşılamaz.`, isLocalIP: true };
         }
 
         try {
             const printer = new ThermalPrinter({
-                type: stationConfig.type,
-                interface: `tcp://${stationConfig.ip}:${stationConfig.port}`,
+                type: printerConfig.type || PrinterTypes.EPSON,
+                interface: `tcp://${printerConfig.ip}:${printerConfig.port || 9100}`,
                 options: { timeout: 3000 }
             });
 
             const isConnected = await printer.isPrinterConnected();
-
-            return {
-                connected: isConnected,
-                station: stationConfig.name,
-                ip: stationConfig.ip,
-                port: stationConfig.port,
-                codePage: stationConfig.codePage,
-                characterSet: stationConfig.characterSet
-            };
-
+            return { connected: isConnected, ip: printerConfig.ip, name: printerConfig.name };
         } catch (error) {
-            return {
-                connected: false,
-                error: error.message
-            };
+            return { connected: false, error: error.message };
         }
     }
 
-    /**
-     * Tüm istasyonları listele
-     */
-    getStations() {
-        return Object.entries(this.stations).map(([key, value]) => ({
-            id: key,
-            ...value
-        }));
+    // For backward compatibility while refactoring
+    addOrUpdateStation(id, config) {
+        this.stations[id] = config;
     }
 }
 
-// Singleton instance
 const printerService = new PrinterService();
-
 module.exports = printerService;

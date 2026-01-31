@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { 
-  FaHeadset, 
-  FaEnvelope, 
-  FaPhone, 
-  FaBuilding, 
+import {
+  FaHeadset,
+  FaEnvelope,
+  FaPhone,
+  FaBuilding,
   FaClock,
   FaCheckCircle,
   FaExclamationCircle,
@@ -26,6 +26,7 @@ interface SupportTicket {
   message: string;
   status: 'pending' | 'in-progress' | 'resolved';
   priority: 'low' | 'medium' | 'high';
+  category?: string;
   createdAt: string;
 }
 
@@ -46,7 +47,7 @@ export default function AdminSupport() {
       setLoading(true);
       const response = await fetch(`${API_URL}/support`);
       const data = await response.json();
-      
+
       if (data.success) {
         setTickets(data.data || []);
       }
@@ -204,11 +205,10 @@ export default function AdminSupport() {
               <button
                 key={f}
                 onClick={() => setFilter(f as any)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === f
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === f
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 {f === 'all' ? 'Tümü' : getStatusText(f)}
               </button>
@@ -245,6 +245,11 @@ export default function AdminSupport() {
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityBadge(ticket.priority)}`}>
                         {ticket.priority === 'high' ? 'Yüksek' : ticket.priority === 'medium' ? 'Orta' : 'Düşük'}
                       </span>
+                      {ticket.category && (
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 uppercase">
+                          {ticket.category}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                       <div className="flex items-center gap-1">
@@ -345,31 +350,28 @@ export default function AdminSupport() {
                   <div className="grid grid-cols-3 gap-3">
                     <button
                       onClick={() => updateTicketStatus(selectedTicket.id, 'pending')}
-                      className={`py-3 rounded-lg font-semibold transition-colors ${
-                        selectedTicket.status === 'pending'
-                          ? 'bg-yellow-500 text-white'
-                          : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                      }`}
+                      className={`py-3 rounded-lg font-semibold transition-colors ${selectedTicket.status === 'pending'
+                        ? 'bg-yellow-500 text-white'
+                        : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                        }`}
                     >
                       Beklemede
                     </button>
                     <button
                       onClick={() => updateTicketStatus(selectedTicket.id, 'in-progress')}
-                      className={`py-3 rounded-lg font-semibold transition-colors ${
-                        selectedTicket.status === 'in-progress'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                      }`}
+                      className={`py-3 rounded-lg font-semibold transition-colors ${selectedTicket.status === 'in-progress'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                        }`}
                     >
                       İşlemde
                     </button>
                     <button
                       onClick={() => updateTicketStatus(selectedTicket.id, 'resolved')}
-                      className={`py-3 rounded-lg font-semibold transition-colors ${
-                        selectedTicket.status === 'resolved'
-                          ? 'bg-green-500 text-white'
-                          : 'bg-green-100 text-green-700 hover:bg-green-200'
-                      }`}
+                      className={`py-3 rounded-lg font-semibold transition-colors ${selectedTicket.status === 'resolved'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                        }`}
                     >
                       Çözüldü
                     </button>

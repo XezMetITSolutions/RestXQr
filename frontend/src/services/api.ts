@@ -624,6 +624,18 @@ class ApiService {
     });
   }
 
+  // Support endpoints
+  async getSupportTickets(restaurantId?: string) {
+    const endpoint = restaurantId ? `/support?restaurantId=${restaurantId}` : '/support';
+    return this.request<any[]>(endpoint);
+  }
+
+  async createSupportTicket(data: any) {
+    return this.request<any>('/support', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const apiService = new ApiService();

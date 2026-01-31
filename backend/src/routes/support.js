@@ -1,57 +1,40 @@
 const express = require('express');
 const router = express.Router();
-const { v4: uuidv4 } = require('uuid');
+const { SupportTicket, Restaurant } = require('../models');
 
-// Safe model import
-let Restaurant;
-try {
-  const models = require('../models');
-  Restaurant = models.Restaurant;
-} catch (error) {
-  console.error('Model import error:', error);
-  Restaurant = null;
-}
-
-// In-memory storage (production'da database kullanılmalı)
-let supportTickets = [];
-
-// GET /api/support - Get all support tickets
+// GET /api/support - Get all support tickets (or filtered by restaurantId)
 router.get('/', async (req, res) => {
   try {
-    // Restaurant bilgilerini ekle
-    const ticketsWithRestaurant = await Promise.all(
-      supportTickets.map(async (ticket) => {
-        let restaurantName = 'Bilinmeyen Restoran';
-        
-        if (Restaurant && ticket.restaurantId) {
-          try {
-            const restaurant = await Restaurant.findByPk(ticket.restaurantId);
-            if (restaurant) {
-              restaurantName = restaurant.name;
-            }
-          } catch (err) {
-            console.error('Restaurant fetch error:', err);
-          }
-        }
-        
-        return {
-          ...ticket,
-          restaurantName
-        };
-      })
-    );
+    const { restaurantId } = req.query;
+    const where = {};
+    if (restaurantId) {
+      where.restaurantId = restaurantId;
+    }
+
+    const tickets = await SupportTicket.findAll({
+      where,
+      include: [{
+        model: Restaurant,
+        as: 'restaurant',
+        attributes: ['name']
+      }],
+      order: [['createdAt', 'DESC']]
+    });
+
+    const formattedTickets = tickets.map(ticket => ({
+      ...ticket.toJSON(),
+      restaurantName: ticket.restaurant ? ticket.restaurant.name : 'Misafir'
+    }));
 
     res.json({
       success: true,
-      data: ticketsWithRestaurant.sort((a, b) => 
-        new Date(b.createdAt) - new Date(a.createdAt)
-      )
+      data: formattedTickets
     });
   } catch (error) {
     console.error('Get support tickets error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Destek talepleri alınırken bir hata oluştu'
     });
   }
 });
@@ -59,17 +42,20 @@ router.get('/', async (req, res) => {
 // POST /api/support - Create new support ticket
 router.post('/', async (req, res) => {
   try {
-    const { restaurantId, name, email, phone, subject, message, priority } = req.body;
+    const { restaurantId, name, email, phone, subject, message, priority, category } = req.body;
 
     if (!subject || !message || !email) {
       return res.status(400).json({
         success: false,
-        message: 'Subject, message, and email are required'
+        message: 'Konu, mesaj ve e-posta alanları zorunludur'
       });
     }
 
-    const ticket = {
-      id: uuidv4(),
+    // Map priority if needed
+    let dbPriority = priority;
+    if (priority === 'normal') dbPriority = 'medium';
+
+    const ticket = await SupportTicket.create({
       restaurantId: restaurantId || null,
       name: name || 'Anonim',
       email,
@@ -77,11 +63,9 @@ router.post('/', async (req, res) => {
       subject,
       message,
       status: 'pending',
-      priority: priority || 'medium',
-      createdAt: new Date().toISOString()
-    };
-
-    supportTickets.push(ticket);
+      priority: dbPriority || 'medium',
+      category: category || 'other'
+    });
 
     console.log(`✅ New support ticket created: ${ticket.id} - ${ticket.subject}`);
 
@@ -94,42 +78,48 @@ router.post('/', async (req, res) => {
     console.error('Create support ticket error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Destek talebi oluşturulurken bir hata oluştu'
     });
   }
 });
 
-// PUT /api/support/:id - Update support ticket status
+// PUT /api/support/:id - Update support ticket status/priority
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, priority, response } = req.body;
 
-    const ticketIndex = supportTickets.findIndex(t => t.id === id);
+    const ticket = await SupportTicket.findByPk(id);
 
-    if (ticketIndex === -1) {
+    if (!ticket) {
       return res.status(404).json({
         success: false,
-        message: 'Support ticket not found'
+        message: 'Destek talebi bulunamadı'
       });
     }
 
-    if (status) {
-      supportTickets[ticketIndex].status = status;
+    const updates = {};
+    if (status) updates.status = status;
+    if (priority) updates.priority = priority;
+    if (response) {
+      updates.response = response;
+      updates.respondedAt = new Date();
     }
 
-    console.log(`✅ Support ticket updated: ${id} - Status: ${status}`);
+    await ticket.update(updates);
+
+    console.log(`✅ Support ticket updated: ${id}`);
 
     res.json({
       success: true,
-      data: supportTickets[ticketIndex],
+      data: ticket,
       message: 'Destek talebi güncellendi'
     });
   } catch (error) {
     console.error('Update support ticket error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Destek talebi güncellenirken bir hata oluştu'
     });
   }
 });
@@ -139,16 +129,16 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const ticketIndex = supportTickets.findIndex(t => t.id === id);
+    const ticket = await SupportTicket.findByPk(id);
 
-    if (ticketIndex === -1) {
+    if (!ticket) {
       return res.status(404).json({
         success: false,
-        message: 'Support ticket not found'
+        message: 'Destek talebi bulunamadı'
       });
     }
 
-    supportTickets.splice(ticketIndex, 1);
+    await ticket.destroy();
 
     console.log(`✅ Support ticket deleted: ${id}`);
 
@@ -160,7 +150,7 @@ router.delete('/:id', async (req, res) => {
     console.error('Delete support ticket error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Destek talebi silinirken bir hata oluştu'
     });
   }
 });
