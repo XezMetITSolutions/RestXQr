@@ -4417,6 +4417,108 @@ export default function MenuManagement() {
                   </div>
                 </div>
               </div>
+
+              {/* Active Campaigns List - Added Code */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                  <span className="p-2 bg-green-100 text-green-600 rounded-lg"><FaTag /></span>
+                  <TranslatedText>Aktif Kampanyalar</TranslatedText>
+                </h3>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="pb-3 pl-4 font-semibold text-gray-600"><TranslatedText>Tip</TranslatedText></th>
+                        <th className="pb-3 font-semibold text-gray-600"><TranslatedText>Ad</TranslatedText></th>
+                        <th className="pb-3 font-semibold text-gray-600"><TranslatedText>İndirim</TranslatedText></th>
+                        <th className="pb-3 font-semibold text-gray-600"><TranslatedText>Süre</TranslatedText></th>
+                        <th className="pb-3 pr-4 font-semibold text-gray-600 text-right"><TranslatedText>İşlem</TranslatedText></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {/* Render Category Campaigns */}
+                      {categories.filter(c => c.discountPercentage).map(cat => (
+                        <tr key={`cat-${cat.id}`} className="hover:bg-gray-50 transition-colors">
+                          <td className="py-4 pl-4"><span className="text-xs font-bold bg-purple-100 text-purple-600 px-2 py-1 rounded">Kategori</span></td>
+                          <td className="py-4 font-medium">{cat.name}</td>
+                          <td className="py-4 font-bold text-green-600">%{cat.discountPercentage}</td>
+                          <td className="py-4 text-sm text-gray-500">
+                            {cat.discountStartDate ? new Date(cat.discountStartDate).toLocaleDateString() : '-'} / {cat.discountEndDate ? new Date(cat.discountEndDate).toLocaleDateString() : '-'}
+                          </td>
+                          <td className="py-4 pr-4 text-right">
+                            <button
+                              onClick={async () => {
+                                if (confirm(t('Kampanyayı kaldırmak istediğinize emin misiniz?'))) {
+                                  await updateMenuCategory(currentRestaurantId, cat.id, {
+                                    name: cat.name,
+                                    discountPercentage: null,
+                                    discountStartDate: null,
+                                    discountEndDate: null
+                                  });
+                                  alert(t('Kampanya kaldırıldı'));
+                                }
+                              }}
+                              className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-all"
+                            >
+                              <FaTrash />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+
+                      {/* Render Item Campaigns */}
+                      {items.filter(i => i.discountPercentage || i.discountedPrice).map(item => (
+                        <tr key={`item-${item.id}`} className="hover:bg-gray-50 transition-colors">
+                          <td className="py-4 pl-4"><span className="text-xs font-bold bg-blue-100 text-blue-600 px-2 py-1 rounded">Ürün</span></td>
+                          <td className="py-4 font-medium">
+                            {item.name}
+                            <div className="text-xs text-gray-400">{item.price} ₺</div>
+                          </td>
+                          <td className="py-4 font-bold text-green-600">
+                            {item.discountPercentage ? `%${item.discountPercentage}` : `${item.discountedPrice} ₺`}
+                          </td>
+                          <td className="py-4 text-sm text-gray-500">
+                            {item.discountStartDate ? new Date(item.discountStartDate).toLocaleDateString() : '-'} / {item.discountEndDate ? new Date(item.discountEndDate).toLocaleDateString() : '-'}
+                          </td>
+                          <td className="py-4 pr-4 text-right">
+                            <button
+                              onClick={async () => {
+                                if (confirm(t('Kampanyayı kaldırmak istediğinize emin misiniz?'))) {
+                                  await updateMenuItem(currentRestaurantId, item.id, {
+                                    // Preserve required fields
+                                    categoryId: item.categoryId,
+                                    name: item.name,
+                                    price: item.price,
+                                    isAvailable: item.isAvailable,
+                                    isPopular: item.isPopular,
+                                    discountPercentage: null,
+                                    discountedPrice: null,
+                                    discountStartDate: null,
+                                    discountEndDate: null
+                                  });
+                                  alert(t('Kampanya kaldırıldı'));
+                                }
+                              }}
+                              className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-all"
+                            >
+                              <FaTrash />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+
+                      {categories.filter(c => c.discountPercentage).length === 0 && items.filter(i => i.discountPercentage || i.discountedPrice).length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-gray-400">
+                            <TranslatedText>Aktif kampanya bulunmuyor.</TranslatedText>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           )}
 

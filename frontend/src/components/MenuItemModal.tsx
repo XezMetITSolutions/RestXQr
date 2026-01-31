@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { FaTimes, FaPlus, FaMinus, FaStar } from 'react-icons/fa';
 import { useCartStore } from '@/store';
+import useRestaurantStore from '@/store/useRestaurantStore';
 import { MenuItem } from '@/store/useMenuStore';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -16,6 +17,7 @@ interface MenuItemModalProps {
 export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion }: MenuItemModalProps) {
   const { currentLanguage } = useLanguage();
   const { addItem } = useCartStore();
+  const { categories } = useRestaurantStore(); // 2. Access categories for category-based discounts
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
   const [selectedVariant, setSelectedVariant] = useState<{ name: string, price: number } | null>(null);
@@ -30,7 +32,59 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
     }
   }, [item]);
 
-  const currentPrice = selectedVariant ? selectedVariant.price : item.price;
+  // 3. Helper: Calculate discounted price
+  const getDiscountedPrice = useCallback(() => {
+    const now = new Date();
+    let priceToUse = selectedVariant ? parseFloat(selectedVariant.price.toString()) : parseFloat(item.price.toString());
+
+    const itemAny = item as any;
+
+    // 1. Check Item Discount
+    if (itemAny.discountedPrice || itemAny.discountPercentage) {
+      const start = itemAny.discountStartDate ? new Date(itemAny.discountStartDate) : null;
+      const end = itemAny.discountEndDate ? new Date(itemAny.discountEndDate) : null;
+
+      if ((!start || now >= start) && (!end || now <= end)) {
+        // Percentage applies to everything
+        if (itemAny.discountPercentage) {
+          return priceToUse * (1 - itemAny.discountPercentage / 100);
+        }
+
+        // Fixed price: Only apply if no variant selected, or if selected variant price equals base item price
+        // (Assuming fixed price is meant for the standard portion)
+        if (itemAny.discountedPrice) {
+          // Check if selectedVariant is null OR if its price is approximately equal to the item's base price
+          // This handles cases where the default variant might have the same price as the item's base price.
+          if (!selectedVariant || Math.abs(parseFloat(selectedVariant.price.toString()) - parseFloat(item.price.toString())) < 0.01) {
+            return parseFloat(itemAny.discountedPrice.toString());
+          }
+          // If a different variant is selected (e.g., "Large" with a different price),
+          // the fixed base item discount does not apply to this variant.
+          // We proceed to check category discounts or return the variant's original price.
+        }
+      }
+    }
+
+    // 2. Check Category Discount (only if no item-level fixed price discount was applied, or if item percentage discount was not present)
+    // If an item percentage discount was applied, it would have returned already.
+    // If an item fixed price discount was applied, it would have returned already (if applicable to variant).
+    // So, if we reach here, either no item discount applied, or item fixed discount didn't apply to the current variant.
+    const category = categories.find((c: any) => c.id === item.categoryId) as any;
+
+    if (category?.discountPercentage) {
+      const start = category.discountStartDate ? new Date(category.discountStartDate) : null;
+      const end = category.discountEndDate ? new Date(category.discountEndDate) : null;
+
+      if ((!start || now >= start) && (!end || now <= end)) {
+        return priceToUse * (1 - category.discountPercentage / 100);
+      }
+    }
+
+    return priceToUse;
+  }, [item, selectedVariant, categories]);
+
+  // 4. Update currentPrice to use getDiscountedPrice
+  const currentPrice = getDiscountedPrice();
 
   const handleAddToCart = useCallback(() => {
     // Resolve image URL
@@ -60,7 +114,7 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
     addItem({
       itemId: item.id,
       name: typeof item.name === 'string' ? { en: item.name, tr: item.name } : item.name,
-      price: currentPrice,
+      price: currentPrice, // 5. Use the calculated currentPrice (which now reflects discounts)
       variant: selectedVariant || undefined,
       quantity,
       image: imageUrl,
