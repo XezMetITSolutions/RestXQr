@@ -42,7 +42,8 @@ import {
   FaSync,
   FaPlus,
   FaTrash,
-  FaPrint
+  FaPrint,
+  FaLock
 } from 'react-icons/fa';
 import AnnouncementQuickModal from '@/components/AnnouncementQuickModal';
 import BusinessSidebar from '@/components/BusinessSidebar';
