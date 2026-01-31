@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { printReceiptViaBridge } from '@/lib/printerHelpers';
+import apiService from '@/services/api';
 import { FaUser, FaUtensils, FaBell, FaCheckCircle, FaClock, FaMoneyBillWave, FaEdit, FaEye, FaTimes, FaChartBar, FaSignOutAlt, FaPlus, FaMinus } from 'react-icons/fa';
 
 interface OrderItem {
@@ -41,6 +43,7 @@ export default function GarsonPanel() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [calls, setCalls] = useState<WaiterCall[]>([]);
+  const [tables, setTables] = useState<number[]>([]); // All existing tables
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string>('');
   const [restaurantName, setRestaurantName] = useState<string>('');
@@ -252,6 +255,23 @@ export default function GarsonPanel() {
     }
   };
 
+  // Masaları (QR Tokenları) çek
+  const fetchTables = async () => {
+    if (!restaurantId) return;
+    try {
+      const response = await apiService.getRestaurantQRTokens(restaurantId);
+      if (response.success && Array.isArray(response.data)) {
+        const tableNums = response.data.map((t: any) => t.tableNumber).filter((n: any) => !isNaN(n));
+        // Unique and sort
+        const uniqueTables = Array.from(new Set(tableNums)).sort((a: any, b: any) => a - b) as number[];
+        setTables(uniqueTables);
+        console.log(`✅ ${uniqueTables.length} masa yüklendi.`);
+      }
+    } catch (error) {
+      console.error('Masalar çekilemedi:', error);
+    }
+  };
+
   useEffect(() => {
     if (restaurantId) {
       const loadData = () => {
@@ -262,6 +282,7 @@ export default function GarsonPanel() {
       fetchOrders(false);
       fetchCalls();
       fetchMenuItems();
+      fetchTables(); // Load tables once
 
       const interval = setInterval(loadData, 10000);
       return () => clearInterval(interval);
@@ -575,19 +596,86 @@ export default function GarsonPanel() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
             <p className="mt-4">Siparişler yükleniyor...</p>
           </div>
-        ) : filteredOrders.length === 0 ? (
+        ) : (filteredOrders.length === 0 && activeFilter !== 'all') ? (
           <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-12 text-center text-white">
             <FaUtensils className="text-6xl mx-auto mb-4 opacity-50" />
-            <h3 className="text-xl font-semibold mb-2">Henüz Sipariş Yok</h3>
-            <p className="opacity-75">Yeni siparişler burada görünecek</p>
+            <h3 className="text-xl font-semibold mb-2">Sipariş Yok</h3>
+            <p className="opacity-75">Bu filtrede sipariş bulunmuyor</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredOrders.map((order) => {
-              const activeCall = calls.find(c => c.tableNumber === order.tableNumber);
+            {/* Logic: If 'all' filter, show ALL tables. If specific filter, show only matching orders */}
+            {(activeFilter === 'all' && tables.length > 0 ? tables : filteredOrders.map(o => o.tableNumber)).map((item) => {
+              // Resolve Table Number and Order
+              let tableNumber = 0;
+              let order: Order | undefined;
+
+              if (typeof item === 'number') {
+                tableNumber = item;
+                order = filteredOrders.find(o => o.tableNumber === tableNumber);
+              } else {
+                // Fallback for filtered view where we map active orders
+                const o = (activeFilter === 'all' && tables.length > 0) ? null : filteredOrders.find(fo => fo.tableNumber === item); // redundant but safe
+                if (!o && activeFilter !== 'all') return null; // Should not happen
+                tableNumber = item as number;
+                order = filteredOrders.find(fo => fo.tableNumber === tableNumber);
+              }
+
+              const activeCall = calls.find(c => c.tableNumber === tableNumber && c.type !== 'bill');
+
+              // If 'all' view and empty table
+              if (activeFilter === 'all' && !order && !activeCall) {
+                return (
+                  <div key={`table-${tableNumber}`} className="bg-white bg-opacity-90 rounded-2xl p-4 shadow-sm border-2 border-gray-200 opacity-75 hover:opacity-100 transition-opacity flex flex-col items-center justify-center min-h-[150px]">
+                    <div className="text-2xl font-bold text-gray-400 mb-2">Masa {tableNumber}</div>
+                    <div className="text-sm text-gray-400 flex items-center gap-2">
+                      <FaCheckCircle /> Boş
+                    </div>
+                  </div>
+                );
+              }
+
+              // If we have an active call but no order (e.g. customer sat down and called waiter before ordering)
+              if (!order && activeCall) {
+                return (
+                  <div key={`table-${tableNumber}`} className="bg-white rounded-2xl p-4 shadow-lg border-2 border-orange-500 ring-4 ring-orange-200 animate-pulse">
+                    <div className="text-lg font-bold text-gray-900 mb-2">Masa {tableNumber}</div>
+                    <div className="mb-3 flex items-center justify-between p-3 rounded-xl bg-orange-100 border-2 border-orange-400 text-orange-800">
+                      <div className="flex items-center gap-2">
+                        <FaBell className="text-orange-600" />
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm">
+                            {activeCall.type === 'water' ? 'SU İSTİYOR' :
+                              activeCall.type === 'clean' ? 'TEMİZLİK' :
+                                activeCall.type === 'custom' ? 'MÜŞTERİ NOTU' : 'GARSON'}
+                          </span>
+                          {activeCall.message && (
+                            <span className="text-xs font-semibold opacity-90">
+                              {activeCall.message}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          resolveCall(activeCall.id);
+                        }}
+                        className="bg-white px-3 py-1 rounded-lg text-xs font-bold shadow-sm hover:scale-105 transition-transform"
+                      >
+                        ✓ Tamamla
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (!order) return null; // Fallback
+
+              // Standard Active Order Card
               return (
                 <div key={order.id} className={`bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all border-2 ${activeCall
-                  ? (activeCall.type === 'bill' ? 'border-red-500 ring-2 ring-red-200' : 'border-orange-500 ring-2 ring-orange-200')
+                  ? 'border-orange-500 ring-2 ring-orange-200'
                   : 'border-transparent hover:border-yellow-400'
                   }`}>
                   {/* Order Header */}
@@ -600,10 +688,11 @@ export default function GarsonPanel() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold text-orange-600">₺{Number(order.totalAmount).toFixed(2)}</div>
-                      <div className="text-xs text-gray-500">{order.items.length} ürün</div>
+                      <div className="text-xs text-gray-500 font-bold bg-gray-100 px-2 py-1 rounded">
+                        {getStatusText(order.status)}
+                      </div>
                       {order.id.includes('grouped') && (
-                        <div className="text-xs text-blue-600 font-semibold mt-1">📋 Birleşik Sipariş</div>
+                        <div className="text-xs text-blue-600 font-semibold mt-1">📋 Birleşik</div>
                       )}
                     </div>
                   </div>
@@ -628,22 +717,18 @@ export default function GarsonPanel() {
                     )}
                   </div>
 
-                  {/* Service Calls Only */}
+                  {/* Service Calls Only - Ignore Bill calls */}
                   {(() => {
-                    const activeCall = calls.find(c => c.tableNumber === order.tableNumber);
-
                     if (activeCall) {
                       return (
-                        <div className={`mb-3 flex items-center justify-between p-3 rounded-xl animate-pulse ${activeCall.type === 'bill' ? 'bg-red-100 border-2 border-red-400 text-red-800' : 'bg-orange-100 border-2 border-orange-400 text-orange-800'
-                          }`}>
+                        <div className={`mb-3 flex items-center justify-between p-3 rounded-xl animate-pulse bg-orange-100 border-2 border-orange-400 text-orange-800`}>
                           <div className="flex items-center gap-2">
-                            <FaBell className={activeCall.type === 'bill' ? 'text-red-600' : 'text-orange-600'} />
+                            <FaBell className="text-orange-600" />
                             <div className="flex flex-col">
                               <span className="font-bold text-sm">
-                                {activeCall.type === 'bill' ? 'HESAP İSTİYOR' :
-                                  activeCall.type === 'water' ? 'SU İSTİYOR' :
-                                    activeCall.type === 'clean' ? 'TEMİZLİK' :
-                                      activeCall.type === 'custom' ? 'MÜŞTERİ NOTU' : 'GARSON'}
+                                {activeCall.type === 'water' ? 'SU İSTİYOR' :
+                                  activeCall.type === 'clean' ? 'TEMİZLİK' :
+                                    activeCall.type === 'custom' ? 'MÜŞTERİ NOTU' : 'GARSON'}
                               </span>
                               {activeCall.message && (
                                 <span className="text-xs font-semibold opacity-90">
@@ -717,7 +802,7 @@ export default function GarsonPanel() {
                         }}
                         className="py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs transition-colors"
                       >
-                        🔄 Masa Değiştir
+                        🔄 Masa
                       </button>
                     )}
 
@@ -751,7 +836,7 @@ export default function GarsonPanel() {
                         }}
                         className="py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-xs transition-colors"
                       >
-                        ❌ İptal Et
+                        ❌ İptal
                       </button>
                     )}
                   </div>
