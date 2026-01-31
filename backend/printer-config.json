@@ -8,7 +8,7 @@
         "characterSet": "PC857_TURKISH",
         "codePage": "CP857"
     },
-    "ramen": {
+    "17692021455220.027173748942849185": {
         "name": "RAMEN",
         "ip": "192.168.1.151",
         "port": 9100,
@@ -17,7 +17,7 @@
         "characterSet": "PC857_TURKISH",
         "codePage": "CP857"
     },
-    "kebap": {
+    "17692021455220.8712083591391588": {
         "name": "KEBAP",
         "ip": "192.168.1.149",
         "port": 9100,
@@ -26,9 +26,18 @@
         "characterSet": "PC857_TURKISH",
         "codePage": "CP857"
     },
+    "kasa": {
+        "name": "KASA (USB)",
+        "ip": "Kasa",
+        "port": 9100,
+        "enabled": true,
+        "type": "epson",
+        "characterSet": "PC857_TURKISH",
+        "codePage": "CP857"
+    },
     "manti": {
         "name": "MANTI",
-        "ip": "192.168.10.199",
+        "ip": "192.168.1.154",
         "port": 9100,
         "enabled": true,
         "type": "epson",
@@ -37,7 +46,7 @@
     },
     "icecek1": {
         "name": "1. Kat İçecek",
-        "ip": "192.168.10.192",
+        "ip": "192.168.1.152",
         "port": 9100,
         "enabled": true,
         "type": "epson",
@@ -46,16 +55,7 @@
     },
     "icecek2": {
         "name": "2. Kat İçecek",
-        "ip": "192.168.10.191",
-        "port": 9100,
-        "enabled": true,
-        "type": "epson",
-        "characterSet": "PC857_TURKISH",
-        "codePage": "CP857"
-    },
-    "ortakasa": {
-        "name": "ORTA KASA",
-        "ip": "192.168.10.198",
+        "ip": "192.168.1.153",
         "port": 9100,
         "enabled": true,
         "type": "epson",
