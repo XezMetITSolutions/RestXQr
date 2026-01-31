@@ -528,8 +528,12 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         console.log('✅ First transformed item:', transformedItems[0]);
 
         set({
-          categories: Array.isArray(transformedCategories) ? transformedCategories : [],
-          menuItems: Array.isArray(transformedItems) ? transformedItems : [],
+          categories: Array.isArray(transformedCategories)
+            ? [...transformedCategories].sort((a, b) => (a.order || 0) - (b.order || 0))
+            : [],
+          menuItems: Array.isArray(transformedItems)
+            ? [...transformedItems].sort((a, b) => (a.order || 0) - (b.order || 0))
+            : [],
           loading: false
         });
 

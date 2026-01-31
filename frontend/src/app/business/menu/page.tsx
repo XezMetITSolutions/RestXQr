@@ -38,7 +38,9 @@ import {
   FaBoxOpen,
   FaProjectDiagram,
   FaExchangeAlt,
-  FaFileDownload
+  FaFileDownload,
+  FaArrowUp,
+  FaArrowDown
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
@@ -112,8 +114,17 @@ export default function MenuManagement() {
   console.log('  allMenuItems:', allMenuItems.length);
 
   // Sadece bu restorana ait kategorileri ve ürünleri filtrele
-  const categories = allCategories.filter(c => c.restaurantId === currentRestaurantId);
-  const items = allMenuItems.filter(i => i.restaurantId === currentRestaurantId);
+  const categories = useMemo(() => {
+    return allCategories
+      .filter(c => c.restaurantId === currentRestaurantId)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+  }, [allCategories, currentRestaurantId]);
+
+  const items = useMemo(() => {
+    return allMenuItems
+      .filter(i => i.restaurantId === currentRestaurantId)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+  }, [allMenuItems, currentRestaurantId]);
 
   console.log('  filtered items:', items.length);
   console.log('  first item restaurantId:', allMenuItems[0]?.restaurantId);
@@ -1195,13 +1206,59 @@ export default function MenuManagement() {
         if (currentRestaurantId) {
           await deleteMenuCategory(currentRestaurantId, categoryId);
           console.log('Kategori silindi:', categoryId);
-          // Menüyü yeniden yükle
           await fetchRestaurantMenu(currentRestaurantId);
         }
       } catch (error) {
         console.error('Kategori silinirken hata:', error);
         alert(t('Kategori silinirken bir hata oluştu'));
       }
+    }
+  };
+
+  const handleMoveCategory = async (category: any, direction: 'up' | 'down') => {
+    if (!currentRestaurantId) return;
+
+    const currentIndex = categories.findIndex(c => c.id === category.id);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= categories.length) return;
+
+    const otherCategory = categories[newIndex];
+
+    try {
+      // Swap display orders
+      const currentOrder = category.order || 0;
+      const otherOrder = otherCategory.order || 0;
+
+      // Ensure they have different orders to swap
+      let newCurrentOrder = otherOrder;
+      let newOtherOrder = currentOrder;
+
+      if (newCurrentOrder === newOtherOrder) {
+        if (direction === 'up') {
+          newCurrentOrder = Math.max(0, otherOrder - 1);
+          newOtherOrder = otherOrder;
+        } else {
+          newCurrentOrder = otherOrder + 1;
+          newOtherOrder = otherOrder;
+        }
+      }
+
+      await updateMenuCategory(currentRestaurantId, category.id, {
+        ...category,
+        order: newCurrentOrder
+      });
+
+      await updateMenuCategory(currentRestaurantId, otherCategory.id, {
+        ...otherCategory,
+        order: newOtherOrder
+      });
+
+      await fetchRestaurantMenu(currentRestaurantId);
+    } catch (error) {
+      console.error('Kategori sıralanırken hata:', error);
+      alert(t('Kategori sıralanırken bir hata oluştu'));
     }
   };
 
@@ -2247,9 +2304,27 @@ export default function MenuManagement() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {categories.map(category => (
-                    <div key={category.id} className="bg-white rounded-lg shadow-sm border p-4">
-                      <div className="flex justify-between items-start mb-3">
+                  {categories.map((category, index) => (
+                    <div key={category.id} className="bg-white rounded-lg shadow-sm border p-4 relative group">
+                      <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleMoveCategory(category, 'up')}
+                          disabled={index === 0}
+                          className="p-1.5 bg-gray-100 hover:bg-purple-100 text-gray-600 hover:text-purple-600 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                          title={t('Yukarı Taşı')}
+                        >
+                          <FaArrowUp size={12} />
+                        </button>
+                        <button
+                          onClick={() => handleMoveCategory(category, 'down')}
+                          disabled={index === categories.length - 1}
+                          className="p-1.5 bg-gray-100 hover:bg-purple-100 text-gray-600 hover:text-purple-600 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                          title={t('Aşağı Taşı')}
+                        >
+                          <FaArrowDown size={12} />
+                        </button>
+                      </div>
+                      <div className="flex justify-between items-start mb-3 pr-16 text-left">
                         <h3 className="font-semibold text-lg">{category.name}</h3>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${category.isActive !== false
                           ? 'bg-green-100 text-green-800'
