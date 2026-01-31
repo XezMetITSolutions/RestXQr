@@ -13,29 +13,65 @@ export default function DebugPage() {
     const addLog = (msg: string) => setLogs(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
 
     const checkMenu = async () => {
-        if (!currentRestaurant?.id) return;
+        if (!currentRestaurant?.id) {
+            addLog('❌ Current Restaurant ID missing. Cannot test.');
+            return;
+        }
         setLoading(true);
-        addLog('Fetching menu...');
+
+        // 1. Test fetchRestaurantByUsername
+        addLog(`1. Testing /restaurants/username/${currentRestaurant.username || '...'}`);
+        try {
+            // We can't use apiService.request directly for this easily as it returns internal types
+            // So we fetch directly
+            const userUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/restaurants/username/${currentRestaurant.username}`;
+            const resStart = Date.now();
+            const res = await fetch(userUrl);
+            const dur = Date.now() - resStart;
+
+            if (res.ok) {
+                addLog(`✅ Username Fetch OK (${dur}ms)`);
+            } else {
+                addLog(`❌ Username Fetch Failed (${res.status}): ${res.statusText}`);
+                const text = await res.text();
+                addLog(`   Error: ${text.substring(0, 200)}`);
+            }
+        } catch (e: any) {
+            addLog(`❌ Username Fetch Network Error: ${e.message}`);
+        }
+
+        // 2. Test getRestaurantMenu
+        addLog(`2. Testing /restaurants/${currentRestaurant.id}/menu`);
         try {
             const data = await apiService.getRestaurantMenu(currentRestaurant.id);
             addLog(`Menu fetched. Success: ${data.success}`);
             if (data.success) {
                 addLog(`Items: ${data.data?.items?.length || 0}`);
                 addLog(`Categories: ${data.data?.categories?.length || 0}`);
-                // Check for campaign fields in the first item
+
+                // Detailed Column Check
                 const firstItem = data.data?.items?.[0];
                 if (firstItem) {
-                    addLog('Sample Item Fields Check:');
-                    addLog(`- name: ${firstItem.name}`);
-                    addLog(`- price: ${firstItem.price}`);
-                    addLog(`- discountPercentage: ${firstItem.discountPercentage !== undefined ? 'EXISTS' : 'MISSING'}`);
-                    addLog(`- discountedPrice: ${firstItem.discountedPrice !== undefined ? 'EXISTS' : 'MISSING'}`);
-                    addLog(`- discountStartDate: ${firstItem.discountStartDate !== undefined ? 'EXISTS' : 'MISSING'}`);
+                    addLog('--- Item Data Check ---');
+                    addLog(`ID: ${firstItem.id}`);
+                    addLog(`discountPercentage: ${firstItem.discountPercentage} (${typeof firstItem.discountPercentage})`);
+                    addLog(`discountedPrice: ${firstItem.discountedPrice} (${typeof firstItem.discountedPrice})`);
+                    addLog(`discountStartDate: ${firstItem.discountStartDate}`);
+                } else {
+                    addLog('⚠️ No items found to check columns.');
                 }
+            } else {
+                addLog(`❌ API returned success:false`);
+                addLog(`Message: ${data.message}`);
             }
         } catch (e: any) {
-            addLog(`❌ Fetch Error: ${e.message}`);
-            console.error(e);
+            addLog(`❌ Menu Fetch Error: ${e.message}`);
+            // Check if we can get body
+            if (e.response) {
+                addLog(`Status: ${e.response.status}`);
+                const errText = await e.response.text();
+                addLog(`Body: ${errText}`);
+            }
         } finally {
             setLoading(false);
         }
