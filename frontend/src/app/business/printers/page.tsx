@@ -35,8 +35,12 @@ function PrinterManagementContent() {
     const menuStations = currentRestaurant?.kitchenStations || [];
 
     useEffect(() => {
+        // Initial load only
         loadStations();
         loadAvailableStations();
+    }, []);
+
+    useEffect(() => {
         if (!currentRestaurant) {
             fetchRestaurants();
         }
