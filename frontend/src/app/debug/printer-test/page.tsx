@@ -79,25 +79,38 @@ export default function PrinterTestDebugPage() {
             const orderId = orderData.data.id;
             addLog(`✅ Sipariş oluşturuldu: ${orderId}`, 'success');
 
-            // Step 2: Trigger Manual Print
-            addLog(`Step 2: ${orderId} ID'li sipariş için yazdırma tetikleniyor...`, 'info');
-            const printRes = await fetch(`${apiUrl}/orders/${orderId}/print`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
+            // Step 2: Trigger Local Print directly (since cloud cannot reach local IP)
+            addLog(`Step 2: Local Bridge üzerinden yazdırma deneniyor...`, 'info');
 
-            const printData = await printRes.json();
+            // Construct the payload for local bridge
+            const printPayload = {
+                orderNumber: orderId.substring(0, 8),
+                tableNumber: "999",
+                items: targetItems.map(item => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    notes: item.notes,
+                    kitchenStation: item.kitchenStation // This helps bridge route to correct IP
+                })),
+                printerConfig: {
+                    // Send IPs directly to bridge so it knows where to print
+                    "17692021455220.027173748942849185": "192.168.1.151", // Ramen
+                    "17692021455190.20485462886666846": "192.168.1.150", // Kavurma
+                    "176960565656066": "192.168.1.149" // Kebap
+                }
+            };
 
-            if (printData.success) {
-                printData.results.forEach((res: any) => {
-                    if (res.success) {
-                        addLog(`🖨️ ${res.stationId} Fişi Çıktı! (Hedef IP: ${res.ip})`, 'success', res);
-                    } else {
-                        addLog(`❌ ${res.stationId} HATASI: ${res.error}`, 'error', res);
-                    }
+            // Send to local bridge
+            try {
+                await fetch('http://localhost:3005/debug/print-stations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(printPayload),
+                    // mode: 'no-cors' // We need response, assume bridge has CORS enabled
                 });
-            } else {
-                addLog(`❌ Yazdırma genel hatası: ${printData.message}`, 'error', printData);
+                addLog(`✅ Local Bridge'e komut gönderildi (Cevap bekleniyor)`, 'success');
+            } catch (bridgeError: any) {
+                addLog(`❌ Local Bridge Hatası: Bridge çalışıyor mu? (localhost:3005)`, 'error', bridgeError.message);
             }
 
             // Step 3: Cleanup (Optional but good practice)
