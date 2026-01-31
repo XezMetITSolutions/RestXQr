@@ -165,22 +165,37 @@ app.post('/test/:ip', async (req, res) => {
 // Generic print endpoint for orders
 app.post('/print/:ip', async (req, res) => {
     const { ip } = req.params;
-    const { orderNumber, tableNumber, items } = req.body;
+    const { orderNumber, tableNumber, items, type: printType = 'epson' } = req.body;
 
     console.log(`Received PRINT request for ${ip} (Order: ${orderNumber})`);
 
     try {
-        const printer = new ThermalPrinter({
-            type: PrinterTypes.EPSON,
-            interface: `tcp://${ip}:9100`,
-            characterSet: CharacterSet.PC857_TURKISH,
-            removeSpecialCharacters: false,
-            lineCharacter: '-',
-            options: { timeout: 5000 }
-        });
+        let printer;
 
-        const isConnected = await printer.isPrinterConnected();
-        if (!isConnected) throw new Error("Printer unreachable");
+        // USB/Local Printer Support
+        const isWindowsPrinter = !ip.includes('.') && ip !== 'localhost';
+
+        if (isWindowsPrinter) {
+            console.log(`🖨️ Printing to LOCAL Windows printer: ${ip}`);
+            printer = new ThermalPrinter({
+                type: printType === 'star' ? PrinterTypes.STAR : PrinterTypes.EPSON,
+                interface: `printer:${ip}`, // Windows printer name
+                characterSet: CharacterSet.PC857_TURKISH,
+                removeSpecialCharacters: false,
+                lineCharacter: '-',
+            });
+        } else {
+            printer = new ThermalPrinter({
+                type: printType === 'star' ? PrinterTypes.STAR : PrinterTypes.EPSON,
+                interface: `tcp://${ip}:9100`,
+                characterSet: CharacterSet.PC857_TURKISH,
+                removeSpecialCharacters: false,
+                lineCharacter: '-',
+                options: { timeout: 5000 }
+            });
+            const isConnected = await printer.isPrinterConnected();
+            if (!isConnected) throw new Error("Printer unreachable");
+        }
 
         // Format Kitchen Receipt
         printer.alignCenter();
