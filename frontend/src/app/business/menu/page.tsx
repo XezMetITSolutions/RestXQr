@@ -4448,6 +4448,21 @@ export default function MenuManagement() {
                           </td>
                           <td className="py-4 pr-4 text-right">
                             <button
+                              onClick={() => {
+                                setCampaignType('category');
+                                setSelectedCampaignTarget(cat.id);
+                                setCampaignValue(cat.discountPercentage?.toString() || '');
+                                setCampaignDiscountType('percentage'); // Categories are always percentage for now
+                                setCampaignStartDate(cat.discountStartDate ? new Date(cat.discountStartDate).toISOString().slice(0, 16) : '');
+                                setCampaignEndDate(cat.discountEndDate ? new Date(cat.discountEndDate).toISOString().slice(0, 16) : '');
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="text-blue-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded-lg transition-all mr-2"
+                              title={t('Düzenle')}
+                            >
+                              <FaEdit />
+                            </button>
+                            <button
                               onClick={async () => {
                                 if (confirm(t('Kampanyayı kaldırmak istediğinize emin misiniz?'))) {
                                   await updateMenuCategory(currentRestaurantId, cat.id, {
@@ -4460,6 +4475,7 @@ export default function MenuManagement() {
                                 }
                               }}
                               className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-all"
+                              title={t('Sil')}
                             >
                               <FaTrash />
                             </button>
@@ -4483,6 +4499,26 @@ export default function MenuManagement() {
                           </td>
                           <td className="py-4 pr-4 text-right">
                             <button
+                              onClick={() => {
+                                setCampaignType('product');
+                                setSelectedCampaignTarget(item.id);
+                                if (item.discountPercentage) {
+                                  setCampaignDiscountType('percentage');
+                                  setCampaignValue(item.discountPercentage.toString());
+                                } else if (item.discountedPrice) {
+                                  setCampaignDiscountType('fixed');
+                                  setCampaignValue(item.discountedPrice.toString());
+                                }
+                                setCampaignStartDate(item.discountStartDate ? new Date(item.discountStartDate).toISOString().slice(0, 16) : '');
+                                setCampaignEndDate(item.discountEndDate ? new Date(item.discountEndDate).toISOString().slice(0, 16) : '');
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="text-blue-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded-lg transition-all mr-2"
+                              title={t('Düzenle')}
+                            >
+                              <FaEdit />
+                            </button>
+                            <button
                               onClick={async () => {
                                 if (confirm(t('Kampanyayı kaldırmak istediğinize emin misiniz?'))) {
                                   await updateMenuItem(currentRestaurantId, item.id, {
@@ -4501,6 +4537,7 @@ export default function MenuManagement() {
                                 }
                               }}
                               className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-all"
+                              title={t('Sil')}
                             >
                               <FaTrash />
                             </button>
