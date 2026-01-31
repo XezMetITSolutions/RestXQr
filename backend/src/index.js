@@ -186,22 +186,18 @@ app.get('/api/debug/update-kroren-printers', async (req, res) => {
     if (levent) {
       const leventConfig = {
         '17692021455220.027173748942849185': { name: 'RAMEN', ip: '192.168.1.151', port: 9100, enabled: true, type: 'epson' },
-        '17692021455220.8712083591391588': { name: 'KEBAP', ip: '192.168.1.149', port: 9100, enabled: true, type: 'epson' },
         '17692021455190.20485462886666846': { name: 'KAVURMA', ip: '192.168.1.150', port: 9100, enabled: true, type: 'epson' },
-        kasa: { name: 'KASA (USB)', ip: 'Kasa', port: 9100, enabled: true, type: 'epson' },
-        icecek1: { name: '1. Kat İçecek', ip: '192.168.1.152', port: 9100, enabled: true, type: 'epson' },
-        icecek2: { name: '2. Kat İçecek', ip: '192.168.1.153', port: 9100, enabled: true, type: 'epson' }
+        '176960565656066': { name: 'KEBAPLAR VE SUSHI', ip: '192.168.1.149', port: 9100, enabled: true, type: 'epson' },
+        'kasa': { name: 'KASA (USB)', ip: 'Kasa', port: 9100, enabled: true, type: 'epson' }
       };
       const leventStations = [
         { id: '17692021455220.027173748942849185', name: 'RAMEN', color: '#FF0000', order: 1 },
-        { id: '17692021455220.8712083591391588', name: 'KEBAP', color: '#FF0000', order: 2 },
-        { id: '17692021455190.20485462886666846', name: 'KAVURMA', color: '#FF0000', order: 3 },
-        { id: 'kasa', name: 'KASA', color: '#0000FF', order: 4 },
-        { id: 'icecek1', name: 'İçecek 1', color: '#00FF00', order: 5 },
-        { id: 'icecek2', name: 'İçecek 2', color: '#00FF00', order: 6 }
+        { id: '17692021455190.20485462886666846', name: 'KAVURMA', color: '#FF0000', order: 2 },
+        { id: '176960565656066', name: 'KEBAPLAR VE SUSHI', color: '#FF0000', order: 3 },
+        { id: 'kasa', name: 'KASA', color: '#0000FF', order: 4 }
       ];
       await levent.update({ printerConfig: leventConfig, kitchenStations: leventStations });
-      results.push('✅ kroren-levent (Levent) güncellendi (IDs ve Kasa eklendi)');
+      results.push('✅ kroren-levent (Levent) güncellendi (4 Net İstasyon)');
     }
 
     res.json({
