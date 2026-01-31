@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Sequelize } = require('sequelize');
-const { Op } = Sequelize;
+const { Sequelize, Op } = require('sequelize');
 const { Order, OrderItem, Restaurant, MenuItem, MenuCategory, QRToken } = require('../models');
 const waiterCalls = require('../lib/waiterStore');
 

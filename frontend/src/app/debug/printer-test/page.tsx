@@ -71,7 +71,10 @@ export default function PrinterTestDebugPage() {
             });
 
             const orderData = await orderRes.json();
-            if (!orderData.success) throw new Error(orderData.message || "Sipariş oluşturulamadı");
+            if (!orderData.success) {
+                addLog(`❌ Sipariş hatası: ${orderData.message}`, 'error', orderData);
+                throw new Error(orderData.message || "Sipariş oluşturulamadı");
+            }
 
             const orderId = orderData.data.id;
             addLog(`✅ Sipariş oluşturuldu: ${orderId}`, 'success');
