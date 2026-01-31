@@ -51,9 +51,22 @@ app.get('/status/:ip', async (req, res) => {
     try {
         const isWindowsPrinter = !ip.includes('.') && ip !== 'localhost';
 
+        if (isWindowsPrinter) {
+            const printerPath = `\\\\localhost\\${ip}`;
+            console.log(`Checking file access for local printer: ${printerPath}`);
+            try {
+                await fs.promises.access(printerPath, fs.constants.W_OK);
+                console.log(`✅ Printer at ${ip} is ACCESSIBLE (Shared)`);
+                return res.json({ success: true, connected: true, message: "Printer accessible" });
+            } catch (fileErr) {
+                console.log(`❌ Printer at ${ip} is NOT accessible: ${fileErr.message}`);
+                return res.json({ success: true, connected: false, error: "Printer not accessible (Check URL/Sharing)" });
+            }
+        }
+
         const printer = new ThermalPrinter({
             type: PrinterTypes.EPSON,
-            interface: isWindowsPrinter ? `printer:${ip}` : `tcp://${ip}:9100`,
+            interface: `tcp://${ip}:9100`,
             options: { timeout: 3000 }
         });
 
@@ -82,18 +95,20 @@ app.post('/test/:ip', async (req, res) => {
 
         const printer = new ThermalPrinter({
             type: PrinterTypes.EPSON,
-            interface: isWindowsPrinter ? `printer:${ip}` : `tcp://${ip}:9100`,
+            interface: isWindowsPrinter ? `\\\\localhost\\${ip}` : `tcp://${ip}:9100`,
             characterSet: CharacterSet.PC857_TURKISH,
             removeSpecialCharacters: false,
             lineCharacter: '-',
             options: {
-                timeout: 5000
+                timeout: isWindowsPrinter ? 1000 : 5000
             }
         });
 
-        const isConnected = await printer.isPrinterConnected();
-        if (!isConnected) {
-            throw new Error("Printer not connected");
+        if (!isWindowsPrinter) {
+            const isConnected = await printer.isPrinterConnected();
+            if (!isConnected) {
+                throw new Error("Printer not connected");
+            }
         }
 
         printer.alignCenter();
@@ -183,10 +198,11 @@ app.post('/print/:ip', async (req, res) => {
             console.log(`🖨️ Printing to LOCAL Windows printer: ${ip}`);
             printer = new ThermalPrinter({
                 type: printType === 'star' ? PrinterTypes.STAR : PrinterTypes.EPSON,
-                interface: `printer:${ip}`, // Windows printer name
+                interface: `\\\\localhost\\${ip}`, // Windows printer UNC path
                 characterSet: CharacterSet.PC857_TURKISH,
                 removeSpecialCharacters: false,
                 lineCharacter: '-',
+                options: { timeout: 1000 }
             });
         } else {
             printer = new ThermalPrinter({
