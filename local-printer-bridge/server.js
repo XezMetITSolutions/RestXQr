@@ -50,8 +50,11 @@ function encodeText(text, encoding = 'cp857') {
  */
 async function resolveWindowsPrinterPath(printerName) {
     const hostname = os.hostname();
+    // Prioritize user-provided IP and Computer Name
     const candidates = [
-        `\\\\${hostname}\\${printerName}`,
+        `\\\\192.168.1.119\\${printerName}`, // Explicit IP
+        `\\\\Kasa\\${printerName}`,          // Explicit PC Name
+        `\\\\${hostname}\\${printerName}`,   // Dynamic Hostname
         `\\\\localhost\\${printerName}`,
         `\\\\127.0.0.1\\${printerName}`
     ];
