@@ -176,9 +176,10 @@ class ApiService {
   }
 
   // Order endpoints
-  async getOrders(restaurantId: string, status?: string) {
+  async getOrders(restaurantId: string, status?: string, tableNumber?: string | number) {
     const params = new URLSearchParams({ restaurantId });
     if (status) params.append('status', status);
+    if (tableNumber) params.append('tableNumber', String(tableNumber));
     return this.request<any>(`/orders?${params.toString()}`);
   }
 

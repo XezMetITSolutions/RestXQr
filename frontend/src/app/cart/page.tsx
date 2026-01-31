@@ -46,6 +46,7 @@ function CartPageContent() {
   const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
   const [token, setToken] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [activeOrders, setActiveOrders] = useState<any[]>([]); // Masanın aktif siparişleri
 
   const currentRestaurant = isClient ? (() => {
     const hostname = window.location.hostname;
@@ -143,10 +144,30 @@ function CartPageContent() {
     }
   }, [isClient, settings?.paymentSettings?.allowCardPayment, settings?.paymentSettings?.allowCashPayment, currentRestaurant?.id]);
 
-  // Aktif siparişleri çekme özelliği kaldırıldı (User isteği: geçmiş siparişleri gösterme)
+  // Aktif siparişleri çek (Masa bazlı)
   useEffect(() => {
-    // Boş useEffect
-  }, [isClient, tableNumber, currentRestaurant]);
+    if (!isClient || !tableNumber || !currentRestaurant?.id) return;
+
+    const fetchActiveOrders = async () => {
+      try {
+        // Status vermezsek backend sadece aktif siparişleri (not completed/cancelled) getirir
+        // tableNumber gönderince filtreleme yapar
+        const res = await apiService.getOrders(currentRestaurant.id, undefined, tableNumber);
+        if (res.success && Array.isArray(res.data)) {
+          // Tarihe göre sırala (yeni en üstte)
+          const sorted = res.data.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          setActiveOrders(sorted);
+        }
+      } catch (err) {
+        console.error('Aktif siparişler çekilemedi:', err);
+      }
+    };
+
+    fetchActiveOrders();
+    // 10 saniyede bir güncelle
+    const interval = setInterval(fetchActiveOrders, 10000);
+    return () => clearInterval(interval);
+  }, [isClient, tableNumber, currentRestaurant?.id]);
 
   // Session'dan sepet ve aktif kullanıcı sayısını güncelle (polling)
   useEffect(() => {
@@ -560,6 +581,75 @@ function CartPageContent() {
 
           {/* Siparişi Verilmiş Olanlar bölümü kaldırıldı */}
 
+          {/* Aktif Siparişler Bölümü (Sepet boş olsa bile görünsün) */}
+          {activeOrders.length > 0 && (
+            <div className={`mb-8 ${(!items || items.length === 0) ? 'mt-4' : ''}`}>
+              <div className="flex items-center gap-2 mb-4 px-1">
+                <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                <h2 className="text-lg font-bold text-gray-800">
+                  <TranslatedText>Verilen Siparişler</TranslatedText>
+                </h2>
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                  {activeOrders.length} <TranslatedText>Sipariş</TranslatedText>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                {activeOrders.map((order) => (
+                  <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    {/* Sipariş Başlığı */}
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${order.status === 'approved' ? 'bg-green-500' :
+                          order.status === 'ready' ? 'bg-blue-500' :
+                            'bg-orange-500'
+                          }`}></span>
+                        <span className="text-xs font-bold text-gray-700">
+                          {order.status === 'approved' ? <TranslatedText>Onaylandı</TranslatedText> :
+                            order.status === 'ready' ? <TranslatedText>Hazır</TranslatedText> :
+                              <TranslatedText>Hazırlanıyor</TranslatedText>}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+
+                    {/* Sipariş İçeriği */}
+                    <div className="divide-y divide-gray-50">
+                      {order.items.map((item: any, idx: number) => (
+                        <div key={idx} className="p-3 flex justify-between items-start">
+                          <div className="flex items-center gap-3">
+                            <span className="bg-gray-100 text-gray-700 text-xs font-bold px-2 py-1 rounded-md min-w-[24px] text-center">
+                              {item.quantity}x
+                            </span>
+                            <div>
+                              <p className="text-sm font-medium text-gray-800">
+                                {typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün')}
+                              </p>
+                              {item.notes && (
+                                <p className="text-xs text-slate-500 italic mt-0.5">{item.notes}</p>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-sm font-semibold text-gray-600">
+                            ₺{Number(item.totalPrice || (item.price * item.quantity)).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Toplam */}
+                    <div className="bg-gray-50 px-4 py-2 border-t border-gray-100 flex justify-between items-center">
+                      <span className="text-xs text-gray-500"><TranslatedText>Sipariş Toplamı</TranslatedText></span>
+                      <span className="text-sm font-bold text-gray-800">₺{Number(order.totalAmount).toFixed(2)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Normal sepet görünümü (sipariş verilmediyse) */}
           {!pendingOrderId && (!items || items.length === 0) ? (
             <div className="text-center py-12">
@@ -572,7 +662,8 @@ function CartPageContent() {
               </p>
               <Link
                 href={`/menu?token=${token}&table=${tableNumber}`}
-                className="btn btn-primary px-6 py-3 rounded-lg"
+                className="inline-block px-6 py-3 rounded-lg font-bold text-white shadow-lg transition-transform active:scale-95"
+                style={{ backgroundColor: primary }}
               >
                 <TranslatedText>Menüye Git</TranslatedText>
               </Link>
