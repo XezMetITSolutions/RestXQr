@@ -158,7 +158,7 @@ app.post('/api/debug/sync-db', async (req, res) => {
 });
 
 // KROREN YAZICI YAPILANDIRMASINI GÜNCELLE
-app.post('/api/debug/update-kroren-printers', async (req, res) => {
+app.get('/api/debug/update-kroren-printers', async (req, res) => {
   console.log('🔧 Update Kroren/Levent printers endpoint called');
   try {
     const { Restaurant } = require('./models');
