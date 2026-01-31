@@ -17,7 +17,7 @@ export default function PrinterTestDebugPage() {
         }, ...prev]);
     };
 
-    const runTest = async (type: 'ramen' | 'kavurma' | 'kebap' | 'all') => {
+    const runTest = async (type: 'ramen' | 'kavurma' | 'kebap' | 'kasa' | 'all') => {
         setLoading(true);
         const restaurantUsername = 'kroren-levent';
 
@@ -43,11 +43,18 @@ export default function PrinterTestDebugPage() {
                 id: "kebap-123",
                 kitchenStation: "176960565656066", // KEBAP & SUSHI ID
                 notes: "Debug Test Print"
+            },
+            kasa: {
+                name: "Test Kasa Fişi",
+                quantity: 1,
+                id: "kasa-123",
+                kitchenStation: "kasa", // KASA ID (Special Local Printer)
+                notes: "Debug Kasa Print"
             }
         };
 
         const targetItems = type === 'all'
-            ? [mockItems.ramen, mockItems.kavurma, mockItems.kebap]
+            ? [mockItems.ramen, mockItems.kavurma, mockItems.kebap, mockItems.kasa]
             : [mockItems[type]];
 
         addLog(`🧪 ${type.toUpperCase()} testi başlatıldı...`, 'info', { targetItems });
@@ -93,10 +100,10 @@ export default function PrinterTestDebugPage() {
                     kitchenStation: item.kitchenStation // This helps bridge route to correct IP
                 })),
                 printerConfig: {
-                    // Send IPs directly to bridge so it knows where to print
                     "17692021455220.027173748942849185": "192.168.1.151", // Ramen
                     "17692021455190.20485462886666846": "192.168.1.150", // Kavurma
-                    "176960565656066": "192.168.1.149" // Kebap
+                    "176960565656066": "192.168.1.149", // Kebap
+                    "kasa": "kasa" // Local USB Printer Name
                 }
             };
 
@@ -189,6 +196,18 @@ export default function PrinterTestDebugPage() {
                                     <div className="text-left">
                                         <p className="font-bold">Test: KEBAP & SUSHI</p>
                                         <p className="text-xs text-emerald-100/70">ID: 176960565656066 (IP: 1.149)</p>
+                                    </div>
+                                    <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
+                                </button>
+
+                                <button
+                                    disabled={loading}
+                                    onClick={() => runTest('kasa')}
+                                    className="p-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-xl transition-all shadow-lg hover:shadow-purple-500/20 flex items-center justify-between group disabled:opacity-50"
+                                >
+                                    <div className="text-left">
+                                        <p className="font-bold">Test: KASA (USB)</p>
+                                        <p className="text-xs text-purple-100/70">ID: kasa (Printer: kasa)</p>
                                     </div>
                                     <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
                                 </button>

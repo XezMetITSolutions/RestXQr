@@ -314,102 +314,104 @@ app.post('/print-image/:ip', async (req, res) => {
             }
         }
     }
-    // Debug endpoint to simulate cloud routing locally
-    app.post('/debug/print-stations', async (req, res) => {
-        try {
-            const { orderNumber, tableNumber, items, printerConfig } = req.body;
-            console.log(`Received DEBUG print-stations request for Order ${orderNumber}`);
+});
 
-            if (!items || !printerConfig) return res.status(400).json({ success: false, error: "Missing items or printerConfig" });
+// Debug endpoint to simulate cloud routing locally
+app.post('/debug/print-stations', async (req, res) => {
+    try {
+        const { orderNumber, tableNumber, items, printerConfig } = req.body;
+        console.log(`Received DEBUG print-stations request for Order ${orderNumber}`);
 
-            const results = [];
+        if (!items || !printerConfig) return res.status(400).json({ success: false, error: "Missing items or printerConfig" });
 
-            // Group items by station (kitchenStation ID)
-            const itemsByStation = {};
-            for (const item of items) {
-                const stationId = item.kitchenStation; // This is the ID we passed from frontend
-                if (!itemsByStation[stationId]) {
-                    itemsByStation[stationId] = [];
-                }
-                itemsByStation[stationId].push(item);
+        const results = [];
+
+        // Group items by station (kitchenStation ID)
+        const itemsByStation = {};
+        for (const item of items) {
+            const stationId = item.kitchenStation; // This is the ID we passed from frontend
+            if (!itemsByStation[stationId]) {
+                itemsByStation[stationId] = [];
             }
+            itemsByStation[stationId].push(item);
+        }
 
-            console.log("Items by station:", Object.keys(itemsByStation));
+        console.log("Items by station:", Object.keys(itemsByStation));
 
-            // Print for each station found in the items
-            for (const [stationId, stationItems] of Object.entries(itemsByStation)) {
-                const targetIp = printerConfig[stationId];
+        // Print for each station found in the items
+        for (const [stationId, stationItems] of Object.entries(itemsByStation)) {
+            const targetIp = printerConfig[stationId];
 
-                if (targetIp) {
-                    console.log(`🖨️ Routing station [${stationId}] to IP [${targetIp}]...`);
+            if (targetIp) {
+                console.log(`🖨️ Routing station [${stationId}] to IP [${targetIp}]...`);
 
-                    try {
-                        const isWindowsPrinter = !targetIp.includes('.') && targetIp !== 'localhost';
+                try {
+                    const isWindowsPrinter = !targetIp.includes('.') && targetIp !== 'localhost';
 
-                        const printer = new ThermalPrinter({
-                            type: PrinterTypes.EPSON,
-                            interface: isWindowsPrinter ? `printer:${targetIp}` : `tcp://${targetIp}:9100`,
-                            characterSet: CharacterSet.PC857_TURKISH,
-                            options: { timeout: isWindowsPrinter ? undefined : 5000 }
-                        });
+                    const printer = new ThermalPrinter({
+                        type: PrinterTypes.EPSON,
+                        interface: isWindowsPrinter ? `printer:${targetIp}` : `tcp://${targetIp}:9100`,
+                        characterSet: CharacterSet.PC857_TURKISH,
+                        options: { timeout: isWindowsPrinter ? undefined : 5000 }
+                    });
 
-                        if (!isWindowsPrinter) {
-                            const isConnected = await printer.isPrinterConnected();
-                            if (!isConnected) throw new Error("Printer unreachable");
-                        }
+                    if (!isWindowsPrinter) {
+                        const isConnected = await printer.isPrinterConnected();
+                        if (!isConnected) throw new Error("Printer unreachable");
+                    }
 
-                        printer.alignCenter();
-                        printer.setTextDoubleHeight();
+                    printer.alignCenter();
+                    printer.setTextDoubleHeight();
+                    printer.bold(true);
+                    printer.add(CMD.CP857);
+                    printer.add(encodeText(`MASA ${tableNumber}`));
+                    printer.bold(false);
+                    printer.setTextNormal();
+                    printer.println(new Date().toLocaleString('tr-TR'));
+                    printer.println("--------------------------------");
+                    printer.alignLeft();
+
+                    for (const item of stationItems) {
                         printer.bold(true);
                         printer.add(CMD.CP857);
-                        printer.add(encodeText(`MASA ${tableNumber}`));
-                        printer.bold(false);
-                        printer.setTextNormal();
-                        printer.println(new Date().toLocaleString('tr-TR'));
-                        printer.println("--------------------------------");
-                        printer.alignLeft();
+                        printer.add(encodeText(`${item.quantity}x ${item.name}\n`));
 
-                        for (const item of stationItems) {
-                            printer.bold(true);
+                        if (item.notes) {
+                            printer.bold(false);
                             printer.add(CMD.CP857);
-                            printer.add(encodeText(`${item.quantity}x ${item.name}\n`));
-
-                            if (item.notes) {
-                                printer.bold(false);
-                                printer.add(CMD.CP857);
-                                printer.add(encodeText(`   NOT: ${item.notes}\n`));
-                            }
+                            printer.add(encodeText(`   NOT: ${item.notes}\n`));
                         }
-
-                        printer.newLine();
-                        printer.println("--------------------------------");
-                        printer.cut();
-
-                        await printer.execute();
-
-                        results.push({ stationId, success: true, ip: targetIp });
-                        console.log(`✅ Printed successfully to ${stationId} (${targetIp})`);
-
-                    } catch (err) {
-                        console.error(`❌ Failed to print to ${stationId} (${targetIp}):`, err);
-                        results.push({ stationId, success: false, error: err.message, ip: targetIp });
                     }
-                } else {
-                    console.warn(`⚠️ No IP configured for station [${stationId}] in printerConfig`);
-                    results.push({ stationId, success: false, error: "No IP configured" });
+
+                    printer.newLine();
+                    printer.println("--------------------------------");
+                    printer.cut();
+
+                    await printer.execute();
+
+                    results.push({ stationId, success: true, ip: targetIp });
+                    console.log(`✅ Printed successfully to ${stationId} (${targetIp})`);
+
+                } catch (err) {
+                    console.error(`❌ Failed to print to ${stationId} (${targetIp}):`, err);
+                    results.push({ stationId, success: false, error: err.message, ip: targetIp });
                 }
+            } else {
+                console.warn(`⚠️ No IP configured for station [${stationId}] in printerConfig`);
+                results.push({ stationId, success: false, error: "No IP configured" });
             }
-
-            res.json({ success: true, results });
-        } catch (e) {
-            console.error("Debug endpoint error:", e);
-            res.status(500).json({ success: false, error: e.message });
         }
-    });
+
+        res.json({ success: true, results });
+    } catch (e) {
+        console.error("Debug endpoint error:", e);
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
 
 
-    app.listen(PORT, () => {
-        console.log(`
+app.listen(PORT, () => {
+    console.log(`
 🚀 LOCAL PRINTER BRIDGE RUNNING!
 --------------------------------
 Port: ${PORT}
@@ -417,4 +419,4 @@ Status: Listening for print commands...
 
 Keep this window OPEN to allow printing.
     `);
-    });
+});
