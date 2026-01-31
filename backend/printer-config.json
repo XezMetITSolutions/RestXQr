@@ -1,34 +1,61 @@
 {
-    "17692021455220.027173748942849185": {
-        "name": "RAMEN",
-        "ip": "192.168.1.151",
-        "port": 9100,
-        "enabled": true,
-        "type": "epson",
-        "characterSet": 13,
-        "codePage": "CP857"
-    },
-    "17692021455190.20485462886666846": {
-        "name": "KAVURMA",
-        "ip": "192.168.1.150",
-        "port": 9100,
-        "enabled": true,
-        "type": "epson",
-        "characterSet": 13,
-        "codePage": "CP857"
-    },
-    "176960565656066": {
-        "name": "KEBAP & SUSHI",
-        "ip": "192.168.1.149",
-        "port": 9100,
-        "enabled": true,
-        "type": "epson",
-        "characterSet": 13,
-        "codePage": "CP857"
-    },
     "kasa": {
         "name": "KASA",
-        "ip": "kasa",
+        "ip": "192.168.10.198",
+        "port": 9100,
+        "enabled": true,
+        "type": "epson",
+        "characterSet": 13,
+        "codePage": "CP857"
+    },
+    "manti": {
+        "name": "MANTI",
+        "ip": "192.168.10.199",
+        "port": 9100,
+        "enabled": true,
+        "type": "epson",
+        "characterSet": 13,
+        "codePage": "CP857"
+    },
+    "ramen": {
+        "name": "RAMEN",
+        "ip": "192.168.10.197",
+        "port": 9100,
+        "enabled": true,
+        "type": "epson",
+        "characterSet": 13,
+        "codePage": "CP857"
+    },
+    "icecek1": {
+        "name": "İÇECEK 1",
+        "ip": "192.168.10.192",
+        "port": 9100,
+        "enabled": true,
+        "type": "epson",
+        "characterSet": 13,
+        "codePage": "CP857"
+    },
+    "icecek2": {
+        "name": "İÇECEK 2",
+        "ip": "192.168.10.191",
+        "port": 9100,
+        "enabled": true,
+        "type": "epson",
+        "characterSet": 13,
+        "codePage": "CP857"
+    },
+    "kavurma": {
+        "name": "KAVURMA",
+        "ip": "192.168.10.194",
+        "port": 9100,
+        "enabled": true,
+        "type": "epson",
+        "characterSet": 13,
+        "codePage": "CP857"
+    },
+    "1769866818213": {
+        "name": "KEBAP",
+        "ip": "",
         "port": 9100,
         "enabled": true,
         "type": "epson",

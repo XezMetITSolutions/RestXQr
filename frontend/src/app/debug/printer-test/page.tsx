@@ -17,44 +17,65 @@ export default function PrinterTestDebugPage() {
         }, ...prev]);
     };
 
-    const runTest = async (type: 'ramen' | 'kavurma' | 'kebap' | 'kasa' | 'all') => {
+    const runTest = async (type: 'ramen' | 'kavurma' | 'kebap' | 'kasa' | 'manti' | 'icecek1' | 'icecek2' | 'all') => {
         setLoading(true);
         const restaurantUsername = 'kroren-levent';
 
         // Define mock items with their corresponding station IDs
         const mockItems = {
+            kasa: {
+                name: "Test Kasa Fişi",
+                quantity: 1,
+                id: "kasa-123",
+                kitchenStation: "kasa",
+                notes: "Debug Kasa Print"
+            },
+            manti: {
+                name: "Test Mantı Ürünü",
+                quantity: 1,
+                id: "manti-123",
+                kitchenStation: "manti",
+                notes: "Debug Test Print"
+            },
             ramen: {
                 name: "Test Ramen Ürünü",
                 quantity: 1,
                 id: "ramen-123",
-                kitchenStation: "17692021455220.027173748942849185", // RAMEN ID
+                kitchenStation: "ramen",
+                notes: "Debug Test Print"
+            },
+            icecek1: {
+                name: "Test İçecek 1 Ürünü",
+                quantity: 1,
+                id: "icecek1-123",
+                kitchenStation: "icecek1",
+                notes: "Debug Test Print"
+            },
+            icecek2: {
+                name: "Test İçecek 2 Ürünü",
+                quantity: 1,
+                id: "icecek2-123",
+                kitchenStation: "icecek2",
                 notes: "Debug Test Print"
             },
             kavurma: {
                 name: "Test Kavurma Ürünü",
                 quantity: 1,
                 id: "kavurma-123",
-                kitchenStation: "17692021455190.20485462886666846", // KAVURMA ID
+                kitchenStation: "kavurma",
                 notes: "Debug Test Print"
             },
             kebap: {
-                name: "Test Kebap & Sushi Ürünü",
+                name: "Test Kebap Ürünü",
                 quantity: 1,
                 id: "kebap-123",
-                kitchenStation: "176960565656066", // KEBAP & SUSHI ID
+                kitchenStation: "1769866818213",
                 notes: "Debug Test Print"
-            },
-            kasa: {
-                name: "Test Kasa Fişi",
-                quantity: 1,
-                id: "kasa-123",
-                kitchenStation: "kasa", // KASA ID (Special Local Printer)
-                notes: "Debug Kasa Print"
             }
         };
 
         const targetItems = type === 'all'
-            ? [mockItems.ramen, mockItems.kavurma, mockItems.kebap, mockItems.kasa]
+            ? Object.values(mockItems)
             : [mockItems[type]];
 
         addLog(`🧪 ${type.toUpperCase()} testi başlatıldı...`, 'info', { targetItems });
@@ -100,10 +121,13 @@ export default function PrinterTestDebugPage() {
                     kitchenStation: item.kitchenStation // This helps bridge route to correct IP
                 })),
                 printerConfig: {
-                    "17692021455220.027173748942849185": "192.168.10.197", // Ramen
-                    "17692021455190.20485462886666846": "192.168.10.194", // Kavurma
-                    "176960565656066": "192.168.10.199", // Kebap (Using Manti IP)
-                    "kasa": "192.168.10.198" // Kasa IP
+                    "kasa": "192.168.10.198",
+                    "manti": "192.168.10.199",
+                    "ramen": "192.168.10.197",
+                    "icecek1": "192.168.10.192",
+                    "icecek2": "192.168.10.191",
+                    "kavurma": "192.168.10.194",
+                    "1769866818213": "" // No IP defined in user request
                 }
             };
 
@@ -164,18 +188,72 @@ export default function PrinterTestDebugPage() {
                                 <FaTerminal className="text-indigo-400" /> Test Senaryoları
                             </h2>
                             <div className="grid grid-cols-1 gap-4">
+                                {/* KASA */}
                                 <button
                                     disabled={loading}
-                                    onClick={() => runTest('ramen')}
-                                    className="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl transition-all shadow-lg hover:shadow-indigo-500/20 flex items-center justify-between group disabled:opacity-50"
+                                    onClick={() => runTest('kasa')}
+                                    className="p-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-xl transition-all shadow-lg hover:shadow-purple-500/20 flex items-center justify-between group disabled:opacity-50"
                                 >
                                     <div className="text-left">
-                                        <p className="font-bold">Test: RAMEN</p>
-                                        <p className="text-xs text-indigo-100/70">ID: ...5220.027... (IP: 10.197)</p>
+                                        <p className="font-bold">Test: KASA</p>
+                                        <p className="text-xs text-purple-100/70">ID: kasa (IP: 10.198)</p>
                                     </div>
                                     <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
                                 </button>
 
+                                {/* MANTI */}
+                                <button
+                                    disabled={loading}
+                                    onClick={() => runTest('manti')}
+                                    className="p-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-xl transition-all shadow-lg hover:shadow-cyan-500/20 flex items-center justify-between group disabled:opacity-50"
+                                >
+                                    <div className="text-left">
+                                        <p className="font-bold">Test: MANTI</p>
+                                        <p className="text-xs text-cyan-100/70">ID: manti (IP: 10.199)</p>
+                                    </div>
+                                    <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
+                                </button>
+
+                                {/* RAMEN */}
+                                <button
+                                    disabled={loading}
+                                    onClick={() => runTest('ramen')}
+                                    className="p-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 rounded-xl transition-all shadow-lg hover:shadow-indigo-500/20 flex items-center justify-between group disabled:opacity-50"
+                                >
+                                    <div className="text-left">
+                                        <p className="font-bold">Test: RAMEN</p>
+                                        <p className="text-xs text-indigo-100/70">ID: ramen (IP: 10.197)</p>
+                                    </div>
+                                    <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
+                                </button>
+
+                                {/* ICECEK 1 */}
+                                <button
+                                    disabled={loading}
+                                    onClick={() => runTest('icecek1')}
+                                    className="p-4 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 rounded-xl transition-all shadow-lg hover:shadow-sky-500/20 flex items-center justify-between group disabled:opacity-50"
+                                >
+                                    <div className="text-left">
+                                        <p className="font-bold">Test: İÇECEK 1</p>
+                                        <p className="text-xs text-sky-100/70">ID: icecek1 (IP: 10.192)</p>
+                                    </div>
+                                    <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
+                                </button>
+
+                                {/* ICECEK 2 */}
+                                <button
+                                    disabled={loading}
+                                    onClick={() => runTest('icecek2')}
+                                    className="p-4 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 rounded-xl transition-all shadow-lg hover:shadow-sky-500/20 flex items-center justify-between group disabled:opacity-50"
+                                >
+                                    <div className="text-left">
+                                        <p className="font-bold">Test: İÇECEK 2</p>
+                                        <p className="text-xs text-sky-100/70">ID: icecek2 (IP: 10.191)</p>
+                                    </div>
+                                    <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
+                                </button>
+
+                                {/* KAVURMA */}
                                 <button
                                     disabled={loading}
                                     onClick={() => runTest('kavurma')}
@@ -183,31 +261,20 @@ export default function PrinterTestDebugPage() {
                                 >
                                     <div className="text-left">
                                         <p className="font-bold">Test: KAVURMA</p>
-                                        <p className="text-xs text-orange-100/70">ID: ...5190.204... (IP: 10.194)</p>
+                                        <p className="text-xs text-orange-100/70">ID: kavurma (IP: 10.194)</p>
                                     </div>
                                     <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
                                 </button>
 
+                                {/* KEBAP */}
                                 <button
                                     disabled={loading}
                                     onClick={() => runTest('kebap')}
-                                    className="p-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-xl transition-all shadow-lg hover:shadow-emerald-500/20 flex items-center justify-between group disabled:opacity-50"
+                                    className="p-4 bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-500 hover:to-gray-500 rounded-xl transition-all shadow-lg hover:shadow-gray-500/20 flex items-center justify-between group disabled:opacity-50"
                                 >
                                     <div className="text-left">
-                                        <p className="font-bold">Test: KEBAP & SUSHI</p>
-                                        <p className="text-xs text-emerald-100/70">ID: 176960565656066 (IP: 10.199)</p>
-                                    </div>
-                                    <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
-                                </button>
-
-                                <button
-                                    disabled={loading}
-                                    onClick={() => runTest('kasa')}
-                                    className="p-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-xl transition-all shadow-lg hover:shadow-purple-500/20 flex items-center justify-between group disabled:opacity-50"
-                                >
-                                    <div className="text-left">
-                                        <p className="font-bold">Test: KASA (Network)</p>
-                                        <p className="text-xs text-purple-100/70">ID: kasa (IP: 10.198)</p>
+                                        <p className="font-bold">Test: KEBAP (Pasif?)</p>
+                                        <p className="text-xs text-slate-300/70">ID: ...818213 (Tanımsız)</p>
                                     </div>
                                     <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
                                 </button>
