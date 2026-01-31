@@ -159,95 +159,54 @@ app.post('/api/debug/sync-db', async (req, res) => {
 
 // KROREN YAZICI YAPILANDIRMASINI GÜNCELLE
 app.post('/api/debug/update-kroren-printers', async (req, res) => {
-  console.log('🔧 Update Kroren printers endpoint called');
+  console.log('🔧 Update Kroren/Levent printers endpoint called');
   try {
     const { Restaurant } = require('./models');
+    const results = [];
 
-    let kroren = await Restaurant.findOne({ where: { username: 'kroren-levent' } });
-    if (!kroren) {
-      kroren = await Restaurant.findOne({ where: { username: 'kroren' } });
+    // 1. KROREN (ANA MERKEZ)
+    const kroren = await Restaurant.findOne({ where: { username: 'kroren' } });
+    if (kroren) {
+      const krorenConfig = {
+        kavurma: { name: 'KAVURMA', ip: '192.168.10.194', port: 9100, enabled: true, type: 'epson' },
+        ramen: { name: 'RAMEN', ip: '192.168.10.197', port: 9100, enabled: true, type: 'epson' },
+        manti: { name: 'MANTI', ip: '192.168.10.199', port: 9100, enabled: true, type: 'epson' }
+      };
+      const krorenStations = [
+        { id: 'kavurma', name: 'KAVURMA', color: '#FF0000', order: 1 },
+        { id: 'ramen', name: 'RAMEN', color: '#FF0000', order: 2 },
+        { id: 'manti', name: 'MANTI', color: '#FF0000', order: 3 }
+      ];
+      await kroren.update({ printerConfig: krorenConfig, kitchenStations: krorenStations });
+      results.push('✅ kroren (Merkez) güncellendi');
     }
-    if (!kroren) {
-      return res.status(404).json({ success: false, message: 'Kroren restaurant not found' });
+
+    // 2. KROREN-LEVENT
+    const levent = await Restaurant.findOne({ where: { username: 'kroren-levent' } });
+    if (levent) {
+      const leventConfig = {
+        ramen: { name: 'RAMEN', ip: '192.168.1.151', port: 9100, enabled: true, type: 'epson' },
+        kebap: { name: 'KEBAP', ip: '192.168.1.149', port: 9100, enabled: true, type: 'epson' },
+        kavurma: { name: 'KAVURMA', ip: '192.168.10.150', port: 9100, enabled: true, type: 'epson' }
+      };
+      const leventStations = [
+        { id: 'ramen', name: 'RAMEN', color: '#FF0000', order: 1 },
+        { id: 'kebap', name: 'KEBAP', color: '#FF0000', order: 2 },
+        { id: 'kavurma', name: 'KAVURMA', color: '#FF0000', order: 3 }
+      ];
+      await levent.update({ printerConfig: leventConfig, kitchenStations: leventStations });
+      results.push('✅ kroren-levent güncellendi');
     }
 
-    const newPrinterConfig = {
-      kavurma: {
-        name: 'KAVURMA',
-        ip: '192.168.10.150',
-        port: 9100,
-        enabled: true,
-        type: 'epson'
-      },
-      ramen: {
-        name: 'RAMEN',
-        ip: '192.168.1.151',
-        port: 9100,
-        enabled: true,
-        type: 'epson'
-      },
-      kebap: {
-        name: 'KEBAP',
-        ip: '192.168.1.149',
-        port: 9100,
-        enabled: true,
-        type: 'epson'
-      },
-      manti: {
-        name: 'MANTI',
-        ip: '192.168.10.199',
-        port: 9100,
-        enabled: true,
-        type: 'epson'
-      },
-      icecek1: {
-        name: '1. Kat İçecek',
-        ip: '',
-        port: 9100,
-        enabled: true,
-        type: 'epson'
-      },
-      icecek2: {
-        name: '2. Kat İçecek',
-        ip: '',
-        port: 9100,
-        enabled: true,
-        type: 'epson'
-      }
-    };
-
-    const newKitchenStations = [
-      { id: 'kavurma', name: 'KAVURMA', color: '#FF0000', order: 1 },
-      { id: 'ramen', name: 'RAMEN', color: '#FF0000', order: 2 },
-      { id: 'kebap', name: 'KEBAP', color: '#FF0000', order: 3 },
-      { id: 'manti', name: 'MANTI', color: '#FF0000', order: 4 },
-      { id: 'icecek1', name: '1. Kat İçecek', color: '#0000FF', order: 5 },
-      { id: 'icecek2', name: '2. Kat İçecek', color: '#0000FF', order: 6 }
-    ];
-
-    await kroren.update({
-      printer_config: newPrinterConfig,
-      kitchen_stations: newKitchenStations
-    });
-
-    console.log('✅ Kroren printer configuration updated successfully');
     res.json({
       success: true,
-      message: 'Kroren yazıcı ve istasyon yapılandırması güncellendi!',
-      data: {
-        printerConfig: newPrinterConfig,
-        kitchenStations: newKitchenStations
-      },
+      message: 'Restoran yapılandırmaları tamamlandı',
+      details: results,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('❌ Update Kroren Printers Error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Kroren yazıcı yapılandırması güncellenirken hata oluştu',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    console.error('❌ Update Printers Error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
