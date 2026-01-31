@@ -163,7 +163,10 @@ app.post('/api/debug/update-kroren-printers', async (req, res) => {
   try {
     const { Restaurant } = require('./models');
 
-    const kroren = await Restaurant.findOne({ where: { username: 'kroren' } });
+    let kroren = await Restaurant.findOne({ where: { username: 'kroren-levent' } });
+    if (!kroren) {
+      kroren = await Restaurant.findOne({ where: { username: 'kroren' } });
+    }
     if (!kroren) {
       return res.status(404).json({ success: false, message: 'Kroren restaurant not found' });
     }
@@ -171,14 +174,21 @@ app.post('/api/debug/update-kroren-printers', async (req, res) => {
     const newPrinterConfig = {
       kavurma: {
         name: 'KAVURMA',
-        ip: '192.168.10.194',
+        ip: '192.168.10.150',
         port: 9100,
         enabled: true,
         type: 'epson'
       },
       ramen: {
         name: 'RAMEN',
-        ip: '192.168.10.197',
+        ip: '192.168.1.151',
+        port: 9100,
+        enabled: true,
+        type: 'epson'
+      },
+      kebap: {
+        name: 'KEBAP',
+        ip: '192.168.1.149',
         port: 9100,
         enabled: true,
         type: 'epson'
@@ -209,9 +219,10 @@ app.post('/api/debug/update-kroren-printers', async (req, res) => {
     const newKitchenStations = [
       { id: 'kavurma', name: 'KAVURMA', color: '#FF0000', order: 1 },
       { id: 'ramen', name: 'RAMEN', color: '#FF0000', order: 2 },
-      { id: 'manti', name: 'MANTI', color: '#FF0000', order: 3 },
-      { id: 'icecek1', name: '1. Kat İçecek', color: '#0000FF', order: 4 },
-      { id: 'icecek2', name: '2. Kat İçecek', color: '#0000FF', order: 5 }
+      { id: 'kebap', name: 'KEBAP', color: '#FF0000', order: 3 },
+      { id: 'manti', name: 'MANTI', color: '#FF0000', order: 4 },
+      { id: 'icecek1', name: '1. Kat İçecek', color: '#0000FF', order: 5 },
+      { id: 'icecek2', name: '2. Kat İçecek', color: '#0000FF', order: 6 }
     ];
 
     await kroren.update({

@@ -1,7 +1,7 @@
 {
     "kavurma": {
         "name": "KAVURMA",
-        "ip": "192.168.10.194",
+        "ip": "192.168.10.150",
         "port": 9100,
         "enabled": true,
         "type": "epson",
@@ -10,7 +10,7 @@
     },
     "ramen": {
         "name": "RAMEN",
-        "ip": "192.168.10.197",
+        "ip": "192.168.1.151",
         "port": 9100,
         "enabled": true,
         "type": "epson",
@@ -19,7 +19,7 @@
     },
     "kebap": {
         "name": "KEBAP",
-        "ip": "192.168.10.196",
+        "ip": "192.168.1.149",
         "port": 9100,
         "enabled": true,
         "type": "epson",
