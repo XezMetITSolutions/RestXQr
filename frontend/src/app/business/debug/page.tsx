@@ -13,11 +13,41 @@ export default function DebugPage() {
     const addLog = (msg: string) => setLogs(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
 
     const checkMenu = async () => {
-        if (!currentRestaurant?.id) {
-            addLog('❌ Current Restaurant ID missing. Cannot test.');
+        let restaurantId = currentRestaurant?.id;
+        let username = currentRestaurant?.username;
+
+        setLoading(true);
+
+        // If no ID, try to fetch via subdomain
+        if (!restaurantId && typeof window !== 'undefined') {
+            const subdomain = window.location.hostname.split('.')[0];
+            // Handle localhost/www etc
+            const effectiveUsername = (['localhost', 'www', 'restxqr', 'guzellestir'].includes(subdomain))
+                ? 'kroren' // Default to kroren for debug
+                : subdomain;
+
+            addLog(`⚠️ ID missing. Attempting resolve via subdomain: ${effectiveUsername}`);
+
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurants/username/${effectiveUsername}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                        restaurantId = data.data.id;
+                        username = data.data.username;
+                        addLog(`✅ Resolved Restaurant: ${data.data.name} (${restaurantId})`);
+                    }
+                }
+            } catch (e: any) {
+                addLog(`❌ Resolve Error: ${e.message}`);
+            }
+        }
+
+        if (!restaurantId) {
+            addLog('❌ Could not identify restaurant. Cannot test menu.');
+            setLoading(false);
             return;
         }
-        setLoading(true);
 
         // 1. Test fetchRestaurantByUsername
         addLog(`1. Testing /restaurants/username/${currentRestaurant.username || '...'}`);
@@ -41,9 +71,9 @@ export default function DebugPage() {
         }
 
         // 2. Test getRestaurantMenu
-        addLog(`2. Testing /restaurants/${currentRestaurant.id}/menu`);
+        addLog(`2. Testing /restaurants/${restaurantId}/menu`);
         try {
-            const data = await apiService.getRestaurantMenu(currentRestaurant.id);
+            const data = await apiService.getRestaurantMenu(restaurantId);
             addLog(`Menu fetched. Success: ${data.success}`);
             if (data.success) {
                 addLog(`Items: ${data.data?.items?.length || 0}`);

@@ -630,6 +630,22 @@ router.get('/apply-campaigns', async (req, res) => {
 
             await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS discount_end_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;`);
             log('✅ menu_items.discount_end_date');
+
+            // Structural Columns (Fixing potential 500 error sources)
+            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS variations JSONB DEFAULT '[]'::jsonb;`);
+            log('✅ menu_items.variations');
+
+            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS options JSONB DEFAULT '[]'::jsonb;`);
+            log('✅ menu_items.options');
+
+            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS bundle_items JSONB DEFAULT '[]'::jsonb;`);
+            log('✅ menu_items.bundle_items');
+
+            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS kitchen_station VARCHAR(50) DEFAULT NULL;`);
+            log('✅ menu_items.kitchen_station');
+
+            await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS type VARCHAR(20) DEFAULT 'single';`);
+            log('✅ menu_items.type');
         } catch (e) {
             log(`❌ MenuItems Error: ${e.message}`);
         }
