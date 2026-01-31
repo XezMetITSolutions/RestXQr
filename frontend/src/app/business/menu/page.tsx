@@ -2286,79 +2286,105 @@ export default function MenuManagement() {
               </div>
 
               {categories.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-                  <div className="text-gray-400 mb-4">
-                    <FaFolderOpen className="mx-auto text-5xl" />
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-12 text-center">
+                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-dashed border-gray-200">
+                    <FaFolderOpen className="text-gray-300 text-4xl" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2"><TranslatedText>Henüz kategori yok</TranslatedText></h3>
-                  <p className="text-sm text-gray-500 mb-4">
-                    <TranslatedText>Menü ürünlerinizi düzenlemek için kategoriler oluşturun</TranslatedText>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2"><TranslatedText>Henüz kategori yok</TranslatedText></h3>
+                  <p className="text-gray-500 mb-8 max-w-sm mx-auto">
+                    <TranslatedText>Menü ürünlerinizi düzenlemek için ilk kategorinizi şimdi oluşturun.</TranslatedText>
                   </p>
                   <button
                     onClick={handleAddCategory}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:scale-105 transition-all font-bold inline-flex items-center gap-2"
                   >
                     <FaPlus />
                     <TranslatedText>İlk Kategoriyi Ekle</TranslatedText>
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {categories.map((category, index) => (
-                    <div key={category.id} className="bg-white rounded-lg shadow-sm border p-4 relative group">
-                      <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => handleMoveCategory(category, 'up')}
-                          disabled={index === 0}
-                          className="p-1.5 bg-gray-100 hover:bg-purple-100 text-gray-600 hover:text-purple-600 rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                          title={t('Yukarı Taşı')}
-                        >
-                          <FaArrowUp size={12} />
-                        </button>
-                        <button
-                          onClick={() => handleMoveCategory(category, 'down')}
-                          disabled={index === categories.length - 1}
-                          className="p-1.5 bg-gray-100 hover:bg-purple-100 text-gray-600 hover:text-purple-600 rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                          title={t('Aşağı Taşı')}
-                        >
-                          <FaArrowDown size={12} />
-                        </button>
-                      </div>
-                      <div className="flex justify-between items-start mb-3 pr-16 text-left">
-                        <h3 className="font-semibold text-lg">{category.name}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${category.isActive !== false
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                          }`}>
-                          {category.isActive !== false ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
-                        </span>
-                      </div>
-
-                      {/* İstasyon bilgisi kategoriden kaldırıldı, ürün seviyesinde yönetilecek */}
-
-                      <div>
-                        <p className="text-sm text-gray-500 mb-4">
-                          {items.filter(i => i.categoryId === category.id).length} <TranslatedText>ürün</TranslatedText>
-                        </p>
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditCategory(category)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
-                          >
-                            <FaEdit />
-                            <TranslatedText>Düzenle</TranslatedText>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCategory(category.id)}
-                            className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
-                          >
-                            <FaTrash />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50/80 border-b border-gray-100">
+                          <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest w-16">#</th>
+                          <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest"><TranslatedText>Kategori Bilgisi</TranslatedText></th>
+                          <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest text-center"><TranslatedText>Ürün Sayısı</TranslatedText></th>
+                          <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest text-center"><TranslatedText>Durum</TranslatedText></th>
+                          <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest text-right"><TranslatedText>İşlemler</TranslatedText></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {categories.map((category, index) => (
+                          <tr key={category.id} className="hover:bg-purple-50/30 transition-all duration-200 group">
+                            <td className="px-8 py-5">
+                              <div className="flex flex-col gap-1">
+                                <button
+                                  onClick={() => handleMoveCategory(category, 'up')}
+                                  disabled={index === 0}
+                                  className="p-1 text-gray-400 hover:text-purple-600 disabled:opacity-0 transition-colors"
+                                  title={t('Yukarı Taşı')}
+                                >
+                                  <FaArrowUp size={14} />
+                                </button>
+                                <div className="text-xs font-black text-gray-300 text-center">{index + 1}</div>
+                                <button
+                                  onClick={() => handleMoveCategory(category, 'down')}
+                                  disabled={index === categories.length - 1}
+                                  className="p-1 text-gray-400 hover:text-purple-600 disabled:opacity-0 transition-colors"
+                                  title={t('Aşağı Taşı')}
+                                >
+                                  <FaArrowDown size={14} />
+                                </button>
+                              </div>
+                            </td>
+                            <td className="px-8 py-5">
+                              <div>
+                                <h3 className="font-bold text-gray-900 text-base group-hover:text-purple-700 transition-colors uppercase tracking-tight">
+                                  {category.name}
+                                </h3>
+                                {category.description && (
+                                  <p className="text-xs text-gray-400 mt-1 line-clamp-1 italic">{category.description}</p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-8 py-5 text-center">
+                              <span className="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-black">
+                                {items.filter(i => i.categoryId === category.id).length}
+                              </span>
+                            </td>
+                            <td className="px-8 py-5 text-center">
+                              <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${category.isActive !== false
+                                  ? 'bg-green-100 text-green-700 border border-green-200'
+                                  : 'bg-red-100 text-red-700 border border-red-200'
+                                }`}>
+                                {category.isActive !== false ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
+                              </span>
+                            </td>
+                            <td className="px-8 py-5">
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={() => handleEditCategory(category)}
+                                  className="p-3 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all shadow-sm group/btn"
+                                  title={t('Düzenle')}
+                                >
+                                  <FaEdit className="transition-transform group-hover/btn:scale-110" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteCategory(category.id)}
+                                  className="p-3 bg-white border border-gray-200 text-red-500 rounded-xl hover:bg-red-600 hover:text-white hover:border-red-600 transition-all shadow-sm group/btn"
+                                  title={t('Sil')}
+                                >
+                                  <FaTrash className="transition-transform group-hover/btn:scale-110" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>
