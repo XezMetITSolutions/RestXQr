@@ -454,10 +454,8 @@ export default function GarsonPanel() {
 
   // Gruplu siparişleri tek sipariş formatına çevir
   const createGroupedOrder = (tableOrders: Order[]): Order => {
-    if (tableOrders.length === 1) return tableOrders[0];
-
     // En son siparişin bilgilerini temel al
-    const latestOrder = tableOrders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+    const latestOrder = [...tableOrders].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
 
     // Tüm items'ları birleştir
     const allItems: OrderItem[] = [];
@@ -471,22 +469,35 @@ export default function GarsonPanel() {
     });
 
     // En kritik durumu belirle (ready > pending > preparing > others)
-    const statusPriority = { 'ready': 5, 'pending': 4, 'preparing': 3, 'completed': 2, 'cancelled': 1 };
+    const statusPriority: { [key: string]: number } = { 'ready': 5, 'pending': 4, 'preparing': 3, 'completed': 2, 'cancelled': 1 };
     const mostCriticalStatus = tableOrders.reduce((prev, current) => {
-      return statusPriority[prev.status] > statusPriority[current.status] ? prev : current;
+      const pPriority = statusPriority[prev.status] ?? 0;
+      const cPriority = statusPriority[current.status] ?? 0;
+      return pPriority > cPriority ? prev : current;
     }).status;
+
+    // Notları temizle (Ödeme bilgilerini gizle)
+    const cleanNotes = (note: string) => {
+      if (!note) return '';
+      return note.replace(/Ödeme yöntemi:[^|]*?(?:\||$)/g, '')
+        .replace(/Bahşiş:[^|]*?(?:\||$)/g, '')
+        .replace(/Bağış:[^|]*?(?:\||$)/g, '')
+        .replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:[^|]*?(?:\||$)/gi, '')
+        .trim();
+    };
+
+    const combinedNotes = tableOrders.map(o => cleanNotes(o.notes || '')).filter(Boolean)
+      .filter((note, index, arr) => arr.indexOf(note) === index)
+      .join(' | ');
 
     return {
       ...latestOrder,
       items: allItems,
       totalAmount,
       status: mostCriticalStatus,
-      id: `table-${latestOrder.tableNumber}-grouped`, // Özel ID
-      notes: tableOrders.map(o => o.notes).filter(Boolean)
-        .filter((note, index, arr) => arr.indexOf(note) === index)
-        .filter(note => note && !note.includes('Ödeme yöntemi') && !note.includes('Debug Simülasyonu') && !note.includes('Bahşiş') && !note.includes('Bağış'))
-        .join(' | ') || (latestOrder.notes ? latestOrder.notes.replace(/Ödeme yöntemi:[^|]*?(?:\||$)/g, '').replace(/Bahşiş:[^|]*?(?:\||$)/g, '').replace(/Bağış:[^|]*?(?:\||$)/g, '').replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:[^|]*?(?:\||$)/gi, '').trim() : ''),
-      paymentInfo: tableOrders.map(o => o.notes).filter(Boolean).find(note => note && note.includes('Ödeme yöntemi')) || '',
+      id: tableOrders.length > 1 ? `table-${latestOrder.tableNumber}-grouped` : latestOrder.id,
+      notes: combinedNotes,
+      paymentInfo: '', // Gizli tutalım
       originalOrders: tableOrders
     };
   };
@@ -697,24 +708,21 @@ export default function GarsonPanel() {
                     </div>
                   </div>
 
-                  {/* Order Items - Compact */}
+                  {/* Order Items - Full List */}
                   <div className="space-y-1 mb-3">
-                    {order.items.slice(0, 3).map((item: OrderItem, index: number) => (
+                    {order.items.map((item: OrderItem, index: number) => (
                       <div key={index} className="flex items-start gap-2 text-sm">
                         <div className="w-6 h-6 bg-purple-100 text-purple-700 rounded flex items-center justify-center text-xs font-bold mt-0.5">
                           {item.quantity}x
                         </div>
                         <div className="flex-1">
-                          <div className="text-gray-700">{item.name}</div>
+                          <div className="text-gray-700 font-medium">{item.name}</div>
                           {item.notes && (
                             <div className="text-xs text-purple-600 italic mt-0.5">• {item.notes}</div>
                           )}
                         </div>
                       </div>
                     ))}
-                    {order.items.length > 3 && (
-                      <div className="text-xs text-gray-500 pl-8">+{order.items.length - 3} ürün daha</div>
-                    )}
                   </div>
 
                   {/* Service Calls Only - Ignore Bill calls */}
