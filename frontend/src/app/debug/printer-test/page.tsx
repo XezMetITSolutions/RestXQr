@@ -1,523 +1,243 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { FaPrint, FaBug, FaCheckCircle, FaExclamationTriangle, FaTerminal, FaSync } from 'react-icons/fa';
 
-interface PrinterConfig {
-    id: string;
-    name: string;
-    ip: string;
-    port: number;
-    enabled: boolean;
-    type: string;
-    characterSet?: string;
-    codePage?: string;
-}
+export default function PrinterTestDebugPage() {
+    const [logs, setLogs] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
 
-interface PrinterStatus {
-    connected: boolean;
-    station?: string;
-    ip?: string;
-    port?: number;
-    error?: string;
-    codePage?: string;
-    characterSet?: string;
-}
+    const addLog = (message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info', data?: any) => {
+        setLogs(prev => [{
+            id: Date.now(),
+            timestamp: new Date().toLocaleTimeString(),
+            message,
+            type,
+            data
+        }, ...prev]);
+    };
 
-export default function PrinterTestPage() {
-    const [stations, setStations] = useState<PrinterConfig[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [testingStation, setTestingStation] = useState<string | null>(null);
-    const [printingStation, setPrintingStation] = useState<string | null>(null);
-    const [statusChecking, setStatusChecking] = useState<string | null>(null);
-    const [statuses, setStatuses] = useState<Record<string, PrinterStatus>>({});
-    const [messages, setMessages] = useState<Record<string, { type: 'success' | 'error' | 'info'; text: string }>>({});
+    const runTest = async (type: 'ramen' | 'kavurma' | 'kebap' | 'all') => {
+        setLoading(true);
+        const restaurantUsername = 'kroren-levent';
 
-    const defaultStations = [
-        { id: 'kavurma', name: 'KAVURMA', ip: '192.168.10.194', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
-        { id: 'manti', name: 'MANTI', ip: '192.168.10.199', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
-        { id: 'ramen', name: 'RAMEN', ip: '192.168.10.197', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
-        { id: 'icecek1', name: '1 Kat İçecek', ip: '', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
-        { id: 'icecek2', name: '2. Kat İçecek', ip: '', port: 9100, enabled: true, type: 'epson', characterSet: 'PC857_TURKISH', codePage: 'CP857' },
-    ];
-
-    useEffect(() => {
-        loadStations();
-    }, []);
-
-    const loadStations = async () => {
-        try {
-            const response = await fetch('/api/printers');
-            const data = await response.json();
-
-            if (data.success && data.data && data.data.length > 0) {
-                setStations(data.data);
-            } else {
-                // No stations configured, show defaults
-                setStations(defaultStations);
+        // Define mock items with their corresponding station IDs
+        const mockItems = {
+            ramen: {
+                name: "Test Ramen Ürünü",
+                quantity: 1,
+                id: "ramen-123",
+                kitchenStation: "17692021455220.027173748942849185", // RAMEN ID
+                notes: "Debug Test Print"
+            },
+            kavurma: {
+                name: "Test Kavurma Ürünü",
+                quantity: 1,
+                id: "kavurma-123",
+                kitchenStation: "17692021455190.20485462886666846", // KAVURMA ID
+                notes: "Debug Test Print"
+            },
+            kebap: {
+                name: "Test Kebap & Sushi Ürünü",
+                quantity: 1,
+                id: "kebap-123",
+                kitchenStation: "176960565656066", // KEBAP & SUSHI ID
+                notes: "Debug Test Print"
             }
-        } catch (error) {
-            console.error('Failed to load stations:', error);
-            // Show defaults on error
-            setStations(defaultStations);
+        };
+
+        const targetItems = type === 'all'
+            ? [mockItems.ramen, mockItems.kavurma, mockItems.kebap]
+            : [mockItems[type]];
+
+        addLog(`🧪 ${type.toUpperCase()} testi başlatıldı...`, 'info', { targetItems });
+
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
+            const apiUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+
+            // Step 1: Create Mock Order
+            addLog("Step 1: Geçici sipariş oluşturuluyor...", 'info');
+            const orderRes = await fetch(`${apiUrl}/orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    restaurantId: restaurantUsername,
+                    tableNumber: "DEBUG-99",
+                    items: targetItems,
+                    notes: "PRINTER DEBUG TEST",
+                    orderType: 'dine_in'
+                })
+            });
+
+            const orderData = await orderRes.json();
+            if (!orderData.success) throw new Error(orderData.message || "Sipariş oluşturulamadı");
+
+            const orderId = orderData.data.id;
+            addLog(`✅ Sipariş oluşturuldu: ${orderId}`, 'success');
+
+            // Step 2: Trigger Manual Print
+            addLog(`Step 2: ${orderId} ID'li sipariş için yazdırma tetikleniyor...`, 'info');
+            const printRes = await fetch(`${apiUrl}/orders/${orderId}/print`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const printData = await printRes.json();
+
+            if (printData.success) {
+                printData.results.forEach((res: any) => {
+                    if (res.success) {
+                        addLog(`🖨️ ${res.stationId} Fişi Çıktı! (Hedef IP: ${res.ip})`, 'success', res);
+                    } else {
+                        addLog(`❌ ${res.stationId} HATASI: ${res.error}`, 'error', res);
+                    }
+                });
+            } else {
+                addLog(`❌ Yazdırma genel hatası: ${printData.message}`, 'error', printData);
+            }
+
+            // Step 3: Cleanup (Optional but good practice)
+            addLog("Step 3: Test siparişi temizleniyor...", 'info');
+            await fetch(`${apiUrl}/orders/${orderId}`, { method: 'DELETE' });
+            addLog("✅ Temizlik tamamlandı.", 'success');
+
+        } catch (error: any) {
+            addLog(`💥 KRİTİK HATA: ${error.message}`, 'error');
+            console.error(error);
         } finally {
             setLoading(false);
         }
     };
 
-    const updateStationConfig = async (stationId: string, config: Partial<PrinterConfig>) => {
-        try {
-            const response = await fetch(`/api/printers/${stationId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(config),
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                setMessages(prev => ({
-                    ...prev,
-                    [stationId]: { type: 'success', text: 'Configuration updated!' }
-                }));
-                setTimeout(() => {
-                    setMessages(prev => {
-                        const newMessages = { ...prev };
-                        delete newMessages[stationId];
-                        return newMessages;
-                    });
-                }, 3000);
-                await loadStations();
-            } else {
-                throw new Error(data.error || 'Update failed');
-            }
-        } catch (error) {
-            setMessages(prev => ({
-                ...prev,
-                [stationId]: { type: 'error', text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` }
-            }));
-        }
-    };
-
-    const [connectionMode, setConnectionMode] = useState<'cloud' | 'local'>('local');
-
-    const checkStatus = async (stationId: string) => {
-        setStatusChecking(stationId);
-        const station = stations.find(s => s.id === stationId);
-        if (!station) return;
-
-        try {
-            let data;
-
-            if (connectionMode === 'local') {
-                const response = await fetch(`http://localhost:3005/status/${station.ip}`);
-                data = await response.json();
-                // Normalize local bridge response to match cloud response structure if needed
-                if (data.success) {
-                    data.data = { connected: data.connected };
-                }
-            } else {
-                const response = await fetch(`/api/printers/${stationId}/status`);
-                data = await response.json();
-            }
-
-            if (data.success) {
-                setStatuses(prev => ({ ...prev, [stationId]: data.data }));
-                setMessages(prev => ({
-                    ...prev,
-                    [stationId]: {
-                        type: data.data.connected ? 'success' : 'error',
-                        text: data.data.connected ? '✅ Printer connected!' : '❌ Printer not connected'
-                    }
-                }));
-            } else {
-                setStatuses(prev => ({ ...prev, [stationId]: { connected: false, error: data.error } }));
-                setMessages(prev => ({
-                    ...prev,
-                    [stationId]: { type: 'error', text: `Error: ${data.error}` }
-                }));
-            }
-        } catch (error) {
-            setMessages(prev => ({
-                ...prev,
-                [stationId]: { type: 'error', text: `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}` }
-            }));
-        } finally {
-            setStatusChecking(null);
-            setTimeout(() => {
-                setMessages(prev => {
-                    const newMessages = { ...prev };
-                    delete newMessages[stationId];
-                    return newMessages;
-                });
-            }, 5000);
-        }
-    };
-
-    const testPrint = async (stationId: string) => {
-        setPrintingStation(stationId);
-        const station = stations.find(s => s.id === stationId);
-        if (!station) return;
-
-        try {
-            let data;
-
-            if (connectionMode === 'local') {
-                const response = await fetch(`http://localhost:3005/test/${station.ip}`, {
-                    method: 'POST'
-                });
-                data = await response.json();
-            } else {
-                const response = await fetch(`/api/printers/${stationId}/test`, {
-                    method: 'POST',
-                });
-                data = await response.json();
-            }
-
-            if (data.success) {
-                setMessages(prev => ({
-                    ...prev,
-                    [stationId]: { type: 'success', text: '✅ Test print sent successfully!' }
-                }));
-            } else {
-                setMessages(prev => ({
-                    ...prev,
-                    [stationId]: { type: 'error', text: `❌ Print failed: ${data.error}` }
-                }));
-            }
-        } catch (error) {
-            setMessages(prev => ({
-                ...prev,
-                [stationId]: { type: 'error', text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` }
-            }));
-        } finally {
-            setPrintingStation(null);
-            setTimeout(() => {
-                setMessages(prev => {
-                    const newMessages = { ...prev };
-                    delete newMessages[stationId];
-                    return newMessages;
-                });
-            }, 5000);
-        }
-    };
-
-    const generateReceiptImage = (stationIp: string) => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 384; // Standard thermal printer width (384px for 58mm, 576px for 80mm) - using safe width
-        canvas.height = 400; // Estimated height
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return null;
-
-        // Background
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Text settings
-        ctx.fillStyle = '#000000';
-        ctx.textAlign = 'center';
-
-        // Header
-        ctx.font = 'bold 24px Arial';
-        ctx.fillText('RestXQR Image Print', canvas.width / 2, 40);
-
-        ctx.font = '18px Arial';
-        ctx.fillText('Automatic Image Mode', canvas.width / 2, 70);
-
-        // Divider
-        ctx.beginPath();
-        ctx.moveTo(10, 90);
-        ctx.lineTo(canvas.width - 10, 90);
-        ctx.stroke();
-
-        // Turkish Characters Test
-        ctx.textAlign = 'left';
-        ctx.font = 'bold 20px Arial';
-        ctx.fillText('Türkçe Karakter Testi:', 20, 130);
-
-        ctx.font = '22px Arial';
-        ctx.fillText('ÇğıÖşü İIĞÜŞÇ', 20, 160);
-        ctx.fillText('Lezzetli Çorba & Kebap', 20, 190);
-
-        // Info
-        ctx.font = '16px monospace';
-        ctx.fillText(`IP: ${stationIp}`, 20, 240);
-        ctx.fillText(`Date: ${new Date().toLocaleDateString()}`, 20, 270);
-        ctx.fillText(`Time: ${new Date().toLocaleTimeString()}`, 20, 290);
-
-        // Footer
-        ctx.textAlign = 'center';
-        ctx.font = 'italic 16px Arial';
-        ctx.fillText('Printed via Canvas -> Bridge', canvas.width / 2, 350);
-
-        return canvas.toDataURL('image/png');
-    };
-
-    const testImagePrint = async (stationId: string) => {
-        setPrintingStation(stationId);
-        const station = stations.find(s => s.id === stationId);
-        if (!station) return;
-
-        if (connectionMode !== 'local') {
-            setMessages(prev => ({
-                ...prev,
-                [stationId]: { type: 'error', text: 'Image printing only works in Local Bridge mode!' }
-            }));
-            setPrintingStation(null);
-            return;
-        }
-
-        try {
-            const base64Image = generateReceiptImage(station.ip);
-            if (!base64Image) throw new Error("Failed to generate image");
-
-            const response = await fetch(`http://localhost:3005/print-image/${station.ip}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: base64Image })
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                setMessages(prev => ({
-                    ...prev,
-                    [stationId]: { type: 'success', text: '✅ Image print sent successfully!' }
-                }));
-            } else {
-                setMessages(prev => ({
-                    ...prev,
-                    [stationId]: { type: 'error', text: `❌ Print failed: ${data.error}` }
-                }));
-            }
-        } catch (error) {
-            setMessages(prev => ({
-                ...prev,
-                [stationId]: { type: 'error', text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` }
-            }));
-        } finally {
-            setPrintingStation(null);
-            setTimeout(() => {
-                setMessages(prev => {
-                    const newMessages = { ...prev };
-                    delete newMessages[stationId];
-                    return newMessages;
-                });
-            }, 5000);
-        }
-    };
-
-    const handleConfigChange = (stationId: string, field: keyof PrinterConfig, value: any) => {
-        setStations(prev => prev.map(s =>
-            s.id === stationId ? { ...s, [field]: value } : s
-        ));
-    };
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading printer configurations...</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">🖨️ Printer Debug & Testing</h1>
-                            <p className="text-gray-600">Configure and test your thermal printers for automatic order printing</p>
-                        </div>
-                        <div className="bg-gray-100 p-1 rounded-lg flex items-center">
-                            <button
-                                onClick={() => setConnectionMode('cloud')}
-                                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${connectionMode === 'cloud' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
-                            >
-                                Cloud (Backend)
-                            </button>
-                            <button
-                                onClick={() => setConnectionMode('local')}
-                                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${connectionMode === 'local' ? 'bg-white shadow text-green-600' : 'text-gray-600 hover:text-gray-900'}`}
-                            >
-                                Local Bridge
-                            </button>
-                        </div>
-                    </div>
-                    {connectionMode === 'local' && (
-                        <div className="mt-4 bg-green-50 border border-green-200 rounded p-2 text-sm text-green-800">
-                            <strong>Local Bridge Mode Active:</strong> Commands are sent to <code>http://localhost:3005</code>. Ensure Local Bridge is running!
-                        </div>
-                    )}
-                </div>
-
-                {/* Info Panel */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
-                    <div className="flex items-start">
-                        <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                            </svg>
-                        </div>
-                        <div className="ml-3 flex-1">
-                            <h3 className="text-sm font-medium text-blue-900 mb-1">How to use this page:</h3>
-                            <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
-                                <li>Configure each station with the correct printer IP address</li>
-                                <li>Click "Check Status" to verify network connectivity</li>
-                                <li>Click "Test Print" to send a sample receipt with Turkish characters</li>
-                                <li>Enable/disable stations as needed for your restaurant setup</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Printer Stations Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {stations.map((station) => (
-                        <div key={station.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                            {/* Station Header */}
-                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-xl font-bold text-white">{station.name}</h2>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={station.enabled}
-                                            onChange={(e) => {
-                                                handleConfigChange(station.id, 'enabled', e.target.checked);
-                                                updateStationConfig(station.id, { enabled: e.target.checked });
-                                            }}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-blue-400 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                                    </label>
-                                </div>
+        <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-12 font-sans">
+            <div className="max-w-4xl mx-auto">
+                <header className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-3 bg-indigo-500 rounded-xl shadow-lg shadow-indigo-500/30">
+                                <FaBug className="text-2xl text-white" />
                             </div>
+                            <h1 className="text-3xl font-extrabold tracking-tight">Printer Debug Center</h1>
+                        </div>
+                        <p className="text-slate-400 text-lg">Kroren-Levent Yazıcı İstasyon Test Paneli</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setLogs([])}
+                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors flex items-center gap-2 text-sm"
+                        >
+                            <FaTerminal /> Logları Temizle
+                        </button>
+                    </div>
+                </header>
 
-                            {/* Station Configuration */}
-                            <div className="p-6 space-y-4">
-                                {/* IP Address */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">IP Address</label>
-                                    <input
-                                        type="text"
-                                        value={station.ip}
-                                        onChange={(e) => handleConfigChange(station.id, 'ip', e.target.value)}
-                                        onBlur={() => updateStationConfig(station.id, { ip: station.ip })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
-                                        placeholder="192.168.1.13"
-                                    />
-                                </div>
-
-                                {/* Port */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Port</label>
-                                    <input
-                                        type="number"
-                                        value={station.port}
-                                        onChange={(e) => handleConfigChange(station.id, 'port', parseInt(e.target.value))}
-                                        onBlur={() => updateStationConfig(station.id, { port: station.port })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
-                                        placeholder="9100"
-                                    />
-                                </div>
-
-                                {/* Printer Type */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Printer Type</label>
-                                    <select
-                                        value={station.type}
-                                        onChange={(e) => {
-                                            handleConfigChange(station.id, 'type', e.target.value);
-                                            updateStationConfig(station.id, { type: e.target.value });
-                                        }}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                    >
-                                        <option value="epson">Epson</option>
-                                        <option value="star">Star</option>
-                                        <option value="tanca">Tanca</option>
-                                    </select>
-                                </div>
-
-                                {/* Status Indicator */}
-                                {statuses[station.id] && (
-                                    <div className={`p-3 rounded-lg ${statuses[station.id].connected ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                                        <div className="flex items-center">
-                                            <div className={`w-3 h-3 rounded-full mr-2 ${statuses[station.id].connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                                            <span className={`text-sm font-medium ${statuses[station.id].connected ? 'text-green-800' : 'text-red-800'}`}>
-                                                {statuses[station.id].connected ? 'Connected' : 'Disconnected'}
-                                            </span>
-                                        </div>
-                                        {statuses[station.id].error && (
-                                            <p className="text-xs text-red-700 mt-1">{statuses[station.id].error}</p>
-                                        )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Control Panel */}
+                    <div className="space-y-6">
+                        <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
+                            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                                <FaTerminal className="text-indigo-400" /> Test Senaryoları
+                            </h2>
+                            <div className="grid grid-cols-1 gap-4">
+                                <button
+                                    disabled={loading}
+                                    onClick={() => runTest('ramen')}
+                                    className="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl transition-all shadow-lg hover:shadow-indigo-500/20 flex items-center justify-between group disabled:opacity-50"
+                                >
+                                    <div className="text-left">
+                                        <p className="font-bold">Test: RAMEN</p>
+                                        <p className="text-xs text-indigo-100/70">ID: ...5220.027... (IP: 1.151)</p>
                                     </div>
-                                )}
+                                    <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
+                                </button>
 
-                                {/* Message Display */}
-                                {messages[station.id] && (
-                                    <div className={`p-3 rounded-lg border ${messages[station.id].type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
-                                        messages[station.id].type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
-                                            'bg-blue-50 border-blue-200 text-blue-800'
-                                        }`}>
-                                        <p className="text-sm font-medium">{messages[station.id].text}</p>
+                                <button
+                                    disabled={loading}
+                                    onClick={() => runTest('kavurma')}
+                                    className="p-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 rounded-xl transition-all shadow-lg hover:shadow-red-500/20 flex items-center justify-between group disabled:opacity-50"
+                                >
+                                    <div className="text-left">
+                                        <p className="font-bold">Test: KAVURMA</p>
+                                        <p className="text-xs text-orange-100/70">ID: ...5190.204... (IP: 1.150)</p>
                                     </div>
-                                )}
+                                    <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
+                                </button>
 
-                                {/* Action Buttons */}
-                                <div className="flex flex-col gap-2 pt-2">
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => checkStatus(station.id)}
-                                            disabled={!station.enabled || statusChecking === station.id}
-                                            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-xs"
-                                        >
-                                            {statusChecking === station.id ? 'Checking...' : 'Check Status'}
-                                        </button>
-
-                                        <button
-                                            onClick={() => testPrint(station.id)}
-                                            disabled={!station.enabled || printingStation === station.id}
-                                            className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-xs"
-                                        >
-                                            {printingStation === station.id ? 'Printing...' : 'Test Text'}
-                                        </button>
+                                <button
+                                    disabled={loading}
+                                    onClick={() => runTest('kebap')}
+                                    className="p-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-xl transition-all shadow-lg hover:shadow-emerald-500/20 flex items-center justify-between group disabled:opacity-50"
+                                >
+                                    <div className="text-left">
+                                        <p className="font-bold">Test: KEBAP & SUSHI</p>
+                                        <p className="text-xs text-emerald-100/70">ID: 176960565656066 (IP: 1.149)</p>
                                     </div>
+                                    <FaPrint className="text-xl group-hover:scale-110 transition-transform" />
+                                </button>
+
+                                <div className="pt-4 border-t border-slate-700 mt-2">
                                     <button
-                                        onClick={() => testImagePrint(station.id)}
-                                        disabled={!station.enabled || printingStation === station.id || connectionMode !== 'local'}
-                                        className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-xs"
-                                        title={connectionMode !== 'local' ? 'Switch to Local Bridge mode to use Image Print' : 'Print as Image (Solves Character Issues)'}
+                                        disabled={loading}
+                                        onClick={() => runTest('all')}
+                                        className="w-full p-4 bg-white text-slate-900 hover:bg-slate-100 font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-3 disabled:opacity-50"
                                     >
-                                        {printingStation === station.id ? (
-                                            <>
-                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                                Printing...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                                Test Image Print (Best for Turkish)
-                                            </>
-                                        )}
+                                        {loading ? <FaSync className="animate-spin" /> : <FaCheckCircle />}
+                                        Tüm İstasyonları Aynı Anda Test Et
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    ))}
-                </div>
 
-                {/* Footer Info */}
-                <div className="mt-8 bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">📋 Technical Notes</h3>
-                    <div className="space-y-2 text-sm text-gray-600">
-                        <p><strong>Port:</strong> Most thermal printers use port 9100 (RAW printing protocol)</p>
-                        <p><strong>Character Set:</strong> PC857_TURKISH for proper Turkish character support (ç, ğ, ı, ö, ş, ü)</p>
-                        <p><strong>Test Print:</strong> Includes Turkish characters to verify encoding is working correctly</p>
-                        <p><strong>Network:</strong> Ensure printers are on the same network and firewall allows port 9100</p>
+                        <div className="bg-amber-900/20 border border-amber-900/30 rounded-2xl p-6">
+                            <h3 className="text-amber-400 font-bold mb-3 flex items-center gap-2">
+                                <FaExclamationTriangle /> Bilgi
+                            </h3>
+                            <p className="text-sm text-amber-100/70 leading-relaxed">
+                                Bu sayfa, Kroren-Levent için özel olarak tanımlanan uzun istasyon ID'lerinin sistem tarafından doğru tanınıp tanınmadığını test eder.
+                                <br /><br />
+                                Her buton, arka planda o istasyona ait ID ile bir sanal ürün içeren kısa ömürlü bir sipariş oluşturur ve hemen yazdırma komutu gönderir.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Console Output */}
+                    <div className="flex flex-col h-full min-h-[500px]">
+                        <div className="bg-black border border-slate-700 rounded-2xl p-4 flex-1 font-mono text-sm overflow-hidden flex flex-col shadow-2xl">
+                            <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-2">
+                                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                <span className="ml-2 text-slate-500 text-xs">debug-console.log</span>
+                            </div>
+                            <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-800">
+                                {logs.length === 0 && (
+                                    <div className="text-slate-600 animate-pulse italic">Test başlatılması bekleniyor...</div>
+                                )}
+                                {logs.map(log => (
+                                    <div key={log.id} className="border-l-2 border-slate-800 pl-3">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] text-slate-600">[{log.timestamp}]</span>
+                                            <span className={`
+                                                font-bold 
+                                                ${log.type === 'success' ? 'text-emerald-400' : ''}
+                                                ${log.type === 'error' ? 'text-red-400' : ''}
+                                                ${log.type === 'warning' ? 'text-amber-400' : ''}
+                                                ${log.type === 'info' ? 'text-indigo-400' : ''}
+                                            `}>
+                                                {log.message}
+                                            </span>
+                                        </div>
+                                        {log.data && (
+                                            <pre className="mt-1 p-2 bg-slate-900/50 rounded text-[10px] text-slate-500 overflow-x-auto">
+                                                {JSON.stringify(log.data, null, 2)}
+                                            </pre>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
