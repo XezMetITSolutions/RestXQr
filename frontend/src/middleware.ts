@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
   const subdomain = hostname.split('.')[0];
 
   // Ana domain'ler (subdomain routing yapılmayacak)  
-  const mainDomains = ['localhost', 'www'];
+  const mainDomains = ['localhost', 'www', 'restxqr', 'masapp', 'guzellestir'];
 
   // Query parameter'dan subdomain bilgisi al (geçici çözüm)
   const querySubdomain = searchParams.get('subdomain');
