@@ -605,6 +605,58 @@ router.get('/sync-all-plans', async (req, res) => {
         log(`Fatal Error: ${error.message}`);
         res.status(500).json({ logs, error: error.message });
     }
-});
+    // GET /api/admin-fix/apply-campaigns - Manually add campaign columns
+    router.get('/apply-campaigns', async (req, res) => {
+        let logs = [];
+        const log = (msg) => logs.push(msg);
 
-module.exports = router;
+        try {
+            const { sequelize } = require('../models');
+
+            log('🚀 Starting Campaign Columns Migration...');
+
+            // 1. Menu Items Columns
+            try {
+                await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS discount_percentage INTEGER DEFAULT NULL;`);
+                log('✅ menu_items.discount_percentage');
+
+                await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS discounted_price DECIMAL(10,2) DEFAULT NULL;`);
+                log('✅ menu_items.discounted_price');
+
+                await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS discount_start_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;`);
+                log('✅ menu_items.discount_start_date');
+
+                await sequelize.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS discount_end_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;`);
+                log('✅ menu_items.discount_end_date');
+            } catch (e) {
+                log(`❌ MenuItems Error: ${e.message}`);
+            }
+
+            // 2. Menu Categories Columns
+            try {
+                await sequelize.query(`ALTER TABLE menu_categories ADD COLUMN IF NOT EXISTS discount_percentage INTEGER DEFAULT NULL;`);
+                log('✅ menu_categories.discount_percentage');
+
+                await sequelize.query(`ALTER TABLE menu_categories ADD COLUMN IF NOT EXISTS discount_start_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;`);
+                log('✅ menu_categories.discount_start_date');
+
+                await sequelize.query(`ALTER TABLE menu_categories ADD COLUMN IF NOT EXISTS discount_end_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;`);
+                log('✅ menu_categories.discount_end_date');
+            } catch (e) {
+                log(`❌ MenuCategories Error: ${e.message}`);
+            }
+
+            log('🏁 Migration completed.');
+
+            res.json({
+                success: true,
+                logs
+            });
+
+        } catch (error) {
+            log(`Fatal Error: ${error.message}`);
+            res.status(500).json({ logs, error: error.message });
+        }
+    });
+
+    module.exports = router;

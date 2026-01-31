@@ -1,225 +1,100 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
-import { FaBug, FaSync, FaTrash, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import useRestaurantStore from '@/store/useRestaurantStore';
+import { apiService } from '@/services/api';
 
 export default function DebugPage() {
-    const store = useBusinessSettingsStore();
-    const [localStorageData, setLocalStorageData] = useState<any>(null);
-    const [testResult, setTestResult] = useState<string>('');
+    const { currentRestaurant } = useRestaurantStore();
     const [logs, setLogs] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [dbFixResult, setDbFixResult] = useState<any>(null);
 
-    const addLog = (message: string) => {
-        const timestamp = new Date().toLocaleTimeString();
-        setLogs(prev => [`[${timestamp}] ${message}`, ...prev]);
-    };
+    const addLog = (msg: string) => setLogs(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
 
-    useEffect(() => {
-        loadLocalStorageData();
-        addLog('Debug sayfası yüklendi');
-    }, []);
-
-    const loadLocalStorageData = () => {
+    const checkMenu = async () => {
+        if (!currentRestaurant?.id) return;
+        setLoading(true);
+        addLog('Fetching menu...');
         try {
-            const data = localStorage.getItem('business-settings-storage');
-            if (data) {
-                setLocalStorageData(JSON.parse(data));
-                addLog('✅ localStorage verisi yüklendi');
-            } else {
-                addLog('⚠️ localStorage\'da veri bulunamadı');
+            const data = await apiService.getRestaurantMenu(currentRestaurant.id);
+            addLog(`Menu fetched. Success: ${data.success}`);
+            if (data.success) {
+                addLog(`Items: ${data.data?.items?.length || 0}`);
+                addLog(`Categories: ${data.data?.categories?.length || 0}`);
+                // Check for campaign fields in the first item
+                const firstItem = data.data?.items?.[0];
+                if (firstItem) {
+                    addLog('Sample Item Fields Check:');
+                    addLog(`- name: ${firstItem.name}`);
+                    addLog(`- price: ${firstItem.price}`);
+                    addLog(`- discountPercentage: ${firstItem.discountPercentage !== undefined ? 'EXISTS' : 'MISSING'}`);
+                    addLog(`- discountedPrice: ${firstItem.discountedPrice !== undefined ? 'EXISTS' : 'MISSING'}`);
+                    addLog(`- discountStartDate: ${firstItem.discountStartDate !== undefined ? 'EXISTS' : 'MISSING'}`);
+                }
             }
-        } catch (error) {
-            addLog(`❌ localStorage okuma hatası: ${error}`);
+        } catch (e: any) {
+            addLog(`❌ Fetch Error: ${e.message}`);
+            console.error(e);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const testSave = () => {
+    const applyCampaignFix = async () => {
+        setLoading(true);
+        addLog('🚀 Applying Database Fix (Campaign Columns)...');
         try {
-            addLog('🧪 Test kaydı başlatılıyor...');
-
-            // Test verisi ile güncelle
-            store.updatePrinterSettings({
-                receiptFooter: `Test - ${new Date().toLocaleTimeString()}`
-            });
-
-            addLog('✅ Store güncellendi');
-
-            // LocalStorage'ı kontrol et
-            setTimeout(() => {
-                loadLocalStorageData();
-                setTestResult('Test başarılı! Verileri kontrol edin.');
-            }, 500);
-
-        } catch (error) {
-            addLog(`❌ Test hatası: ${error}`);
-            setTestResult(`Hata: ${error}`);
+            // Note: using fetch directly as this endpoint might not be in apiService
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin-fix/apply-campaigns`);
+            const data = await res.json();
+            setDbFixResult(data);
+            addLog(`Result: ${data.success ? 'Success' : 'Failed'}`);
+            if (data.logs) {
+                data.logs.forEach((l: string) => addLog(`[DB] ${l}`));
+            }
+        } catch (e: any) {
+            addLog(`❌ Fix Error: ${e.message}`);
+        } finally {
+            setLoading(false);
         }
-    };
-
-    const clearStorage = () => {
-        if (confirm('LocalStorage tamamen silinecek. Emin misiniz?')) {
-            localStorage.removeItem('business-settings-storage');
-            addLog('🗑️ localStorage temizlendi');
-            loadLocalStorageData();
-            window.location.reload();
-        }
-    };
-
-    const forceSync = () => {
-        addLog('🔄 Zorla senkronizasyon başlatılıyor...');
-        loadLocalStorageData();
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-8">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                    <div className="flex items-center gap-3 mb-4">
-                        <FaBug className="text-3xl text-red-600" />
-                        <h1 className="text-3xl font-bold text-gray-800">Settings Debug Panel</h1>
-                    </div>
-                    <p className="text-gray-600">Ayarların kayıt durumunu ve localStorage'ı kontrol edin</p>
+        <div className="p-8 max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold mb-6">Menu Debug & Fix</h1>
+
+            <div className="bg-white rounded-xl shadow p-6 mb-6">
+                <h2 className="text-xl font-semibold mb-4">Diagnostic Tools</h2>
+
+                <div className="flex gap-4 mb-6">
+                    <button
+                        onClick={checkMenu}
+                        disabled={loading}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                    >
+                        Test Menu Fetch (Check Columns)
+                    </button>
+
+                    <button
+                        onClick={applyCampaignFix}
+                        disabled={loading}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                    >
+                        Fix Database (Add Campaign Columns)
+                    </button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    {/* Store State */}
-                    <div className="bg-white rounded-lg shadow-lg p-6">
-                        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <FaCheckCircle className="text-green-600" />
-                            Mevcut Store Durumu
-                        </h2>
-                        <div className="bg-gray-50 rounded-lg p-4 overflow-auto max-h-96">
-                            <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-                                {JSON.stringify(store.settings, null, 2)}
-                            </pre>
-                        </div>
-                    </div>
-
-                    {/* LocalStorage State */}
-                    <div className="bg-white rounded-lg shadow-lg p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                                <FaExclamationTriangle className="text-yellow-600" />
-                                LocalStorage Verisi
-                            </h2>
-                            <button
-                                onClick={forceSync}
-                                className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 flex items-center gap-2"
-                            >
-                                <FaSync />
-                                Yenile
-                            </button>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-4 overflow-auto max-h-96">
-                            {localStorageData ? (
-                                <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-                                    {JSON.stringify(localStorageData, null, 2)}
-                                </pre>
-                            ) : (
-                                <p className="text-gray-500 text-center py-8">LocalStorage boş</p>
-                            )}
-                        </div>
-                    </div>
+                <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm h-96 overflow-y-auto">
+                    {logs.length === 0 ? <span className="text-gray-500">// Logs will appear here...</span> : logs.map((log, i) => (
+                        <div key={i}>{log}</div>
+                    ))}
                 </div>
+            </div>
 
-                {/* Printer Settings Detail */}
-                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">Printer Settings (Detaylı)</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                            <p className="text-sm text-gray-600 mb-1">Receipt Header</p>
-                            <p className="font-mono text-sm">{store.settings.printerSettings?.receiptHeader || '(boş)'}</p>
-                        </div>
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                            <p className="text-sm text-gray-600 mb-1">Receipt Footer</p>
-                            <p className="font-mono text-sm">{store.settings.printerSettings?.receiptFooter || '(boş)'}</p>
-                        </div>
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                            <p className="text-sm text-gray-600 mb-1">Paper Width</p>
-                            <p className="font-mono text-sm">{store.settings.printerSettings?.paperWidth || '(boş)'}</p>
-                        </div>
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                            <p className="text-sm text-gray-600 mb-1">Copies</p>
-                            <p className="font-mono text-sm">{store.settings.printerSettings?.copies || '(boş)'}</p>
-                        </div>
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                            <p className="text-sm text-gray-600 mb-1">Show Logo</p>
-                            <p className="font-mono text-sm">{store.settings.printerSettings?.showLogo ? '✅ Evet' : '❌ Hayır'}</p>
-                        </div>
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                            <p className="text-sm text-gray-600 mb-1">Auto Print</p>
-                            <p className="font-mono text-sm">{store.settings.printerSettings?.autoPrintOrders ? '✅ Evet' : '❌ Hayır'}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Actions */}
-                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">Test İşlemleri</h2>
-                    <div className="flex gap-4 flex-wrap">
-                        <button
-                            onClick={testSave}
-                            className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
-                        >
-                            🧪 Test Kayıt Yap
-                        </button>
-                        <button
-                            onClick={loadLocalStorageData}
-                            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
-                        >
-                            <FaSync />
-                            LocalStorage Yenile
-                        </button>
-                        <button
-                            onClick={clearStorage}
-                            className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
-                        >
-                            <FaTrash />
-                            LocalStorage Temizle
-                        </button>
-                        <a
-                            href="/business/debug/product-checker"
-                            className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2"
-                        >
-                            <FaBug />
-                            Ürün & İstasyon Denetçisi
-                        </a>
-                    </div>
-                    {testResult && (
-                        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="text-blue-800">{testResult}</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Logs */}
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">İşlem Logları</h2>
-                    <div className="bg-gray-900 rounded-lg p-4 max-h-64 overflow-auto">
-                        {logs.length === 0 ? (
-                            <p className="text-gray-500 text-center py-4">Henüz log yok</p>
-                        ) : (
-                            logs.map((log, index) => (
-                                <div key={index} className="text-green-400 font-mono text-xs mb-1">
-                                    {log}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
-
-                {/* Info */}
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mt-6">
-                    <h3 className="font-bold text-yellow-800 mb-2">ℹ️ Bilgilendirme</h3>
-                    <ul className="text-sm text-yellow-700 space-y-1 list-disc list-inside">
-                        <li>Store, Zustand persist middleware kullanarak otomatik LocalStorage'a kaydediyor</li>
-                        <li>Her store güncellemesi otomatik olarak kaydedilmeli</li>
-                        <li>Eğer veriler kaydedilmiyorsa, persist yapılandırması kontrol edilmeli</li>
-                        <li>LocalStorage key: <code className="bg-yellow-100 px-1 rounded">business-settings-storage</code></li>
-                    </ul>
-                </div>
+            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                <p className="font-bold text-yellow-800">Note:</p>
+                <p className="text-sm text-yellow-700">If you see "Internal Server Error" when accessing the menu, click the <b>Red Button</b> above to ensure all necessary database columns exist.</p>
             </div>
         </div>
     );
