@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const { ThermalPrinter, PrinterTypes, CharacterSet } = require('node-thermal-printer');
 
 const app = express();
@@ -43,6 +44,34 @@ function encodeText(text, encoding = 'cp857') {
     }
 }
 
+/**
+ * Helper to find the correct UNC path for a shared printer
+ * Tries: \\HOSTNAME\Printer, \\localhost\Printer, \\127.0.0.1\Printer
+ */
+async function resolveWindowsPrinterPath(printerName) {
+    const hostname = os.hostname();
+    const candidates = [
+        `\\\\${hostname}\\${printerName}`,
+        `\\\\localhost\\${printerName}`,
+        `\\\\127.0.0.1\\${printerName}`
+    ];
+
+    console.log(`🔎 Resolving path for printer '${printerName}'...`);
+
+    for (const candidate of candidates) {
+        try {
+            await fs.promises.access(candidate, fs.constants.W_OK);
+            console.log(`✅ Found accessible printer path: ${candidate}`);
+            return candidate;
+        } catch (e) {
+            console.log(`   - Path failed: ${candidate} (${e.code})`);
+        }
+    }
+
+    console.warn(`⚠️ Could not find accessible path for ${printerName}. Defaulting to localhost.`);
+    return `\\\\localhost\\${printerName}`;
+}
+
 // Check status endpoint
 app.get('/status/:ip', async (req, res) => {
     const { ip } = req.params;
@@ -52,14 +81,14 @@ app.get('/status/:ip', async (req, res) => {
         const isWindowsPrinter = !ip.includes('.') && ip !== 'localhost';
 
         if (isWindowsPrinter) {
-            const printerPath = `\\\\localhost\\${ip}`;
+            const printerPath = await resolveWindowsPrinterPath(ip);
             console.log(`Checking file access for local printer: ${printerPath}`);
             try {
                 await fs.promises.access(printerPath, fs.constants.W_OK);
                 console.log(`✅ Printer at ${ip} is ACCESSIBLE (Shared)`);
                 return res.json({ success: true, connected: true, message: "Printer accessible" });
             } catch (fileErr) {
-                console.log(`❌ Printer at ${ip} is NOT accessible: ${fileErr.message}`);
+                console.log(`❌ Printer at ${ip} is NOT accessible via any path.`);
                 return res.json({ success: true, connected: false, error: "Printer not accessible (Check URL/Sharing)" });
             }
         }
@@ -92,10 +121,17 @@ app.post('/test/:ip', async (req, res) => {
 
     try {
         const isWindowsPrinter = !ip.includes('.') && ip !== 'localhost';
+        let printerInterface;
+
+        if (isWindowsPrinter) {
+            printerInterface = await resolveWindowsPrinterPath(ip);
+        } else {
+            printerInterface = `tcp://${ip}:9100`;
+        }
 
         const printer = new ThermalPrinter({
             type: PrinterTypes.EPSON,
-            interface: isWindowsPrinter ? `\\\\localhost\\${ip}` : `tcp://${ip}:9100`,
+            interface: printerInterface,
             characterSet: CharacterSet.PC857_TURKISH,
             removeSpecialCharacters: false,
             lineCharacter: '-',
@@ -126,16 +162,14 @@ app.post('/test/:ip', async (req, res) => {
         printer.alignLeft();
         printer.println("TEST PRINT SUCCESSFUL");
         printer.println("--------------------------------");
-        printer.println("IP: " + ip);
+        printer.println("Path: " + (isWindowsPrinter ? printerInterface : ip));
         printer.println("Date: " + new Date().toLocaleDateString());
         printer.println("Time: " + new Date().toLocaleTimeString());
         printer.println("--------------------------------");
 
         const testItems = [
-            { tr: "Karışık Ramen", zh: "什锦拉面", qty: 2, note: "Acılı, Soğansız" },
-            { tr: "Dana Etli Ramen", zh: "牛肉拉面", qty: 1, note: "Çok Acılı" },
-            { tr: "Mantı", zh: "饺子", qty: 3, note: "Acısız" },
-            { tr: "Izgara Tavuk", zh: "烤鸡", qty: 1, note: "Az pişmiş" }
+            { tr: "Ramen", zh: "什锦拉面", qty: 2, note: "Acılı" },
+            { tr: "Mantı", zh: "饺子", qty: 3, note: "Acısız" }
         ];
 
         for (const item of testItems) {
@@ -193,26 +227,25 @@ app.post('/print/:ip', async (req, res) => {
 
         // USB/Local Printer Support
         const isWindowsPrinter = !ip.includes('.') && ip !== 'localhost';
+        let printerInterface;
 
         if (isWindowsPrinter) {
-            console.log(`🖨️ Printing to LOCAL Windows printer: ${ip}`);
-            printer = new ThermalPrinter({
-                type: printType === 'star' ? PrinterTypes.STAR : PrinterTypes.EPSON,
-                interface: `\\\\localhost\\${ip}`, // Windows printer UNC path
-                characterSet: CharacterSet.PC857_TURKISH,
-                removeSpecialCharacters: false,
-                lineCharacter: '-',
-                options: { timeout: 1000 }
-            });
+            printerInterface = await resolveWindowsPrinterPath(ip);
+            console.log(`🖨️ Printing to LOCAL Windows printer: ${printerInterface}`);
         } else {
-            printer = new ThermalPrinter({
-                type: printType === 'star' ? PrinterTypes.STAR : PrinterTypes.EPSON,
-                interface: `tcp://${ip}:9100`,
-                characterSet: CharacterSet.PC857_TURKISH,
-                removeSpecialCharacters: false,
-                lineCharacter: '-',
-                options: { timeout: 5000 }
-            });
+            printerInterface = `tcp://${ip}:9100`;
+        }
+
+        printer = new ThermalPrinter({
+            type: printType === 'star' ? PrinterTypes.STAR : PrinterTypes.EPSON,
+            interface: printerInterface,
+            characterSet: CharacterSet.PC857_TURKISH,
+            removeSpecialCharacters: false,
+            lineCharacter: '-',
+            options: { timeout: isWindowsPrinter ? 1000 : 5000 }
+        });
+
+        if (!isWindowsPrinter) {
             const isConnected = await printer.isPrinterConnected();
             if (!isConnected) throw new Error("Printer unreachable");
         }
@@ -292,12 +325,13 @@ app.post('/print-image/:ip', async (req, res) => {
 
         let printer;
         const isWindowsPrinter = !ip.includes('.') && ip !== 'localhost';
-
-        // NOTE: For local windows printers without 'printer' module, use UNC path to shared printer
-        const printerInterface = isWindowsPrinter ? `\\\\localhost\\${ip}` : `tcp://${ip}:9100`;
+        let printerInterface;
 
         if (isWindowsPrinter) {
+            printerInterface = await resolveWindowsPrinterPath(ip);
             console.log(`🖨️ Printing IMAGE to LOCAL shared printer: ${printerInterface}`);
+        } else {
+            printerInterface = `tcp://${ip}:9100`;
         }
 
         printer = new ThermalPrinter({
@@ -366,9 +400,13 @@ app.post('/debug/print-stations', async (req, res) => {
 
                 try {
                     const isWindowsPrinter = !targetIp.includes('.') && targetIp !== 'localhost';
+                    let printerInterface;
 
-                    // For shared windows printers, use UNC path
-                    const printerInterface = isWindowsPrinter ? `\\\\localhost\\${targetIp}` : `tcp://${targetIp}:9100`;
+                    if (isWindowsPrinter) {
+                        printerInterface = await resolveWindowsPrinterPath(targetIp);
+                    } else {
+                        printerInterface = `tcp://${targetIp}:9100`;
+                    }
 
                     const printer = new ThermalPrinter({
                         type: PrinterTypes.EPSON,
@@ -412,7 +450,7 @@ app.post('/debug/print-stations', async (req, res) => {
                     await printer.execute();
 
                     results.push({ stationId, success: true, ip: targetIp });
-                    console.log(`✅ Printed successfully to ${stationId} (${targetIp})`);
+                    console.log(`✅ Printed successfully to ${stationId} (${printerInterface})`);
 
                 } catch (err) {
                     console.error(`❌ Failed to print to ${stationId} (${targetIp}):`, err);
