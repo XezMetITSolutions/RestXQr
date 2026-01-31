@@ -153,6 +153,14 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
 
         y += 55;
 
+        // Chinese Translation Support
+        const chineseName = item.translations?.zh?.name;
+        if (chineseName && chineseName !== nameText) {
+            ctx.font = '32px sans-serif'; // Slightly smaller for Chinese
+            ctx.fillText(`   ${chineseName}`, 15, y);
+            y += 45;
+        }
+
         if (item.notes) {
             // "Not kalın harflerle olsun altı çizgili olsun"
             ctx.font = 'bold 34px sans-serif';

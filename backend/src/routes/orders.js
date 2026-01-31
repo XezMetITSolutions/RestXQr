@@ -8,7 +8,11 @@ const waiterCalls = require('../lib/waiterStore');
 const resolveDrinkStationForTable = (restaurant, tableNumber, menuItemCategoryId, itemKitchenStation = '', categoryName = '', productName = '') => {
   try {
     // KROREN SPECIAL LOGIC
-    if (restaurant?.username === 'kroren' || restaurant?.name === 'Kroren' || restaurant?.name === 'Kroren Restaurant') {
+    if (
+      restaurant?.username === 'kroren' ||
+      restaurant?.username === 'kroren-levent' ||
+      restaurant?.name?.includes('Kroren')
+    ) {
       const lowerStation = itemKitchenStation ? itemKitchenStation.toLowerCase().trim() : '';
 
       // 1. İçecekler - Eğer istasyon 'icecek' ise masa numarasına göre böl

@@ -270,11 +270,22 @@ app.post('/print-image/:ip', async (req, res) => {
         fs.writeFileSync(tempFilePath, base64Data, 'base64');
         console.log(`Image saved to ${tempFilePath}`);
 
-        const printer = new ThermalPrinter({
-            type: PrinterTypes.EPSON,
-            interface: `tcp://${ip}:9100`,
-            options: { timeout: 10000 }
-        });
+        let printer;
+        const isWindowsPrinter = !ip.includes('.') && ip !== 'localhost';
+
+        if (isWindowsPrinter) {
+            console.log(`🖨️ Printing IMAGE to LOCAL Windows printer: ${ip}`);
+            printer = new ThermalPrinter({
+                type: PrinterTypes.EPSON,
+                interface: `printer:${ip}`,
+            });
+        } else {
+            printer = new ThermalPrinter({
+                type: PrinterTypes.EPSON,
+                interface: `tcp://${ip}:9100`,
+                options: { timeout: 10000 }
+            });
+        }
 
         // Print the image
         await printer.printImage(tempFilePath);
