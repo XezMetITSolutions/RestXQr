@@ -229,7 +229,6 @@ app.post('/print/:ip', async (req, res) => {
         await printer.execute();
         console.log(`✅ Printed Order ${orderNumber} to ${ip}`);
         res.json({ success: true });
->>>>>>> Stashed changes
 
     } catch (error) {
         console.error("Print error:", error);
