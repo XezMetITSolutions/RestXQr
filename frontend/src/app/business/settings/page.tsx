@@ -54,6 +54,7 @@ import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
 // import { useRestaurantSettings } from '@/hooks/useRestaurantSettings'; // Geçici olarak devre dışı - otomatik reset problemi
 
 
+import apiService from '@/services/api';
 import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import { printReceiptViaBridge } from '@/lib/printerHelpers';
@@ -499,13 +500,58 @@ function SettingsPageContent() {
     }
   };
 
+  const handleRestaurantPasswordChange = async () => {
+    if (!accountInfo.currentPassword || !accountInfo.newPassword) {
+      alert(getStatic('Tüm alanları doldurun.'));
+      return;
+    }
+
+    if (accountInfo.newPassword !== accountInfo.confirmPassword) {
+      alert(getStatic('Yeni şifreler eşleşmiyor.'));
+      return;
+    }
+
+    if (accountInfo.newPassword.length < 6) {
+      alert(getStatic('Şifre en az 6 karakter olmalıdır.'));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const restaurantId = authenticatedRestaurant?.id;
+      if (!restaurantId) throw new Error('Restaurant ID not found');
+
+      const response = await apiService.changeRestaurantPassword(
+        restaurantId,
+        accountInfo.currentPassword,
+        accountInfo.newPassword
+      );
+
+      if (response.success) {
+        alert(getStatic('Şifreniz başarıyla değiştirildi.'));
+        updateAccountInfo({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      } else {
+        alert(response.message || getStatic('Şifre değiştirilemedi.'));
+      }
+    } catch (error: any) {
+      console.error('Password change error:', error);
+      alert(getStatic('Şifre değiştirilirken bir hata oluştu.'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const tabs = [
     { id: 'general', name: getStatic('Genel Ayarlar'), icon: FaCog },
     { id: 'branding', name: getStatic('Görsel Kimlik'), icon: FaPalette },
     { id: 'languages', name: getStatic('Diller'), icon: FaGlobe },
     { id: 'payment', name: getStatic('Ödeme Yöntemleri'), icon: FaCreditCard },
-    { id: 'printer', name: getStatic('Yazıcı Ayarları'), icon: FaPrint }
+    { id: 'printer', name: getStatic('Yazıcı Ayarları'), icon: FaPrint },
+    { id: 'security', name: getStatic('Güvenlik'), icon: FaLock }
     // Ödeme & Abonelik, Entegrasyonlar, Bildirimler - Kaldırıldı
   ];
 
@@ -2314,6 +2360,103 @@ function SettingsPageContent() {
                           </div>
                           {/* Kağıt Alt Kesik Çizgisi */}
                           <div className="absolute bottom-0 left-0 w-full h-4 bg-white" style={{ clipPath: 'polygon(0 0, 5% 100%, 10% 0, 15% 100%, 20% 0, 25% 100%, 30% 0, 35% 100%, 40% 0, 45% 100%, 50% 0, 55% 100%, 60% 0, 65% 100%, 70% 0, 75% 100%, 80% 0, 85% 100%, 90% 0, 95% 100%, 100% 0)' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {/* Güvenlik Ayarları */}
+              {activeTab === 'security' && (
+                <div className="space-y-6 animate-fadeIn">
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                        <FaLock className="text-purple-600" />
+                        <TranslatedText>Güvenlik ve Giriş</TranslatedText>
+                      </h3>
+                    </div>
+
+                    <div className="space-y-8">
+                      {/* Giriş Bilgileri */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <TranslatedText>Kullanıcı Adı</TranslatedText>
+                          </label>
+                          <input
+                            type="text"
+                            value={authenticatedRestaurant?.username || ''}
+                            readOnly
+                            className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <TranslatedText>Email Adresi</TranslatedText>
+                          </label>
+                          <input
+                            type="text"
+                            value={authenticatedRestaurant?.email || ''}
+                            readOnly
+                            className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="h-px bg-gray-100" />
+
+                      {/* Şifre Değiştirme Formu */}
+                      <div>
+                        <h4 className="text-lg font-medium text-gray-800 mb-4"><TranslatedText>Şifre Değiştir</TranslatedText></h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <TranslatedText>Mevcut Şifre</TranslatedText>
+                            </label>
+                            <input
+                              type="password"
+                              value={accountInfo.currentPassword}
+                              onChange={(e) => updateAccountInfo({ currentPassword: e.target.value })}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder="••••••••"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <TranslatedText>Yeni Şifre</TranslatedText>
+                            </label>
+                            <input
+                              type="password"
+                              value={accountInfo.newPassword}
+                              onChange={(e) => updateAccountInfo({ newPassword: e.target.value })}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder="••••••••"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <TranslatedText>Yeni Şifre (Tekrar)</TranslatedText>
+                            </label>
+                            <input
+                              type="password"
+                              value={accountInfo.confirmPassword}
+                              onChange={(e) => updateAccountInfo({ confirmPassword: e.target.value })}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder="••••••••"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="mt-6 flex justify-end">
+                          <button
+                            onClick={handleRestaurantPasswordChange}
+                            disabled={isLoading}
+                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-medium flex items-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50"
+                          >
+                            {isLoading ? <FaSpinner className="animate-spin" /> : <FaSave />}
+                            <TranslatedText>Şifreyi Güncelle</TranslatedText>
+                          </button>
                         </div>
                       </div>
                     </div>
