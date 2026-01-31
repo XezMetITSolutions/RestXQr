@@ -470,8 +470,8 @@ export default function GarsonPanel() {
       totalAmount += Number(order.totalAmount);
     });
 
-    // En kritik durumu belirle (pending > preparing > ready > completed)
-    const statusPriority = { 'pending': 4, 'preparing': 3, 'ready': 2, 'completed': 1, 'cancelled': 0 };
+    // En kritik durumu belirle (ready > pending > preparing > others)
+    const statusPriority = { 'ready': 5, 'pending': 4, 'preparing': 3, 'completed': 2, 'cancelled': 1 };
     const mostCriticalStatus = tableOrders.reduce((prev, current) => {
       return statusPriority[prev.status] > statusPriority[current.status] ? prev : current;
     }).status;
@@ -674,9 +674,9 @@ export default function GarsonPanel() {
 
               // Standard Active Order Card
               return (
-                <div key={order.id} className={`bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all border-2 ${activeCall
-                  ? 'border-orange-500 ring-2 ring-orange-200'
-                  : 'border-transparent hover:border-yellow-400'
+                <div key={order.id} className={`bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all border-2 ${activeCall ? 'border-orange-500 ring-2 ring-orange-200' :
+                  order.status === 'ready' ? 'border-green-500 ring-2 ring-green-200 animate-pulse' :
+                    'border-transparent hover:border-yellow-400'
                   }`}>
                   {/* Order Header */}
                   <div className="flex items-start justify-between mb-3">
