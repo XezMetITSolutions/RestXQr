@@ -1224,37 +1224,31 @@ export default function MenuManagement() {
     const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
     if (newIndex < 0 || newIndex >= categories.length) return;
 
-    const otherCategory = categories[newIndex];
-
     try {
-      // Swap display orders
-      const currentOrder = category.order || 0;
-      const otherOrder = otherCategory.order || 0;
+      // Create a fresh copy of current categories for manipulation
+      const newCategories = [...categories];
 
-      // Ensure they have different orders to swap
-      let newCurrentOrder = otherOrder;
-      let newOtherOrder = currentOrder;
+      // Swap the elements in the array
+      const [movedItem] = newCategories.splice(currentIndex, 1);
+      newCategories.splice(newIndex, 0, movedItem);
 
-      if (newCurrentOrder === newOtherOrder) {
-        if (direction === 'up') {
-          newCurrentOrder = Math.max(0, otherOrder - 1);
-          newOtherOrder = otherOrder;
-        } else {
-          newCurrentOrder = otherOrder + 1;
-          newOtherOrder = otherOrder;
-        }
-      }
-
-      await updateMenuCategory(currentRestaurantId, category.id, {
-        ...category,
-        order: newCurrentOrder
+      // Map to promises for parallel updates, assigning new sequential orders
+      const updatePromises = newCategories.map((cat, idx) => {
+        // Only update if the order has actually changed to save API calls
+        // However, for simplicity and to ensure data integrity on backend, 
+        // we can just update the ones that were swapped or all.
+        // Let's update all to ensure they are perfectly sequential [0, 1, 2...]
+        return updateMenuCategory(currentRestaurantId, cat.id, {
+          ...cat,
+          order: idx
+        });
       });
 
-      await updateMenuCategory(currentRestaurantId, otherCategory.id, {
-        ...otherCategory,
-        order: newOtherOrder
-      });
+      await Promise.all(updatePromises);
 
+      console.log('Categories re-indexed and updated matches the new order');
+
+      // Menüyü yeniden yükle
       await fetchRestaurantMenu(currentRestaurantId);
     } catch (error) {
       console.error('Kategori sıralanırken hata:', error);
@@ -2356,8 +2350,8 @@ export default function MenuManagement() {
                             </td>
                             <td className="px-8 py-5 text-center">
                               <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${category.isActive !== false
-                                  ? 'bg-green-100 text-green-700 border border-green-200'
-                                  : 'bg-red-100 text-red-700 border border-red-200'
+                                ? 'bg-green-100 text-green-700 border border-green-200'
+                                : 'bg-red-100 text-red-700 border border-red-200'
                                 }`}>
                                 {category.isActive !== false ? <TranslatedText>Aktif</TranslatedText> : <TranslatedText>Pasif</TranslatedText>}
                               </span>
