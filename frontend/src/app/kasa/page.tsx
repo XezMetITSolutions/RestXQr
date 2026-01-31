@@ -1505,12 +1505,31 @@ export default function KasaPanel() {
 
                       {/* Hızlı İndirim - Sadece TAMAMI modunda */}
                       {(staffRole === 'manager' || staffRole === 'admin') && paymentTab === 'full' && (
-                        <div className="flex gap-2 mt-4">
-                          {[5, 10, 20].map(v => (
-                            <button key={v} onClick={() => applyGeneralDiscount(v, 'percent')} className="px-3 py-1 bg-gray-50 text-gray-600 text-xs font-bold border border-gray-200 rounded hover:bg-gray-100 flex items-center gap-1">
-                              <FaMinus size={8} /> %{v}
+                        <div className="flex flex-wrap justify-center gap-2 mt-4 px-4">
+                          {[5, 10, 16, 20, 25, 30].map(v => (
+                            <button
+                              key={v}
+                              onClick={() => {
+                                if (!selectedOrder) return;
+                                saveToUndo(selectedOrder);
+                                const amount = selectedOrder.totalAmount * (v / 100);
+                                setSelectedOrder({ ...selectedOrder, discountAmount: amount });
+                              }}
+                              className="px-4 py-2 bg-indigo-50 text-indigo-700 text-sm font-black border border-indigo-100 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm flex items-center gap-1 active:scale-95"
+                            >
+                              %{v}
                             </button>
                           ))}
+                          <button
+                            onClick={() => {
+                              if (!selectedOrder) return;
+                              saveToUndo(selectedOrder);
+                              setSelectedOrder({ ...selectedOrder, discountAmount: 0 });
+                            }}
+                            className="px-4 py-2 bg-red-50 text-red-600 text-sm font-black border border-red-100 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-95"
+                          >
+                            SIFIRLA
+                          </button>
                         </div>
                       )}
 
