@@ -323,22 +323,22 @@ export default function ReportsPage() {
 
   // Günlük rapor hesapla
   const currentDailyReport = {
-    totalSales: todayOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0),
+    totalSales: todayOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0),
     totalOrders: todayOrders.length,
     averageOrderValue: todayOrders.length > 0
-      ? todayOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0) / todayOrders.length
+      ? todayOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0) / todayOrders.length
       : 0,
-    totalTables: new Set(todayOrders.map(order => order.tableNumber || order.table_id)).size,
-    averageTableTime: 0 // Bu bilgi siparişlerde yok, backend'den gelmeli
+    totalTables: new Set(todayOrders.map(order => order.tableNumber || order.table_id || order.id)).size,
+    averageTableTime: 0
   };
 
-  // Gelir verileri
-  const todayRevenue = todayOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
-  const yesterdayRevenue = yesterdayOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
-  const thisWeekRevenue = thisWeekOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
-  const lastWeekRevenue = lastWeekOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
-  const thisMonthRevenue = thisMonthOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
-  const lastMonthRevenue = lastMonthOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0);
+  // Gelir verileri (İndirimler düşülmüş net rakamlar)
+  const todayRevenue = todayOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0);
+  const yesterdayRevenue = yesterdayOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0);
+  const thisWeekRevenue = thisWeekOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0);
+  const lastWeekRevenue = lastWeekOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0);
+  const thisMonthRevenue = thisMonthOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0);
+  const lastMonthRevenue = lastMonthOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0);
 
   const revenueData = {
     daily: {
@@ -440,7 +440,7 @@ export default function ReportsPage() {
     });
     monthlyTrend.push({
       month: monthDate.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }),
-      revenue: monthOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0),
+      revenue: monthOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0),
       orders: monthOrders.length
     });
   }
@@ -1189,11 +1189,29 @@ export default function ReportsPage() {
                         };
 
                         todayOrders.forEach(order => {
-                          const amount = Number(order.totalAmount) || Number(order.total) || 0;
-                          const method = order.paymentMethod || 'cash'; // Varsayılan nakit
-                          if (method === 'card' || method === 'kredi_karti') paymentStats.card += amount;
-                          else if (method === 'online') paymentStats.online += amount;
-                          else paymentStats.cash += amount;
+                          const gross = Number(order.totalAmount) || Number(order.total) || 0;
+                          const discount = Number(order.discountAmount) || 0;
+                          const amount = gross - discount;
+                          const note = order.cashierNote || '';
+
+                          // Hibrit ödeme kontrolü
+                          const cashMatch = note.match(/\[NAKİT:\s*([\d.]+)₺/);
+                          const cardMatch = note.match(/\[KART:\s*([\d.]+)₺/);
+
+                          if (cashMatch || cardMatch) {
+                            if (cashMatch) paymentStats.cash += parseFloat(cashMatch[1]);
+                            if (cardMatch) paymentStats.card += parseFloat(cardMatch[1]);
+                          } else if (note.includes('[KART]')) {
+                            paymentStats.card += amount;
+                          } else if (note.includes('[NAKİT]')) {
+                            paymentStats.cash += amount;
+                          } else {
+                            // Eski usul veya diğer yöntemler
+                            const method = order.paymentMethod || (order.orderType === 'dine_in' ? 'cash' : 'online');
+                            if (method === 'card' || method === 'kredi_karti') paymentStats.card += amount;
+                            else if (method === 'online') paymentStats.online += amount;
+                            else paymentStats.cash += amount;
+                          }
                         });
 
                         const total = paymentStats.cash + paymentStats.card + paymentStats.online;
