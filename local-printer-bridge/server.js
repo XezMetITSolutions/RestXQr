@@ -277,19 +277,18 @@ app.post('/print-image/:ip', async (req, res) => {
         let printer;
         const isWindowsPrinter = !ip.includes('.') && ip !== 'localhost';
 
+        // NOTE: For local windows printers without 'printer' module, use UNC path to shared printer
+        const printerInterface = isWindowsPrinter ? `\\\\localhost\\${ip}` : `tcp://${ip}:9100`;
+
         if (isWindowsPrinter) {
-            console.log(`🖨️ Printing IMAGE to LOCAL Windows printer: ${ip}`);
-            printer = new ThermalPrinter({
-                type: PrinterTypes.EPSON,
-                interface: `printer:${ip}`,
-            });
-        } else {
-            printer = new ThermalPrinter({
-                type: PrinterTypes.EPSON,
-                interface: `tcp://${ip}:9100`,
-                options: { timeout: 10000 }
-            });
+            console.log(`🖨️ Printing IMAGE to LOCAL shared printer: ${printerInterface}`);
         }
+
+        printer = new ThermalPrinter({
+            type: PrinterTypes.EPSON,
+            interface: printerInterface,
+            options: { timeout: isWindowsPrinter ? 1000 : 10000 }
+        });
 
         // Print the image
         await printer.printImage(tempFilePath);
@@ -352,11 +351,14 @@ app.post('/debug/print-stations', async (req, res) => {
                 try {
                     const isWindowsPrinter = !targetIp.includes('.') && targetIp !== 'localhost';
 
+                    // For shared windows printers, use UNC path
+                    const printerInterface = isWindowsPrinter ? `\\\\localhost\\${targetIp}` : `tcp://${targetIp}:9100`;
+
                     const printer = new ThermalPrinter({
                         type: PrinterTypes.EPSON,
-                        interface: isWindowsPrinter ? `printer:${targetIp}` : `tcp://${targetIp}:9100`,
+                        interface: printerInterface,
                         characterSet: CharacterSet.PC857_TURKISH,
-                        options: { timeout: isWindowsPrinter ? undefined : 5000 }
+                        options: { timeout: isWindowsPrinter ? 1000 : 5000 }
                     });
 
                     if (!isWindowsPrinter) {
