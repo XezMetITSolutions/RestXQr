@@ -1515,6 +1515,70 @@ app.get('/api/debug/add-kasa-station', async (req, res) => {
   }
 });
 
+// Kroren İçecekleri 'icecek' istasyonuna atama script'i
+app.get('/api/debug/assign-kroren-drinks', async (req, res) => {
+  console.log('🥤 Assign Kroren drinks endpoint called');
+  try {
+    const { Restaurant, MenuItem, MenuCategory } = require('./models');
+    const { Op } = require('sequelize');
+
+    const restaurant = await Restaurant.findOne({ where: { username: 'kroren' } });
+    if (!restaurant) return res.status(404).json({ success: false, message: 'Kroren not found' });
+
+    // 1. İçecek kategorilerini bul
+    const drinkCategories = await MenuCategory.findAll({
+      where: {
+        restaurantId: restaurant.id,
+        name: { [Op.iLike]: '%içecek%' }
+      }
+    });
+
+    const catIds = drinkCategories.map(c => c.id);
+
+    // 2. Bu kategorilerdeki ürünleri 'icecek' istasyonuna ata
+    const [updatedCount] = await MenuItem.update(
+      { kitchenStation: 'icecek' },
+      {
+        where: {
+          restaurantId: restaurant.id,
+          categoryId: { [Op.in]: catIds }
+        }
+      }
+    );
+
+    // 3. İsmi 'cola', 'fanta', 'su', 'soda', 'sprite', 'çay' vb geçenleri de kontrol et
+    const keywords = ['cola', 'fanta', 'su', 'soda', 'sprite', 'çay', 'ayran', 'meyve suyu', 'limonata', 'lipton', 'buzlu çay'];
+    let keywordUpdated = 0;
+
+    for (const kw of keywords) {
+      const [count] = await MenuItem.update(
+        { kitchenStation: 'icecek' },
+        {
+          where: {
+            restaurantId: restaurant.id,
+            name: { [Op.iLike]: `%${kw}%` },
+            kitchenStation: { [Op.or]: [null, ''] } // Sadece atanmamış olanları ata
+          }
+        }
+      );
+      keywordUpdated += count;
+    }
+
+    res.json({
+      success: true,
+      message: `${updatedCount + keywordUpdated} ürün 'icecek' istasyonuna atandı.`,
+      debug: {
+        categoryBased: updatedCount,
+        keywordBased: keywordUpdated,
+        categoriesMatched: drinkCategories.map(c => c.name)
+      }
+    });
+  } catch (error) {
+    console.error('❌ Hata:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Popüler ürünleri sıfırlama endpoint'i
 app.get('/api/debug/reset-popular', async (req, res) => {
   console.log('🗑️ Reset popular endpoint called');
