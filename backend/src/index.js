@@ -187,17 +187,28 @@ app.get('/api/debug/update-kroren-printers', async (req, res) => {
       const leventConfig = {
         '17692021455220.027173748942849185': { name: 'RAMEN', ip: '192.168.1.151', port: 9100, enabled: true, type: 'epson' },
         '17692021455190.20485462886666846': { name: 'KAVURMA', ip: '192.168.1.150', port: 9100, enabled: true, type: 'epson' },
-        '176960565656066': { name: 'KEBAPLAR VE SUSHI', ip: '192.168.1.149', port: 9100, enabled: true, type: 'epson' },
-        'kasa': { name: 'KASA (USB)', ip: 'Kasa', port: 9100, enabled: true, type: 'epson' }
+        '176960565656066': { name: 'KEBAP & SUSHI', ip: '192.168.1.149', port: 9100, enabled: true, type: 'epson' },
+        'kasa': { name: 'KASA', ip: 'kasa', port: 9100, enabled: true, type: 'epson' }
       };
+
       const leventStations = [
         { id: '17692021455220.027173748942849185', name: 'RAMEN', color: '#FF0000', order: 1 },
         { id: '17692021455190.20485462886666846', name: 'KAVURMA', color: '#FF0000', order: 2 },
-        { id: '176960565656066', name: 'KEBAPLAR VE SUSHI', color: '#FF0000', order: 3 },
+        { id: '176960565656066', name: 'KEBAP & SUSHI', color: '#FF0000', order: 3 },
         { id: 'kasa', name: 'KASA', color: '#0000FF', order: 4 }
       ];
-      await levent.update({ printerConfig: leventConfig, kitchenStations: leventStations });
-      results.push('✅ kroren-levent (Levent) güncellendi (4 Net İstasyon)');
+
+      // Update restaurant config
+      levent.printerConfig = leventConfig;
+      levent.kitchenStations = leventStations;
+
+      // Explicitly update json/jsonb fields
+      await Restaurant.update(
+        { printerConfig: leventConfig, kitchenStations: leventStations },
+        { where: { id: levent.id } }
+      );
+
+      results.push('✅ kroren-levent (Levent) güncellendi (4 Net İstasyon: Ramen, Kavurma, Kebap, Kasa)');
     }
 
     res.json({
