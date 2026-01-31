@@ -1503,8 +1503,8 @@ export default function KasaPanel() {
                         </div>
                       </div>
 
-                      {/* Hızlı İndirim - Sadece TAMAMI modunda */}
-                      {(staffRole === 'manager' || staffRole === 'admin' || staffRole === 'cashier') && paymentTab === 'full' && (
+                      {/* Hızlı İndirim - Tüm modlarda aktif */}
+                      {(staffRole === 'manager' || staffRole === 'admin' || staffRole === 'cashier') && (
                         <div className="flex flex-wrap justify-center gap-2 mt-4 px-4">
                           {[5, 10, 16, 20, 25, 30].map(v => (
                             <button
