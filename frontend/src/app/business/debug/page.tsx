@@ -46,7 +46,12 @@ export default function DebugPage() {
         addLog('🚀 Applying Database Fix (Campaign Columns)...');
         try {
             // Note: using fetch directly as this endpoint might not be in apiService
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin-fix/apply-campaigns`);
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+            const baseUrl = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
+            // Ensure no double slash if baseUrl ends with / and endpoint starts with /
+            const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+
+            const res = await fetch(`${cleanBase}/admin-fix/apply-campaigns`);
             const data = await res.json();
             setDbFixResult(data);
             addLog(`Result: ${data.success ? 'Success' : 'Failed'}`);
