@@ -1,45 +1,44 @@
 const express = require('express');
 const router = express.Router();
-const { Restaurant, QRToken, MenuItem, Order, Staff } = require('../models');
+const { Restaurant, QRToken, MenuItem, Order, Staff, sequelize } = require('../models');
 const adminAuthMiddleware = require('../middleware/adminAuthMiddleware');
 const { Sequelize } = require('sequelize');
 
 // Dashboard stats endpoint
 router.get('/stats', adminAuthMiddleware, async (req, res) => {
   try {
-    console.log('Dashboard stats requested');
+    console.log('--- ADMIN DASHBOARD STATS DEBUG ---');
 
-    // Get total restaurants count
-    const totalRestaurants = await Restaurant.count();
+    // Total Restaurants - Try both model and query
+    const totalRestaurantsCount = await Restaurant.count();
+    const [rawRes] = await sequelize.query('SELECT count(*) as count FROM restaurants');
+    const totalRestaurants = parseInt(rawRes[0].count) || totalRestaurantsCount;
 
-    // Get active restaurants count
-    const activeRestaurants = await Restaurant.count({
-      where: { isActive: true }
-    });
+    // Active Restaurants
+    const [rawActive] = await sequelize.query('SELECT count(*) as count FROM restaurants WHERE is_active = true');
+    const activeRestaurants = parseInt(rawActive[0].count);
 
-    // Total Tables (Sum of maxTables across all restaurants)
-    const totalTablesResult = await Restaurant.sum('maxTables');
-    const totalTables = totalTablesResult || 0;
+    // Total Tables
+    const [rawTables] = await sequelize.query('SELECT sum(max_tables) as sum FROM restaurants');
+    const totalTables = parseInt(rawTables[0].sum) || 0;
 
-    // Total Menu Items (across all restaurants)
-    const totalMenuItems = await MenuItem.count();
+    // Total Menu Items
+    const [rawMenu] = await sequelize.query('SELECT count(*) as count FROM menu_items');
+    const totalMenuItems = parseInt(rawMenu[0].count);
 
-    // Total Orders (all time, all restaurants)
-    const totalOrders = await Order.count();
+    // Total Orders
+    const [rawOrders] = await sequelize.query('SELECT count(*) as count FROM orders');
+    const totalOrders = parseInt(rawOrders[0].count);
 
-    // Total Revenue (all time, all restaurants - subtracting discounts if possible)
-    const totalRevenueResult = await Order.findAll({
-      attributes: [
-        [Sequelize.literal('SUM(CASE WHEN total_amount IS NOT NULL THEN total_amount ELSE 0 END) - SUM(CASE WHEN discount_amount IS NOT NULL THEN discount_amount ELSE 0 END)'), 'netRevenue']
-      ],
-      raw: true
-    });
-    const totalRevenue = parseFloat(totalRevenueResult[0]?.netRevenue || 0);
+    // Total Revenue
+    const [rawRev] = await sequelize.query('SELECT SUM(COALESCE(total_amount, 0) - COALESCE(discount_amount, 0)) as net FROM orders');
+    const totalRevenue = parseFloat(rawRev[0].net) || 0;
 
-    // Total Staff (across all restaurants)
-    const totalStaff = await Staff.count();
+    // Total Staff
+    const [rawStaff] = await sequelize.query('SELECT count(*) as count FROM staff');
+    const totalStaff = parseInt(rawStaff[0].count);
 
-    // Get recent restaurants (last 5)
+    // Get recent restaurants
     const recentRestaurants = await Restaurant.findAll({
       limit: 5,
       order: [['created_at', 'DESC']],
@@ -62,8 +61,16 @@ router.get('/stats', adminAuthMiddleware, async (req, res) => {
         subdomain: r.subdomain,
         status: r.isActive ? 'active' : 'inactive',
         createdAt: r.created_at
-      }))
+      })),
+      _debug: {
+        raw: {
+          restaurants: totalRestaurants,
+          orders: totalOrders,
+          staff: totalStaff
+        }
+      }
     });
+
   } catch (error) {
     console.error('Dashboard stats error:', error);
     res.status(500).json({
@@ -77,8 +84,6 @@ router.get('/stats', adminAuthMiddleware, async (req, res) => {
 // Get all restaurants for admin
 router.get('/restaurants', adminAuthMiddleware, async (req, res) => {
   try {
-    console.log('Admin restaurants list requested');
-
     const restaurants = await Restaurant.findAll({
       order: [['created_at', 'DESC']],
       attributes: [
@@ -95,8 +100,6 @@ router.get('/restaurants', adminAuthMiddleware, async (req, res) => {
         'created_at'
       ]
     });
-
-    console.log(`Found ${restaurants.length} restaurants`);
 
     res.json({
       success: true,
