@@ -1636,6 +1636,10 @@ export default function KasaPanel() {
 
                             const isTrulyPartial = remaining > 0.05;
 
+                            if (card > 0) {
+                              alert(`Lütfen POS cihazından ${card.toFixed(2)}₺ tutarında ödemeyi manuel olarak tamamlayınız.`);
+                            }
+
                             handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
                             setCashAmount(''); setCardAmount('');
                           }} className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-black transition-colors flex justify-center items-center gap-2 shadow-xl">
@@ -1695,6 +1699,8 @@ export default function KasaPanel() {
                               const remaining = parseFloat((currentTotal - currentPaid - currentDiscount).toFixed(2));
 
                               const isTrulyPartial = remaining > 0.05;
+
+                              alert(`Lütfen POS cihazından ${val.toFixed(2)}₺ tutarında ödemeyi manuel olarak tamamlayınız.`);
 
                               handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
                             }} className="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
