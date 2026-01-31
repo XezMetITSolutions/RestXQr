@@ -348,7 +348,10 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         description: typeof data.description === 'string' ? data.description : data.description?.tr,
         displayOrder: data.order || data.displayOrder,
         isActive: data.isActive,
-        kitchenStation: data.kitchenStation
+        kitchenStation: data.kitchenStation,
+        discountPercentage: data.discountPercentage,
+        discountStartDate: data.discountStartDate,
+        discountEndDate: data.discountEndDate
       };
 
       const response = await apiService.updateMenuCategory(restaurantId, categoryId, backendData);
@@ -412,7 +415,11 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         bundleItems: data.bundleItems || [],
         variations: data.variations || [],
         options: data.options || [],
-        translations: data.translations || {}
+        translations: data.translations || {},
+        discountedPrice: data.discountedPrice,
+        discountPercentage: data.discountPercentage,
+        discountStartDate: data.discountStartDate,
+        discountEndDate: data.discountEndDate
       };
 
       const response = await apiService.updateMenuItem(restaurantId, itemId, backendData);
