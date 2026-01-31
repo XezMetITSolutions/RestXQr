@@ -40,12 +40,16 @@ import {
   FaExchangeAlt,
   FaFileDownload,
   FaArrowUp,
-  FaArrowDown
+  FaFileDownload,
+  FaArrowUp,
+  FaArrowDown,
+  FaImage
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
 import { lazy, Suspense } from 'react';
 import BusinessSidebar from '@/components/BusinessSidebar';
+import { apiService } from '@/services/api';
 import { useFeature } from '@/hooks/useFeature';
 import { useBusinessSettingsStore } from '@/store/useBusinessSettingsStore';
 import { translateWithDeepL } from '@/lib/deepl';
@@ -158,6 +162,78 @@ export default function MenuManagement() {
   const [campaignValue, setCampaignValue] = useState<string>('');
   const [campaignStartDate, setCampaignStartDate] = useState<string>('');
   const [campaignEndDate, setCampaignEndDate] = useState<string>('');
+
+  const [campaignEndDate, setCampaignEndDate] = useState<string>('');
+
+  // Campaign Banner States
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerStartDate, setBannerStartDate] = useState<string>('');
+  const [bannerEndDate, setBannerEndDate] = useState<string>('');
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+
+  const handleSaveBanner = async () => {
+    if (!bannerFile || !bannerStartDate || !bannerEndDate || !currentRestaurantId) {
+      alert(t('Lütfen görsel ve tarih seçiniz.'));
+      return;
+    }
+
+    try {
+      setIsUploadingBanner(true);
+      // 1. Upload Image
+      const uploadResponse = await apiService.uploadImage(bannerFile, 'campaigns');
+      if (!uploadResponse.success) throw new Error('Görsel yüklenemedi');
+
+      const imageUrl = uploadResponse.data.imageUrl;
+
+      // 2. Update Restaurant Settings
+      const currentSettings = (currentRestaurant as any)?.settings || {};
+      const currentBanners = currentSettings.campaignBanners || [];
+
+      const newBanner = {
+        id: crypto.randomUUID(),
+        imageUrl,
+        startDate: new Date(bannerStartDate).toISOString(),
+        endDate: new Date(bannerEndDate).toISOString(),
+        isActive: true,
+        createdAt: new Date().toISOString()
+      };
+
+      const updatedSettings = {
+        ...currentSettings,
+        campaignBanners: [...currentBanners, newBanner]
+      };
+
+      await updateRestaurant(currentRestaurantId, { settings: updatedSettings });
+
+      alert(t('Afiş başarıyla eklendi!'));
+      setBannerFile(null);
+      setBannerStartDate('');
+      setBannerEndDate('');
+    } catch (error) {
+      console.error('Afiş yükleme hatası:', error);
+      alert(t('Hata oluştu: ') + (error as any).message);
+    } finally {
+      setIsUploadingBanner(false);
+    }
+  };
+
+  const handleDeleteBanner = async (bannerId: string) => {
+    if (!confirm(t('Bu afişi silmek istediğinize emin misiniz?')) || !currentRestaurantId) return;
+
+    try {
+      const currentSettings = (currentRestaurant as any)?.settings || {};
+      const currentBanners = currentSettings.campaignBanners || [];
+
+      const updatedBanners = currentBanners.filter((b: any) => b.id !== bannerId);
+
+      await updateRestaurant(currentRestaurantId, {
+        settings: { ...currentSettings, campaignBanners: updatedBanners }
+      });
+    } catch (error) {
+      console.error('Silme hatası:', error);
+      alert(t('Hata oluştu'));
+    }
+  };
 
   const handleSaveCampaign = async () => {
     if (!selectedCampaignTarget || !campaignValue || !currentRestaurantId) {
@@ -4046,8 +4122,8 @@ export default function MenuManagement() {
                         <button
                           onClick={() => { setCampaignType('product'); setSelectedCampaignTarget(''); setCampaignValue(''); }}
                           className={`py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${campaignType === 'product'
-                              ? 'bg-white text-purple-600 shadow-md'
-                              : 'text-gray-500 hover:bg-gray-200'
+                            ? 'bg-white text-purple-600 shadow-md'
+                            : 'text-gray-500 hover:bg-gray-200'
                             }`}
                         >
                           <FaUtensils /> <TranslatedText>Ürün Bazlı</TranslatedText>
@@ -4055,8 +4131,8 @@ export default function MenuManagement() {
                         <button
                           onClick={() => { setCampaignType('category'); setSelectedCampaignTarget(''); setCampaignValue(''); setCampaignDiscountType('percentage'); }}
                           className={`py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${campaignType === 'category'
-                              ? 'bg-white text-purple-600 shadow-md'
-                              : 'text-gray-500 hover:bg-gray-200'
+                            ? 'bg-white text-purple-600 shadow-md'
+                            : 'text-gray-500 hover:bg-gray-200'
                             }`}
                         >
                           <FaTag /> <TranslatedText>Kategori Bazlı</TranslatedText>
@@ -4177,6 +4253,101 @@ export default function MenuManagement() {
                       </button>
                     </div>
 
+                  </div>
+
+                  {/* Kampanya Görselleri Bölümü */}
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                      <span className="p-2 bg-pink-100 text-pink-600 rounded-lg"><FaImage /></span>
+                      <TranslatedText>Kampanya Afişleri</TranslatedText>
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Sol: Afiş Ekleme Formu */}
+                      <div className="space-y-4">
+                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-gray-50 transition-colors relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setBannerFile(e.target.files?.[0] || null)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                          <div className="flex flex-col items-center gap-2">
+                            {bannerFile ? (
+                              <>
+                                <img src={URL.createObjectURL(bannerFile)} className="h-32 object-contain rounded-lg shadow-sm" alt="Preview" />
+                                <span className="text-sm font-bold text-green-600 truncate max-w-full px-2">{bannerFile.name}</span>
+                              </>
+                            ) : (
+                              <>
+                                <FaUpload className="text-4xl text-gray-300" />
+                                <span className="text-gray-500 font-medium"><TranslatedText>Görsel Seçmek İçin Tıklayın</TranslatedText></span>
+                                <span className="text-xs text-gray-400"><TranslatedText>PNG, JPG (Max 5MB)</TranslatedText></span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-bold text-gray-600 block mb-1"><TranslatedText>Başlangıç</TranslatedText></label>
+                            <input
+                              type="datetime-local"
+                              value={bannerStartDate}
+                              onChange={(e) => setBannerStartDate(e.target.value)}
+                              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-gray-600 block mb-1"><TranslatedText>Bitiş</TranslatedText></label>
+                            <input
+                              type="datetime-local"
+                              value={bannerEndDate}
+                              onChange={(e) => setBannerEndDate(e.target.value)}
+                              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm"
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={handleSaveBanner}
+                          disabled={isUploadingBanner || !bannerFile}
+                          className="w-full py-3 bg-pink-600 text-white rounded-xl font-bold hover:bg-pink-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          {isUploadingBanner ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FaPlus />}
+                          <TranslatedText>Afiş Ekle</TranslatedText>
+                        </button>
+                      </div>
+
+                      {/* Sağ: Mevcut Afişler */}
+                      <div className="bg-gray-50 rounded-xl p-4 max-h-[400px] overflow-y-auto space-y-3">
+                        <h4 className="text-sm font-bold text-gray-700 mb-3"><TranslatedText>Aktif Afişler</TranslatedText></h4>
+                        {((currentRestaurant as any)?.settings?.campaignBanners || []).length === 0 ? (
+                          <p className="text-sm text-gray-400 text-center py-8"><TranslatedText>Henüz afiş eklenmemiş</TranslatedText></p>
+                        ) : (
+                          ((currentRestaurant as any)?.settings?.campaignBanners || []).map((banner: any) => (
+                            <div key={banner.id} className="bg-white p-3 rounded-lg shadow-sm flex gap-3 group relative">
+                              <img src={banner.imageUrl} alt="Banner" className="w-20 h-20 object-cover rounded-md bg-gray-200" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs text-gray-500 flex flex-col gap-1">
+                                  <span className="flex items-center gap-1"><FaClock className="text-green-500" /> {new Date(banner.startDate).toLocaleDateString()}</span>
+                                  <span className="flex items-center gap-1"><FaTimes className="text-red-500" /> {new Date(banner.endDate).toLocaleDateString()}</span>
+                                </div>
+                                <div className="mt-2 text-xs font-bold text-green-600 bg-green-50 inline-block px-2 py-1 rounded">
+                                  <TranslatedText>Aktif</TranslatedText>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteBanner(banner.id)}
+                                className="absolute top-2 right-2 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 

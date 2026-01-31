@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaShoppingCart, FaBell, FaArrowLeft, FaStar, FaPlus, FaInfo, FaUtensils, FaFilter, FaUsers } from 'react-icons/fa';
+import { FaShoppingCart, FaBell, FaArrowLeft, FaStar, FaPlus, FaInfo, FaUtensils, FaFilter, FaUsers, FaTimes } from 'react-icons/fa';
 import useRestaurantStore from '@/store/useRestaurantStore';
 import { useCartStore } from '@/store';
 import Toast from '@/components/Toast';
@@ -59,6 +59,7 @@ function MenuPageContent() {
 
 
 
+
   const currentRestaurantStore = useRestaurantStore(state => state.currentRestaurant);
 
   const currentRestaurant = isClient ? (currentRestaurantStore || (() => {
@@ -77,6 +78,42 @@ function MenuPageContent() {
   const settings = (currentRestaurant?.settings || localSettings) as any;
   const primary = settings?.branding?.primaryColor || '#F97316';
   const secondary = settings?.branding?.secondaryColor || primary;
+
+  // Campaign Banner Logic (Moved here to have access to currentRestaurant)
+  const [activeBanner, setActiveBanner] = useState<any>(null);
+
+  useEffect(() => {
+    // Check if currentRestaurant and settings exist
+    if (currentRestaurant?.settings?.campaignBanners) {
+      const now = new Date();
+      const banners = (currentRestaurant.settings.campaignBanners as any[]);
+
+      // Find valid banner
+      const validBanner = banners.find((b: any) => {
+        if (!b.startDate || !b.endDate) return false;
+        const start = new Date(b.startDate);
+        const end = new Date(b.endDate);
+        return b.isActive && now >= start && now <= end;
+      });
+
+      if (validBanner) {
+        // Check if already seen in this session
+        const hasSeen = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(`seenBanner_${validBanner.id}`) : null;
+        if (!hasSeen) {
+          setActiveBanner(validBanner);
+        }
+      }
+    }
+  }, [currentRestaurant]);
+
+  const closeBanner = () => {
+    if (activeBanner) {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem(`seenBanner_${activeBanner.id}`, 'true');
+      }
+      setActiveBanner(null);
+    }
+  };
 
   // Restaurant'a göre kategoriler ve ürünler filtreleme
   const items = currentRestaurant?.id
@@ -523,7 +560,14 @@ function MenuPageContent() {
 
   // Get menu categories (backend format)
   const menuCategories = [
-    { id: 'popular', name: currentLanguage === 'Turkish' ? 'Beğenilenler' : (currentLanguage === 'German' ? 'Favoriten' : (currentLanguage === 'Chinese' ? '最爱' : 'Favorites')) },
+
+    {
+      id: 'popular',
+      name: currentLanguage === 'Turkish' ? 'Beğenilenler' : (currentLanguage === 'German' ? 'Favoriten' : (currentLanguage === 'Chinese' ? '最爱' : 'Favorites')),
+      discountPercentage: undefined,
+      discountStartDate: undefined,
+      discountEndDate: undefined
+    },
     ...filteredCategories.map((cat: any) => ({
       id: cat.id,
       name: typeof cat.name === 'string' ? cat.name : (cat.name?.[language] || cat.name?.tr || cat.name?.en || 'Kategori'),
@@ -1260,6 +1304,27 @@ function MenuPageContent() {
           onClose={closeModal}
           imageCacheVersion={imageCacheVersion}
         />
+      )}
+
+      {/* Campaign Banner Modal */}
+      {activeBanner && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="relative bg-transparent max-w-md w-full animate-scaleIn">
+            <button
+              onClick={closeBanner}
+              className="absolute -top-10 right-0 text-white hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full backdrop-blur-md"
+            >
+              <FaTimes size={24} />
+            </button>
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+              <img
+                src={activeBanner.imageUrl}
+                alt="Campaign"
+                className="w-full h-auto max-h-[70vh] object-contain bg-white"
+              />
+            </div>
+          </div>
+        </div>
       )}
 
     </>
