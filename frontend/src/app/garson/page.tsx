@@ -763,365 +763,371 @@ export default function GarsonPanel() {
       </div>
 
       {/* Masa Değiştir Modal */}
-      {showTableModal && orderToChangeTable && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-2xl font-bold text-gray-800">🔄 Masa Değiştir</h3>
-                <p className="text-sm text-gray-500 mt-1">Masa {orderToChangeTable.tableNumber} için yeni masa numarası girin</p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowTableModal(false);
-                  setOrderToChangeTable(null);
-                  setNewTableNumber('');
-                }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <FaTimes size={24} />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Yeni Masa Numarası
-                </label>
-                <input
-                  type="number"
-                  value={newTableNumber}
-                  onChange={(e) => setNewTableNumber(e.target.value)}
-                  min="1"
-                  max="100"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none text-lg font-semibold transition-colors"
-                  placeholder="Masa numarası..."
-                  autoFocus
-                />
-              </div>
-
-              <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
-                <div className="flex items-center gap-3">
-                  <div className="bg-purple-500 text-white rounded-lg px-3 py-2 text-xl font-bold">
-                    {orderToChangeTable.tableNumber}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-800">₺{Number(orderToChangeTable.totalAmount).toFixed(2)}</div>
-                    <div className="text-sm text-gray-600">{orderToChangeTable.items.length} ürün</div>
-                  </div>
+      {
+        showTableModal && orderToChangeTable && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800">🔄 Masa Değiştir</h3>
+                  <p className="text-sm text-gray-500 mt-1">Masa {orderToChangeTable.tableNumber} için yeni masa numarası girin</p>
                 </div>
+                <button
+                  onClick={() => {
+                    setShowTableModal(false);
+                    setOrderToChangeTable(null);
+                    setNewTableNumber('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FaTimes size={24} />
+                </button>
               </div>
-            </div>
 
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowTableModal(false);
-                  setOrderToChangeTable(null);
-                  setNewTableNumber('');
-                }}
-                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
-              >
-                İptal
-              </button>
-              <button
-                onClick={handleUpdateTable}
-                className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-colors disabled:opacity-50"
-                disabled={loading}
-              >
-                {loading ? 'Güncelleniyor...' : '✨ Değiştir'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Yeni Masa Numarası
+                  </label>
+                  <input
+                    type="number"
+                    value={newTableNumber}
+                    onChange={(e) => setNewTableNumber(e.target.value)}
+                    min="1"
+                    max="100"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none text-lg font-semibold transition-colors"
+                    placeholder="Masa numarası..."
+                    autoFocus
+                  />
+                </div>
 
-      {/* Sipariş Düzenle Modal */}
-      {showEditModal && orderToEdit && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6 p-6 border-b">
-              <div>
-                <h3 className="text-2xl font-bold text-gray-800">✏️ Siparişi Düzenle</h3>
-                <p className="text-sm text-gray-500 mt-1">Masa {orderToEdit.tableNumber}</p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setOrderToEdit(null);
-                }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <FaTimes size={24} />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Mevcut Sipariş */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <h4 className="font-semibold text-gray-800 mb-3">📋 Mevcut Sipariş</h4>
-                <div className="space-y-2">
-                  {orderToEdit.items.map((item: OrderItem, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-lg">
-                      <div className="flex items-center gap-3 flex-1">
-                        <span className="text-sm flex-1">{item.name}</span>
-                        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                          <button
-                            onClick={() => {
-                              const updatedOrder = {
-                                ...orderToEdit,
-                                items: orderToEdit.items.map((i: OrderItem, index: number) =>
-                                  index === idx ? { ...i, quantity: Math.max(1, i.quantity - 1) } : i
-                                )
-                              };
-                              setOrderToEdit(updatedOrder);
-                            }}
-                            className="px-2 py-1 bg-white rounded text-blue-600 hover:bg-blue-50"
-                          >
-                            <FaMinus size={12} />
-                          </button>
-                          <span className="w-8 text-center font-bold">{item.quantity}</span>
-                          <button
-                            onClick={() => {
-                              const updatedOrder = {
-                                ...orderToEdit,
-                                items: orderToEdit.items.map((i: OrderItem, index: number) =>
-                                  index === idx ? { ...i, quantity: i.quantity + 1 } : i
-                                )
-                              };
-                              setOrderToEdit(updatedOrder);
-                            }}
-                            className="px-2 py-1 bg-white rounded text-blue-600 hover:bg-blue-50"
-                          >
-                            <FaPlus size={12} />
-                          </button>
-                        </div>
-                        <span className="text-sm font-semibold text-gray-700 w-20 text-right">
-                          ₺{Number(item.price * item.quantity).toFixed(2)}
-                        </span>
-                        <button
-                          onClick={() => {
-                            const updatedOrder = {
-                              ...orderToEdit,
-                              items: orderToEdit.items.filter((_: OrderItem, i: number) => i !== idx)
-                            };
-                            setOrderToEdit(updatedOrder);
-                          }}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <FaTimes size={14} />
-                        </button>
-                      </div>
+                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-purple-500 text-white rounded-lg px-3 py-2 text-xl font-bold">
+                      {orderToChangeTable.tableNumber}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Ürün Ekle */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3">➕ Ürün Ekle</h4>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {menuItems.map((item: any) => {
-                    const existingItem = orderToEdit.items.find((i: OrderItem) => i.name === item.name);
-                    return (
-                      <div key={item.id} className="flex items-center justify-between bg-white p-3 rounded-lg border hover:border-blue-400 transition-colors">
-                        <div>
-                          <div className="font-medium">{item.name}</div>
-                          <div className="text-sm text-gray-600">₺{Number(item.price).toFixed(2)}</div>
-                        </div>
-                        <button
-                          onClick={() => {
-                            const newItem = {
-                              id: item.id,
-                              name: item.name,
-                              quantity: 1,
-                              price: item.price,
-                              notes: ''
-                            };
-                            const updatedOrder = {
-                              ...orderToEdit,
-                              items: [...orderToEdit.items, newItem]
-                            };
-                            setOrderToEdit(updatedOrder);
-                          }}
-                          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold text-sm transition-colors"
-                        >
-                          + Ekle
-                        </button>
-                      </div>
-                    );
-                  })}
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-800">₺{Number(orderToChangeTable.totalAmount).toFixed(2)}</div>
+                      <div className="text-sm text-gray-600">{orderToChangeTable.items.length} ürün</div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => {
-                    setShowEditModal(false);
-                    setOrderToEdit(null);
+                    setShowTableModal(false);
+                    setOrderToChangeTable(null);
+                    setNewTableNumber('');
                   }}
                   className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
                 >
                   İptal
                 </button>
                 <button
-                  onClick={async () => {
-                    try {
-                      // Backend'e gönder
-                      const response = await fetch(`${API_URL}/orders/${orderToEdit.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          items: orderToEdit.items,
-                          totalAmount: orderToEdit.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-                        })
-                      });
-                      if (response.ok) {
-                        alert('✅ Sipariş başarıyla güncellendi!');
-                        setShowEditModal(false);
-                        setOrderToEdit(null);
-                        fetchOrders(); // Listeyi yenile
-                      }
-                    } catch (error) {
-                      alert('❌ Sipariş güncellenemedi!');
-                    }
-                  }}
-                  className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-colors"
+                  onClick={handleUpdateTable}
+                  className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-colors disabled:opacity-50"
+                  disabled={loading}
                 >
-                  💾 Kaydet
+                  {loading ? 'Güncelleniyor...' : '✨ Değiştir'}
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {/* Sipariş Detay Modal */}
-      {showModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-blue-500 text-white p-6 rounded-t-lg">
-              <div className="flex items-center justify-between">
+      {/* Sipariş Düzenle Modal */}
+      {
+        showEditModal && orderToEdit && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6 p-6 border-b">
                 <div>
-                  <h2 className="text-2xl font-bold">Sipariş Detayları</h2>
-                  <p className="text-blue-100">Masa {selectedOrder.tableNumber}</p>
+                  <h3 className="text-2xl font-bold text-gray-800">✏️ Siparişi Düzenle</h3>
+                  <p className="text-sm text-gray-500 mt-1">Masa {orderToEdit.tableNumber}</p>
                 </div>
                 <button
                   onClick={() => {
-                    setShowModal(false);
-                    setSelectedOrder(null);
+                    setShowEditModal(false);
+                    setOrderToEdit(null);
                   }}
-                  className="text-white hover:bg-blue-600 p-2 rounded-lg transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <FaTimes size={24} />
                 </button>
               </div>
-            </div>
 
-            {/* Modal Body */}
-            <div className="p-6 space-y-6">
-              {/* Sipariş Bilgileri */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-800 mb-3">📋 Sipariş Bilgileri</h3>
-                <div className="space-y-2 text-sm">
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Masa:</span>
-                    <span className="font-semibold">{selectedOrder.tableNumber}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Durum:</span>
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(selectedOrder.status)}`}>
-                      {getStatusText(selectedOrder.status)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Saat:</span>
-                    <span>{formatTime(selectedOrder.created_at)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Toplam:</span>
-                    <span className="font-bold text-green-600 text-lg">
-                      {Number(selectedOrder.totalAmount).toFixed(2)}₺
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sipariş Ürünleri */}
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-3">🍽️ Sipariş Ürünleri</h3>
-                <div className="space-y-3">
-                  {selectedOrder.items.map((item, index) => (
-                    <div key={index} className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <div className="font-semibold text-gray-800">
-                            {item.quantity}x {item.name}
+              <div className="p-6 space-y-6">
+                {/* Mevcut Sipariş */}
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <h4 className="font-semibold text-gray-800 mb-3">📋 Mevcut Sipariş</h4>
+                  <div className="space-y-2">
+                    {orderToEdit.items.map((item: OrderItem, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-lg">
+                        <div className="flex items-center gap-3 flex-1">
+                          <span className="text-sm flex-1">{item.name}</span>
+                          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                            <button
+                              onClick={() => {
+                                const updatedOrder = {
+                                  ...orderToEdit,
+                                  items: orderToEdit.items.map((i: OrderItem, index: number) =>
+                                    index === idx ? { ...i, quantity: Math.max(1, i.quantity - 1) } : i
+                                  )
+                                };
+                                setOrderToEdit(updatedOrder);
+                              }}
+                              className="px-2 py-1 bg-white rounded text-blue-600 hover:bg-blue-50"
+                            >
+                              <FaMinus size={12} />
+                            </button>
+                            <span className="w-8 text-center font-bold">{item.quantity}</span>
+                            <button
+                              onClick={() => {
+                                const updatedOrder = {
+                                  ...orderToEdit,
+                                  items: orderToEdit.items.map((i: OrderItem, index: number) =>
+                                    index === idx ? { ...i, quantity: i.quantity + 1 } : i
+                                  )
+                                };
+                                setOrderToEdit(updatedOrder);
+                              }}
+                              className="px-2 py-1 bg-white rounded text-blue-600 hover:bg-blue-50"
+                            >
+                              <FaPlus size={12} />
+                            </button>
                           </div>
-                          {item.notes && (
-                            <div className="text-xs text-gray-600 mt-1 bg-yellow-50 p-2 rounded">
-                              📝 {item.notes}
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm text-gray-600">{Number(item.price).toFixed(2)}₺</div>
-                          <div className="font-semibold text-gray-800">
-                            {(Number(item.price) * Number(item.quantity)).toFixed(2)}₺
-                          </div>
+                          <span className="text-sm font-semibold text-gray-700 w-20 text-right">
+                            ₺{Number(item.price * item.quantity).toFixed(2)}
+                          </span>
+                          <button
+                            onClick={() => {
+                              const updatedOrder = {
+                                ...orderToEdit,
+                                items: orderToEdit.items.filter((_: OrderItem, i: number) => i !== idx)
+                              };
+                              setOrderToEdit(updatedOrder);
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <FaTimes size={14} />
+                          </button>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Sipariş Notu */}
-              {selectedOrder.notes && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-gray-800 mb-2">📝 Sipariş Notu</h3>
-                  <p className="text-gray-700">{selectedOrder.notes}</p>
+                {/* Ürün Ekle */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3">➕ Ürün Ekle</h4>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {menuItems.map((item: any) => {
+                      const existingItem = orderToEdit.items.find((i: OrderItem) => i.name === item.name);
+                      return (
+                        <div key={item.id} className="flex items-center justify-between bg-white p-3 rounded-lg border hover:border-blue-400 transition-colors">
+                          <div>
+                            <div className="font-medium">{item.name}</div>
+                            <div className="text-sm text-gray-600">₺{Number(item.price).toFixed(2)}</div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const newItem = {
+                                id: item.id,
+                                name: item.name,
+                                quantity: 1,
+                                price: item.price,
+                                notes: ''
+                              };
+                              const updatedOrder = {
+                                ...orderToEdit,
+                                items: [...orderToEdit.items, newItem]
+                              };
+                              setOrderToEdit(updatedOrder);
+                            }}
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold text-sm transition-colors"
+                          >
+                            + Ekle
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              )}
 
-              {/* Durum Güncelleme Butonları */}
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-3">🔄 Sipariş Durumu</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {selectedOrder.status !== 'completed' && (
-                    <button
-                      onClick={() => updateOrderStatus(selectedOrder.id, 'completed')}
-                      className="py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
-                    >
-                      <FaCheckCircle />
-                      Servis Edildi
-                    </button>
-                  )}
-                  {selectedOrder.status === 'pending' && (
-                    <button
-                      onClick={() => updateOrderStatus(selectedOrder.id, 'preparing')}
-                      className="py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors"
-                    >
-                      Hazırlanıyor
-                    </button>
-                  )}
-                  {selectedOrder.status === 'preparing' && (
-                    <button
-                      onClick={() => updateOrderStatus(selectedOrder.id, 'ready')}
-                      className="py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-colors"
-                    >
-                      Hazır
-                    </button>
-                  )}
-
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setOrderToEdit(null);
+                    }}
+                    className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
+                  >
+                    İptal
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        // Backend'e gönder
+                        const response = await fetch(`${API_URL}/orders/${orderToEdit.id}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            items: orderToEdit.items,
+                            totalAmount: orderToEdit.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+                          })
+                        });
+                        if (response.ok) {
+                          alert('✅ Sipariş başarıyla güncellendi!');
+                          setShowEditModal(false);
+                          setOrderToEdit(null);
+                          fetchOrders(); // Listeyi yenile
+                        }
+                      } catch (error) {
+                        alert('❌ Sipariş güncellenemedi!');
+                      }
+                    }}
+                    className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-colors"
+                  >
+                    💾 Kaydet
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+
+      {/* Sipariş Detay Modal */}
+      {
+        showModal && selectedOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-blue-500 text-white p-6 rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">Sipariş Detayları</h2>
+                    <p className="text-blue-100">Masa {selectedOrder.tableNumber}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      setSelectedOrder(null);
+                    }}
+                    className="text-white hover:bg-blue-600 p-2 rounded-lg transition-colors"
+                  >
+                    <FaTimes size={24} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 space-y-6">
+                {/* Sipariş Bilgileri */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-gray-800 mb-3">📋 Sipariş Bilgileri</h3>
+                  <div className="space-y-2 text-sm">
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Masa:</span>
+                      <span className="font-semibold">{selectedOrder.tableNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Durum:</span>
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(selectedOrder.status)}`}>
+                        {getStatusText(selectedOrder.status)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Saat:</span>
+                      <span>{formatTime(selectedOrder.created_at)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Toplam:</span>
+                      <span className="font-bold text-green-600 text-lg">
+                        {Number(selectedOrder.totalAmount).toFixed(2)}₺
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sipariş Ürünleri */}
+                <div>
+                  <h3 className="font-semibold text-gray-800 mb-3">🍽️ Sipariş Ürünleri</h3>
+                  <div className="space-y-3">
+                    {selectedOrder.items.map((item, index) => (
+                      <div key={index} className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <div className="font-semibold text-gray-800">
+                              {item.quantity}x {item.name}
+                            </div>
+                            {item.notes && (
+                              <div className="text-xs text-gray-600 mt-1 bg-yellow-50 p-2 rounded">
+                                📝 {item.notes}
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-gray-600">{Number(item.price).toFixed(2)}₺</div>
+                            <div className="font-semibold text-gray-800">
+                              {(Number(item.price) * Number(item.quantity)).toFixed(2)}₺
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sipariş Notu */}
+                {selectedOrder.notes && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-800 mb-2">📝 Sipariş Notu</h3>
+                    <p className="text-gray-700">{selectedOrder.notes}</p>
+                  </div>
+                )}
+
+                {/* Durum Güncelleme Butonları */}
+                <div>
+                  <h3 className="font-semibold text-gray-800 mb-3">🔄 Sipariş Durumu</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {selectedOrder.status !== 'completed' && (
+                      <button
+                        onClick={() => updateOrderStatus(selectedOrder.id, 'completed')}
+                        className="py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                      >
+                        <FaCheckCircle />
+                        Servis Edildi
+                      </button>
+                    )}
+                    {selectedOrder.status === 'pending' && (
+                      <button
+                        onClick={() => updateOrderStatus(selectedOrder.id, 'preparing')}
+                        className="py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors"
+                      >
+                        Hazırlanıyor
+                      </button>
+                    )}
+                    {selectedOrder.status === 'preparing' && (
+                      <button
+                        onClick={() => updateOrderStatus(selectedOrder.id, 'ready')}
+                        className="py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-colors"
+                      >
+                        Hazır
+                      </button>
+                    )}
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaMoneyBillWave, FaSearch, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft } from 'react-icons/fa';
 import { printReceiptViaBridge } from '@/lib/printerHelpers';
+import apiService from '@/services/api';
 
 interface OrderItem {
   id: string;
@@ -221,7 +222,7 @@ export default function KasaPanel() {
             price: Number(item?.price) || 0,
             quantity: Number(item?.quantity) || 0
           }))
-        }));
+        })).filter((order: any) => order.status !== 'completed' && order.status !== 'cancelled');
 
         const groupOrdersByTable = (orders: Order[]) => {
           const grouped = new Map<number | 'null', Order[]>();
@@ -351,17 +352,27 @@ export default function KasaPanel() {
   const fetchFloors = async () => {
     if (!restaurantId) return;
     try {
-      const response = await fetch(`${API_URL}/restaurant-settings/${restaurantId}`);
-      const data = await response.json();
-      if (data.success && data.data?.drinkStationRouting?.floors) {
-        setFloors(data.data.drinkStationRouting.floors);
+      // 1. Fetch QR Tables Count (Real Source of Truth)
+      const qrResponse = await apiService.getRestaurantQRTokens(restaurantId);
+      if (qrResponse.success && Array.isArray(qrResponse.data)) {
+        setTotalTables(qrResponse.data.length);
+        console.log(`✅ ${qrResponse.data.length} masaya ait QR bulundu.`);
       }
-      // Get total QR count from settings
-      if (data.success && data.data?.qrCount) {
-        setTotalTables(Number(data.data.qrCount));
+
+      // 2. Fetch Settings
+      const response = await fetch(`${API_URL}/restaurant-settings/${restaurantId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data?.drinkStationRouting?.floors) {
+          setFloors(data.data.drinkStationRouting.floors);
+        }
+        // Fallback: If QRTokens failed, try using settings
+        if (data.success && data.data?.qrCount && (!qrResponse.success)) {
+          setTotalTables(Number(data.data.qrCount));
+        }
       }
     } catch (error) {
-      console.error('Katlar alınamadı:', error);
+      console.error('Katlar/Tablolar alınamadı:', error);
     }
   };
 
@@ -856,8 +867,7 @@ export default function KasaPanel() {
           <div className="flex items-center gap-8">
             <div className="text-center group">
               <div className="text-2xl font-black text-green-600 group-hover:scale-110 transition-transform">
-                {allOrders.filter(o => o.status === 'completed' && new Date(o.created_at).toDateString() === new Date().toDateString())
-                  .reduce((s, o) => s + (Number(o.totalAmount) || 0), 0).toFixed(2)}₺
+                {allOrders.filter(o => o.status === 'completed').reduce((s, o) => s + (Number(o.totalAmount) || 0), 0).toFixed(2)}₺
               </div>
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">GÜNLÜK CİRO</div>
             </div>
