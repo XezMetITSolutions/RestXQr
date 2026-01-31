@@ -480,6 +480,52 @@ app.post('/debug/print-stations', async (req, res) => {
 });
 
 
+// Debug specific path (for granular testing from frontend)
+app.post('/debug/test-specific-path', async (req, res) => {
+    const { path: printerPath } = req.body;
+    console.log(`Checking specific path: ${printerPath}`);
+
+    try {
+        if (printerPath.startsWith('\\\\') || printerPath.startsWith('printer:')) {
+            // Windows Share / Local Printer
+            // If it starts with printer:, strip it for fs check if possible, or just force try
+            const checkPath = printerPath.startsWith('printer:') ? printerPath.replace('printer:', '') : printerPath;
+
+            // Note: 'printer:Name' isn't checking a file path, it relies on system driver. 
+            // But UNC paths \\localhost\Share are file paths.
+
+            if (checkPath.startsWith('\\\\')) {
+                await fs.promises.access(checkPath, fs.constants.W_OK);
+                console.log(`✅ Path accessible: ${printerPath}`);
+                return res.json({ success: true, message: "Accessible" });
+            } else {
+                // For 'printer:Name', we can't easily check without trying to print or using printer driver.
+                // We'll assume if it's not UNC, we skip fs check or try a dummy driver check (skipped for now to avoid complexity).
+                return res.json({ success: true, message: "Skipped fs check for non-UNC path (assumed valid for driver)" });
+            }
+        } else if (printerPath.startsWith('tcp://')) {
+            // Network Printer
+            const parts = printerPath.replace('tcp://', '').split(':');
+            const printer = new ThermalPrinter({
+                type: PrinterTypes.EPSON,
+                interface: printerPath,
+                options: { timeout: 2000 }
+            });
+            const isConnected = await printer.isPrinterConnected();
+            if (isConnected) {
+                return res.json({ success: true, message: "Connected" });
+            } else {
+                throw new Error("Not Connected");
+            }
+        } else {
+            return res.status(400).json({ success: false, error: "Unknown path format" });
+        }
+    } catch (error) {
+        console.log(`❌ Path failed: ${printerPath} - ${error.message}`);
+        return res.json({ success: false, error: error.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`
 🚀 LOCAL PRINTER BRIDGE RUNNING!
