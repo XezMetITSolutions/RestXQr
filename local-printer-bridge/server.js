@@ -77,9 +77,10 @@ async function resolveWindowsPrinterPath(printerName) {
         }
     }
 
-    // If all checks fail, force localhost as it SHOULD work based on smbshare
-    console.warn(`⚠️ checks failed, forcing: \\\\localhost\\${shareName}`);
-    return `\\\\localhost\\${shareName}`;
+    // If UNC paths fail, fallback to using the DRIVER directly.
+    // The test results showed "printer:KASA" was valid (green).
+    console.warn(`⚠️ UNC paths failed. Fallback to DRIVER mode: printer:${shareName}`);
+    return `printer:${shareName}`;
 }
 
 // Check status endpoint
