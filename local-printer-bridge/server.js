@@ -49,9 +49,11 @@ app.get('/status/:ip', async (req, res) => {
     console.log(`Checking status for printer at ${ip}...`);
 
     try {
+        const isWindowsPrinter = !ip.includes('.') && ip !== 'localhost';
+
         const printer = new ThermalPrinter({
             type: PrinterTypes.EPSON,
-            interface: `tcp://${ip}:9100`,
+            interface: isWindowsPrinter ? `printer:${ip}` : `tcp://${ip}:9100`,
             options: { timeout: 3000 }
         });
 
@@ -76,9 +78,11 @@ app.post('/test/:ip', async (req, res) => {
     console.log(`Received TEST print request for ${ip}`);
 
     try {
+        const isWindowsPrinter = !ip.includes('.') && ip !== 'localhost';
+
         const printer = new ThermalPrinter({
             type: PrinterTypes.EPSON,
-            interface: `tcp://${ip}:9100`,
+            interface: isWindowsPrinter ? `printer:${ip}` : `tcp://${ip}:9100`,
             characterSet: CharacterSet.PC857_TURKISH,
             removeSpecialCharacters: false,
             lineCharacter: '-',
