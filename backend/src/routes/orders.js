@@ -9,25 +9,24 @@ const resolveDrinkStationForTable = (restaurant, tableNumber, menuItemCategoryId
   try {
     // KROREN SPECIAL LOGIC
     if (restaurant?.username === 'kroren' || restaurant?.name === 'Kroren' || restaurant?.name === 'Kroren Restaurant') {
-      const lowerCat = categoryName ? categoryName.toLowerCase() : '';
-      const lowerProd = productName ? productName.toLowerCase() : '';
-      const lowerStation = itemKitchenStation ? itemKitchenStation.toLowerCase() : '';
+      const lowerStation = itemKitchenStation ? itemKitchenStation.toLowerCase().trim() : '';
 
-      // 1. İçecekler (Category Name veya Station Name kontrolü)
-      if (lowerCat.includes('içecek') || lowerCat.includes('icecek') || lowerStation.includes('icecek') || lowerStation.includes('bar') || lowerStation.includes('drink')) {
+      // 1. İçecekler - Eğer istasyon 'icecek' ise masa numarasına göre böl
+      // 'icecek1' ve 'icecek2' de gelse aynı mantığı koruyalım ki hata payı kalmasın
+      if (lowerStation.includes('icecek') || lowerStation.includes('bar') || lowerStation.includes('drink')) {
         const t = Number(tableNumber);
         if (Number.isFinite(t)) {
           if (t >= 1 && t <= 18) return 'icecek1';
           if (t >= 19 && t <= 42) return 'icecek2';
-          return 'icecek1'; // Default fallback
+          return 'icecek1'; // Default
         }
       }
 
-      // 2. Yemekler - Kategori veya Ürün İsmi Bazlı Yönlendirme
-      if (lowerCat.includes('ramen') || lowerProd.includes('ramen')) return 'ramen';
-      if (lowerCat.includes('kavurma') || lowerProd.includes('kavurma')) return 'kavurma';
-      if (lowerCat.includes('mantı') || lowerCat.includes('manti') || lowerProd.includes('mantı') || lowerProd.includes('manti')) return 'manti';
-      if (lowerCat.includes('kebap') || lowerProd.includes('kebap') || lowerCat.includes('ızgara') || lowerProd.includes('ızgara') || lowerCat.includes('izgara') || lowerProd.includes('izgara')) return 'kebap';
+      // 2. Diğerleri - Kullanıcının panelden yaptığı eşleştirmeyi (kitchenStation) doğrudan kullan
+      // Ör: 'kavurma', 'ramen', 'manti', 'kebap'
+      if (lowerStation) {
+        return lowerStation;
+      }
     }
 
     const cfg = restaurant?.settings?.drinkStationRouting;
