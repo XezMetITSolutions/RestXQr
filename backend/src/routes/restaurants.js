@@ -656,20 +656,30 @@ router.post('/:id/change-password', async (req, res) => {
 
     // Verify current password (support both plain text and bcrypt)
     let isValidPassword = false;
+
+    // DEBUG LOG
+    console.log(`[AUTH DEBUG] Password check for ${restaurant.username}:`);
+    console.log(` - Input password length: ${currentPassword?.length}`);
+    console.log(` - Saved password length: ${restaurant.password?.length}`);
+
     if (restaurant.password === currentPassword) {
+      console.log(' - Match found: Plain text match');
       isValidPassword = true;
     } else {
       try {
         isValidPassword = await bcrypt.compare(currentPassword, restaurant.password);
+        console.log(` - Match found: Bcrypt match = ${isValidPassword}`);
       } catch (bcryptError) {
+        console.error(' - Match error: Bcrypt comparison failed', bcryptError);
         isValidPassword = false;
       }
     }
 
     if (!isValidPassword) {
+      console.warn(`[AUTH WARNING] Password mismatch for ${restaurant.username}`);
       return res.status(401).json({
         success: false,
-        message: 'Mevcut şifre yanlış'
+        message: 'Mevcut şifreniz hatalıdır. Lütfen kontrol edip tekrar deneyin.'
       });
     }
 

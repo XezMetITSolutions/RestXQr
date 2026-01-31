@@ -520,6 +520,7 @@ function SettingsPageContent() {
     setLoading(true);
     try {
       const restaurantId = authenticatedRestaurant?.id;
+      console.log('🗝️ Changing password for restaurant ID:', restaurantId);
       if (!restaurantId) throw new Error('Restaurant ID not found');
 
       const response = await apiService.changeRestaurantPassword(
