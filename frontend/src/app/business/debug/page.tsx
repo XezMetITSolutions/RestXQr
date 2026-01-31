@@ -27,19 +27,27 @@ export default function DebugPage() {
                 : subdomain;
 
             addLog(`⚠️ ID missing. Attempting resolve via subdomain: ${effectiveUsername}`);
+            addLog(`URL: ${process.env.NEXT_PUBLIC_API_URL}/api/restaurants/username/${effectiveUsername}`);
 
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurants/username/${effectiveUsername}`);
+                addLog(`Resolution Status: ${res.status} ${res.statusText}`);
+
                 if (res.ok) {
                     const data = await res.json();
                     if (data.success && data.data) {
                         restaurantId = data.data.id;
                         username = data.data.username;
                         addLog(`✅ Resolved Restaurant: ${data.data.name} (${restaurantId})`);
+                    } else {
+                        addLog(`❌ Resolution Response API Fail: ${JSON.stringify(data)}`);
                     }
+                } else {
+                    const text = await res.text();
+                    addLog(`❌ Resolution Response Error Body: ${text.substring(0, 300)}`);
                 }
             } catch (e: any) {
-                addLog(`❌ Resolve Error: ${e.message}`);
+                addLog(`❌ Resolve Network Error: ${e.message}`);
             }
         }
 
