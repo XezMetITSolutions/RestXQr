@@ -129,7 +129,7 @@ router.get('/', async (req, res) => {
 
     // Eğer restaurantId string ise (username/id ayrımı), gerçek UUID'yi bulmaya çalış
     let actualRestaurantId = restaurantId;
-    const isUuid = typeof restaurantId === 'string' && restaurantId.length === 36 && restaurantId.includes('-');
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(restaurantId);
 
     if (typeof restaurantId === 'string' && !isUuid) {
       console.log('🔍 Resolving restaurantId from username:', restaurantId);
@@ -300,7 +300,7 @@ router.post('/', async (req, res) => {
 
     // Eğer restaurantId string ise (username), gerçek ID'yi bul
     let actualRestaurantId = restaurantId;
-    const isUuid = typeof restaurantId === 'string' && restaurantId.length === 36 && restaurantId.includes('-');
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(restaurantId);
 
     if (typeof restaurantId === 'string' && !isUuid) {
       console.log('🔍 Looking up restaurant by username:', restaurantId);
@@ -372,7 +372,9 @@ router.post('/', async (req, res) => {
       const unitPrice = Number(it.unitPrice || it.price || 0);
       totalAmount += qty * unitPrice;
     }
-
+    // OrderType validation (DB ENUM sync)
+    const validOrderTypes = ['dine_in', 'takeaway', 'delivery'];
+    const finalOrderType = validOrderTypes.includes(orderType) ? orderType : 'dine_in';
 
     const order = await Order.create({
       restaurantId: actualRestaurantId,
@@ -381,7 +383,7 @@ router.post('/', async (req, res) => {
       status: autoApprove ? 'approved' : 'pending', // İçecek ise direkt approved
       totalAmount,
       notes: notes || null,
-      orderType,
+      orderType: finalOrderType,
       approved: autoApprove // İçecek ise direkt onaylı
     });
 
