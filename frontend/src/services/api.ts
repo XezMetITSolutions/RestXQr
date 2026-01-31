@@ -307,6 +307,15 @@ class ApiService {
     return this.request<any>(`/restaurants/${restaurantId}/users`);
   }
 
+  async changeAdminPassword(restaurantId: string, newPassword: string) {
+    return this.request<any>(`/restaurants/${restaurantId}/change-admin-password`, {
+      method: 'POST',
+      body: JSON.stringify({
+        newPassword
+      })
+    });
+  }
+
   async changeRestaurantPassword(restaurantId: string, currentPassword: string, newPassword: string) {
     return this.request<any>(`/restaurants/${restaurantId}/change-password`, {
       method: 'POST',

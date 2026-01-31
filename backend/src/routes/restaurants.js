@@ -424,7 +424,12 @@ router.get('/:id/users', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, phone, address, features, subscriptionPlan, kitchenStations } = req.body;
+    const {
+      name, email, phone, address,
+      features, subscriptionPlan,
+      maxTables, maxMenuItems, maxStaff,
+      kitchenStations, settings, isActive
+    } = req.body;
 
     const restaurant = await Restaurant.findByPk(id);
 
@@ -481,23 +486,29 @@ router.put('/:id', async (req, res) => {
       enterprise: { maxTables: 999, maxMenuItems: 999, maxStaff: 999 }
     };
 
-    // Plan değiştiyse limitleri de güncelle
+    // Update data object
     let updateData = {
-      name: name || restaurant.name,
-      email: email || restaurant.email,
-      phone: phone || restaurant.phone,
-      address: address || restaurant.address,
+      name: name !== undefined ? name : restaurant.name,
+      email: email !== undefined ? email : restaurant.email,
+      phone: phone !== undefined ? phone : restaurant.phone,
+      address: address !== undefined ? address : restaurant.address,
       features: updatedFeatures,
-      subscriptionPlan: newPlan || restaurant.subscriptionPlan,
-      kitchenStations: kitchenStations !== undefined ? kitchenStations : restaurant.kitchenStations
+      subscriptionPlan: newPlan,
+      maxTables: maxTables !== undefined ? maxTables : restaurant.maxTables,
+      maxMenuItems: maxMenuItems !== undefined ? maxMenuItems : restaurant.maxMenuItems,
+      maxStaff: maxStaff !== undefined ? maxStaff : restaurant.maxStaff,
+      kitchenStations: kitchenStations !== undefined ? kitchenStations : restaurant.kitchenStations,
+      settings: settings !== undefined ? settings : restaurant.settings,
+      isActive: isActive !== undefined ? isActive : restaurant.isActive
     };
 
-    if (newPlan && newPlan !== oldPlan) {
+    // Plan değiştiyse ve body'de limitler belirtilmediyse plan varsayılanlarını kullan
+    if (newPlan && newPlan !== oldPlan && maxTables === undefined) {
       const limits = PLAN_LIMITS[newPlan.toLowerCase()] || PLAN_LIMITS.basic;
       updateData.maxTables = limits.maxTables;
       updateData.maxMenuItems = limits.maxMenuItems;
       updateData.maxStaff = limits.maxStaff;
-      console.log(`✅ Updated limits for ${restaurant.name} to ${newPlan} plan`);
+      console.log(`✅ Updated limits for ${restaurant.name} to ${newPlan} plan defaults`);
     }
 
     await restaurant.update(updateData);

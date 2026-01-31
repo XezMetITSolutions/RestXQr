@@ -325,6 +325,28 @@ export default function IsletmeGirisPage() {
               )}
             </button>
 
+            {/* Super Admin Login Option */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setUsername('restxqr');
+                  setPassword('01528797Mb##');
+                  setTimeout(() => {
+                    const loginBtn = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+                    if (loginBtn) loginBtn.click();
+                  }, 100);
+                }}
+                disabled={loading}
+                className="w-full py-3 px-4 rounded-xl border border-purple-400/30 text-purple-200 text-sm font-medium hover:bg-purple-500/10 transition-all duration-200"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <FaLock className="h-3 w-3 text-purple-400" />
+                  <TranslatedText>Süper Yönetici Girişi</TranslatedText>
+                </div>
+              </button>
+            </div>
+
           </form>
         </div>
       </div>

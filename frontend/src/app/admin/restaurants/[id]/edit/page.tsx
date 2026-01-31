@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { FaSave, FaArrowLeft, FaSpinner } from 'react-icons/fa';
+import apiService from '@/services/api';
 
 interface Restaurant {
   id: string;
@@ -37,6 +38,7 @@ export default function EditRestaurantPage() {
     maxTables: 10,
     maxMenuItems: 50,
     maxStaff: 3,
+    isActive: true,
   });
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -44,20 +46,10 @@ export default function EditRestaurantPage() {
     confirmPassword: '',
   });
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
-
-  // Restoran bilgilerini yükle
-  useEffect(() => {
-    if (restaurantId) {
-      fetchRestaurant();
-    }
-  }, [restaurantId]);
-
   const fetchRestaurant = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/restaurants/${restaurantId}`);
-      const data = await response.json();
+      const data = await apiService.getRestaurantById(restaurantId);
 
       if (data.success && data.data) {
         const rest = data.data;
@@ -71,6 +63,7 @@ export default function EditRestaurantPage() {
           maxTables: rest.maxTables || 10,
           maxMenuItems: rest.maxMenuItems || 50,
           maxStaff: rest.maxStaff || 3,
+          isActive: rest.isActive !== undefined ? rest.isActive : true,
         });
       }
     } catch (error) {
@@ -83,19 +76,10 @@ export default function EditRestaurantPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setSaving(true);
-      
-      const response = await fetch(`${API_URL}/restaurants/${restaurantId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
+      const data = await apiService.updateRestaurant(restaurantId, formData);
 
       if (data.success) {
         alert('Restoran başarıyla güncellendi!');
@@ -126,6 +110,8 @@ export default function EditRestaurantPage() {
 
     if (plan === 'premium') {
       limits = { maxTables: 25, maxMenuItems: 150, maxStaff: 10 };
+    } else if (plan === 'corporate') {
+      limits = { maxTables: 100, maxMenuItems: 500, maxStaff: 50 };
     } else if (plan === 'enterprise') {
       limits = { maxTables: 999, maxMenuItems: 999, maxStaff: 999 };
     }
@@ -150,17 +136,7 @@ export default function EditRestaurantPage() {
 
     try {
       setSaving(true);
-      const response = await fetch(`${API_URL}/restaurants/${restaurantId}/change-admin-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          newPassword: passwordData.newPassword,
-        }),
-      });
-
-      const data = await response.json();
+      const data = await apiService.changeAdminPassword(restaurantId, passwordData.newPassword);
 
       if (data.success) {
         alert('Şifre başarıyla değiştirildi!');
@@ -303,21 +279,42 @@ export default function EditRestaurantPage() {
               />
             </div>
 
-            {/* Abonelik Planı */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Abonelik Planı *
-              </label>
-              <select
-                name="subscriptionPlan"
-                value={formData.subscriptionPlan}
-                onChange={handlePlanChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="basic">Basic - 10 Masa, 50 Menü, 3 Personel</option>
-                <option value="premium">Premium - 25 Masa, 150 Menü, 10 Personel</option>
-                <option value="enterprise">Enterprise - Sınırsız</option>
-              </select>
+            {/* Abonelik Planı & Durum */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Abonelik Planı *
+                </label>
+                <select
+                  name="subscriptionPlan"
+                  value={formData.subscriptionPlan}
+                  onChange={handlePlanChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="basic">Basic - 10 Masa, 50 Menü, 3 Personel</option>
+                  <option value="premium">Premium - 25 Masa, 150 Menü, 10 Personel</option>
+                  <option value="corporate">Corporate - 100 Masa, 500 Menü, 50 Personel</option>
+                  <option value="enterprise">Enterprise - Sınırsız</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Restoran Durumu
+                </label>
+                <select
+                  name="isActive"
+                  value={formData.isActive ? 'true' : 'false'}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.value === 'true' }))}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${formData.isActive
+                    ? 'border-green-300 bg-green-50 text-green-800 focus:ring-green-500'
+                    : 'border-red-300 bg-red-50 text-red-800 focus:ring-red-500'
+                    }`}
+                >
+                  <option value="true">Aktif (Sisteme Giriş Yapabilir)</option>
+                  <option value="false">Pasif (Giriş Engellenir)</option>
+                </select>
+              </div>
             </div>
 
             {/* Limitler */}
