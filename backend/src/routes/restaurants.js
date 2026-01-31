@@ -103,21 +103,26 @@ router.get('/username/:username', async (req, res) => {
     // 4. Assemble the Tree manually if data is available
     if (!partialData) {
       try {
-        const categoryList = categories.map(c => c.toJSON());
+        const categoryList = categories.map(c => c.get({ plain: true }));
+        const itemList = items.map(i => i.get({ plain: true }));
 
         // Map items to categories
         categoryList.forEach(category => {
-          category.items = items.filter(item => item.categoryId === category.id);
+          category.items = itemList.filter(item => {
+            // Support both snake_case and camelCase for categoryId
+            const itemCatId = item.categoryId || item.category_id;
+            return String(itemCatId) === String(category.id);
+          });
         });
 
         restaurantData.categories = categoryList;
-        restaurantData.menuItems = items;
+        restaurantData.menuItems = itemList;
 
         console.log(`✅ Restaurant found: ${restaurant.name} with ${categories.length} categories and ${items.length} items`);
       } catch (assemblyError) {
         console.error('❌ Error assembling menu tree:', assemblyError);
         partialData = true;
-        errorDetails.push('Menu structure assembly failed');
+        errorDetails.push(`Menu structure assembly failed: ${assemblyError.message}`);
       }
     }
 
@@ -135,7 +140,8 @@ router.get('/username/:username', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' || true ? criticalError.message : undefined,
+      error: criticalError.message,
+      details: criticalError.name,
       stack: process.env.NODE_ENV === 'development' ? criticalError.stack : undefined
     });
   }
@@ -648,12 +654,22 @@ router.post('/:id/change-password', async (req, res) => {
       });
     }
 
-    // Verify current password
-    const isValidPassword = await bcrypt.compare(currentPassword, restaurant.password);
+    // Verify current password (support both plain text and bcrypt)
+    let isValidPassword = false;
+    if (restaurant.password === currentPassword) {
+      isValidPassword = true;
+    } else {
+      try {
+        isValidPassword = await bcrypt.compare(currentPassword, restaurant.password);
+      } catch (bcryptError) {
+        isValidPassword = false;
+      }
+    }
+
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
-        message: 'Current password is incorrect'
+        message: 'Mevcut şifre yanlış'
       });
     }
 
