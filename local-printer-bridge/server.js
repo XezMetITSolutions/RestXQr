@@ -50,16 +50,30 @@ function encodeText(text, encoding = 'cp857') {
  */
 async function resolveWindowsPrinterPath(printerName) {
     const hostname = os.hostname();
-    // Prioritize user-provided IP and Computer Name
+    console.log(`💻 Hostname: ${hostname}`);
+
+    // User shared printer as "KASA" (Uppercase), but frontend sends "kasa".
+    // We will try UPPERCASE first.
+    const shareName = printerName.toUpperCase();
+
     const candidates = [
-        `\\\\192.168.1.119\\${printerName}`, // Explicit IP
-        `\\\\Kasa\\${printerName}`,          // Explicit PC Name
-        `\\\\${hostname}\\${printerName}`,   // Dynamic Hostname
-        `\\\\localhost\\${printerName}`,
-        `\\\\127.0.0.1\\${printerName}`
+        // 1. Try Exact IP + UPPERCASE Share (Most likely to work)
+        `\\\\192.168.1.119\\${shareName}`,
+
+        // 2. Try localhost variations + UPPERCASE
+        `\\\\localhost\\${shareName}`,
+        `\\\\127.0.0.1\\${shareName}`,
+
+        // 3. Try Hostnames + UPPERCASE
+        `\\\\Kasa\\${shareName}`,
+        `\\\\${hostname}\\${shareName}`,
+
+        // 4. Fallbacks (original casing)
+        `\\\\192.168.1.119\\${printerName}`,
+        `\\\\localhost\\${printerName}`
     ];
 
-    console.log(`🔎 Resolving path for printer '${printerName}'...`);
+    console.log(`🔎 Resolving path for printer '${printerName}' (trying share '${shareName}')...`);
 
     for (const candidate of candidates) {
         try {
@@ -67,12 +81,12 @@ async function resolveWindowsPrinterPath(printerName) {
             console.log(`✅ Found accessible printer path: ${candidate}`);
             return candidate;
         } catch (e) {
-            console.log(`   - Path failed: ${candidate} (${e.code})`);
+            // console.log(`   - Path failed: ${candidate} (${e.code})`); // Reduce noise
         }
     }
 
-    console.warn(`⚠️ Could not find accessible path for ${printerName}. Defaulting to localhost.`);
-    return `\\\\localhost\\${printerName}`;
+    console.warn(`⚠️ Could not find accessible path. Last attempt defaulting to: \\\\localhost\\${shareName}`);
+    return `\\\\localhost\\${shareName}`;
 }
 
 // Check status endpoint
