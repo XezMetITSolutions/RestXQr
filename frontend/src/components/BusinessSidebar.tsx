@@ -426,7 +426,6 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
               </div>
               <div>
                 <p className="text-white font-black text-sm">{restaurantName}</p>
-                <p className="text-white/50 text-xs font-semibold">{restaurantEmail}</p>
               </div>
             </div>
             <button
