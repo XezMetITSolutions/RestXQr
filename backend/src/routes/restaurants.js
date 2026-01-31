@@ -677,9 +677,9 @@ router.post('/:id/change-password', async (req, res) => {
 
     if (!isValidPassword) {
       console.warn(`[AUTH WARNING] Password mismatch for ${restaurant.username}`);
-      return res.status(401).json({
+      return res.status(200).json({
         success: false,
-        message: 'Mevcut şifreniz hatalıdır. Lütfen kontrol edip tekrar deneyin.'
+        message: `Mevcut şifre hatalı. (Debug: Girdi=${currentPassword.length}kr, DB=${restaurant.password ? restaurant.password.length : 0}kr, Match=${isValidPassword})`
       });
     }
 
