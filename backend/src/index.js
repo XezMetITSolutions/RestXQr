@@ -168,17 +168,26 @@ app.get('/api/debug/update-kroren-printers', async (req, res) => {
     const kroren = await Restaurant.findOne({ where: { username: 'kroren' } });
     if (kroren) {
       const krorenConfig = {
-        kavurma: { name: 'KAVURMA', ip: '192.168.10.194', port: 9100, enabled: true, type: 'epson' },
-        ramen: { name: 'RAMEN', ip: '192.168.10.197', port: 9100, enabled: true, type: 'epson' },
-        manti: { name: 'MANTI', ip: '192.168.10.199', port: 9100, enabled: true, type: 'epson' }
+        kavurma: { name: 'KAVURMA', ip: '192.168.10.194', port: 9100, enabled: true, type: 'epson', language: 'tr' },
+        ramen: { name: 'RAMEN', ip: '192.168.10.197', port: 9100, enabled: true, type: 'epson', language: 'tr' },
+        manti: { name: 'MANTI', ip: '192.168.10.199', port: 9100, enabled: true, type: 'epson', language: 'tr' },
+        icecek1: { name: 'İÇECEK 1', ip: '192.168.10.192', port: 9100, enabled: true, type: 'epson', language: 'tr' },
+        icecek2: { name: 'İÇECEK 2', ip: '192.168.10.191', port: 9100, enabled: true, type: 'epson', language: 'tr' },
+        kasa: { name: 'KASA', ip: '192.168.10.198', port: 9100, enabled: true, type: 'epson', language: 'tr' }
       };
       const krorenStations = [
-        { id: 'kavurma', name: 'KAVURMA', color: '#FF0000', order: 1 },
-        { id: 'ramen', name: 'RAMEN', color: '#FF0000', order: 2 },
-        { id: 'manti', name: 'MANTI', color: '#FF0000', order: 3 }
+        { id: 'kavurma', name: 'KAVURMA', emoji: '🥩', color: '#ef4444', order: 1 },
+        { id: 'ramen', name: 'RAMEN', emoji: '🍜', color: '#f97316', order: 2 },
+        { id: 'manti', name: 'MANTI', emoji: '🥟', color: '#f59e0b', order: 3 },
+        { id: 'icecek1', name: 'İÇECEK 1', emoji: '🥤', color: '#3b82f6', order: 4 },
+        { id: 'icecek2', name: 'İÇECEK 2', emoji: '🥤', color: '#0ea5e9', order: 5 },
+        { id: 'kasa', name: 'KASA', emoji: '💰', color: '#10b981', order: 6 }
       ];
-      await kroren.update({ printerConfig: krorenConfig, kitchenStations: krorenStations });
-      results.push('✅ kroren (Merkez) güncellendi');
+      await Restaurant.update(
+        { printerConfig: krorenConfig, kitchenStations: krorenStations },
+        { where: { id: kroren.id } }
+      );
+      results.push('✅ kroren (Merkez) güncellendi (Kavurma, Ramen, Manti, İçecek 1, İçecek 2, Kasa)');
     }
 
     // 2. KROREN-LEVENT
