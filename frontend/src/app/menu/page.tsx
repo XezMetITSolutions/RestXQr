@@ -526,9 +526,42 @@ function MenuPageContent() {
     { id: 'popular', name: currentLanguage === 'Turkish' ? 'Beğenilenler' : (currentLanguage === 'German' ? 'Favoriten' : (currentLanguage === 'Chinese' ? '最爱' : 'Favorites')) },
     ...filteredCategories.map((cat: any) => ({
       id: cat.id,
-      name: typeof cat.name === 'string' ? cat.name : (cat.name?.[language] || cat.name?.tr || cat.name?.en || 'Kategori')
+      name: typeof cat.name === 'string' ? cat.name : (cat.name?.[language] || cat.name?.tr || cat.name?.en || 'Kategori'),
+      discountPercentage: cat.discountPercentage,
+      discountStartDate: cat.discountStartDate,
+      discountEndDate: cat.discountEndDate
     }))
   ];
+
+  // Price Calculation Helper
+  const getDiscountedPrice = (item: any) => {
+    const now = new Date();
+
+    // 1. Check Item Discount
+    if (item.discountedPrice || item.discountPercentage) {
+      const start = item.discountStartDate ? new Date(item.discountStartDate) : null;
+      const end = item.discountEndDate ? new Date(item.discountEndDate) : null;
+
+      if ((!start || now >= start) && (!end || now <= end)) {
+        if (item.discountedPrice) return parseFloat(item.discountedPrice);
+        if (item.discountPercentage) return item.price * (1 - item.discountPercentage / 100);
+      }
+    }
+
+    // 2. Check Category Discount
+    const category = menuCategories.find(c => c.id === item.categoryId);
+    if (category?.discountPercentage) {
+      const start = category.discountStartDate ? new Date(category.discountStartDate) : null;
+      const end = category.discountEndDate ? new Date(category.discountEndDate) : null;
+
+      if ((!start || now >= start) && (!end || now <= end)) {
+        return item.price * (1 - category.discountPercentage / 100);
+      }
+    }
+
+    return item.price;
+  };
+
 
   // Get subcategories for active category
   const activeSubcategories = activeCategory === 'popular' ? [] : getSubcategoriesByParent(activeCategory);
@@ -587,7 +620,7 @@ function MenuPageContent() {
       const cartItem = {
         itemId: item.id,
         name: item.name,
-        price: item.price,
+        price: getDiscountedPrice(item),
         quantity: 1,
         image: imageUrl,
         preparationTime: item.preparationTime
@@ -1025,7 +1058,22 @@ function MenuPageContent() {
                               <h3 className="font-semibold text-dynamic-sm truncate">
                                 {item.translations?.[language]?.name || (typeof item.name === 'string' ? item.name : (item.name?.[language] || item.name?.tr || item.name?.en || 'Ürün'))}
                               </h3>
-                              <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: designSettings?.primaryColor || 'var(--brand-primary)' }}>{item.price} ₺</span>
+                              <div className="flex flex-col items-end">
+                                {getDiscountedPrice(item) < item.price ? (
+                                  <>
+                                    <span className="font-bold text-red-600 text-dynamic-sm flex-shrink-0 ml-2">
+                                      {parseFloat(getDiscountedPrice(item).toFixed(2))} ₺
+                                    </span>
+                                    <span className="text-xs text-gray-400 line-through">
+                                      {item.price} ₺
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="font-semibold text-dynamic-sm flex-shrink-0 ml-2" style={{ color: designSettings?.primaryColor || 'var(--brand-primary)' }}>
+                                    {item.price} ₺
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <p className="text-xs text-gray-600 line-clamp-2 mb-2 break-words">
                               {item.translations?.[language]?.description || (typeof item.description === 'string' ? item.description : (item.description?.[language] || item.description?.tr || item.description?.en || ''))}

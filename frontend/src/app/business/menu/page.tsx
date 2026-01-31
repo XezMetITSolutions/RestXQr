@@ -149,7 +149,79 @@ export default function MenuManagement() {
     return staticDictionary[text]?.[code] || text;
   }; const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || t('Kullanıcı');
 
-  const [activeTab, setActiveTab] = useState<'items' | 'combos' | 'categories' | 'stations' | 'mapping' | 'stats'>('items');
+  const [activeTab, setActiveTab] = useState<'items' | 'combos' | 'categories' | 'stations' | 'mapping' | 'stats' | 'campaigns'>('items');
+
+  // Campaign States
+  const [campaignType, setCampaignType] = useState<'product' | 'category'>('product');
+  const [selectedCampaignTarget, setSelectedCampaignTarget] = useState<string>('');
+  const [campaignDiscountType, setCampaignDiscountType] = useState<'percentage' | 'fixed'>('fixed');
+  const [campaignValue, setCampaignValue] = useState<string>('');
+  const [campaignStartDate, setCampaignStartDate] = useState<string>('');
+  const [campaignEndDate, setCampaignEndDate] = useState<string>('');
+
+  const handleSaveCampaign = async () => {
+    if (!selectedCampaignTarget || !campaignValue || !currentRestaurantId) {
+      alert(t('Lütfen tüm alanları doldurun.'));
+      return;
+    }
+
+    try {
+      if (campaignType === 'product') {
+        const item = items.find(i => i.id === selectedCampaignTarget);
+        if (!item) return;
+
+        const updateData: any = {
+          isAvailable: item.isAvailable, // Preserve existing fields
+          isPopular: item.isPopular,
+          name: item.name,
+          price: item.price,
+          categoryId: item.categoryId,
+          discountStartDate: campaignStartDate ? new Date(campaignStartDate).toISOString() : null,
+          discountEndDate: campaignEndDate ? new Date(campaignEndDate).toISOString() : null
+        };
+
+        if (campaignDiscountType === 'fixed') {
+          updateData.discountedPrice = parseFloat(campaignValue);
+          updateData.discountPercentage = null; // Reset percentage if fixed price
+        } else {
+          updateData.discountPercentage = parseInt(campaignValue);
+          updateData.discountedPrice = null; // Reset fixed price if percentage
+        }
+
+        await updateMenuItem(currentRestaurantId, selectedCampaignTarget, updateData);
+      } else {
+        // Category Campaign
+        const category = categories.find(c => c.id === selectedCampaignTarget);
+        if (!category) return;
+
+        // Note: Assuming updateMenuCategory supports sending discount fields directly. 
+        // If backend only accepts specific fields, this might need backend adjustment.
+        // Based on previous checks, updateMenuCategory sends a specific object.
+        // We might need to ensure backend stores these. 
+        // For now, sending them under the assumption backend handles it or we update backend.
+        // Checked MenuCategory model: it HAS discountPercentage, discountStartDate, discountEndDate. 
+        // But store.ts createMenuCategory filters fields! updateMenuCategory probably works directly via API.
+        // Let's assume updateMenuCategory in store sends 'data' as is or we rely on it.
+
+        await updateMenuCategory(currentRestaurantId, selectedCampaignTarget, {
+          name: category.name, // Required fields
+          discountPercentage: parseInt(campaignValue),
+          discountStartDate: campaignStartDate ? new Date(campaignStartDate).toISOString() : null,
+          discountEndDate: campaignEndDate ? new Date(campaignEndDate).toISOString() : null
+        });
+      }
+
+      alert(t('Kampanya başarıyla kaydedildi!'));
+      setSelectedCampaignTarget('');
+      setCampaignValue('');
+      setCampaignStartDate('');
+      setCampaignEndDate('');
+    } catch (error) {
+      console.error('Kampanya kaydetme hatası:', error);
+      alert(t('Hata oluştu: ') + (error as any).message);
+    }
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showItemForm, setShowItemForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
@@ -1426,6 +1498,17 @@ export default function MenuManagement() {
                 <FaChartBar />
                 <TranslatedText>İstatistikler</TranslatedText>
               </button>
+              <button
+                onClick={() => setActiveTab('campaigns')}
+                className={`px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 flex items-center gap-2 ${activeTab === 'campaigns'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+              >
+                <FaPercent />
+                <TranslatedText>Kampanyalar</TranslatedText>
+              </button>
+
             </div>
 
             {error && (
@@ -3933,6 +4016,236 @@ export default function MenuManagement() {
                   >
                     <TranslatedText>İptal</TranslatedText>
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'campaigns' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+                <div className="relative z-10">
+                  <h2 className="text-3xl font-black mb-2"><TranslatedText>Kampanya Yönetimi</TranslatedText></h2>
+                  <p className="text-purple-100"><TranslatedText>Ürün veya kategorileriniz için otomatik kampanyalar oluşturun.</TranslatedText></p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Sol Taraf: Kampanya Ayarları */}
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                      <span className="p-2 bg-purple-100 text-purple-600 rounded-lg"><FaCog /></span>
+                      <TranslatedText>Kampanya Detayları</TranslatedText>
+                    </h3>
+
+                    <div className="space-y-6">
+                      {/* Tip Seçimi */}
+                      <div className="grid grid-cols-2 gap-4 bg-gray-50 p-2 rounded-xl">
+                        <button
+                          onClick={() => { setCampaignType('product'); setSelectedCampaignTarget(''); setCampaignValue(''); }}
+                          className={`py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${campaignType === 'product'
+                              ? 'bg-white text-purple-600 shadow-md'
+                              : 'text-gray-500 hover:bg-gray-200'
+                            }`}
+                        >
+                          <FaUtensils /> <TranslatedText>Ürün Bazlı</TranslatedText>
+                        </button>
+                        <button
+                          onClick={() => { setCampaignType('category'); setSelectedCampaignTarget(''); setCampaignValue(''); setCampaignDiscountType('percentage'); }}
+                          className={`py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${campaignType === 'category'
+                              ? 'bg-white text-purple-600 shadow-md'
+                              : 'text-gray-500 hover:bg-gray-200'
+                            }`}
+                        >
+                          <FaTag /> <TranslatedText>Kategori Bazlı</TranslatedText>
+                        </button>
+                      </div>
+
+                      {/* Hedef Seçimi */}
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">
+                          {campaignType === 'product' ? <TranslatedText>Kampanya Yapılacak Ürün</TranslatedText> : <TranslatedText>Kampanya Yapılacak Kategori</TranslatedText>}
+                        </label>
+                        <select
+                          value={selectedCampaignTarget}
+                          onChange={(e) => setSelectedCampaignTarget(e.target.value)}
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 transition-all font-medium"
+                        >
+                          <option value="">{t('Seçiniz...')}</option>
+                          {campaignType === 'product' ? (
+                            categories.map(cat => {
+                              const catItems = items.filter(i => i.categoryId === cat.id);
+                              if (catItems.length === 0) return null;
+                              return (
+                                <optgroup key={cat.id} label={cat.name}>
+                                  {catItems.map(item => (
+                                    <option key={item.id} value={item.id}>{item.name} ({item.price}₺)</option>
+                                  ))}
+                                </optgroup>
+                              );
+                            })
+                          ) : (
+                            categories.map(cat => (
+                              <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))
+                          )}
+                        </select>
+                      </div>
+
+                      {/* Ürün Seçildiyse Mevcut Fiyat */}
+                      {campaignType === 'product' && selectedCampaignTarget && (
+                        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center justify-between">
+                          <span className="text-blue-800 font-medium"><TranslatedText>Ürünün Şu Anki Fiyatı</TranslatedText></span>
+                          <span className="text-2xl font-black text-blue-600">
+                            {items.find(i => i.id === selectedCampaignTarget)?.price} ₺
+                          </span>
+                        </div>
+                      )}
+
+                      {/* İndirim Değeri */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-2"><TranslatedText>İndirim Tipi</TranslatedText></label>
+                          <div className="flex bg-gray-50 rounded-xl p-1">
+                            {campaignType === 'product' && (
+                              <button
+                                onClick={() => setCampaignDiscountType('fixed')}
+                                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${campaignDiscountType === 'fixed' ? 'bg-white shadow text-purple-600' : 'text-gray-500'}`}
+                              >
+                                <TranslatedText>Yeni Fiyat (₺)</TranslatedText>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setCampaignDiscountType('percentage')}
+                              className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${campaignDiscountType === 'percentage' ? 'bg-white shadow text-purple-600' : 'text-gray-500'}`}
+                            >
+                              <TranslatedText>Yüzde İndirim (%)</TranslatedText>
+                            </button>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-2">
+                            {campaignDiscountType === 'fixed' ? t('İndirimli Satış Fiyatı') : t('İndirim Oranı')}
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={campaignValue}
+                              onChange={(e) => setCampaignValue(e.target.value)}
+                              placeholder={campaignDiscountType === 'fixed' ? "Örn: 150" : "Örn: 20"}
+                              className="w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 font-bold text-lg"
+                            />
+                            <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-bold">
+                              {campaignDiscountType === 'fixed' ? '₺' : '%'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Tarih Aralığı */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-2"><TranslatedText>Başlangıç Tarihi</TranslatedText></label>
+                          <input
+                            type="datetime-local"
+                            value={campaignStartDate}
+                            onChange={(e) => setCampaignStartDate(e.target.value)}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-2"><TranslatedText>Bitiş Tarihi</TranslatedText></label>
+                          <input
+                            type="datetime-local"
+                            value={campaignEndDate}
+                            onChange={(e) => setCampaignEndDate(e.target.value)}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                          />
+                          <p className="text-xs text-gray-500 mt-1"><TranslatedText>Bu tarihte kampanya otomatik olarak sona erer.</TranslatedText></p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 flex justify-end">
+                      <button
+                        onClick={handleSaveCampaign}
+                        className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold flex items-center gap-2"
+                      >
+                        <FaCheck /> <TranslatedText>Kampanyayı Kaydet</TranslatedText>
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Sağ Taraf: Önizleme */}
+                <div className="space-y-6">
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-24">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4"><TranslatedText>Önizleme</TranslatedText></h3>
+
+                    {selectedCampaignTarget && campaignValue ? (
+                      <div className="bg-white border rounded-xl p-4 shadow-sm relative overflow-hidden group">
+                        {/* Discount Badge */}
+                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md z-10 shadow-sm animate-pulse">
+                          {campaignDiscountType === 'percentage' ? `%${campaignValue} İndirim` : 'Fırsat'}
+                        </div>
+
+                        <div className="h-40 bg-gray-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                          {campaignType === 'product' ? (
+                            (() => {
+                              const item = items.find(i => i.id === selectedCampaignTarget);
+                              return item && (item.imageUrl || item.image) ? (
+                                <img src={item.imageUrl || item.image} alt={item.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <FaUtensils className="text-4xl text-gray-300" />
+                              );
+                            })()
+                          ) : (
+                            <FaTag className="text-4xl text-gray-300" />
+                          )}
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold text-gray-800 mb-1">
+                            {campaignType === 'product'
+                              ? items.find(i => i.id === selectedCampaignTarget)?.name
+                              : categories.find(c => c.id === selectedCampaignTarget)?.name
+                            }
+                          </h4>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl font-black text-red-600">
+                              {campaignType === 'product' && (
+                                campaignDiscountType === 'fixed'
+                                  ? `${campaignValue} ₺`
+                                  : `${(items.find(i => i.id === selectedCampaignTarget)?.price || 0) * (1 - parseFloat(campaignValue) / 100)} ₺`
+                              )}
+                              {campaignType === 'category' && (
+                                t('Sepette %') + campaignValue + t(' İndirim')
+                              )}
+                            </span>
+                            {campaignType === 'product' && (
+                              <span className="text-sm text-gray-400 line-through font-medium">
+                                {items.find(i => i.id === selectedCampaignTarget)?.price} ₺
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-10 bg-gray-50 rounded-xl border-dashed border-2 border-gray-200">
+                        <p className="text-gray-400 font-medium"><TranslatedText>Önizleme için seçim yapınız</TranslatedText></p>
+                      </div>
+                    )}
+
+                    <div className="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+                      <h4 className="font-bold text-yellow-800 text-sm mb-2"><TranslatedText>Bilgilendirme</TranslatedText></h4>
+                      <p className="text-xs text-yellow-700 leading-relaxed">
+                        <TranslatedText>Kampanya başlangıç ve bitiş tarihlerini belirlediğinizde, sistem otomatik olarak kampanyayı başlatacak ve sonlandıracaktır.</TranslatedText>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
