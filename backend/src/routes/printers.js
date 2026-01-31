@@ -55,17 +55,20 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Station ID is required' });
         }
 
-        const currentConfig = restaurant.printerConfig || {};
+        const currentConfig = { ...(restaurant.printerConfig || {}) };
         currentConfig[stationId] = {
             name: config.name || stationId,
-            ip: config.ip,
+            ip: config.ip || '',
             port: config.port || 9100,
             enabled: config.enabled !== undefined ? config.enabled : true,
             type: config.type || 'epson',
             language: config.language || 'tr'
         };
 
-        await restaurant.update({ printerConfig: currentConfig });
+        await Restaurant.update(
+            { printerConfig: currentConfig },
+            { where: { id: restaurant.id } }
+        );
 
         res.json({
             success: true,
@@ -119,11 +122,11 @@ router.put('/:station', async (req, res) => {
         const { station } = req.params;
         const { name, ip, port, enabled, type, language, newStationKey } = req.body;
 
-        const currentConfig = restaurant.printerConfig || {};
+        const currentConfig = { ...(restaurant.printerConfig || {}) };
 
         const updatedData = {
             name: name || currentConfig[station]?.name || station,
-            ip: ip || currentConfig[station]?.ip,
+            ip: ip !== undefined ? ip : currentConfig[station]?.ip,
             port: port || currentConfig[station]?.port || 9100,
             enabled: enabled !== undefined ? enabled : (currentConfig[station]?.enabled !== undefined ? currentConfig[station].enabled : true),
             type: type || currentConfig[station]?.type || 'epson',
