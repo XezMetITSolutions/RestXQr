@@ -116,7 +116,8 @@ function PrinterManagementContent() {
         }
     };
 
-    const BRIDGE_URL = 'http://localhost:3005';
+    const BRIDGE_URL = process.env.NEXT_PUBLIC_BRIDGE_URL || 'http://localhost:3005';
+    const TEST_BRIDGE_URL = BRIDGE_URL;
 
     const handleTestPrint = async (stationId: string) => {
         const station = stations.find(s => s.id === stationId);
@@ -138,7 +139,7 @@ function PrinterManagementContent() {
                 ]
             };
 
-            const success = await printReceiptViaBridge(BRIDGE_URL, station.ip, dummyData);
+            const success = await printReceiptViaBridge(TEST_BRIDGE_URL, station.ip, dummyData);
 
             if (success) {
                 alert('✅ Test yazdırma başarılı! (Görüntü Modu)');
@@ -229,7 +230,7 @@ function PrinterManagementContent() {
 
         try {
             // Local Bridge üzerinden durum kontrolü (Debug sayfasındaki mantık)
-            const BRIDGE_URL = process.env.NEXT_PUBLIC_BRIDGE_URL || 'http://localhost:3001';
+            const BRIDGE_URL = process.env.NEXT_PUBLIC_BRIDGE_URL || 'http://localhost:3005';
             const res = await fetch(`${BRIDGE_URL}/status/${station.ip}`);
             const data = await res.json();
 
