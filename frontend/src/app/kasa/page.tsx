@@ -1701,83 +1701,6 @@ export default function KasaPanel() {
         )
       }
 
-      {/* DEBUG MODAL */}
-      {
-        showDebugModal && (
-          <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-gray-900 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border border-gray-700">
-              <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-900/50">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-blue-500 rounded-2xl">
-                    <FaPrint className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-black text-white">YAZICI DEBUG LOGLARI</h3>
-                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Sipariş: {printingOrderId.substring(0, 8)}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => { setShowDebugModal(false); setDebugLogs([]); }}
-                  className="p-3 hover:bg-gray-800 text-gray-400 hover:text-white rounded-2xl transition-all"
-                >
-                  <FaTimesCircle className="text-2xl" />
-                </button>
-              </div>
-
-              <div className="p-6 h-[400px] overflow-y-auto bg-black/50 custom-scrollbar font-mono text-sm">
-                <div className="space-y-2">
-                  {debugLogs.length === 0 && (
-                    <div className="text-gray-600 italic">Log bekleniyor...</div>
-                  )}
-                  {debugLogs.map((log, idx) => (
-                    <div key={idx} className={`p-3 rounded-xl border ${log.type === 'error' ? 'bg-red-900/20 border-red-900/50 text-red-400' :
-                      log.type === 'success' ? 'bg-green-900/20 border-green-900/50 text-green-400' :
-                        log.type === 'warning' ? 'bg-yellow-900/20 border-yellow-900/50 text-yellow-400' :
-                          'bg-blue-900/10 border-blue-900/30 text-blue-400'
-                      }`}>
-                      <div className="flex justify-between items-start gap-4">
-                        <span className="flex-1">{log.message}</span>
-                        <span className="text-[10px] opacity-40 whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString()}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {isPrinting && (
-                    <div className="flex items-center gap-3 p-3 text-blue-400 animate-pulse">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
-                      <span>Yazıcı işlemi devam ediyor...</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="p-6 bg-gray-900 border-t border-gray-800 flex flex-col gap-3">
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => handleManualPrint(printingOrderId, true)}
-                    disabled={isPrinting}
-                    className="flex-1 py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-2xl font-black transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    <FaPrint /> TEKRAR DENE
-                  </button>
-                  <button
-                    onClick={() => { setShowDebugModal(false); setDebugLogs([]); }}
-                    className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black transition-all"
-                  >
-                    KAPAT
-                  </button>
-                </div>
-                <button
-                  onClick={() => router.push('/kasa/debug-payments')}
-                  className="w-full py-4 bg-red-600/20 text-red-500 rounded-2xl font-bold border border-red-500/30 hover:bg-red-600 hover:text-white transition-all text-sm uppercase tracking-widest"
-                >
-                  ÖDEME SENARYO TESTİ (HİBRİT/PARÇALI)
-                </button>
-              </div>
-            </div>
-          </div>
-        )
-      }
-
       {/* MASA DEĞİŞTİRME MODALI */}
       {showTableModal && tableEditOrder && (
         <div className="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -1850,15 +1773,6 @@ export default function KasaPanel() {
           </div>
         </div>
       )}
-
-      {/* DEBUG BUTTON */}
-      <button
-        onClick={() => setShowDebugModal(true)}
-        className="fixed bottom-4 right-4 z-[999] p-4 bg-gray-900 border-2 border-white/20 text-white rounded-full shadow-2xl hover:bg-black transition-all flex items-center gap-2 group"
-      >
-        <FaPrint />
-        <span className="max-w-0 overflow-hidden group-hover:max-w-[100px] transition-all whitespace-nowrap text-xs font-bold">DEBUG</span>
-      </button>
 
     </div>
   );
