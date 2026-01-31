@@ -5,23 +5,29 @@ const { Op } = Sequelize;
 const { Order, OrderItem, Restaurant, MenuItem, MenuCategory, QRToken } = require('../models');
 const waiterCalls = require('../lib/waiterStore');
 
-const resolveDrinkStationForTable = (restaurant, tableNumber, menuItemCategoryId, itemKitchenStation = '') => {
+const resolveDrinkStationForTable = (restaurant, tableNumber, menuItemCategoryId, itemKitchenStation = '', categoryName = '', productName = '') => {
   try {
     // KROREN SPECIAL LOGIC
     if (restaurant?.username === 'kroren' || restaurant?.name === 'Kroren' || restaurant?.name === 'Kroren Restaurant') {
-      // Sadece içecek/bar istasyonu olan ürünler için bu kuralı uygula
-      // Veya itemKitchenStation 'icecek' içeriyorsa
-      if (itemKitchenStation && (
-        itemKitchenStation.toLowerCase().includes('icecek') ||
-        itemKitchenStation.toLowerCase().includes('bar') ||
-        itemKitchenStation.toLowerCase().includes('drink')
-      )) {
+      const lowerCat = categoryName ? categoryName.toLowerCase() : '';
+      const lowerProd = productName ? productName.toLowerCase() : '';
+      const lowerStation = itemKitchenStation ? itemKitchenStation.toLowerCase() : '';
+
+      // 1. İçecekler (Category Name veya Station Name kontrolü)
+      if (lowerCat.includes('içecek') || lowerCat.includes('icecek') || lowerStation.includes('icecek') || lowerStation.includes('bar') || lowerStation.includes('drink')) {
         const t = Number(tableNumber);
         if (Number.isFinite(t)) {
           if (t >= 1 && t <= 18) return 'icecek1';
           if (t >= 19 && t <= 42) return 'icecek2';
+          return 'icecek1'; // Default fallback
         }
       }
+
+      // 2. Yemekler - Kategori veya Ürün İsmi Bazlı Yönlendirme
+      if (lowerCat.includes('ramen') || lowerProd.includes('ramen')) return 'ramen';
+      if (lowerCat.includes('kavurma') || lowerProd.includes('kavurma')) return 'kavurma';
+      if (lowerCat.includes('mantı') || lowerCat.includes('manti') || lowerProd.includes('mantı') || lowerProd.includes('manti')) return 'manti';
+      if (lowerCat.includes('kebap') || lowerProd.includes('kebap') || lowerCat.includes('ızgara') || lowerProd.includes('ızgara') || lowerCat.includes('izgara') || lowerProd.includes('izgara')) return 'kebap';
     }
 
     const cfg = restaurant?.settings?.drinkStationRouting;
@@ -192,7 +198,7 @@ router.get('/', async (req, res) => {
             {
               model: MenuCategory,
               as: 'category',
-              attributes: ['kitchenStation']
+              attributes: ['kitchenStation', 'name']
             }
           ]
         }
@@ -207,7 +213,9 @@ router.get('/', async (req, res) => {
         restaurantForRouting,
         orderForItem?.tableNumber,
         it.menuItem?.categoryId,
-        it.menuItem?.kitchenStation || it.menuItem?.category?.kitchenStation
+        it.menuItem?.kitchenStation || it.menuItem?.category?.kitchenStation,
+        it.menuItem?.category?.name,
+        it.menuItem?.name
       );
       const itemStation = drinkStation || it.menuItem?.kitchenStation || 'default';
 
@@ -1044,7 +1052,8 @@ router.post('/:id/print', async (req, res) => {
       include: [{
         model: MenuItem,
         as: 'menuItem',
-        attributes: ['name', 'kitchenStation', 'categoryId']
+        attributes: ['name', 'kitchenStation', 'categoryId'],
+        include: [{ model: MenuCategory, as: 'category', attributes: ['name'] }]
       }]
     });
 
@@ -1057,7 +1066,9 @@ router.post('/:id/print', async (req, res) => {
         restaurant,
         order.tableNumber,
         item.menuItem?.categoryId,
-        item.menuItem?.kitchenStation
+        item.menuItem?.kitchenStation,
+        item.menuItem?.category?.name,
+        item.menuItem?.name
       );
       const station = drinkStation || item.menuItem?.kitchenStation || 'default';
       if (!itemsByStation[station]) {
