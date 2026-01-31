@@ -130,7 +130,9 @@ router.get('/', async (req, res) => {
 
     // Eğer restaurantId string ise (username/id ayrımı), gerçek UUID'yi bulmaya çalış
     let actualRestaurantId = restaurantId;
-    if (typeof restaurantId === 'string' && !restaurantId.includes('-')) {
+    const isUuid = typeof restaurantId === 'string' && restaurantId.length === 36 && restaurantId.includes('-');
+
+    if (typeof restaurantId === 'string' && !isUuid) {
       console.log('🔍 Resolving restaurantId from username:', restaurantId);
       const restaurant = await Restaurant.findOne({ where: { username: restaurantId } });
       if (restaurant) {
@@ -176,6 +178,7 @@ router.get('/', async (req, res) => {
       resId: restaurantId,
       finalId: actualRestaurantId,
       statusFilter: status,
+      isUuid,
       where: JSON.stringify(where)
     });
 
@@ -298,7 +301,9 @@ router.post('/', async (req, res) => {
 
     // Eğer restaurantId string ise (username), gerçek ID'yi bul
     let actualRestaurantId = restaurantId;
-    if (typeof restaurantId === 'string' && !restaurantId.includes('-')) {
+    const isUuid = typeof restaurantId === 'string' && restaurantId.length === 36 && restaurantId.includes('-');
+
+    if (typeof restaurantId === 'string' && !isUuid) {
       console.log('🔍 Looking up restaurant by username:', restaurantId);
       const restaurant = await Restaurant.findOne({ where: { username: restaurantId } });
       if (!restaurant) {
@@ -308,8 +313,8 @@ router.post('/', async (req, res) => {
       console.log('✅ Found restaurant:', { username: restaurantId, id: actualRestaurantId });
     }
 
-    // Safety check for UUID format
-    if (typeof actualRestaurantId !== 'string' || !actualRestaurantId.includes('-')) {
+    // Safety check for UUID format - be more lenient if it looks like a username we just resolved
+    if (typeof actualRestaurantId !== 'string' || actualRestaurantId.length < 5) {
       return res.status(400).json({
         success: false,
         message: 'Invalid restaurantId format. Must be a valid UUID or username.'
@@ -409,7 +414,8 @@ router.post('/', async (req, res) => {
                 categoryId: defCat.id,
                 name: it.name,
                 price: unitPrice,
-                description: it.notes || null
+                description: it.notes || null,
+                kitchenStation: it.kitchenStation || null
               });
               resolvedMenuItemId = created.id;
             }
