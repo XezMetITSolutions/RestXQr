@@ -14,6 +14,11 @@ interface DashboardStats {
   totalRestaurants: number;
   activeRestaurants: number;
   totalTables: number;
+  totalMenuItems: number;
+  totalOrders: number;
+  totalRevenue: number;
+  totalStaff: number;
+  averageOrderValue: number;
   recentRestaurants: Array<{
     id: string;
     name: string;
@@ -29,6 +34,11 @@ export default function AdminDashboard() {
     totalRestaurants: 0,
     activeRestaurants: 0,
     totalTables: 0,
+    totalMenuItems: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+    totalStaff: 0,
+    averageOrderValue: 0,
     recentRestaurants: []
   });
   const [loading, setLoading] = useState(true);
@@ -78,6 +88,11 @@ export default function AdminDashboard() {
             totalRestaurants: data.totalRestaurants || 0,
             activeRestaurants: data.activeRestaurants || 0,
             totalTables: data.totalTables || 0,
+            totalMenuItems: data.totalMenuItems || 0,
+            totalOrders: data.totalOrders || 0,
+            totalRevenue: data.totalRevenue || 0,
+            totalStaff: data.totalStaff || 0,
+            averageOrderValue: data.averageOrderValue || 0,
             recentRestaurants: data.recentRestaurants || []
           });
         }
@@ -99,39 +114,107 @@ export default function AdminDashboard() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* Toplam Restoran */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200 shadow-sm transition-all hover:shadow-md">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-blue-600 font-medium">Toplam Restoran</p>
-                  <p className="text-3xl font-bold text-blue-900 mt-2">{stats.totalRestaurants}</p>
+                  <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">Toplam Restoran</p>
+                  <p className="text-3xl font-black text-blue-900 mt-2">{stats.totalRestaurants}</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
                   <FaStore className="text-white text-xl" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+            {/* Aktif Restoranlar */}
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6 border border-emerald-200 shadow-sm transition-all hover:shadow-md">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-green-600 font-medium">Aktif Restoranlar</p>
-                  <p className="text-3xl font-bold text-green-900 mt-2">{stats.activeRestaurants}</p>
+                  <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider">Aktif Restoranlar</p>
+                  <p className="text-3xl font-black text-emerald-900 mt-2">{stats.activeRestaurants}</p>
                 </div>
-                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200">
                   <FaCheckCircle className="text-white text-xl" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+            {/* Toplam Masa */}
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200 shadow-sm transition-all hover:shadow-md">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-purple-600 font-medium">Toplam Masa</p>
-                  <p className="text-3xl font-bold text-purple-900 mt-2">{stats.totalTables}</p>
+                  <p className="text-xs text-purple-600 font-bold uppercase tracking-wider">Toplam Masa</p>
+                  <p className="text-3xl font-black text-purple-900 mt-2">{stats.totalTables}</p>
                 </div>
-                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-200">
                   <FaDatabase className="text-white text-xl" />
+                </div>
+              </div>
+            </div>
+
+            {/* Toplam Ciro */}
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-orange-600 font-bold uppercase tracking-wider">Toplam Net Ciro</p>
+                  <p className="text-3xl font-black text-orange-900 mt-2">{new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(stats.totalRevenue)}</p>
+                </div>
+                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-200">
+                  <FaChartLine className="text-white text-xl" />
+                </div>
+              </div>
+            </div>
+
+            {/* Toplam Sipariş */}
+            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-6 border border-indigo-200 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider">Toplam Sipariş</p>
+                  <p className="text-3xl font-black text-indigo-900 mt-2">{stats.totalOrders}</p>
+                </div>
+                <div className="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                  <span className="text-white text-xl">🛒</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Toplam Ürün */}
+            <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-2xl p-6 border border-pink-200 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-pink-600 font-bold uppercase tracking-wider">Toplam Menü Ürünü</p>
+                  <p className="text-3xl font-black text-pink-900 mt-2">{stats.totalMenuItems}</p>
+                </div>
+                <div className="w-12 h-12 bg-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-pink-200">
+                  <span className="text-white text-xl">🍽️</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Toplam Personel */}
+            <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-2xl p-6 border border-cyan-200 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-cyan-600 font-bold uppercase tracking-wider">Toplam Personel</p>
+                  <p className="text-3xl font-black text-cyan-900 mt-2">{stats.totalStaff}</p>
+                </div>
+                <div className="w-12 h-12 bg-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-200">
+                  <span className="text-white text-xl">👥</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Ortalama Sepet */}
+            <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-6 border border-amber-200 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">Ortalama Sepet</p>
+                  <p className="text-3xl font-black text-amber-900 mt-2">{new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(stats.averageOrderValue)}</p>
+                </div>
+                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-200">
+                  <span className="text-white text-xl">🎯</span>
                 </div>
               </div>
             </div>
@@ -161,8 +244,8 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <span className={`px-4 py-2 rounded-full text-xs font-semibold ${restaurant.status === 'active'
-                        ? 'bg-green-100 text-green-800 border border-green-200'
-                        : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                      ? 'bg-green-100 text-green-800 border border-green-200'
+                      : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
                       }`}>
                       {restaurant.status === 'active' ? 'Aktif' : 'Beklemede'}
                     </span>
