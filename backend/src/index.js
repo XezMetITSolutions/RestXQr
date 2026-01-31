@@ -203,9 +203,9 @@ app.get('/api/debug/update-kroren-printers', async (req, res) => {
     if (levent) {
       const leventConfig = {
         'kasa': { name: 'KASA', ip: '192.168.1.10', port: 9100, enabled: true, type: 'epson', language: 'tr' },
-        'ramen': { name: 'RAMEN', ip: '192.168.1.11', port: 9100, enabled: true, type: 'epson', language: 'zh' },
-        'kavurma': { name: 'KAVURMA', ip: '192.168.1.12', port: 9100, enabled: true, type: 'epson', language: 'tr' },
-        'kebap': { name: 'KEBAP & SUSHI', ip: '192.168.1.13', port: 9100, enabled: true, type: 'epson', language: 'tr' }
+        'ramen': { name: 'RAMEN', ip: '192.168.1.151', port: 9100, enabled: true, type: 'epson', language: 'zh' },
+        'kavurma': { name: 'KAVURMA', ip: '192.168.1.150', port: 9100, enabled: true, type: 'epson', language: 'tr' },
+        'kebap': { name: 'KEBAP & SUSHI', ip: '192.168.1.149', port: 9100, enabled: true, type: 'epson', language: 'tr' }
       };
 
       const leventStations = [
