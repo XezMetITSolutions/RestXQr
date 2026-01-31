@@ -187,12 +187,12 @@ app.get('/api/debug/update-kroren-printers', async (req, res) => {
       const leventConfig = {
         ramen: { name: 'RAMEN', ip: '192.168.1.151', port: 9100, enabled: true, type: 'epson' },
         kebap: { name: 'KEBAP', ip: '192.168.1.149', port: 9100, enabled: true, type: 'epson' },
-        kavurma: { name: 'KAVURMA', ip: '192.168.10.150', port: 9100, enabled: true, type: 'epson' }
+        '17692021455190.20485462886666846': { name: 'KAVURMA', ip: '192.168.1.150', port: 9100, enabled: true, type: 'epson' }
       };
       const leventStations = [
         { id: 'ramen', name: 'RAMEN', color: '#FF0000', order: 1 },
         { id: 'kebap', name: 'KEBAP', color: '#FF0000', order: 2 },
-        { id: 'kavurma', name: 'KAVURMA', color: '#FF0000', order: 3 }
+        { id: '17692021455190.20485462886666846', name: 'KAVURMA', color: '#FF0000', order: 3 }
       ];
       await levent.update({ printerConfig: leventConfig, kitchenStations: leventStations });
       results.push('✅ kroren-levent güncellendi');

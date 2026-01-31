@@ -28,6 +28,7 @@ function PrinterManagementContent() {
     const [loading, setLoading] = useState(true);
     const [testingStation, setTestingStation] = useState<string | null>(null);
     const [editingStation, setEditingStation] = useState<Station | null>(null);
+    const [originalEditingId, setOriginalEditingId] = useState<string | null>(null);
     const [availableStations, setAvailableStations] = useState<string[]>([]);
 
     // Menu sayfasında tanımlı detaylı istasyonlar
@@ -90,7 +91,10 @@ function PrinterManagementContent() {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
             const apiUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
 
-            const response = await fetch(`${apiUrl}/printers/${station.id}`, {
+            // Orijinal ID'yi kullan, çünkü backend'de bu key ile aranıyor
+            const targetId = originalEditingId || station.id;
+
+            const response = await fetch(`${apiUrl}/printers/${targetId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -100,7 +104,7 @@ function PrinterManagementContent() {
                     enabled: station.enabled,
                     type: station.type,
                     language: station.language || 'tr',
-                    newStationKey: station.id // Frontend'de ID'yi değiştirmiş olabiliriz, backend'de kontrol edilecek
+                    newStationKey: station.id // Yeni ID'yi (farklıysa) newStationKey olarak gönder
                 })
             });
 
@@ -108,6 +112,7 @@ function PrinterManagementContent() {
             if (data.success) {
                 await loadStations();
                 setEditingStation(null);
+                setOriginalEditingId(null);
                 alert('✅ Ayarlar kaydedildi');
             }
         } catch (error) {
@@ -211,6 +216,7 @@ function PrinterManagementContent() {
             const data = await response.json();
             if (data.success) {
                 setEditingStation(null);
+                setOriginalEditingId(null);
                 await loadStations();
             } else {
                 alert('Silme işlemi başarısız: ' + (data.error || 'Bilinmeyen hata'));
@@ -329,7 +335,7 @@ function PrinterManagementContent() {
                                         </div>
 
                                         {/* Configuration Form */}
-                                        {editingStation?.id === station.id ? (
+                                        {(editingStation && (editingStation.id === station.id || originalEditingId === station.id)) ? (
                                             <div className="space-y-3">
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -450,13 +456,16 @@ function PrinterManagementContent() {
                                                         💾 Kaydet
                                                     </button>
                                                     <button
-                                                        onClick={() => setEditingStation(null)}
+                                                        onClick={() => {
+                                                            setEditingStation(null);
+                                                            setOriginalEditingId(null);
+                                                        }}
                                                         className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm font-semibold"
                                                     >
                                                         ✖️ İptal
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteStation(editingStation.id)}
+                                                        onClick={() => handleDeleteStation(originalEditingId || editingStation.id)}
                                                         className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-semibold"
                                                         title="Bu yazıcıyı sil"
                                                     >
@@ -497,7 +506,10 @@ function PrinterManagementContent() {
 
                                                 <div className="space-y-2">
                                                     <button
-                                                        onClick={() => setEditingStation(station)}
+                                                        onClick={() => {
+                                                            setEditingStation(station);
+                                                            setOriginalEditingId(station.id);
+                                                        }}
                                                         className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold flex items-center justify-center gap-2"
                                                     >
                                                         <FaCog />
