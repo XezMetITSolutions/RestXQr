@@ -814,10 +814,10 @@ export default function KasaPanel() {
           console.log('✅ Yazıcıya yerel köprü üzerinden başarıyla gönderildi!');
         }
       } else {
-        if (!showDebug) alert('❌ Bazı yazıcılara gönderilemedi. Yerel köprü açık mı?');
+        console.error('❌ Bazı yazıcılara gönderilemedi. Yerel köprü açık mı?');
       }
     } else if (!data.success) {
-      if (!showDebug) alert('Yazdırma hatası: ' + (data.message || 'Bilinmeyen hata'));
+      console.error('Yazdırma hatası: ' + (data.message || 'Bilinmeyen hata'));
     }
   };
 
