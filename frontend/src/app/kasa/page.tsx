@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMoneyBillWave, FaSearch, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft, FaBox, FaToggleOn, FaToggleOff } from 'react-icons/fa';
+import { FaMoneyBillWave, FaSearch, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft, FaBox, FaToggleOn, FaToggleOff, FaClock } from 'react-icons/fa';
 import { printReceiptViaBridge } from '@/lib/printerHelpers';
 import apiService from '@/services/api';
 import { playNotificationSound } from '@/utils/audio';
@@ -1061,11 +1061,13 @@ export default function KasaPanel() {
                   // Calculate Duration
                   let durationStr = '';
                   if (hasOrder) {
-                    let startTimeStr = (tableOrder as any).createdAt;
+                    let startTimeStr = (tableOrder as any).createdAt || (tableOrder as any).created_at;
                     if (tableOrder.originalOrders && tableOrder.originalOrders.length > 0) {
                       const earliest = tableOrder.originalOrders.reduce((min: any, o: any) => {
-                        return new Date(o.createdAt).getTime() < new Date(min).getTime() ? o.createdAt : min;
-                      }, tableOrder.originalOrders[0].createdAt);
+                        const oTime = o.createdAt || o.created_at;
+                        const minTime = min;
+                        return new Date(oTime).getTime() < new Date(minTime).getTime() ? oTime : minTime;
+                      }, (tableOrder.originalOrders[0] as any).createdAt || (tableOrder.originalOrders[0] as any).created_at);
                       startTimeStr = earliest;
                     }
                     if (startTimeStr) {
