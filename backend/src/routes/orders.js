@@ -173,6 +173,15 @@ router.get('/', async (req, res) => {
       where.approved = false;
     }
 
+    // Kasa ve Debug panelleri için performans ve güncel veri odağı
+    if (req.query.from === 'cashier' || req.query.from === 'debug') {
+      // Günlük ciro ve aktif siparişler için son 24 saati getir (performans için)
+      if (!status || status === 'all') {
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        where.created_at = { [Op.gte]: twentyFourHoursAgo };
+      }
+    }
+
     console.log(`🎯 GET /api/orders construction:`, {
       resId: restaurantId,
       finalId: actualRestaurantId,

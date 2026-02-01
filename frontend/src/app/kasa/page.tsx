@@ -29,6 +29,7 @@ interface Order {
   notes?: string;
   orderType: string;
   created_at: string;
+  createdAt?: string;
   updated_at: string;
   items: OrderItem[];
   approved?: boolean;
@@ -240,7 +241,7 @@ export default function KasaPanel() {
             price: Number(item?.price) || 0,
             quantity: Number(item?.quantity) || 0
           }))
-        })).filter((order: any) => order.status !== 'completed' && order.status !== 'cancelled');
+        }));
 
         const groupOrdersByTable = (orders: Order[]) => {
           const grouped = new Map<number | 'null', Order[]>();
@@ -1027,7 +1028,17 @@ export default function KasaPanel() {
           <div className="flex items-center gap-8">
             <div className="text-center group">
               <div className="text-2xl font-black text-green-600 group-hover:scale-110 transition-transform">
-                {allOrders.filter(o => o.status === 'completed').reduce((s, o) => s + (Number(o.totalAmount) || 0), 0).toFixed(2)}₺
+                {allOrders
+                  .filter(o => {
+                    if (o.status === 'cancelled') return false;
+                    const date = new Date(o.created_at || o.createdAt || '');
+                    const today = new Date();
+                    return date.getDate() === today.getDate() &&
+                      date.getMonth() === today.getMonth() &&
+                      date.getFullYear() === today.getFullYear();
+                  })
+                  .reduce((s, o) => s + (Number(o.totalAmount) || 0), 0)
+                  .toFixed(2)}₺
               </div>
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">GÜNLÜK CİRO</div>
             </div>
