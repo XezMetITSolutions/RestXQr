@@ -767,46 +767,45 @@ export default function KasaPanel() {
       const isGroupedOrder = selectedOrder.id.includes('-grouped') || selectedOrder.originalOrders;
 
       if (isGroupedOrder && selectedOrder.originalOrders && selectedOrder.originalOrders.length > 0) {
-        // Handle grouped orders - update each original order
-        addLog(`Updating ${selectedOrder.originalOrders.length} grouped orders...`, 'network');
+        // Handle grouped orders - use the FIRST original order's ID for all items
+        // This is simpler and more reliable than trying to distribute items
+        const primaryOrder = selectedOrder.originalOrders[0];
+        addLog(`Updating grouped order using primary order: ${primaryOrder.id}`, 'network');
 
-        for (const originalOrder of selectedOrder.originalOrders) {
-          // Get items for this original order
-          const orderItems = selectedOrder.items.filter((item: any) =>
-            item.originalOrderId === originalOrder.id || !item.originalOrderId
-          );
+        const processedItems = selectedOrder.items.map((item: OrderItem) => ({
+          ...item,
+          menuItemId: (item as any).menuItemId || item.id,
+          price: Number(item.price || 0),
+          totalPrice: Number(item.price || 0) * Number(item.quantity || 1)
+        }));
 
-          if (orderItems.length > 0) {
-            const processedItems = orderItems.map((item: OrderItem) => ({
-              ...item,
-              price: Number(item.price || 0),
-              totalPrice: Number(item.price || 0) * Number(item.quantity || 1)
-            }));
+        const calculatedTotal = processedItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
 
-            const calculatedTotal = processedItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+        console.log('🔄 Updating grouped order with items:', processedItems);
 
-            const response = await fetch(`${API_URL}/orders/${originalOrder.id}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                items: processedItems,
-                totalAmount: calculatedTotal.toFixed(2),
-                cashierNote: selectedOrder.cashierNote,
-                discountAmount: selectedOrder.discountAmount,
-                discountReason: selectedOrder.discountReason
-              })
-            });
+        const response = await fetch(`${API_URL}/orders/${primaryOrder.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: processedItems,
+            totalAmount: calculatedTotal.toFixed(2),
+            cashierNote: selectedOrder.cashierNote,
+            discountAmount: selectedOrder.discountAmount,
+            discountReason: selectedOrder.discountReason
+          })
+        });
 
-            const data = await response.json();
-            if (!data.success) {
-              addLog(`Failed to update order ${originalOrder.id}: ${data.message}`, 'error');
-            }
-          }
+        const data = await response.json();
+        console.log('📝 Grouped order update response:', data);
+
+        if (data.success) {
+          addLog('Grouped order updated successfully', 'success');
+          alert('Sipariş başarıyla güncellendi.');
+          fetchOrders();
+        } else {
+          addLog(`Failed to update grouped order: ${data.message}`, 'error');
+          alert('Sipariş kaydedilemedi: ' + data.message);
         }
-
-        addLog('All grouped orders updated', 'success');
-        alert('Gruplu siparişler başarıyla güncellendi.');
-        fetchOrders();
         return;
       }
 
