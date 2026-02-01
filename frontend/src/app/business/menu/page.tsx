@@ -2702,6 +2702,24 @@ export default function MenuManagement() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                  <div className="bg-gray-100 p-2 rounded-lg">
+                    <FaFire className="text-gray-500" />
+                  </div>
+                  <select
+                    value={selectedStation}
+                    onChange={(e) => setSelectedStation(e.target.value)}
+                    className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none transition-all cursor-pointer"
+                  >
+                    <option value="all">{t('Tüm İstasyonlar')}</option>
+                    {stations.map(station => (
+                      <option key={station.id} value={station.id}>
+                        {station.emoji} {station.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${mappingFilter === 'unmapped' ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-500'}`}>
                     <FaExclamationTriangle />
                   </div>
