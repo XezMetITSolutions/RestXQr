@@ -804,15 +804,30 @@ router.put('/:id', async (req, res) => {
         // Final safety check
         if (isNaN(totalPrice)) totalPrice = 0;
 
-        await OrderItem.create({
-          orderId: id,
-          menuItemId: mId,
-          quantity: qty,
-          unitPrice: unitPrice,
-          totalPrice: totalPrice,
-          notes: item.notes || '',
-          variations: item.variations || []
-        });
+        try {
+          console.log(`🛠️ Creating OrderItem for Order ${id}:`, {
+            menuItemId: mId,
+            qty,
+            unitPrice,
+            totalPrice
+          });
+
+          await OrderItem.create({
+            orderId: id,
+            menuItemId: mId,
+            quantity: qty,
+            unitPrice: unitPrice,
+            totalPrice: totalPrice,
+            notes: item.notes || '',
+            variations: item.variations || []
+          });
+        } catch (err) {
+          console.error('❌ OrderItem create failed:', err.message, {
+            orderId: id,
+            menuItemId: mId
+          });
+          throw err;
+        }
       }
     }
 
