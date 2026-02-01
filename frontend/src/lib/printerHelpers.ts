@@ -137,6 +137,42 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         y += 25;
     }
 
+    const wrapText = (text: string, x: number, startY: number, maxWidth: number, lineHeight: number): number => {
+        const chars = Array.from(text);
+        let line = '';
+        let currentY = startY;
+
+        for (let i = 0; i < chars.length; i++) {
+            const char = chars[i];
+            const nextLine = line + char;
+            const width = ctx.measureText(nextLine).width;
+
+            if (width > maxWidth) {
+                // If it's a space at the start of a new line, skip it
+                if (char === ' ' && line === '') continue;
+
+                // Try to find the last space in 'line' to wrap at word boundary
+                const lastSpaceIndex = line.lastIndexOf(' ');
+                // Only wrap at space if it's not the only way (avoid infinite loop if word > maxWidth)
+                if (lastSpaceIndex > 0) {
+                    const wrapLine = line.substring(0, lastSpaceIndex);
+                    ctx.fillText(wrapLine.trim(), x, currentY);
+                    line = line.substring(lastSpaceIndex + 1) + char;
+                    currentY += lineHeight;
+                } else {
+                    // No suitable space found, wrap at character
+                    ctx.fillText(line.trim(), x, currentY);
+                    line = char;
+                    currentY += lineHeight;
+                }
+            } else {
+                line = nextLine;
+            }
+        }
+        ctx.fillText(line.trim(), x, currentY);
+        return currentY + lineHeight;
+    };
+
     // 5. Items
     ctx.textAlign = 'left';
     data.items.forEach((item) => {
@@ -144,22 +180,28 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         const qtyText = `${item.quantity} x `;
         const nameText = item.name;
 
-        ctx.fillText(qtyText + nameText, 15, y);
+        // Draw QTY
+        ctx.fillText(qtyText, 15, y);
+        const qtyWidth = ctx.measureText(qtyText).width;
+
+        // Wrap Item Name
+        const nameMaxWidth = data.type === 'BILL' && item.price !== undefined ? width - 15 - 120 - (15 + qtyWidth) : width - 15 - (15 + qtyWidth);
+        const nextY = wrapText(nameText, 15 + qtyWidth, y, nameMaxWidth, 28);
 
         if (data.type === 'BILL' && item.price !== undefined) {
             ctx.textAlign = 'right';
+            ctx.font = 'bold 22px sans-serif';
             ctx.fillText(`${(item.price * item.quantity).toFixed(2)} TL`, width - 15, y);
             ctx.textAlign = 'left';
         }
 
-        y += 28;
+        y = nextY;
 
         // Chinese Translation Support
         const chineseName = item.translations?.zh?.name;
         if (chineseName && chineseName !== nameText) {
             ctx.font = '18px sans-serif'; // Slightly smaller for Chinese
-            ctx.fillText(`   ${chineseName}`, 15, y);
-            y += 24;
+            y = wrapText(`   ${chineseName}`, 15, y, width - 30, 24);
         }
 
         // Variation Rendering (New)
@@ -170,8 +212,7 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
             ctx.font = '20px sans-serif';
             ctx.fillStyle = '#333'; // Slightly gray/lighter bold for variation
             const varText = `   * ${varList.map(v => typeof v === 'string' ? v : (v.name || v.value)).join(', ')} *`;
-            ctx.fillText(varText, 15, y);
-            y += 26;
+            y = wrapText(varText, 15, y, width - 30, 26);
             ctx.fillStyle = 'black'; // Reset
         }
 
@@ -180,17 +221,18 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
             // "Not kalın harflerle olsun altı çizgili olsun"
             ctx.font = 'bold 20px sans-serif';
             const noteText = `   NOT: ${itemNote}`;
-            ctx.fillText(noteText, 15, y);
+
+            // Draw text and get next y
+            const noteYBefore = y;
+            y = wrapText(noteText, 15, y, width - 30, 26);
 
             // Draw underline for the note
-            const textWidth = ctx.measureText(noteText).width;
+            const textWidth = Math.min(ctx.measureText(noteText).width, width - 30);
             ctx.beginPath();
-            ctx.moveTo(15, y + 22);
-            ctx.lineTo(15 + textWidth, y + 22);
+            ctx.moveTo(15, y - 4); // Position underline just below the last line of the note
+            ctx.lineTo(15 + textWidth, y - 4);
             ctx.lineWidth = 2;
             ctx.stroke();
-
-            y += 26;
         }
         y += 15;
     });

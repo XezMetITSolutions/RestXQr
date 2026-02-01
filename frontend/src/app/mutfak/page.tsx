@@ -770,11 +770,11 @@ export default function MutfakPanel() {
                             <div className="space-y-1 md:space-y-2">
                               {order.items.map((item, index) => (
                                 <div key={index} className="text-gray-600">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <span>
+                                  <div className="flex items-start gap-2 flex-wrap min-w-0">
+                                    <span className="break-words min-w-0 flex-1">
                                       {item.quantity}x {item.name}
                                       {item.variations && item.variations.length > 0 && (
-                                        <span className="ml-1 text-blue-600 font-bold">
+                                        <span className="ml-1 text-blue-600 font-bold break-words">
                                           ({item.variations.map((v: any) => typeof v === 'string' ? v : (v.name || v.value)).join(', ')})
                                         </span>
                                       )}
