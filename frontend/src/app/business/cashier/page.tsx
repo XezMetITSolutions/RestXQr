@@ -686,19 +686,46 @@ export default function CashierDashboard() {
     sendKitchenChangeNotification(order.tableNumber, orderId, 'Kasa siparişi düzenledi');
   };
 
-  const updateOrderItems = (orderId: string, newItems: typeof currentOrderItems) => {
-    const newTotal = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const updateOrderItems = async (orderId: string, newItems: typeof currentOrderItems) => {
+    try {
+      const newTotal = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    // Store'u güncelle
-    console.log('Sipariş güncellendi:', orderId, newItems, newTotal);
-    setShowEditModal(false);
-    setEditingOrder(null);
-    setCurrentOrderItems([]);
+      // Backend'e ürünleri ve totali gönder
+      const itemsForApi = newItems.map(item => ({
+        menuItemId: item.id,
+        id: item.id,
+        name: item.name.tr || item.name,
+        quantity: item.quantity,
+        price: item.price,
+        unitPrice: item.price,
+        notes: ''
+      }));
 
-    // Mutfak için değişiklik bildirimi
-    const order = demoOrders.find(o => o.id === orderId);
-    if (order) {
-      sendKitchenChangeNotification(order.tableNumber, orderId, 'Siparişte değişiklik yapıldı');
+      console.log('🔄 Sipariş güncelleniyor:', { orderId, items: itemsForApi, totalAmount: newTotal });
+
+      if (authenticatedRestaurant?.id || authenticatedStaff?.restaurantId) {
+        const response = await apiService.updateOrder(orderId, {
+          items: itemsForApi,
+          totalAmount: newTotal
+        });
+
+        console.log('✅ Sipariş başarıyla güncellendi:', response);
+
+        // Mutfak için değişiklik bildirimi
+        const order = demoOrders.find(o => o.id === orderId);
+        if (order) {
+          sendKitchenChangeNotification(order.tableNumber, orderId, 'Siparişte değişiklik yapıldı');
+        }
+      }
+
+      setShowEditModal(false);
+      setEditingOrder(null);
+      setCurrentOrderItems([]);
+      setMenuSearchTerm('');
+      setSelectedCategory('all');
+    } catch (error) {
+      console.error('❌ Sipariş güncellenirken hata:', error);
+      alert(t('Sipariş güncellenirken hata oluştu. Lütfen tekrar deneyin.'));
     }
   };
 

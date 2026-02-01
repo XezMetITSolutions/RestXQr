@@ -201,6 +201,13 @@ class ApiService {
     });
   }
 
+  async updateOrder(orderId: string, data: { items?: any[]; totalAmount?: number; status?: string; tableNumber?: number }) {
+    return this.request<any>(`/orders/${orderId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
   // Authentication endpoints
   async login(credentials: { username: string; password: string }) {
     return this.request<any>('/auth/login', {
