@@ -483,7 +483,64 @@ router.put('/:restaurantId/menu/items/:itemId', async (req, res) => {
       }
     }
 
-    await item.update(updateData);
+    // Verify restaurant ID matches (security check)
+    // if (item.category.restaurantId !== restaurantId) ... (already checked via include)
+
+    // Sanitize and prepare update data
+    const fieldsToUpdate = {};
+    const allowedFields = [
+      'name', 'description', 'price', 'imageUrl', 'isAvailable', 'isPopular',
+      'preparationTime', 'calories', 'ingredients', 'portion', 'portionSize',
+      'displayOrder', 'subcategory', 'kitchenStation', 'videoUrl', 'videoThumbnail',
+      'videoDuration', 'type', 'discountPercentage', 'discountedPrice',
+      'discountStartDate', 'discountEndDate'
+    ];
+
+    // Copy allowed simple fields
+    allowedFields.forEach(field => {
+      if (updateData[field] !== undefined) {
+        fieldsToUpdate[field] = updateData[field];
+      }
+    });
+
+    // Handle JSON fields safely
+    if (updateData.variations) {
+      fieldsToUpdate.variations = typeof updateData.variations === 'string'
+        ? JSON.parse(updateData.variations)
+        : updateData.variations;
+    }
+
+    if (updateData.options) {
+      fieldsToUpdate.options = typeof updateData.options === 'string'
+        ? JSON.parse(updateData.options)
+        : updateData.options;
+    }
+
+    if (updateData.allergens) {
+      fieldsToUpdate.allergens = typeof updateData.allergens === 'string'
+        ? JSON.parse(updateData.allergens)
+        : updateData.allergens;
+    }
+
+    if (updateData.bundleItems) {
+      fieldsToUpdate.bundleItems = typeof updateData.bundleItems === 'string'
+        ? JSON.parse(updateData.bundleItems)
+        : updateData.bundleItems;
+    }
+
+    // Handle specific logic for price
+    if (updateData.price) {
+      fieldsToUpdate.price = parseFloat(updateData.price);
+    }
+
+    // Handle category change
+    if (updateData.categoryId) {
+      fieldsToUpdate.categoryId = updateData.categoryId;
+    }
+
+    console.log(`📝 Updating item ${itemId} with sanitized data:`, JSON.stringify(fieldsToUpdate, null, 2));
+
+    await item.update(fieldsToUpdate);
 
     res.json({
       success: true,
