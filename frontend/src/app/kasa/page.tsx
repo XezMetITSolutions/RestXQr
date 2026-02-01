@@ -751,7 +751,8 @@ export default function KasaPanel() {
         name: item.name,
         price: Number(item.price),
         quantity: delta,
-        notes: ''
+        notes: '',
+        variations: item.selectedVariation ? [item.selectedVariation] : []
       });
     }
 
@@ -2133,6 +2134,18 @@ export default function KasaPanel() {
                 <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
                   <div className="flex flex-col gap-2">
                     {menuItems
+                      .flatMap((item: any) => {
+                        if (item.variations && Array.isArray(item.variations) && item.variations.length > 0) {
+                          return item.variations.map((v: any) => ({
+                            ...item,
+                            name: `${item.name} (${v.name})`,
+                            price: v.price || item.price,
+                            selectedVariation: v,
+                            displayKey: `${item.id}-${v.id || v.name}`
+                          }));
+                        }
+                        return [{ ...item, displayKey: item.id }];
+                      })
                       .filter(item => {
                         if (selectedMenuCategory !== 'all' && item.categoryId !== selectedMenuCategory) return false;
                         if (menuSearchTerm && !item.name.toLowerCase().includes(menuSearchTerm.toLowerCase())) return false;
@@ -2144,7 +2157,7 @@ export default function KasaPanel() {
                         const currentQty = inOrder ? inOrder.quantity : 0;
 
                         return (
-                          <div key={idx} className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center group hover:border-blue-300">
+                          <div key={item.displayKey || idx} className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center group hover:border-blue-300">
                             <div className="flex-1">
                               <div className="font-bold text-gray-800 text-sm line-clamp-1">{item.name}</div>
                               <div className="font-bold text-green-600 text-xs">{item.price}₺</div>
