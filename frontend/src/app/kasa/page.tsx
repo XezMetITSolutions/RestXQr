@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMoneyBillWave, FaSearch, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft } from 'react-icons/fa';
+import { FaMoneyBillWave, FaSearch, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft, FaBox, FaToggleOn, FaToggleOff } from 'react-icons/fa';
 import { printReceiptViaBridge } from '@/lib/printerHelpers';
 import apiService from '@/services/api';
 
@@ -101,6 +101,13 @@ export default function KasaPanel() {
   const [activeFloor, setActiveFloor] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');  // New: View mode toggle
   const [totalTables, setTotalTables] = useState(50);  // Default 50 tables
+
+  // Product Management State
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [menuItems, setMenuItems] = useState<any[]>([]);
+  const [menuCategories, setMenuCategories] = useState<any[]>([]);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
+  const [productSearchTerm, setProductSearchTerm] = useState('');
 
   const addLog = (message: string, type: string = 'info') => {
     const log = {
@@ -389,6 +396,51 @@ export default function KasaPanel() {
       return () => clearInterval(interval);
     }
   }, [restaurantId]);
+
+  const fetchMenuItems = async () => {
+    if (!restaurantId) return;
+    try {
+      const response = await apiService.getRestaurantMenu(restaurantId);
+      if (response.success && response.data) {
+        const categories = response.data.categories || [];
+        setMenuCategories(categories);
+
+        let items = response.data.menuItems || [];
+        if (items.length === 0 && categories.length > 0) {
+          items = categories.flatMap((c: any) => c.items || []);
+        }
+        setMenuItems(items);
+      }
+    } catch (error) {
+      console.error('Menü verileri alınamadı:', error);
+    }
+  };
+
+  const toggleProductAvailability = async (item: any) => {
+    const originalStatus = item.isAvailable;
+    const newStatus = !originalStatus;
+
+    // Optimistic Update
+    setMenuItems(prev => prev.map(p => p.id === item.id ? { ...p, isAvailable: newStatus } : p));
+
+    try {
+      const response = await apiService.updateMenuItem(restaurantId, item.id, { isAvailable: newStatus });
+      if (!response.success) {
+        setMenuItems(prev => prev.map(p => p.id === item.id ? { ...p, isAvailable: originalStatus } : p));
+        alert('Durum güncellenemedi');
+      }
+    } catch (error) {
+      console.error(error);
+      setMenuItems(prev => prev.map(p => p.id === item.id ? { ...p, isAvailable: originalStatus } : p));
+      alert('Bağlantı hatası');
+    }
+  };
+
+  useEffect(() => {
+    if (showProductModal && restaurantId) {
+      fetchMenuItems();
+    }
+  }, [showProductModal, restaurantId]);
 
   const finalizePaymentAfterReceiptChoice = async (shouldPrint: boolean) => {
     if (!receiptModalData) return;
@@ -877,6 +929,14 @@ export default function KasaPanel() {
               </div>
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">BEKLEYEN TAHSİLAT</div>
             </div>
+
+            <button
+              onClick={() => setShowProductModal(true)}
+              className="p-4 bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all shadow-sm flex flex-col items-center justify-center gap-1 min-w-[80px]"
+            >
+              <FaBox size={20} />
+              <span className="text-[10px] font-black">STOK</span>
+            </button>
 
             <button onClick={() => { localStorage.clear(); router.push('/staff-login'); }} className="p-4 bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
               <FaSignOutAlt />
@@ -1762,6 +1822,95 @@ export default function KasaPanel() {
                   <FaCheck /> Kaydet
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PRODUCT MANAGEMENT MODAL */}
+      {showProductModal && (
+        <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-4xl h-[85vh] rounded-3xl overflow-hidden shadow-2xl border border-gray-100 flex flex-col">
+            {/* Header */}
+            <div className="p-6 border-b flex justify-between items-center bg-gray-50">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
+                  <FaBox size={24} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-gray-800">ÜRÜN YÖNETİMİ</h2>
+                  <p className="text-gray-500 text-sm font-bold">Stok durumu ve ürün görünürlüğü</p>
+                </div>
+              </div>
+              <button onClick={() => setShowProductModal(false)} className="p-3 bg-gray-200 hover:bg-gray-300 rounded-full transition-colors text-gray-600">
+                <FaTimesCircle size={24} />
+              </button>
+            </div>
+
+            {/* Filters */}
+            <div className="p-4 border-b bg-white flex gap-4 flex-wrap items-center">
+              <div className="relative flex-1">
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Ürün Ara..."
+                  value={productSearchTerm}
+                  onChange={e => setProductSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none focus:border-blue-500 transition-colors"
+                />
+              </div>
+              <select
+                value={selectedCategoryFilter}
+                onChange={e => setSelectedCategoryFilter(e.target.value)}
+                className="px-6 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none cursor-pointer focus:border-blue-500"
+              >
+                <option value="all">TÜM KATEGORİLER</option>
+                {menuCategories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {menuItems
+                  .filter(item => {
+                    const matchesSearch = item.name.toLowerCase().includes(productSearchTerm.toLowerCase());
+                    const matchesCategory = selectedCategoryFilter === 'all' || item.categoryId === selectedCategoryFilter;
+                    return matchesSearch && matchesCategory;
+                  })
+                  .map(item => (
+                    <div key={item.id} className={`bg-white p-4 rounded-2xl shadow-sm border-2 transition-all flex items-center justify-between group ${!item.isAvailable ? 'border-red-100 bg-red-50/30 grayscale' : 'border-transparent hover:border-blue-200'}`}>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                          {item.imageUrl ? (
+                            <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${API_URL.replace('/api', '')}${item.imageUrl}`} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400"><FaUtensils /></div>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className={`font-bold text-gray-800 ${!item.isAvailable ? 'line-through text-gray-500' : ''}`}>{item.name}</h3>
+                          <p className="text-xs font-bold text-gray-400">{item.price}₺</p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => toggleProductAvailability(item)}
+                        className={`relative w-14 h-8 rounded-full transition-colors flex items-center px-1 ${item.isAvailable ? 'bg-green-500 justify-end' : 'bg-gray-300 justify-start'}`}
+                      >
+                        <div className="w-6 h-6 bg-white rounded-full shadow-md transform transition-transform" />
+                      </button>
+                    </div>
+                  ))}
+              </div>
+
+              {menuItems.length === 0 && (
+                <div className="text-center py-20 text-gray-400 font-bold">
+                  Ürün bulunamadı veya yükleniyor...
+                </div>
+              )}
             </div>
           </div>
         </div>
