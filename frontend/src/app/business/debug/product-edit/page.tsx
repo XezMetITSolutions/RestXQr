@@ -11,9 +11,10 @@ import {
 import Link from 'next/link';
 
 export default function ProductDebugEditPage() {
-    const { authenticatedRestaurant, authenticatedStaff } = useAuthStore();
+    const { authenticatedRestaurant, authenticatedStaff, initializeAuth } = useAuthStore();
     const {
         menuItems,
+        restaurants,
         fetchRestaurantMenu,
         updateMenuItem,
         loading: storeLoading
@@ -25,15 +26,47 @@ export default function ProductDebugEditPage() {
     const [debugLogs, setDebugLogs] = useState<any[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [restaurantId, setRestaurantId] = useState<string | null>(null);
+    const [isSearchingId, setIsSearchingId] = useState(true);
 
-    // Get restaurant ID
+    // Initialize Auth
     useEffect(() => {
-        const id = authenticatedRestaurant?.id || authenticatedStaff?.restaurantId;
-        if (id) {
-            setRestaurantId(id);
-            fetchRestaurantMenu(id);
-        }
-    }, [authenticatedRestaurant, authenticatedStaff, fetchRestaurantMenu]);
+        initializeAuth();
+    }, [initializeAuth]);
+
+    // Get restaurant ID with multiple fallbacks
+    useEffect(() => {
+        const detectId = async () => {
+            // 1. Check Store
+            let id = authenticatedRestaurant?.id || authenticatedStaff?.restaurantId;
+
+            // 2. Fallback to Subdomain
+            if (!id && typeof window !== 'undefined') {
+                const hostname = window.location.hostname;
+                const subdomain = hostname.split('.')[0];
+                const mainDomains = ['localhost', 'www', 'guzellestir', 'restxqr'];
+
+                if (!mainDomains.includes(subdomain)) {
+                    // Try to find by username in restaurants list
+                    const found = restaurants.find(r => r.username === subdomain);
+                    if (found) id = found.id;
+                }
+            }
+
+            if (id) {
+                setRestaurantId(id);
+                fetchRestaurantMenu(id);
+                setIsSearchingId(false);
+            } else if (!storeLoading) {
+                // Wait a bit more for auth to potentially hydrate
+                const timer = setTimeout(() => {
+                    setIsSearchingId(false);
+                }, 2000);
+                return () => clearTimeout(timer);
+            }
+        };
+
+        detectId();
+    }, [authenticatedRestaurant, authenticatedStaff, restaurants, fetchRestaurantMenu, storeLoading]);
 
     // Handle initial search for "Pirinç keki"
     useEffect(() => {
@@ -96,12 +129,52 @@ export default function ProductDebugEditPage() {
         setEditData((prev: any) => ({ ...prev, [field]: value }));
     };
 
-    if (!restaurantId && !storeLoading) {
+    if (isSearchingId) {
         return (
             <div className="p-8 text-center flex flex-col items-center justify-center h-screen space-y-4">
+                <FaSync className="text-4xl text-indigo-500 animate-spin" />
+                <div className="text-xl font-bold">Restoran Kimliği Doğrulanıyor...</div>
+                <p className="text-gray-500">Lütfen bekleyin...</p>
+            </div>
+        );
+    }
+
+    if (!restaurantId && !storeLoading) {
+        return (
+            <div className="p-8 text-center flex flex-col items-center justify-center h-screen space-y-6">
                 <FaExclamationCircle className="text-4xl text-yellow-500" />
-                <div className="text-xl font-bold">Lütfen Giriş Yapın</div>
-                <p className="text-gray-500">Bu sayfayı görebilmek için bir restoran hesabı ile giriş yapmış olmalısınız.</p>
+                <div className="text-xl font-bold">Restoran Belirlenemedi</div>
+                <p className="text-gray-500 max-w-md mx-auto">
+                    Giriş yapmış olmanıza rağmen restoran bilginiz otomatik alınamadı.
+                    Lütfen dashboard sayfasından geçiş yapın veya aşağıya manuel ID girin.
+                </p>
+
+                <div className="flex gap-2 max-w-sm w-full">
+                    <input
+                        type="text"
+                        placeholder="Restoran ID girin (örn: 123...)"
+                        className="flex-1 px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                const val = (e.target as HTMLInputElement).value;
+                                if (val) setRestaurantId(val);
+                            }
+                        }}
+                    />
+                    <button
+                        onClick={() => {
+                            const input = document.querySelector('input[placeholder*="Restoran ID"]') as HTMLInputElement;
+                            if (input.value) setRestaurantId(input.value);
+                        }}
+                        className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold"
+                    >
+                        Yükle
+                    </button>
+                </div>
+
+                <Link href="/business/login" className="text-indigo-600 hover:underline font-medium">
+                    Yeniden Giriş Yap
+                </Link>
             </div>
         );
     }
@@ -375,15 +448,15 @@ export default function ProductDebugEditPage() {
                         ) : (
                             debugLogs.map(log => (
                                 <div key={log.id} className={`rounded-lg border overflow-hidden ${log.type === 'error' ? 'border-red-900 bg-red-950/20' :
-                                        log.type === 'success' ? 'border-emerald-900 bg-emerald-950/20' :
-                                            log.type === 'warning' ? 'border-amber-900 bg-amber-950/20' :
-                                                'border-slate-800 bg-slate-800/30'
+                                    log.type === 'success' ? 'border-emerald-900 bg-emerald-950/20' :
+                                        log.type === 'warning' ? 'border-amber-900 bg-amber-950/20' :
+                                            'border-slate-800 bg-slate-800/30'
                                     }`}>
                                     <div className="px-3 py-2 flex items-center justify-between border-b border-white/5">
                                         <span className={`text-[10px] font-bold uppercase tracking-wider ${log.type === 'error' ? 'text-red-400' :
-                                                log.type === 'success' ? 'text-emerald-400' :
-                                                    log.type === 'warning' ? 'text-amber-400' :
-                                                        'text-indigo-400'
+                                            log.type === 'success' ? 'text-emerald-400' :
+                                                log.type === 'warning' ? 'text-amber-400' :
+                                                    'text-indigo-400'
                                             }`}>{log.title}</span>
                                         <span className="text-[10px] text-slate-500 font-mono">{log.timestamp}</span>
                                     </div>
