@@ -128,6 +128,7 @@ class PrinterService {
             if (!isConnected) throw new Error('Printer not connected');
 
             printer.setCharacterSet(characterSet);
+            printer.setTypeFontB(); // Use smaller font
             printer.alignCenter();
             printer.bold(true);
 
