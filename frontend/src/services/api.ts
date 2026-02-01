@@ -1,7 +1,4 @@
-Masa Temizliği
-Servis İsteği
-Bilgi
-Sipariş Gecikti/**
+/**
  * API Service Layer
  * Replaces localStorage with backend API calls
  */
