@@ -44,17 +44,37 @@ export default function OrderDebugPage() {
         }
     };
 
+    const [manualRestaurantId, setManualRestaurantId] = useState('');
+
+    const loadKroren = async () => {
+        try {
+            const res = await apiService.getRestaurantByUsername('kroren');
+            if (res.success && res.data) {
+                setRestaurantId(res.data.id);
+                setManualRestaurantId(res.data.id);
+                addLog(`Kroren Loaded: ${res.data.id}`);
+                fetchMenu(res.data.id);
+            } else {
+                addLog('Kroren not found');
+            }
+        } catch (e: any) {
+            addLog(`Load Kroren Error: ${e.message}`);
+        }
+    };
+
     const createTestOrder = async () => {
-        if (!restaurantId) return;
-        addLog('Creating test order for Table 999...');
+        const targetId = restaurantId || manualRestaurantId;
+        if (!targetId) return addLog('❌ Error: No Restaurant ID. Please Click "Load Kroren" or Login.');
+
+        addLog(`Creating test order for Table 999. Restaurant: ${targetId}`);
 
         // Find a valid menu item first
         const firstItem = menuItems[0];
-        if (!firstItem) return addLog('No menu items found to create order');
+        if (!firstItem) return addLog('❌ Error: No menu items found. Fetch menu first.');
 
         try {
             const payload = {
-                restaurantId,
+                restaurantId: targetId,
                 tableNumber: 999,
                 customerName: 'DEBUG TEST',
                 items: [
@@ -75,10 +95,12 @@ export default function OrderDebugPage() {
 
             if (res.success) {
                 setTestOrder(res.data);
-                addLog(`Order Created: ${res.data.id}`);
+                addLog(`✅ Order Created: ${res.data.id}`);
+            } else {
+                addLog(`❌ Create Failed: ${res.message}`);
             }
         } catch (e: any) {
-            addLog(`Create Error: ${e.message}`);
+            addLog(`❌ Create Exception: ${e.message}`);
         }
     };
 
@@ -176,6 +198,9 @@ export default function OrderDebugPage() {
                     <h2 className="font-bold border-b mb-2">Actions</h2>
 
                     <div className="flex gap-2 mb-4">
+                        <button onClick={loadKroren} className="px-3 py-1 bg-amber-500 text-white rounded">
+                            Load Kroren
+                        </button>
                         <button onClick={createTestOrder} className="px-3 py-1 bg-green-500 text-white rounded">
                             1. New Test Order (T-999)
                         </button>
@@ -185,6 +210,16 @@ export default function OrderDebugPage() {
                         <button onClick={checkTableInfo} className="px-3 py-1 bg-purple-500 text-white rounded">
                             Check DB Schema
                         </button>
+                    </div>
+
+                    <div className="flex gap-2 mb-4">
+                        <input
+                            type="text"
+                            placeholder="Manual Restaurant ID"
+                            className="border p-2 rounded flex-1"
+                            value={manualRestaurantId}
+                            onChange={(e) => setManualRestaurantId(e.target.value)}
+                        />
                     </div>
 
                     <div className="flex gap-2 mb-4 items-center">
