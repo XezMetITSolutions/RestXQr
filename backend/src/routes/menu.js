@@ -299,6 +299,44 @@ router.get('/:restaurantId/menu/items', async (req, res) => {
   }
 });
 
+// GET /api/restaurants/:restaurantId/menu/items/:itemId - Get a single menu item
+router.get('/:restaurantId/menu/items/:itemId', async (req, res) => {
+  try {
+    const { restaurantId, itemId } = req.params;
+
+    const item = await MenuItem.findOne({
+      include: [
+        {
+          model: MenuCategory,
+          as: 'category',
+          where: { restaurantId }
+        }
+      ],
+      where: { id: itemId }
+    });
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: 'Menu item not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: item
+    });
+
+  } catch (error) {
+    console.error('Get single menu item error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+
 // POST /api/restaurants/:restaurantId/menu/items - Create new menu item
 router.post('/:restaurantId/menu/items', async (req, res) => {
   try {
