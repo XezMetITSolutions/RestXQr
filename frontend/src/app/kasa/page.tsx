@@ -2138,7 +2138,7 @@ export default function KasaPanel() {
                         if (item.variations && Array.isArray(item.variations) && item.variations.length > 0) {
                           return item.variations.map((v: any) => ({
                             ...item,
-                            name: `${item.name} (${v.name})`,
+                            name: `[${v.name}] ${item.name}`,
                             price: v.price || item.price,
                             selectedVariation: v,
                             displayKey: `${item.id}-${v.id || v.name}`
