@@ -1,4 +1,7 @@
-/**
+Masa Temizliği
+Servis İsteği
+Bilgi
+Sipariş Gecikti/**
  * API Service Layer
  * Replaces localStorage with backend API calls
  */
@@ -645,6 +648,15 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  }
+
+  // Admin / Debug endpoints
+  async getTableInfo() {
+    return this.request<any>('/admin-fix/table-info');
+  }
+
+  async fixDbSchema() {
+    return this.request<any>('/admin-fix/fix-db-schema');
   }
 }
 
