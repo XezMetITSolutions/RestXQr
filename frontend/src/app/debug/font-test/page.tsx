@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { FaPrint, FaCheck, FaPlug, FaWifi } from 'react-icons/fa';
 
-const BRIDGE_URL = 'http://localhost:3005';
+const BRIDGE_URL = 'http://127.0.0.1:3005';
 
 export default function FontTestPage() {
     const [printerIP, setPrinterIP] = useState('192.168.10.198');

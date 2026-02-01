@@ -93,13 +93,13 @@ async function resolveWindowsPrinterPath(printerName) {
     return `printer:${shareName}`;
 }
 
-// Health check endpoint
-app.get('/debug/health', (req, res) => {
+// Health check endpoint (Dual routes)
+app.get(['/health', '/debug/health'], (req, res) => {
     res.json({ success: true, message: 'Local Bridge is running', timestamp: new Date().toISOString() });
 });
 
-// Test connection endpoint
-app.post('/debug/test-connection', async (req, res) => {
+// Test connection endpoint (Dual routes)
+app.post(['/test-connection', '/debug/test-connection'], async (req, res) => {
     const { ip, port = 9100 } = req.body;
     console.log(`🔌 Testing connection to ${ip}:${port}...`);
 
@@ -124,8 +124,8 @@ app.post('/debug/test-connection', async (req, res) => {
     }
 });
 
-// Font size test print endpoint
-app.post('/debug/print-font-test', async (req, res) => {
+// Font size test print endpoint (Dual routes)
+app.post(['/print-font-test', '/debug/print-font-test'], async (req, res) => {
     const { ip, port = 9100, fontConfig, sizeName, sizeDescription } = req.body;
     console.log(`🖨️ Font Test: ${sizeName} - IP: ${ip}:${port}`);
 
