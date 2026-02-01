@@ -802,15 +802,22 @@ router.put('/:id', async (req, res) => {
         }
 
         // Final safety check
-        if (isNaN(totalPrice)) totalPrice = 0;
+        if (isNaN(totalPrice) || totalPrice === null) totalPrice = 0;
 
         try {
           console.log(`🛠️ Creating OrderItem for Order ${id}:`, {
             menuItemId: mId,
             qty,
             unitPrice,
-            totalPrice
+            totalPrice,
+            isPriceNull: totalPrice === null,
+            isPriceNaN: isNaN(totalPrice)
           });
+
+          if (totalPrice === null) {
+            console.error('CRITICAL: totalPrice is null despite checks!');
+            totalPrice = 0;
+          }
 
           await OrderItem.create({
             orderId: id,
