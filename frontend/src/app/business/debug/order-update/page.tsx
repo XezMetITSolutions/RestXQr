@@ -167,7 +167,7 @@ export default function OrderUpdateDebug() {
     return (
         <div className="min-h-screen bg-gray-100 p-8">
             <div className="max-w-7xl mx-auto">
-                <h1 className="text-3xl font-bold mb-8">Sipariş Güncelleme Debug</h1>
+                <h1 className="text-3xl font-bold mb-8">Sipariş Güncelleme Debug v2.1 (Fixed)</h1>
 
                 {/* Manuel Restaurant ID Input */}
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
