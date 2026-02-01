@@ -172,8 +172,8 @@ export default function OrderDebugPage() {
             // Ensure creating new items has menuItemId
             menuItemId: item.menuItemId || item.id,
             price: Number(item.price || item.unitPrice || 0),
-            // IMPORTANT: Removing totalPrice to force backend calculation
-            totalPrice: undefined
+            // REVERT: Send totalPrice from frontend to ensure it's not null
+            totalPrice: (Number(item.price || item.unitPrice || 0)) * (Number(item.quantity || 1))
         }));
 
         const payload = {

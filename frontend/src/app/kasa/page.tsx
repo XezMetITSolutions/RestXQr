@@ -769,7 +769,8 @@ export default function KasaPanel() {
           items: selectedOrder.items.map(item => ({
             ...item,
             price: Number(item.price || item.unitPrice || 0),
-            totalPrice: undefined // Force backend to recalculate
+            // Send totalPrice explicitly
+            totalPrice: (Number(item.price || item.unitPrice || 0)) * (Number(item.quantity || 1))
           })),
           totalAmount: selectedOrder.totalAmount,
           cashierNote: selectedOrder.cashierNote,
