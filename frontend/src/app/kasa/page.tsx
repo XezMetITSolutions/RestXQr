@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMoneyBillWave, FaSearch, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft, FaBox, FaToggleOn, FaToggleOff, FaClock } from 'react-icons/fa';
+import { FaMoneyBillWave, FaSearch, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft, FaBox, FaToggleOn, FaToggleOff, FaClock, FaSave, FaExclamationTriangle } from 'react-icons/fa';
 import { printReceiptViaBridge } from '@/lib/printerHelpers';
 import apiService from '@/services/api';
 import { playNotificationSound } from '@/utils/audio';
@@ -111,6 +111,14 @@ export default function KasaPanel() {
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [productSearchTerm, setProductSearchTerm] = useState('');
+
+  // Delete Confirm State
+  const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Menu Sidebar State
+  const [menuSearchTerm, setMenuSearchTerm] = useState('');
+  const [selectedMenuCategory, setSelectedMenuCategory] = useState<string>('all');
 
   const addLog = (message: string, type: string = 'info') => {
     const log = {
@@ -459,10 +467,10 @@ export default function KasaPanel() {
   };
 
   useEffect(() => {
-    if (showProductModal && restaurantId) {
+    if (restaurantId) {
       fetchMenuItems();
     }
-  }, [showProductModal, restaurantId]);
+  }, [restaurantId]);
 
   const finalizePaymentAfterReceiptChoice = async (shouldPrint: boolean) => {
     if (!receiptModalData) return;
@@ -697,10 +705,79 @@ export default function KasaPanel() {
 
   const removeItem = (index: number) => {
     if (!selectedOrder || selectedOrder.items.length <= 1) return;
+    setDeleteConfirmIndex(index);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    if (!selectedOrder || deleteConfirmIndex === null) return;
     saveToUndo(selectedOrder);
-    const updatedItems = selectedOrder.items.filter((_, i) => i !== index);
+    const updatedItems = selectedOrder.items.filter((_, i) => i !== deleteConfirmIndex);
     const newTotal = updatedItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
     setSelectedOrder({ ...selectedOrder, items: updatedItems, totalAmount: newTotal });
+    setShowDeleteConfirm(false);
+    setDeleteConfirmIndex(null);
+  };
+
+  const addItemToOrder = (item: any) => {
+    if (!selectedOrder) return;
+    saveToUndo(selectedOrder);
+
+    // Check if item already exists (simple match by id/name)
+    const existingIndex = selectedOrder.items.findIndex((i) => i.name === item.name && JSON.stringify(i.notes) === JSON.stringify(item.notes || ''));
+
+    let updatedItems = [...selectedOrder.items];
+    if (existingIndex >= 0) {
+      updatedItems[existingIndex] = {
+        ...updatedItems[existingIndex],
+        quantity: updatedItems[existingIndex].quantity + 1
+      };
+    } else {
+      updatedItems.push({
+        id: item.id,
+        name: item.name,
+        price: Number(item.price),
+        quantity: 1,
+        notes: ''
+      });
+    }
+
+    const newTotal = updatedItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
+    setSelectedOrder({ ...selectedOrder, items: updatedItems, totalAmount: newTotal });
+  };
+
+  const handleSaveOrder = async () => {
+    if (!selectedOrder) return;
+    try {
+      addLog('Saving order changes...', 'network');
+      const response = await fetch(`${API_URL}/orders/${selectedOrder.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: selectedOrder.items,
+          totalAmount: selectedOrder.totalAmount,
+          cashierNote: selectedOrder.cashierNote,
+          discountAmount: selectedOrder.discountAmount,
+          discountReason: selectedOrder.discountReason
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        addLog('Order saved successfully', 'success');
+        alert('Sipariş başarıyla güncellendi.');
+        // Update printing if needed? For now just save.
+        if (data.data?.printResults) {
+          await handlePrintFailover(data, selectedOrder.id, false);
+        }
+        fetchOrders(); // Refresh lists
+      } else {
+        alert('Sipariş kaydedilemedi: ' + data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Kaydetme hatası oluştu.');
+    }
   };
 
   const handleManualPrint = async (orderId: string, showDebug = false) => {
@@ -1393,14 +1470,14 @@ export default function KasaPanel() {
           <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
             <div className="bg-white w-full max-w-[1400px] h-[90vh] rounded-xl shadow-none flex overflow-hidden relative">
 
-              {/* SOL PANEL: ÜRÜNLER (Scrollable) */}
-              <div className="w-[40%] bg-gray-50 border-r border-gray-200 flex flex-col h-full">
+              {/* SOL PANEL: ÜRÜNLER (Scrollable) - Width 25% */}
+              <div className="w-[28%] bg-gray-50 border-r border-gray-200 flex flex-col h-full shrink-0">
                 {/* Header */}
                 <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center shrink-0">
                   <div>
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                      <span className="bg-gray-800 text-white px-2 py-1 rounded text-sm">MASA {selectedOrder.tableNumber}</span>
-                      <span className="text-gray-400 text-sm font-normal">#{selectedOrder.id.substring(0, 8)}</span>
+                      {selectedOrder.tableNumber && <span className="bg-gray-800 text-white px-2 py-1 rounded text-sm">MASA {selectedOrder.tableNumber}</span>}
+                      {!selectedOrder.tableNumber && <span className="bg-orange-500 text-white px-2 py-1 rounded text-sm">PAKET / WEB</span>}
                     </h2>
                   </div>
                   {undoStack.length > 0 && (
@@ -1450,7 +1527,7 @@ export default function KasaPanel() {
                 </div>
 
                 {/* Sol Alt Toplam */}
-                <div className="p-4 bg-white border-t border-gray-200 shrink-0 space-y-1">
+                <div className="p-4 bg-white border-t border-gray-200 shrink-0 space-y-2">
                   <div className="flex justify-between items-center text-[10px]">
                     <span className="text-gray-400 font-bold uppercase tracking-widest">Sipariş Toplamı</span>
                     <span className="text-gray-600 font-bold">{Number(selectedOrder.totalAmount).toFixed(2)}₺</span>
@@ -1467,17 +1544,24 @@ export default function KasaPanel() {
                       <span className="text-red-600 font-bold">-{Number(selectedOrder.discountAmount).toFixed(2)}₺</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center bg-green-50 px-4 py-3 rounded-2xl mt-2 border border-green-100">
+                  <div className="flex justify-between items-center bg-green-50 px-4 py-3 rounded-2xl border border-green-100">
                     <span className="text-green-800 font-black text-xs uppercase tracking-tighter">KALAN BORÇ</span>
                     <span className="text-green-600 font-black text-2xl font-mono tracking-tighter">
                       {(Number(selectedOrder.totalAmount) - Number(selectedOrder.paidAmount) - Number(selectedOrder.discountAmount)).toFixed(2)}₺
                     </span>
                   </div>
+
+                  <button
+                    onClick={handleSaveOrder}
+                    className="w-full py-2 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 flex items-center justify-center gap-2 border border-blue-200"
+                  >
+                    <FaSave /> SİPARİŞİ GÜNCELLE / KAYDET
+                  </button>
                 </div>
               </div>
 
-              {/* SAĞ PANEL: ÖDEME (Fixed layout) */}
-              <div className="flex-1 bg-white flex flex-col h-full relative">
+              {/* ORTA PANEL: ÖDEME (Width 40%) */}
+              <div className="w-[44%] bg-white flex flex-col h-full relative border-r border-gray-200">
                 {/* Close Butonu */}
                 <div className="absolute top-4 right-4 z-10">
                   <button onClick={() => { setShowPaymentModal(false); setSelectedOrder(null); setShowCashPad(false); }} className="p-2 bg-gray-100 text-gray-500 rounded hover:bg-red-100 hover:text-red-500 transition-colors">
@@ -1837,6 +1921,68 @@ export default function KasaPanel() {
                   </div>
                 )}
               </div>
+
+              {/* SAĞ PANEL: MENÜ EKLEME (Width 30%) */}
+              <div className="flex-1 bg-gray-50 flex flex-col h-full border-l border-gray-200">
+                <div className="p-4 border-b border-gray-200 bg-white">
+                  <h3 className="font-bold text-gray-800 mb-2">MENÜDEN EKLE</h3>
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Ürün ara..."
+                      value={menuSearchTerm}
+                      onChange={(e) => setMenuSearchTerm(e.target.value)}
+                      className="w-full pl-9 p-2 bg-gray-100 rounded-lg text-sm font-bold border border-transparent focus:bg-white focus:border-green-500 outline-none"
+                    />
+                  </div>
+                  <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar pb-1">
+                    <button onClick={() => setSelectedMenuCategory('all')} className={`px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap ${selectedMenuCategory === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                      TÜMÜ
+                    </button>
+                    {menuCategories.map(cat => (
+                      <button key={cat.id} onClick={() => setSelectedMenuCategory(cat.id)} className={`px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap ${selectedMenuCategory === cat.id ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                        {cat.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
+                  <div className="grid grid-cols-2 gap-3">
+                    {menuItems
+                      .filter(item => {
+                        if (selectedMenuCategory !== 'all' && item.categoryId !== selectedMenuCategory) return false;
+                        if (menuSearchTerm && !item.name.toLowerCase().includes(menuSearchTerm.toLowerCase())) return false;
+                        return true;
+                      })
+                      .map((item, idx) => (
+                        <div key={idx} onClick={() => addItemToOrder(item)} className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 cursor-pointer hover:border-green-500 hover:shadow-md transition-all active:scale-95 group">
+                          <div className="aspect-square bg-gray-100 rounded-lg mb-2 relative overflow-hidden">
+                            {item.imageUrl ? (
+                              <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${API_URL.replace('/api', '')}${item.imageUrl}`} alt={item.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <FaUtensils />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <FaPlus className="text-white text-2xl" />
+                            </div>
+                          </div>
+                          <div className="font-bold text-gray-800 text-xs line-clamp-1">{item.name}</div>
+                          <div className="font-black text-green-600 text-xs mt-1">{item.price}₺</div>
+                        </div>
+                      ))}
+                  </div>
+                  {menuItems.length === 0 && (
+                    <div className="text-center text-gray-400 mt-10">
+                      <p>Menü yüklenemedi veya boş</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
             </div>
           </div>
         )
