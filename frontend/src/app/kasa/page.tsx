@@ -379,16 +379,26 @@ export default function KasaPanel() {
       }
 
       // 2. Fetch Settings
-      const response = await fetch(`${API_URL}/restaurant-settings/${restaurantId}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data?.drinkStationRouting?.floors) {
-          setFloors(data.data.drinkStationRouting.floors);
+      try {
+        const restaurantResponse = await apiService.getRestaurantById(restaurantId);
+        if (restaurantResponse.success && restaurantResponse.data) {
+          const restaurant = restaurantResponse.data;
+          const settings = restaurant.settings || {};
+
+          if (settings.drinkStationRouting?.floors) {
+            setFloors(settings.drinkStationRouting.floors);
+          }
+
+          // Fallback: If QRTokens failed, try using settings
+          if (!qrResponse.success) {
+            const qrCount = settings.qrCount || restaurant.qrCount;
+            if (qrCount) {
+              setTotalTables(Number(qrCount));
+            }
+          }
         }
-        // Fallback: If QRTokens failed, try using settings
-        if (data.success && data.data?.qrCount && (!qrResponse.success)) {
-          setTotalTables(Number(data.data.qrCount));
-        }
+      } catch (err) {
+        console.error('Restoran ayarları alınamadı:', err);
       }
     } catch (error) {
       console.error('Katlar/Tablolar alınamadı:', error);
