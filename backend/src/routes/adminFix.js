@@ -723,4 +723,80 @@ router.get('/fix-ramen-pricing', async (req, res) => {
     }
 });
 
+
+// POST /api/admin-fix/debug-hoxan - Fix specifically Hoxan product
+router.post('/debug-hoxan', async (req, res) => {
+    let logs = [];
+    const log = (msg) => logs.push(msg);
+
+    try {
+        const { MenuItem } = require('../models');
+        const { Op } = require('sequelize');
+
+        log('🥟 Starting Hoxan Debug Fix...');
+
+        // 1. Find the item
+        const items = await MenuItem.findAll({
+            where: {
+                name: { [Op.iLike]: '%Hoxan%' }
+            }
+        });
+
+        if (items.length === 0) {
+            log('❌ "Hoxan" ürünü bulunamadı.');
+            return res.json({ logs });
+        }
+
+        const item = items[0]; // Take the first one if multiple
+        log(`Found item: ${item.name} (${item.id})`);
+        log(`Current Variations: ${JSON.stringify(item.variations)}`);
+
+        // 2. Define target variations
+        const targetVariations = [
+            { name: '2li', price: 199 },
+            { name: '4lü', price: 398 }
+        ];
+
+        // 3. Update
+        item.variations = targetVariations;
+        // Also ensure options is array if null
+        if (!item.options) item.options = [];
+
+        await item.save();
+
+        // 4. Reload to verify
+        await item.reload();
+
+        log(`✅ Updated Variations to: ${JSON.stringify(item.variations)}`);
+
+        res.json({ success: true, logs, item });
+
+    } catch (error) {
+        log(`Fatal Error: ${error.message}`);
+        res.status(500).json({ logs, error: error.message });
+    }
+});
+
+// GET /api/admin-fix/debug-item-search - Search and inspect item
+router.get('/debug-item-search', async (req, res) => {
+    try {
+        const { MenuItem } = require('../models');
+        const { Op } = require('sequelize');
+        const { query } = req.query;
+
+        if (!query) return res.status(400).json({ error: 'Query parameter required' });
+
+        const items = await MenuItem.findAll({
+            where: {
+                name: { [Op.iLike]: `%${query}%` }
+            },
+            limit: 5
+        });
+
+        res.json({ success: true, items });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 module.exports = router;
