@@ -872,31 +872,7 @@ app.post('/api/debug/add-column', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
-limitsFixed: needsLimitUpdate,
-  superadminCreated: created
-    }); // End of push
-  } // End of loop
 
-res.json({
-  success: true,
-  message: 'Tüm restoran planları ve superadmin kullanıcıları düzeltildi.',
-  results
-});
-
-} catch (error) {
-  success: true,
-    message: 'Tüm restoran planları ve superadmin kullanıcıları düzeltildi.',
-      results
-});
-  } catch (error) {
-  console.error('❌ Fix Plans Error:', error);
-  res.status(500).json({
-    success: false,
-    message: 'Plan düzeltme hatası',
-    error: error.message
-  });
-}
-});
 
 // TÜM SİPARİŞLERİ SİL (Debug/Test için)
 app.post('/api/debug/delete-all-orders', async (req, res) => {
