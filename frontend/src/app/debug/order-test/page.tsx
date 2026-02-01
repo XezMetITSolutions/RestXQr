@@ -114,24 +114,43 @@ export default function OrderDebugPage() {
     };
 
     const addItem = async () => {
-        if (!testOrder) return;
-        const itemToAdd = menuItems.find(i => i.id === newItemId) || menuItems[0];
-        if (!itemToAdd) return addLog('No item to add');
+        if (!testOrder) {
+            addLog('❌ HATA: Önce bir test siparişi oluşturmalısınız.');
+            return;
+        }
+
+        if (menuItems.length === 0) {
+            addLog('❌ HATA: Menü öğeleri yüklenemedi. Lütfen sayfayı yenileyin veya Kroren yükleyin.');
+            return;
+        }
+
+        const itemToAdd = newItemId ? menuItems.find(i => i.id === newItemId) : menuItems[0];
+
+        if (!itemToAdd) {
+            addLog('❌ HATA: Eklenecek ürün bulunamadı. Listeden bir ürün seçin.');
+            return;
+        }
+
+        addLog(`Adding item: ${itemToAdd.name}`);
+
+        const currentItems = Array.isArray(testOrder.items) ? testOrder.items : [];
 
         const newItems = [
-            ...testOrder.items,
+            ...currentItems,
             {
                 menuItemId: itemToAdd.id,
                 name: itemToAdd.name,
                 quantity: 1,
                 unitPrice: Number(itemToAdd.price),
-                price: Number(itemToAdd.price), // Frontend often uses this
-                notes: 'Added via Debug'
+                price: Number(itemToAdd.price),
+                notes: 'Debug Ekleme',
+                // Mock other fields to prevent rendering errors
+                totalPrice: Number(itemToAdd.price)
             }
         ];
 
         setTestOrder({ ...testOrder, items: newItems });
-        addLog(`Item added locally. New Count: ${newItems.length}. Click SAVE to sync.`);
+        addLog(`✅ Ürün yerel olarak eklendi. Toplam Kalem: ${newItems.length}. Sunucuya kaydetmek için "SAVE CHANGES" butonuna basın.`);
     };
 
     const removeItem = (index: number) => {
