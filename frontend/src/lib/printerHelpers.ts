@@ -86,10 +86,10 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
 
     // 2. Restaurant Name
     if (data.header) {
-        ctx.font = 'bold 36px sans-serif';
+        ctx.font = 'bold 24px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(data.header.toUpperCase(), width / 2, y);
-        y += 45;
+        y += 30;
     }
 
     // Separator
@@ -99,20 +99,20 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
     // 3. Check & Table (Large Bold)
     if (data.type === 'BILL') {
         ctx.textAlign = 'left';
-        ctx.font = 'bold 44px sans-serif';
+        ctx.font = 'bold 24px sans-serif';
         ctx.fillText(`Cek : ${data.checkNumber || data.orderNumber.slice(-3)}`, 15, y);
-        y += 55;
+        y += 30;
         ctx.fillText(`Masa : MASA - ${data.tableNumber}`, 15, y);
-        y += 70;
+        y += 40;
 
         // 4. Info Grid
-        ctx.font = '28px sans-serif';
+        ctx.font = '18px sans-serif';
         const drawGridRow = (left: string, right: string) => {
             ctx.textAlign = 'left';
             ctx.fillText(left, 15, y);
             ctx.textAlign = 'right';
             ctx.fillText(right, width - 15, y);
-            y += 35;
+            y += 24;
         };
 
         const now = new Date();
@@ -125,22 +125,22 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         y += 25;
     } else {
         // Kitchen basic header
-        ctx.font = 'bold 72px sans-serif';
+        ctx.font = 'bold 32px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(`MASA ${data.tableNumber}`, width / 2, y);
-        y += 90;
+        y += 40;
 
-        ctx.font = 'bold 32px sans-serif';
+        ctx.font = 'bold 20px sans-serif';
         ctx.fillText(new Date().toLocaleString('tr-TR'), width / 2, y);
-        y += 60;
-        drawDashedLine(y);
         y += 35;
+        drawDashedLine(y);
+        y += 25;
     }
 
     // 5. Items
     ctx.textAlign = 'left';
     data.items.forEach((item) => {
-        ctx.font = 'bold 44px sans-serif';
+        ctx.font = 'bold 22px sans-serif';
         const qtyText = `${item.quantity} x `;
         const nameText = item.name;
 
@@ -152,14 +152,14 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
             ctx.textAlign = 'left';
         }
 
-        y += 55;
+        y += 28;
 
         // Chinese Translation Support
         const chineseName = item.translations?.zh?.name;
         if (chineseName && chineseName !== nameText) {
-            ctx.font = '32px sans-serif'; // Slightly smaller for Chinese
+            ctx.font = '18px sans-serif'; // Slightly smaller for Chinese
             ctx.fillText(`   ${chineseName}`, 15, y);
-            y += 45;
+            y += 24;
         }
 
         // Variation Rendering (New)
@@ -167,30 +167,30 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         const varList = Array.isArray(variations) ? variations : [variations];
 
         if (varList.length > 0) {
-            ctx.font = 'bold 36px sans-serif';
+            ctx.font = '20px sans-serif';
             ctx.fillStyle = '#333'; // Slightly gray/lighter bold for variation
             const varText = `   * ${varList.map(v => typeof v === 'string' ? v : (v.name || v.value)).join(', ')} *`;
-            ctx.fillText(varText.toUpperCase(), 15, y);
-            y += 45;
+            ctx.fillText(varText, 15, y);
+            y += 26;
             ctx.fillStyle = 'black'; // Reset
         }
 
         const itemNote = item.notes || (item as any).note;
         if (itemNote) {
             // "Not kalın harflerle olsun altı çizgili olsun"
-            ctx.font = 'bold 34px sans-serif';
+            ctx.font = 'bold 20px sans-serif';
             const noteText = `   NOT: ${itemNote}`;
             ctx.fillText(noteText, 15, y);
 
             // Draw underline for the note
             const textWidth = ctx.measureText(noteText).width;
             ctx.beginPath();
-            ctx.moveTo(15, y + 36);
-            ctx.lineTo(15 + textWidth, y + 36);
-            ctx.lineWidth = 3;
+            ctx.moveTo(15, y + 22);
+            ctx.lineTo(15 + textWidth, y + 22);
+            ctx.lineWidth = 2;
             ctx.stroke();
 
-            y += 45;
+            y += 26;
         }
         y += 15;
     });
@@ -199,49 +199,49 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
     if (data.type === 'BILL') {
         y += 20;
         // Ara Toplam
-        ctx.font = 'bold 34px sans-serif';
+        ctx.font = 'bold 20px sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText("ARA TOPLAM", 15, y);
         ctx.textAlign = 'right';
         ctx.fillText(`${(data.subtotal || data.total || 0).toFixed(2)} TL`, width - 15, y);
-        y += 55;
+        y += 28;
 
         drawDashedLine(y);
         y += 20;
 
         // Tax Breakdown
         if (data.taxDetails) {
-            ctx.font = '28px sans-serif';
+            ctx.font = '16px sans-serif';
             ctx.textAlign = 'left';
             ctx.fillText(`${data.taxDetails.name} (${data.taxDetails.rate}%)`, 15, y);
-            y += 35;
+            y += 22;
 
             ctx.fillText(`${(data.subtotal || data.total || 0).toFixed(2)} TL`, 15, y);
             ctx.textAlign = 'right';
             ctx.fillText(`${data.taxDetails.amount.toFixed(2)} KDV ${data.taxDetails.net.toFixed(2)} NET`, width - 15, y);
-            y += 45;
+            y += 26;
         }
 
         // Toplam
-        ctx.font = 'bold 48px sans-serif';
+        ctx.font = 'bold 26px sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText("TOPLAM", 15, y);
         ctx.textAlign = 'right';
         ctx.fillText(`${(data.total || 0).toFixed(2)} TL`, width - 15, y);
-        y += 65;
+        y += 35;
 
         drawDashedLine(y);
     }
 
     // Footer
     if (data.footer) {
-        y += 40;
-        ctx.font = '26px sans-serif';
+        y += 30;
+        ctx.font = '16px sans-serif';
         ctx.textAlign = 'center';
         const lines = data.footer.split('\n');
         lines.forEach(line => {
             ctx.fillText(line, width / 2, y);
-            y += 32;
+            y += 20;
         });
     }
 
