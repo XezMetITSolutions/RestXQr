@@ -4118,8 +4118,19 @@ export default function MenuManagement() {
               <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
                 <div className="relative z-10">
-                  <h2 className="text-3xl font-black mb-2"><TranslatedText>Kampanya Yönetimi</TranslatedText></h2>
-                  <p className="text-purple-100"><TranslatedText>Ürün veya kategorileriniz için otomatik kampanyalar oluşturun.</TranslatedText></p>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-3xl font-black mb-2"><TranslatedText>Kampanya Yönetimi</TranslatedText></h2>
+                      <p className="text-purple-100"><TranslatedText>Ürün veya kategorileriniz için otomatik kampanyalar oluşturun.</TranslatedText></p>
+                    </div>
+                    <Link
+                      href="/business/debug/campaign-fix"
+                      className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all border border-white/30"
+                    >
+                      <FaTools className="text-white" />
+                      <TranslatedText>Sistem Kontrolü</TranslatedText>
+                    </Link>
+                  </div>
                 </div>
               </div>
 

@@ -545,10 +545,33 @@ router.put('/:restaurantId/menu/items/:itemId', async (req, res) => {
       'discountStartDate', 'discountEndDate'
     ];
 
+    // List of fields that should be numeric or date
+    const numericFields = ['price', 'preparationTime', 'calories', 'displayOrder', 'discountPercentage', 'discountedPrice'];
+    const dateFields = ['discountStartDate', 'discountEndDate'];
+
     // Copy allowed simple fields
     allowedFields.forEach(field => {
       if (updateData[field] !== undefined) {
-        fieldsToUpdate[field] = updateData[field];
+        let value = updateData[field];
+
+        // Handle empty strings for numeric/date fields
+        if (value === "" && (numericFields.includes(field) || dateFields.includes(field))) {
+          value = null;
+        }
+
+        // Handle numeric conversion
+        if (value !== null && numericFields.includes(field) && typeof value === 'string') {
+          value = parseFloat(value);
+          if (isNaN(value)) value = null;
+        }
+
+        // Handle date conversion
+        if (value !== null && dateFields.includes(field) && typeof value === 'string') {
+          value = new Date(value);
+          if (isNaN(value.getTime())) value = null;
+        }
+
+        fieldsToUpdate[field] = value;
       }
     });
 
@@ -606,10 +629,18 @@ router.put('/:restaurantId/menu/items/:itemId', async (req, res) => {
       original: error.original
     });
     console.error('Update data received:', updateData);
+    const isSchemaError =
+      (error.name === 'SequelizeDatabaseError' && (
+        error.message.includes('column') ||
+        error.message.includes('does not exist') ||
+        error.original?.code === '42703'
+      ));
+
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Database error',
+      message: isSchemaError ? 'Veritabanı şeması güncel değil. Eksik sütunlar var.' : 'Internal server error',
+      error: error.message,
+      suggestion: isSchemaError ? 'Lütfen /business/debug/campaign-fix adresine giderek şemayı düzeltin.' : undefined,
       details: process.env.NODE_ENV === 'development' ? {
         sql: error.sql,
         fields: Object.keys(updateData || {})
