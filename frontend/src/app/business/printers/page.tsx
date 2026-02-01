@@ -21,7 +21,7 @@ interface Station {
 
 function PrinterManagementContent() {
     const router = useRouter();
-    const { logout } = useAuthStore();
+    const { logout, authenticatedRestaurant, initializeAuth, isAuthenticated } = useAuthStore();
     const { currentRestaurant, fetchRestaurants, fetchCurrentRestaurant } = useRestaurantStore();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [stations, setStations] = useState<Station[]>([]);
@@ -35,16 +35,34 @@ function PrinterManagementContent() {
     const menuStations = currentRestaurant?.kitchenStations || [];
 
     useEffect(() => {
-        // Initial load only
-        loadStations();
-        loadAvailableStations();
-    }, []);
+        initializeAuth();
+    }, [initializeAuth]);
 
     useEffect(() => {
-        if (!currentRestaurant) {
-            fetchRestaurants();
+        if (!isAuthenticated() && !localStorage.getItem('currentRestaurant')) {
+            router.push('/auth/login');
         }
-    }, [currentRestaurant, fetchRestaurants]);
+    }, [isAuthenticated, router]);
+
+    useEffect(() => {
+        if (authenticatedRestaurant?.id) {
+            fetchCurrentRestaurant(authenticatedRestaurant.id);
+        } else if (authenticatedRestaurant === null && !localStorage.getItem('currentRestaurant')) {
+            // LocalStorage'da da yoksa ve state null ise demek ki giriş yapılmamış
+            setLoading(false);
+        }
+    }, [authenticatedRestaurant?.id, fetchCurrentRestaurant]);
+
+    useEffect(() => {
+        if (currentRestaurant?.id) {
+            loadStations();
+            loadAvailableStations();
+        } else if (currentRestaurant === null && authenticatedRestaurant === null) {
+            // Hiç bir veri yoksa yüklemeyi bitir (boş sayfa veya hata)
+            const timeout = setTimeout(() => setLoading(false), 3000);
+            return () => clearTimeout(timeout);
+        }
+    }, [currentRestaurant?.id]);
 
     const loadAvailableStations = async () => {
         try {
