@@ -113,12 +113,13 @@ export default function OrderUpdateDebug() {
             addLog(`💰 Yeni toplam: ${newTotal}₺`);
 
             const itemsForApi = editedItems.map(item => ({
-                menuItemId: item.id,
+                menuItemId: item.menuItemId || item.id,
                 id: item.id,
                 name: typeof item.name === 'string' ? item.name : item.name?.tr || item.name?.en || 'Ürün',
                 quantity: item.quantity,
                 price: item.price,
                 unitPrice: item.price,
+                totalPrice: item.price * item.quantity,
                 notes: item.notes || ''
             }));
 
