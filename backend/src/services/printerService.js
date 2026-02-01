@@ -131,8 +131,8 @@ class PrinterService {
             printer.alignCenter();
             printer.bold(true);
 
+            // Sadece tek yükseklik - daha küçük font
             printer.setTextDoubleHeight();
-            printer.setTextDoubleWidth();
             const tableHeader = language === 'zh' ? `桌号: ${orderData.tableNumber}` : `MASA: ${orderData.tableNumber}`;
             printer.println(this.encodeText(tableHeader, codePage));
 
@@ -162,7 +162,7 @@ class PrinterService {
             printer.newLine();
 
             for (const item of orderData.items) {
-                printer.bold(true);
+                // Ürün adı - normal boyut, bold
                 let itemName = item.name;
                 if (language === 'zh' && item.translations?.zh?.name) {
                     itemName = item.translations.zh.name;
@@ -171,6 +171,7 @@ class PrinterService {
                 }
 
                 const itemNameEncoded = this.encodeText(itemName, codePage);
+                printer.bold(true);
                 printer.println(`${item.quantity}x ${itemNameEncoded}`);
                 printer.bold(false);
 
