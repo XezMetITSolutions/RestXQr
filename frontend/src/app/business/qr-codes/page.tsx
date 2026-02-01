@@ -65,6 +65,7 @@ export default function QRCodesPage() {
   const [visibleCount, setVisibleCount] = useState(30);
   const [authTimeout, setAuthTimeout] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [activeFloorFilter, setActiveFloorFilter] = useState<'all' | string>('all');
 
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
 
@@ -229,6 +230,69 @@ export default function QRCodesPage() {
     loadWithRetry();
     return () => { mounted = false; };
   }, [authenticatedRestaurant?.id]);
+
+  const handleSaveFloorSettings = async () => {
+    if (!authenticatedRestaurant) return;
+    try {
+      setCreating(true);
+      const routingFloors = floorConfigs
+        .filter(f => {
+          if (useManualRanges) {
+            const s = Number(f.startTable);
+            const e = Number(f.endTable);
+            return Number.isFinite(s) && Number.isFinite(e) && e >= s;
+          }
+          return Number(f.tableCount) > 0;
+        })
+        .map((f) => {
+          if (useManualRanges) {
+            const startTable = Number(f.startTable);
+            const endTable = Number(f.endTable);
+            const count = endTable - startTable + 1;
+            return {
+              name: f.name,
+              tableCount: count,
+              startTable,
+              endTable,
+              stationId: f.drinkStationId
+            };
+          }
+          return {
+            name: f.name,
+            tableCount: Number(f.tableCount),
+            startTable: f.startTable,
+            endTable: f.endTable,
+            stationId: f.drinkStationId
+          };
+        });
+
+      if (!useManualRanges) {
+        let cursor = 1;
+        routingFloors.forEach(f => {
+          f.startTable = cursor;
+          f.endTable = cursor + f.tableCount - 1;
+          cursor = f.endTable + 1;
+        });
+      }
+
+      settingsStore.updateSettings({
+        drinkStationRouting: {
+          drinkCategoryId: drinkCategoryId || null,
+          floors: routingFloors
+        }
+      } as any);
+
+      await settingsStore.saveSettings();
+      setShowCreateModal(false);
+      showToast(getStatic('Bölüm ayarları başarıyla güncellendi!'), 'success');
+      // No need to reload QRs as we only changed meta-data (floor names/ranges)
+    } catch (error) {
+      console.error('Save floor settings error:', error);
+      showToast(getStatic('Ayarlar kaydedilirken hata oluştu'), 'error');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   // Create Logic
   const handleCreateBulkQRCodes = async () => {
@@ -610,6 +674,13 @@ export default function QRCodesPage() {
     return { name: match.name, start: match.startTable, end: match.endTable };
   };
 
+  const floors = (settings as any)?.drinkStationRouting?.floors || [];
+  const filteredQRCodes = qrCodes.filter(qr => {
+    if (activeFloorFilter === 'all') return true;
+    const floor = findFloorForTable(qr.tableNumber);
+    return floor && floor.name === activeFloorFilter;
+  });
+
   const onLogout = () => {
     logout();
     router.push('/isletme-giris');
@@ -674,11 +745,18 @@ export default function QRCodesPage() {
                   <span className="hidden sm:inline"><TranslatedText>Genel Menü QR</TranslatedText></span>
                 </button>
                 <button
+                  onClick={() => { setShowCreateModal(true); setUseManualRanges(true); }}
+                  className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 flex items-center gap-2 shadow-sm border border-gray-200"
+                >
+                  <FaSync />
+                  <span className="hidden sm:inline"><TranslatedText>Bölümleri Düzenle</TranslatedText></span>
+                </button>
+                <button
                   onClick={() => setShowCreateModal(true)}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm"
                 >
                   <FaPlus />
-                  <span className="hidden sm:inline"><TranslatedText>QR Kod Oluştur</TranslatedText></span>
+                  <span className="hidden sm:inline"><TranslatedText>Yeni QR Oluştur</TranslatedText></span>
                 </button>
               </div>
             </div>
@@ -774,6 +852,39 @@ export default function QRCodesPage() {
             </div>
           </div>
 
+          {/* Floor Filters */}
+          {floors.length > 0 && (
+            <div className="flex gap-2 mb-8 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm overflow-x-auto no-scrollbar">
+              <button
+                onClick={() => setActiveFloorFilter('all')}
+                className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${activeFloorFilter === 'all'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'text-gray-500 hover:bg-gray-100'
+                  }`}
+              >
+                <TranslatedText>Tümü</TranslatedText> ({qrCodes.length})
+              </button>
+              {floors.map((floor: any, idx: number) => {
+                const count = qrCodes.filter(qr => {
+                  const f = findFloorForTable(qr.tableNumber);
+                  return f && f.name === floor.name;
+                }).length;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveFloorFilter(floor.name)}
+                    className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${activeFloorFilter === floor.name
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'text-gray-500 hover:bg-gray-100'
+                      }`}
+                  >
+                    {floor.name} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* Toolbar */}
           {qrCodes.length > 0 && (
             <div className="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap items-center justify-between gap-4 border border-gray-100">
@@ -783,7 +894,7 @@ export default function QRCodesPage() {
                   className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded border transition-colors"
                 >
                   {selectAll ? <FaCheckSquare className="text-blue-600" /> : <FaSquare className="text-gray-400" />}
-                  <span><TranslatedText>Tümünü Seç</TranslatedText></span>
+                  <span><TranslatedText>Tümünü Seç</TranslatedText> ({(activeFloorFilter === 'all' ? qrCodes : filteredQRCodes).length})</span>
                 </button>
                 <span className="text-sm text-gray-500 border-l pl-3 ml-1">
                   {selectedQRCodes.size} <TranslatedText>seçili</TranslatedText>
@@ -820,7 +931,7 @@ export default function QRCodesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {qrCodes.slice(0, visibleCount).map((qr) => {
+              {filteredQRCodes.slice(0, visibleCount).map((qr) => {
                 const isSelected = selectedQRCodes.has(qr.id);
                 const floor = findFloorForTable(qr.tableNumber);
                 return (
@@ -1099,6 +1210,20 @@ export default function QRCodesPage() {
                   </>
                 ) : (
                   <TranslatedText>Oluştur</TranslatedText>
+                )}
+              </button>
+              <button
+                onClick={handleSaveFloorSettings}
+                disabled={creating}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {creating ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    <TranslatedText>Kaydediliyor...</TranslatedText>
+                  </>
+                ) : (
+                  <TranslatedText>Sadece Bölümleri Kaydet</TranslatedText>
                 )}
               </button>
             </div>
