@@ -328,7 +328,7 @@ function CartPageContent() {
             quantity: item.quantity,
             unitPrice: item.price, // Varyasyonlu fiyat zaten item.price içindedir
             price: item.price,
-            notes: item.notes || '',
+            notes: itemNote,
             variations: item.variant ? [item.variant] : []
           };
         }),

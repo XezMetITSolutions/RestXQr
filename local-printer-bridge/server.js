@@ -325,7 +325,6 @@ app.post('/test/:ip', async (req, res) => {
 
         printer.alignCenter();
         printer.setTextDoubleHeight();
-        printer.setTextDoubleWidth();
         printer.bold(true);
         printer.add(CMD.CP857);
         printer.add(encodeText("MASA 15"));
@@ -350,10 +349,9 @@ app.post('/test/:ip', async (req, res) => {
         ];
 
         for (const item of testItems) {
-            // Line 1: Quantity + Turkish Name (Çok Büyük)
+            // Line 1: Quantity + Turkish Name
             printer.bold(true);
             printer.setTextDoubleHeight();
-            printer.setTextDoubleWidth();
             printer.add(CMD.CP857);
             printer.add(encodeText(`${item.qty}x ${item.tr}\n`));
             printer.setTextNormal();
@@ -433,7 +431,6 @@ app.post('/print/:ip', async (req, res) => {
         // Format Kitchen Receipt
         printer.alignCenter();
         printer.setTextDoubleHeight();
-        printer.setTextDoubleWidth();
         printer.bold(true);
         printer.add(CMD.CP857);
         printer.add(encodeText(`MASA ${tableNumber || '?'}`));
@@ -446,18 +443,28 @@ app.post('/print/:ip', async (req, res) => {
         printer.newLine();
 
         printer.alignLeft();
+        console.log("📦 Printing items:", JSON.stringify(items, null, 2)); // Debug log
+
         for (const item of items) {
-            // Turkish Name (Çok Büyük)
+            // Turkish Name
             printer.bold(true);
             printer.setTextDoubleHeight();
-            printer.setTextDoubleWidth();
             printer.add(CMD.CP857);
             printer.add(encodeText(`${item.quantity}x ${item.name}\n`));
             printer.setTextNormal();
 
             // Sürüm/Varyasyon Bilgisi (Küçük, Büyük vb.)
-            const variation = item.selectedVariation?.name || item.variationName || item.variation;
+            // Get variation from all possible naming patterns
+            const variation =
+                (item.selectedVariation && typeof item.selectedVariation === 'object' ? item.selectedVariation.name : null) ||
+                item.selectedVariation ||
+                item.variationName ||
+                item.variation ||
+                item.variant ||
+                (item.options && Array.isArray(item.options) ? item.options.find(o => o.type === 'variation')?.name : null);
+
             if (variation) {
+                console.log(`✨ Found variation: ${variation}`);
                 printer.bold(true);
                 printer.add(CMD.CP857);
                 printer.add(encodeText(`   * ${variation.toUpperCase()} *\n`));
@@ -625,7 +632,6 @@ app.post('/debug/print-stations', async (req, res) => {
 
                     printer.alignCenter();
                     printer.setTextDoubleHeight();
-                    printer.setTextDoubleWidth();
                     printer.bold(true);
                     printer.add(CMD.CP857);
                     printer.add(encodeText(`MASA ${tableNumber}`));
@@ -638,7 +644,6 @@ app.post('/debug/print-stations', async (req, res) => {
                     for (const item of stationItems) {
                         printer.bold(true);
                         printer.setTextDoubleHeight();
-                        printer.setTextDoubleWidth();
                         printer.add(CMD.CP857);
                         printer.add(encodeText(`${item.quantity}x ${item.name}\n`));
                         printer.setTextNormal();
