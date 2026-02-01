@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { playNotificationSound } from '@/utils/audio';
 
 interface OrderItem {
   id: string;
@@ -38,6 +39,7 @@ interface MenuItem {
 
 export default function MutfakPanel() {
   const router = useRouter();
+  const prevOrderCount = useRef(0);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string>('');
@@ -129,6 +131,10 @@ export default function MutfakPanel() {
           order.tableNumber != null // Masasız siparişleri filtrele
         );
         setOrders(activeOrders);
+        if (activeOrders.length > prevOrderCount.current) {
+          playNotificationSound();
+        }
+        prevOrderCount.current = activeOrders.length;
       }
     } catch (error) {
       console.error('Siparişler alınamadı:', error);

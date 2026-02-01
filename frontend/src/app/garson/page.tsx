@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { printReceiptViaBridge } from '@/lib/printerHelpers';
 import apiService from '@/services/api';
+import { playNotificationSound } from '@/utils/audio';
 import { FaUser, FaUtensils, FaBell, FaCheckCircle, FaClock, FaMoneyBillWave, FaEdit, FaEye, FaTimes, FaChartBar, FaSignOutAlt, FaPlus, FaMinus } from 'react-icons/fa';
 
 interface OrderItem {
@@ -41,6 +42,9 @@ interface WaiterCall {
 
 export default function GarsonPanel() {
   const router = useRouter();
+  const prevOrderCount = useRef(0);
+  const prevReadyCount = useRef(0);
+  const prevCallCount = useRef(0);
   const [orders, setOrders] = useState<Order[]>([]);
   const [calls, setCalls] = useState<WaiterCall[]>([]);
   const [tables, setTables] = useState<number[]>([]); // All existing tables
@@ -194,7 +198,14 @@ export default function GarsonPanel() {
 
       if (data.success) {
         console.log(`✅ ${data.data?.length || 0} sipariş alındı`);
-        setOrders(data.data || []);
+        const newOrders = data.data || [];
+        setOrders(newOrders);
+        const readyCount = newOrders.filter((o: any) => o.status === 'ready').length;
+        if (newOrders.length > prevOrderCount.current || readyCount > prevReadyCount.current) {
+          playNotificationSound();
+        }
+        prevOrderCount.current = newOrders.length;
+        prevReadyCount.current = readyCount;
       } else {
         console.error('❌ Siparişler alınamadı (API Error):', data.message);
         // Hata mesajını kullanıcıya göster
@@ -232,6 +243,10 @@ export default function GarsonPanel() {
         const activeCalls = (data.data || []).filter((call: WaiterCall) => call.status === 'active');
         console.log(`✅ ${activeCalls.length} aktif çağrı bulundu (toplam: ${data.data?.length || 0})`);
         setCalls(activeCalls);
+        if (activeCalls.length > prevCallCount.current) {
+          playNotificationSound();
+        }
+        prevCallCount.current = activeCalls.length;
       } else {
         console.error('❌ Çağrılar alınamadı:', data.message);
       }

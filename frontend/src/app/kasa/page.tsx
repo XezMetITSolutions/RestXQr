@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaMoneyBillWave, FaSearch, FaUtensils, FaCheckCircle, FaCreditCard, FaReceipt, FaPrint, FaSignOutAlt, FaTrash, FaPlus, FaMinus, FaTimesCircle, FaCheck, FaStore, FaGlobe, FaBell, FaBackspace, FaArrowLeft, FaBox, FaToggleOn, FaToggleOff } from 'react-icons/fa';
 import { printReceiptViaBridge } from '@/lib/printerHelpers';
 import apiService from '@/services/api';
+import { playNotificationSound } from '@/utils/audio';
 
 interface OrderItem {
   id: string;
@@ -45,6 +46,8 @@ interface WaiterCall {
 
 export default function KasaPanel() {
   const router = useRouter();
+  const prevOrderCount = useRef(0);
+  const prevCallCount = useRef(0);
   const [orders, setOrders] = useState<Order[]>([]);
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [calls, setCalls] = useState<WaiterCall[]>([]);
@@ -318,6 +321,11 @@ export default function KasaPanel() {
 
         setAllOrders(normalizedOrders);
         setOrders(filteredOrders);
+
+        if (filteredOrders.length > prevOrderCount.current) {
+          playNotificationSound();
+        }
+        prevOrderCount.current = filteredOrders.length;
       }
     } catch (error) {
       console.error('Siparişler alınamadı:', error);
@@ -336,6 +344,10 @@ export default function KasaPanel() {
       if (data.success) {
         const activeCalls = (data.data || []).filter((call: WaiterCall) => call.status === 'active');
         setCalls(activeCalls);
+        if (activeCalls.length > prevCallCount.current) {
+          playNotificationSound();
+        }
+        prevCallCount.current = activeCalls.length;
       }
     } catch (error) {
       console.error('❌ Çağrılar fetch hatası:', error);

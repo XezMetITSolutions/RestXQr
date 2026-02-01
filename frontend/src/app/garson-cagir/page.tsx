@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaBell, FaArrowLeft, FaGlassWhiskey, FaFileInvoiceDollar, FaSprayCan, FaHandHolding, FaCheckCircle, FaShoppingCart, FaUtensils } from 'react-icons/fa';
+import { FaBell, FaArrowLeft, FaGlassWhiskey, FaFileInvoiceDollar, FaSprayCan, FaHandHolding, FaCheckCircle, FaShoppingCart, FaUtensils, FaConciergeBell, FaInfoCircle, FaClock } from 'react-icons/fa';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import TranslatedText from '@/components/TranslatedText';
 
@@ -146,10 +146,10 @@ function GarsonCagirContent() {
     }
 
     const messages: Record<string, string> = {
-      water: 'Su İsteği',
-      bill: 'Hesap İsteği',
       clean: 'Masa Temizliği',
-      help: 'Yardım Talebi'
+      service: 'Servis İsteği',
+      info: 'Bilgi',
+      delay: 'Sipariş Gecikti'
     };
 
     const newRequest = {
@@ -342,36 +342,36 @@ function GarsonCagirContent() {
           <h2 className="text-xl font-bold mb-4 text-gray-800"><TranslatedText>Hızlı İstekler</TranslatedText></h2>
           <div className="grid grid-cols-2 gap-4">
             <button
-              onClick={() => handleQuickRequest('water')}
-              className="flex flex-col items-center justify-center gap-3 py-6 rounded-2xl shadow-sm hover:shadow-lg active:scale-95 transition-all duration-200"
-              style={{ backgroundColor: primary, color: 'white' }}
-            >
-              <FaGlassWhiskey size={32} />
-              <span className="text-sm font-semibold"><TranslatedText>Su Getir</TranslatedText></span>
-            </button>
-            <button
-              onClick={() => handleQuickRequest('bill')}
-              className="flex flex-col items-center justify-center gap-3 py-6 rounded-2xl shadow-sm hover:shadow-lg active:scale-95 transition-all duration-200"
-              style={{ backgroundColor: primary, color: 'white' }}
-            >
-              <FaFileInvoiceDollar size={32} />
-              <span className="text-sm font-semibold"><TranslatedText>Hesap İste</TranslatedText></span>
-            </button>
-            <button
               onClick={() => handleQuickRequest('clean')}
               className="flex flex-col items-center justify-center gap-3 py-6 rounded-2xl shadow-sm hover:shadow-lg active:scale-95 transition-all duration-200"
               style={{ backgroundColor: primary, color: 'white' }}
             >
               <FaSprayCan size={32} />
-              <span className="text-sm font-semibold"><TranslatedText>Masayı Temizle</TranslatedText></span>
+              <span className="text-sm font-semibold"><TranslatedText>Masa Temizliği</TranslatedText></span>
             </button>
             <button
-              onClick={() => handleQuickRequest('help')}
+              onClick={() => handleQuickRequest('service')}
               className="flex flex-col items-center justify-center gap-3 py-6 rounded-2xl shadow-sm hover:shadow-lg active:scale-95 transition-all duration-200"
               style={{ backgroundColor: primary, color: 'white' }}
             >
-              <FaHandHolding size={32} />
-              <span className="text-sm font-semibold"><TranslatedText>Yardım Gerekiyor</TranslatedText></span>
+              <FaConciergeBell size={32} />
+              <span className="text-sm font-semibold"><TranslatedText>Servis İsteği</TranslatedText></span>
+            </button>
+            <button
+              onClick={() => handleQuickRequest('info')}
+              className="flex flex-col items-center justify-center gap-3 py-6 rounded-2xl shadow-sm hover:shadow-lg active:scale-95 transition-all duration-200"
+              style={{ backgroundColor: primary, color: 'white' }}
+            >
+              <FaInfoCircle size={32} />
+              <span className="text-sm font-semibold"><TranslatedText>Bilgi</TranslatedText></span>
+            </button>
+            <button
+              onClick={() => handleQuickRequest('delay')}
+              className="flex flex-col items-center justify-center gap-3 py-6 rounded-2xl shadow-sm hover:shadow-lg active:scale-95 transition-all duration-200"
+              style={{ backgroundColor: primary, color: 'white' }}
+            >
+              <FaClock size={32} />
+              <span className="text-sm font-semibold"><TranslatedText>Sipariş Gecikti</TranslatedText></span>
             </button>
           </div>
         </div>
@@ -405,10 +405,10 @@ function GarsonCagirContent() {
                 <div key={request.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border-2 border-gray-100">
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">
-                      {request.type === 'water' && <span>💧 <TranslatedText>Su Getir</TranslatedText></span>}
-                      {request.type === 'bill' && <span>💰 <TranslatedText>Hesap İste</TranslatedText></span>}
-                      {request.type === 'clean' && <span>🧹 <TranslatedText>Masayı Temizle</TranslatedText></span>}
-                      {request.type === 'help' && <span>🤝 <TranslatedText>Yardım Gerekiyor</TranslatedText></span>}
+                      {request.type === 'clean' && <span>🧹 <TranslatedText>Masa Temizliği</TranslatedText></span>}
+                      {request.type === 'service' && <span>🛎️ <TranslatedText>Servis İsteği</TranslatedText></span>}
+                      {request.type === 'info' && <span>ℹ️ <TranslatedText>Bilgi</TranslatedText></span>}
+                      {request.type === 'delay' && <span>🕰️ <TranslatedText>Sipariş Gecikti</TranslatedText></span>}
                       {request.type === 'custom' && `📝 ${request.message}`}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
