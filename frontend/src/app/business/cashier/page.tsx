@@ -59,7 +59,8 @@ export default function CashierDashboard() {
   } = useNotificationStore();
   const {
     getActiveOrders,
-    updateOrderStatus: updateCentralOrderStatus
+    updateOrderStatus: updateCentralOrderStatus,
+    initializeDemoData
   } = useCentralOrderStore();
 
   // Demo veriler kaldırıldı - gerçek veriler API'den gelecek
@@ -141,6 +142,7 @@ export default function CashierDashboard() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [menuSearchTerm, setMenuSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   // Gelişmiş ödeme sistemi state'leri
   const [showSplitPaymentModal, setShowSplitPaymentModal] = useState(false);
@@ -180,6 +182,7 @@ export default function CashierDashboard() {
     tableNumber: centralOrder.tableNumber,
     items: centralOrder.items.map(item => ({
       id: item.id,
+      itemId: item.id,
       name: { tr: item.name, en: item.name },
       price: item.price,
       quantity: item.quantity,
@@ -189,10 +192,12 @@ export default function CashierDashboard() {
     total: centralOrder.totalAmount,
     status: centralOrder.status as 'pending' | 'preparing' | 'ready' | 'delivered' | 'paid',
     timestamp: new Date(centralOrder.createdAt).getTime(),
-    notes: '',
-    paymentMethod: null,
-    customerName: '',
-    customerPhone: ''
+    paymentMethod: undefined,
+    tipAmount: 0,
+    supportAmount: 0,
+    discount: 0,
+    subtotal: centralOrder.totalAmount,
+    couponCode: null
   }));
 
   const filteredOrders = demoOrders.filter(order => {
@@ -826,7 +831,7 @@ export default function CashierDashboard() {
                   console.log('SSE URL:', `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://masapp-backend.onrender.com'}/api/events/orders`);
                   console.log('Authenticated Staff:', authenticatedStaff);
                   console.log('Authenticated Restaurant:', authenticatedRestaurant);
-                  console.log('Orders Count:', orders.length);
+                  console.log('Orders Count:', demoOrders.length);
                   console.log('Notifications:', notifications);
 
                   // API Health Check
