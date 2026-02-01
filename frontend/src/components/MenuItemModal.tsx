@@ -31,27 +31,7 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
     }
 
     setSelectedVariant(initialVariant);
-    if (initialVariant) {
-      setNotes(`* ${initialVariant.name} *`);
-    }
   }, [item]);
-
-  // Varyasyon değiştikçe notu güncelle
-  useEffect(() => {
-    if (selectedVariant) {
-      setNotes(prev => {
-        // Eğer not alanı boşsa veya sadece eski bir varyasyon varsa direkt yenisini yaz
-        const variantList = [...(item.variations || []), ...(item.variants || [])].map(v => v?.name).filter(Boolean);
-
-        let cleanedNotes = prev;
-        variantList.forEach(vName => {
-          cleanedNotes = cleanedNotes.replace(new RegExp(`\\* ${vName} \\*`, 'g'), '').trim();
-        });
-
-        return cleanedNotes ? `${cleanedNotes} * ${selectedVariant.name} *` : `* ${selectedVariant.name} *`;
-      });
-    }
-  }, [selectedVariant, item.variations, item.variants]);
 
   // 3. Helper: Calculate discounted price
   const getDiscountedPrice = useCallback(() => {

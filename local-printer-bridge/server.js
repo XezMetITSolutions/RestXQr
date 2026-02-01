@@ -461,6 +461,7 @@ app.post('/print/:ip', async (req, res) => {
                 item.variationName ||
                 item.variation ||
                 item.variant ||
+                (item.variations && Array.isArray(item.variations) && item.variations.length > 0 ? (item.variations[0].name || item.variations[0]) : null) ||
                 (item.options && Array.isArray(item.options) ? item.options.find(o => o.type === 'variation')?.name : null);
 
             if (variation) {
