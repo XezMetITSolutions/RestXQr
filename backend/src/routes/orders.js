@@ -244,7 +244,8 @@ router.get('/', async (req, res) => {
         status: 'preparing',
         prepTime: 10,
         kitchenStation: itemStation,
-        categoryId: it.menuItem?.categoryId // Kategori ID'sini ekle (filtreleme için)
+        categoryId: it.menuItem?.categoryId, // Kategori ID'sini ekle (filtreleme için)
+        variations: it.variations || [] // Varyasyonları ekle
       });
       orderIdToItems.set(it.orderId, list);
     }
@@ -441,7 +442,8 @@ router.post('/', async (req, res) => {
         quantity: qty,
         unitPrice,
         totalPrice: qty * unitPrice,
-        notes: it.notes || null
+        notes: it.notes || null,
+        variations: it.variations || []
       });
     }
 
@@ -774,7 +776,8 @@ router.put('/:id', async (req, res) => {
           quantity: qty,
           unitPrice: unitPrice,
           totalPrice: isNaN(totalPrice) ? 0 : totalPrice,
-          notes: item.notes || ''
+          notes: item.notes || '',
+          variations: item.variations || []
         });
       }
     }
@@ -826,7 +829,8 @@ router.put('/:id', async (req, res) => {
                 name: item.menuItem?.name || 'Ürün',
                 quantity: item.quantity,
                 notes: item.notes || '',
-                translations: item.menuItem?.translations || {}
+                translations: item.menuItem?.translations || {},
+                variations: item.variations || []
               });
             }
 
@@ -837,7 +841,8 @@ router.put('/:id', async (req, res) => {
                 name: it.menuItem?.name || 'Ürün',
                 quantity: it.quantity,
                 notes: it.notes || '',
-                translations: it.menuItem?.translations || {}
+                translations: it.menuItem?.translations || {},
+                variations: it.variations || []
               }));
             }
 

@@ -13,6 +13,7 @@ interface OrderItem {
   quantity: number;
   price: number;
   notes?: string;
+  variations?: any[];
 }
 
 interface Order {
@@ -998,6 +999,30 @@ export default function KasaPanel() {
 
   const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 
+  // Ödeme yöntemi, bahşiş ve bağış bilgilerini notlardan temizle
+  const cleanNotes = (notes: string | undefined): string | undefined => {
+    if (!notes) return notes;
+
+    // Ödeme yöntemi, bahşiş ve bağış bilgilerini regex ile temizle
+    let cleaned = notes
+      .replace(/Ödeme(\s+yöntemi)?:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+      .replace(/Bahşiş:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+      .replace(/Bağış:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+      .replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:\s*[^,|]+(,\s*|\|\s*)?/gi, '') // Debug notlarını temizle
+      .replace(/,\s*,/g, ',') // Çift virgülleri temizle
+      .replace(/^,\s*/, '') // Başlangıçtaki virgülü temizle
+      .replace(/,\s*$/, '') // Sondaki virgülü temizle
+      .replace(/^\s*📝\s*(Özel\s+)?NOT:\s*/i, '') // "📝 NOT:" veya "📝 Özel Not:" başlığını temizle
+      .trim();
+
+    // Eğer sadece boşluk veya virgül kaldıysa undefined döndür
+    if (!cleaned || cleaned === ',' || cleaned === '') {
+      return undefined;
+    }
+
+    return cleaned;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -1341,6 +1366,13 @@ export default function KasaPanel() {
                           <span className="text-2xl font-black text-green-600 font-mono tracking-tighter">{(Number(order.totalAmount || 0) - Number(order.paidAmount || 0) - Number(order.discountAmount || 0)).toFixed(2)}₺</span>
                         </div>
 
+                        {cleanNotes(order.notes) && (
+                          <div className="mt-3 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl">
+                            <span className="text-[10px] font-black text-yellow-700 uppercase tracking-widest block mb-1">DİKKAT: SİPARİŞ NOTU</span>
+                            <p className="text-xs font-bold text-gray-700">{cleanNotes(order.notes)}</p>
+                          </div>
+                        )}
+
                         {order.tableNumber == null && !order.id.includes('grouped') && (
                           <button
                             onClick={(e) => {
@@ -1531,7 +1563,14 @@ export default function KasaPanel() {
                         className={`p-3 bg-white border border-gray-200 rounded-lg flex flex-col gap-2 cursor-pointer transition-all ${sel ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:border-gray-300'}`}
                       >
                         <div className="flex justify-between items-start">
-                          <span className="font-bold text-gray-800 text-sm line-clamp-2 w-3/4">{item.name}</span>
+                          <div className="flex flex-col w-3/4">
+                            <span className="font-bold text-gray-800 text-sm line-clamp-2">{item.name}</span>
+                            {item.variations && item.variations.length > 0 && (
+                              <span className="text-[10px] text-blue-600 font-bold">
+                                {item.variations.map((v: any) => typeof v === 'string' ? v : (v.name || v.value)).join(', ')}
+                              </span>
+                            )}
+                          </div>
                           <span className="font-bold text-gray-900 text-sm">{item.price}₺</span>
                         </div>
 

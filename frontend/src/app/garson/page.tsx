@@ -13,6 +13,7 @@ interface OrderItem {
   quantity: number;
   price: number;
   notes?: string;
+  variations?: any[];
 }
 
 interface Order {
@@ -494,10 +495,14 @@ export default function GarsonPanel() {
     // Notları temizle (Ödeme bilgilerini gizle)
     const cleanNotes = (note: string) => {
       if (!note) return '';
-      return note.replace(/Ödeme yöntemi:[^|]*?(?:\||$)/g, '')
-        .replace(/Bahşiş:[^|]*?(?:\||$)/g, '')
-        .replace(/Bağış:[^|]*?(?:\||$)/g, '')
-        .replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:[^|]*?(?:\||$)/gi, '')
+      return note.replace(/Ödeme(\s+yöntemi)?:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+        .replace(/Bahşiş:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+        .replace(/Bağış:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+        .replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+        .replace(/^\s*📝\s*(Özel\s+)?NOT:\s*/i, '')
+        .replace(/,\s*,/g, ',')
+        .replace(/^,\s*/, '')
+        .replace(/,\s*$/, '')
         .trim();
     };
 
@@ -731,7 +736,14 @@ export default function GarsonPanel() {
                           {item.quantity}x
                         </div>
                         <div className="flex-1">
-                          <div className="text-gray-700 font-medium">{item.name}</div>
+                          <div className="text-gray-700 font-medium">
+                            {item.name}
+                            {item.variations && item.variations.length > 0 && (
+                              <span className="ml-1 text-purple-600 font-bold">
+                                ({item.variations.map((v: any) => typeof v === 'string' ? v : (v.name || v.value)).join(', ')})
+                              </span>
+                            )}
+                          </div>
                           {item.notes && (
                             <div className="text-xs text-purple-600 italic mt-0.5">• {item.notes}</div>
                           )}

@@ -7,6 +7,23 @@ const https = require('https');
 const http = require('http');
 
 /**
+ * Ödeme yöntemi, bahşiş ve bağış bilgilerini notlardan temizle
+ */
+function cleanNotes(notes) {
+    if (!notes) return notes;
+    return notes
+        .replace(/Ödeme(\s+yöntemi)?:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+        .replace(/Bahşiş:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+        .replace(/Bağış:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+        .replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+        .replace(/^\s*📝\s*(Özel\s+)?NOT:\s*/i, '')
+        .replace(/,\s*,/g, ',')
+        .replace(/^,\s*/, '')
+        .replace(/,\s*$/, '')
+        .trim();
+}
+
+/**
  * Thermal Printer Service
  * Her istasyon için farklı yazıcı desteği
  * Türkçe ve Çince karakter desteği ile
@@ -137,10 +154,10 @@ class PrinterService {
             printer.drawLine();
             printer.newLine();
 
-            printer.setTextDoubleHeight();
+            printer.setTextNormal();
             printer.bold(true);
-            const productsHeader = language === 'zh' ? '产品:' : 'URUNLER:';
-            printer.println(this.encodeText(productsHeader, codePage));
+            const detailLabel = language === 'zh' ? '订单详情:' : 'SIPARIS DETAYI:';
+            printer.println(this.encodeText(detailLabel, codePage));
             printer.bold(false);
             printer.newLine();
 
@@ -157,18 +174,35 @@ class PrinterService {
                 printer.println(`${item.quantity}x ${itemNameEncoded}`);
                 printer.bold(false);
 
+                // Varyasyonları yazdır (Seçenekler: Az acılı, Büyük porsiyon vb.)
+                if (item.variations && Array.isArray(item.variations) && item.variations.length > 0) {
+                    const variationText = item.variations
+                        .map(v => typeof v === 'string' ? v : (v.name || v.value))
+                        .join(', ');
+                    printer.println(this.encodeText(`   > ${variationText}`, codePage));
+                }
+
                 if (item.notes) {
                     printer.bold(true);
-                    printer.underline(true);
                     const noteLabel = language === 'zh' ? '备注: ' : 'NOT: ';
-                    printer.println(this.encodeText(`   ${noteLabel}${item.notes}`, codePage));
-                    printer.underline(false);
+                    printer.println(this.encodeText(`   !! ${noteLabel}${item.notes}`, codePage));
                     printer.bold(false);
                 }
                 printer.newLine();
             }
 
             printer.setTextNormal();
+
+            // Genel Sipariş Notu (Ödeme bilgileri temizlenmiş)
+            const generalNote = cleanNotes(orderData.notes);
+            if (generalNote) {
+                printer.drawLine();
+                printer.bold(true);
+                printer.println(this.encodeText(`GENEL NOT: ${generalNote}`, codePage));
+                printer.bold(false);
+                printer.newLine();
+            }
+
             printer.drawLine();
             printer.newLine();
             printer.alignCenter();

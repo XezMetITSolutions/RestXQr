@@ -12,6 +12,7 @@ interface OrderItem {
   price: number;
   notes?: string;
   kitchenStation?: string;
+  variations?: any[];
 }
 
 interface Order {
@@ -395,14 +396,14 @@ export default function MutfakPanel() {
 
     // Ödeme yöntemi, bahşiş ve bağış bilgilerini regex ile temizle
     let cleaned = notes
-      .replace(/Ödeme\s+yöntemi:\s*[^,]+(,\s*)?/gi, '')
-      .replace(/Bahşiş:\s*[^,]+(,\s*)?/gi, '')
-      .replace(/Bağış:\s*[^,]+(,\s*)?/gi, '')
-      .replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:\s*[^,]+(,\s*)?/gi, '') // Debug notlarını temizle
+      .replace(/Ödeme(\s+yöntemi)?:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+      .replace(/Bahşiş:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+      .replace(/Bağış:\s*[^,|]+(,\s*|\|\s*)?/gi, '')
+      .replace(/Debug\s+Simülasyonu\s*-\s*Ödeme:\s*[^,|]+(,\s*|\|\s*)?/gi, '') // Debug notlarını temizle
       .replace(/,\s*,/g, ',') // Çift virgülleri temizle
       .replace(/^,\s*/, '') // Başlangıçtaki virgülü temizle
       .replace(/,\s*$/, '') // Sondaki virgülü temizle
-      .replace(/^\s*📝\s*Özel\s+Not:\s*/i, '') // "📝 Özel Not:" başlığını temizle
+      .replace(/^\s*📝\s*(Özel\s+)?NOT:\s*/i, '') // "📝 NOT:" veya "📝 Özel Not:" başlığını temizle
       .trim();
 
     // Eğer sadece boşluk veya virgül kaldıysa undefined döndür
@@ -770,7 +771,14 @@ export default function MutfakPanel() {
                               {order.items.map((item, index) => (
                                 <div key={index} className="text-gray-600">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <span>{item.quantity}x {item.name}</span>
+                                    <span>
+                                      {item.quantity}x {item.name}
+                                      {item.variations && item.variations.length > 0 && (
+                                        <span className="ml-1 text-blue-600 font-bold">
+                                          ({item.variations.map((v: any) => typeof v === 'string' ? v : (v.name || v.value)).join(', ')})
+                                        </span>
+                                      )}
+                                    </span>
                                     {item.kitchenStation && (
                                       <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{
                                         backgroundColor:

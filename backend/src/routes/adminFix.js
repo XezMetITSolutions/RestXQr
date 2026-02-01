@@ -567,6 +567,10 @@ END;
                     BEGIN
                         ALTER TABLE qr_tokens ADD COLUMN IF NOT EXISTS used_at TIMESTAMP WITH TIME ZONE;
                     EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE order_items ADD COLUMN IF NOT EXISTS variations JSONB DEFAULT '[]'::jsonb;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
                 END $$;
             `);
 

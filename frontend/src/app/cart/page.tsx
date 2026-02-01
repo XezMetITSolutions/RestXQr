@@ -47,6 +47,7 @@ function CartPageContent() {
   const [token, setToken] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [activeOrders, setActiveOrders] = useState<any[]>([]); // Masanın aktif siparişleri
+  const [orderNote, setOrderNote] = useState('');
 
   const currentRestaurant = isClient ? (() => {
     const hostname = window.location.hostname;
@@ -327,10 +328,11 @@ function CartPageContent() {
             quantity: item.quantity,
             unitPrice: item.price, // Varyasyonlu fiyat zaten item.price içindedir
             price: item.price,
-            notes: itemNote
+            notes: item.notes || '',
+            variations: item.variant ? [item.variant] : []
           };
         }),
-        notes: `Ödeme yöntemi: ${(!settings?.paymentSettings?.allowCardPayment && !settings?.paymentSettings?.allowCashPayment) ? 'Kasada Ödeme' :
+        notes: `${orderNote ? `📝 NOT: ${orderNote} | ` : ''}Ödeme: ${(!settings?.paymentSettings?.allowCardPayment && !settings?.paymentSettings?.allowCashPayment) ? 'Kasada Ödeme' :
           (paymentMethod === 'cash' ? 'nakit' : paymentMethod)
           }, Bahşiş: ${tipAmount}₺, Bağış: ${donationAmount}₺`,
         orderType: 'dine_in'
@@ -816,6 +818,20 @@ function CartPageContent() {
                   </div>
                 </div>
               )}
+
+              {/* Sipariş Notu (Genel) */}
+              <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+                <h3 className="font-semibold text-dynamic-sm mb-3">
+                  <TranslatedText>Sipariş Notu (Opsiyonel)</TranslatedText>
+                </h3>
+                <textarea
+                  value={orderNote}
+                  onChange={(e) => setOrderNote(e.target.value)}
+                  placeholder={currentLanguage === 'Turkish' ? 'Alerji notu, çatal-kaşık tercihi vb.' : (currentLanguage === 'German' ? 'Allergiehinweise, Besteckwünsche usw.' : 'Allergy notes, cutlery requests, etc.')}
+                  className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
+                  rows={2}
+                />
+              </div>
 
               {/* Order Summary */}
               <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
