@@ -86,10 +86,10 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
 
     // 2. Restaurant Name
     if (data.header) {
-        ctx.font = 'bold 24px sans-serif';
+        ctx.font = 'bold 20px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(data.header.toUpperCase(), width / 2, y);
-        y += 30;
+        y += 26;
     }
 
     // Separator
@@ -99,20 +99,20 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
     // 3. Check & Table (Large Bold)
     if (data.type === 'BILL') {
         ctx.textAlign = 'left';
-        ctx.font = 'bold 24px sans-serif';
+        ctx.font = 'bold 20px sans-serif';
         ctx.fillText(`Cek : ${data.checkNumber || data.orderNumber.slice(-3)}`, 15, y);
-        y += 30;
+        y += 26;
         ctx.fillText(`Masa : MASA - ${data.tableNumber}`, 15, y);
-        y += 40;
+        y += 34;
 
         // 4. Info Grid
-        ctx.font = '18px sans-serif';
+        ctx.font = '14px sans-serif';
         const drawGridRow = (left: string, right: string) => {
             ctx.textAlign = 'left';
             ctx.fillText(left, 15, y);
             ctx.textAlign = 'right';
             ctx.fillText(right, width - 15, y);
-            y += 24;
+            y += 20;
         };
 
         const now = new Date();
@@ -125,16 +125,16 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         y += 25;
     } else {
         // Kitchen basic header
-        ctx.font = 'bold 32px sans-serif';
+        ctx.font = 'bold 24px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(`MASA ${data.tableNumber}`, width / 2, y);
-        y += 40;
+        y += 32;
 
-        ctx.font = 'bold 20px sans-serif';
+        ctx.font = 'bold 16px sans-serif';
         ctx.fillText(new Date().toLocaleString('tr-TR'), width / 2, y);
-        y += 35;
+        y += 28;
         drawDashedLine(y);
-        y += 25;
+        y += 20;
     }
 
     const wrapText = (text: string, x: number, startY: number, maxWidth: number, lineHeight: number): number => {
@@ -176,7 +176,7 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
     // 5. Items
     ctx.textAlign = 'left';
     data.items.forEach((item) => {
-        ctx.font = 'bold 22px sans-serif';
+        ctx.font = 'bold 18px sans-serif';
         const qtyText = `${item.quantity} x `;
         const nameText = item.name;
 
@@ -186,11 +186,11 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
 
         // Wrap Item Name
         const nameMaxWidth = data.type === 'BILL' && item.price !== undefined ? width - 15 - 120 - (15 + qtyWidth) : width - 15 - (15 + qtyWidth);
-        const nextY = wrapText(nameText, 15 + qtyWidth, y, nameMaxWidth, 28);
+        const nextY = wrapText(nameText, 15 + qtyWidth, y, nameMaxWidth, 24);
 
         if (data.type === 'BILL' && item.price !== undefined) {
             ctx.textAlign = 'right';
-            ctx.font = 'bold 22px sans-serif';
+            ctx.font = 'bold 18px sans-serif';
             ctx.fillText(`${(item.price * item.quantity).toFixed(2)} TL`, width - 15, y);
             ctx.textAlign = 'left';
         }
@@ -200,8 +200,8 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         // Chinese Translation Support
         const chineseName = item.translations?.zh?.name;
         if (chineseName && chineseName !== nameText) {
-            ctx.font = '18px sans-serif'; // Slightly smaller for Chinese
-            y = wrapText(`   ${chineseName}`, 15, y, width - 30, 24);
+            ctx.font = '14px sans-serif'; // Slightly smaller for Chinese
+            y = wrapText(`   ${chineseName}`, 15, y, width - 30, 20);
         }
 
         // Variation Rendering (New)
@@ -209,22 +209,22 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         const varList = Array.isArray(variations) ? variations : [variations];
 
         if (varList.length > 0) {
-            ctx.font = '20px sans-serif';
+            ctx.font = '16px sans-serif';
             ctx.fillStyle = '#333'; // Slightly gray/lighter bold for variation
             const varText = `   * ${varList.map(v => typeof v === 'string' ? v : (v.name || v.value)).join(', ')} *`;
-            y = wrapText(varText, 15, y, width - 30, 26);
+            y = wrapText(varText, 15, y, width - 30, 22);
             ctx.fillStyle = 'black'; // Reset
         }
 
         const itemNote = item.notes || (item as any).note;
         if (itemNote) {
             // "Not kalın harflerle olsun altı çizgili olsun"
-            ctx.font = 'bold 20px sans-serif';
+            ctx.font = 'bold 16px sans-serif';
             const noteText = `   NOT: ${itemNote}`;
 
             // Draw text and get next y
             const noteYBefore = y;
-            y = wrapText(noteText, 15, y, width - 30, 26);
+            y = wrapText(noteText, 15, y, width - 30, 22);
 
             // Draw underline for the note
             const textWidth = Math.min(ctx.measureText(noteText).width, width - 30);
@@ -241,36 +241,36 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
     if (data.type === 'BILL') {
         y += 20;
         // Ara Toplam
-        ctx.font = 'bold 20px sans-serif';
+        ctx.font = 'bold 16px sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText("ARA TOPLAM", 15, y);
         ctx.textAlign = 'right';
         ctx.fillText(`${(data.subtotal || data.total || 0).toFixed(2)} TL`, width - 15, y);
-        y += 28;
+        y += 22;
 
         drawDashedLine(y);
-        y += 20;
+        y += 15;
 
         // Tax Breakdown
         if (data.taxDetails) {
-            ctx.font = '16px sans-serif';
+            ctx.font = '14px sans-serif';
             ctx.textAlign = 'left';
             ctx.fillText(`${data.taxDetails.name} (${data.taxDetails.rate}%)`, 15, y);
-            y += 22;
+            y += 18;
 
             ctx.fillText(`${(data.subtotal || data.total || 0).toFixed(2)} TL`, 15, y);
             ctx.textAlign = 'right';
             ctx.fillText(`${data.taxDetails.amount.toFixed(2)} KDV ${data.taxDetails.net.toFixed(2)} NET`, width - 15, y);
-            y += 26;
+            y += 22;
         }
 
         // Toplam
-        ctx.font = 'bold 26px sans-serif';
+        ctx.font = 'bold 22px sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText("TOPLAM", 15, y);
         ctx.textAlign = 'right';
         ctx.fillText(`${(data.total || 0).toFixed(2)} TL`, width - 15, y);
-        y += 35;
+        y += 30;
 
         drawDashedLine(y);
     }
@@ -278,12 +278,12 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
     // Footer
     if (data.footer) {
         y += 30;
-        ctx.font = '16px sans-serif';
+        ctx.font = '14px sans-serif';
         ctx.textAlign = 'center';
         const lines = data.footer.split('\n');
         lines.forEach(line => {
             ctx.fillText(line, width / 2, y);
-            y += 20;
+            y += 18;
         });
     }
 
