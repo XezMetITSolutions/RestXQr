@@ -239,7 +239,7 @@ export default function KasaPanel() {
           discountAmount: Number(order?.discountAmount) || 0,
           items: (order?.items || []).map((item: any) => ({
             ...item,
-            price: Number(item?.price) || 0,
+            price: Number(item?.unitPrice || item?.price) || 0,
             quantity: Number(item?.quantity) || 0
           }))
         }));
@@ -766,7 +766,11 @@ export default function KasaPanel() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: selectedOrder.items,
+          items: selectedOrder.items.map(item => ({
+            ...item,
+            price: Number(item.price || item.unitPrice || 0),
+            totalPrice: undefined // Force backend to recalculate
+          })),
           totalAmount: selectedOrder.totalAmount,
           cashierNote: selectedOrder.cashierNote,
           discountAmount: selectedOrder.discountAmount,
