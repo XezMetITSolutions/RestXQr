@@ -677,4 +677,50 @@ router.get('/apply-campaigns', async (req, res) => {
     }
 });
 
+// GET /api/admin-fix/fix-ramen-pricing - Update Ramen Request
+router.get('/fix-ramen-pricing', async (req, res) => {
+    let logs = [];
+    const log = (msg) => logs.push(msg);
+
+    try {
+        const { MenuItem } = require('../models');
+        const { Op } = require('sequelize');
+
+        log('🍜 Starting Ramen Fix...');
+
+        // Find the item
+        const items = await MenuItem.findAll({
+            where: {
+                name: { [Op.iLike]: '%Dana etli ramen%' }
+            }
+        });
+
+        if (items.length === 0) {
+            log('❌ "Dana etli ramen" bulunamadı.');
+            return res.json({ logs });
+        }
+
+        for (const item of items) {
+            log(`Found item: ${item.name} (${item.id}) - Current Price: ${item.price}`);
+
+            const newVariations = [
+                { name: 'Küçük', price: 228 },
+                { name: 'Büyük', price: 248 }
+            ];
+
+            await item.update({
+                price: 228, // Base price (Küçük)
+                variations: newVariations
+            });
+
+            log(`✅ Updated ${item.name}: Price -> 228, Variations -> Küçük(228), Büyük(248)`);
+        }
+
+        res.json({ success: true, logs });
+    } catch (error) {
+        log(`Fatal Error: ${error.message}`);
+        res.status(500).json({ logs, error: error.message });
+    }
+});
+
 module.exports = router;

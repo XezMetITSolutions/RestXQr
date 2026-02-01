@@ -1,165 +1,118 @@
+
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { FaDatabase, FaTools, FaCheckCircle, FaExclamationTriangle, FaUtensils } from 'react-icons/fa';
 
 export default function DBSchemaFixPage() {
-    const router = useRouter();
+    const [logs, setLogs] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<any>(null);
-    const [error, setError] = useState<string | null>(null);
 
-    const handleFixSchema = async () => {
+    const addLog = (msg: string) => setLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - ${msg}`]);
+
+    const callEndpoint = async (endpoint: string, label: string) => {
         setLoading(true);
-        setError(null);
-        setResult(null);
-
+        addLog(`${label} başlatılıyor...`);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api'}/admin-fix/fix-db-schema`);
-            const data = await response.json();
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+            const res = await fetch(`${API_URL}/admin-fix/${endpoint}`);
+            const data = await res.json();
 
-            if (response.ok) {
-                setResult(data);
-            } else {
-                setError(data.message || 'Failed to fix database schema');
+            if (data.logs && Array.isArray(data.logs)) {
+                data.logs.forEach((l: string) => addLog(l));
             }
+            if (data.message) addLog(data.message);
+            if (data.success) addLog(`✅ ${label} tamamlandı.`);
+            else addLog(`❌ ${label} başarısız oldu: ${data.error || 'Bilinmeyen hata'}`);
+
         } catch (err: any) {
-            setError(err.message || 'An error occurred');
+            addLog(`💥 Hata: ${err.message}`);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-8">
-            <div className="max-w-4xl mx-auto">
-                {/* Header */}
-                <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-800 mb-2">🔧 Database Schema Fix</h1>
-                            <p className="text-gray-600">Fix missing database columns and schema issues</p>
-                        </div>
+        <div className="min-h-screen bg-gray-900 text-white p-8">
+            <div className="max-w-3xl mx-auto">
+                <header className="mb-8 border-b border-gray-700 pb-4">
+                    <h1 className="text-3xl font-bold flex items-center gap-3">
+                        <FaTools className="text-yellow-500" />
+                        Veritabanı Şema Onarım (Debug)
+                    </h1>
+                    <p className="text-gray-400 mt-2">Bu araç veritabanındaki eksik sütunları (missing columns) düzeltir.</p>
+                </header>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+                    {/* Schema Fix */}
+                    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                            <FaDatabase className="text-blue-400" />
+                            1. Genel Şema Onarımı
+                        </h2>
+                        <p className="text-sm text-gray-400 mb-6">
+                            Menü öğeleri için eksik sütunları (variations, options, bundle_items vb.) ekler.
+                            "500 Internal Server Error" ve "column does not exist" hatalarını çözer.
+                        </p>
                         <button
-                            onClick={() => router.push('/business/menu')}
-                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                            onClick={() => callEndpoint('fix-db-schema', 'Şema Onarımı')}
+                            disabled={loading}
+                            className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-colors disabled:opacity-50"
                         >
-                            ← Back to Menu
+                            {loading ? 'İşleniyor...' : 'Şemayı Onar'}
                         </button>
                     </div>
 
-                    {/* Info Box */}
-                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm text-blue-700">
-                                    This tool will add missing database columns to your schema. It checks for and adds:
-                                </p>
-                                <ul className="list-disc list-inside text-sm text-blue-700 mt-2 space-y-1">
-                                    <li><code className="bg-blue-100 px-1 rounded">kitchen_station</code> to menu_categories</li>
-                                    <li><code className="bg-blue-100 px-1 rounded">variations</code> to menu_items</li>
-                                    <li><code className="bg-blue-100 px-1 rounded">options</code> to menu_items</li>
-                                    <li><code className="bg-blue-100 px-1 rounded">type</code> to menu_items</li>
-                                    <li><code className="bg-blue-100 px-1 rounded">bundle_items</code> to menu_items</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Fix Button */}
-                    <div className="text-center">
+                    {/* Campaign Fix */}
+                    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                            <FaExclamationTriangle className="text-orange-400" />
+                            2. Kampanya Sütunları
+                        </h2>
+                        <p className="text-sm text-gray-400 mb-6">
+                            İndirim ve kampanya özellikleri için gerekli sütunları (discount_percentage, discounted_price vb.) eksikse ekler.
+                        </p>
                         <button
-                            onClick={handleFixSchema}
+                            onClick={() => callEndpoint('apply-campaigns', 'Kampanya Sütunları')}
                             disabled={loading}
-                            className={`px-8 py-4 rounded-xl font-bold text-lg transition-all transform ${loading
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl hover:scale-105'
-                                } text-white`}
+                            className="w-full py-3 bg-orange-600 hover:bg-orange-500 rounded-lg font-bold transition-colors disabled:opacity-50"
                         >
-                            {loading ? (
-                                <span className="flex items-center gap-2">
-                                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                    </svg>
-                                    Fixing Schema...
-                                </span>
-                            ) : (
-                                '🔧 Fix Database Schema'
-                            )}
+                            {loading ? 'İşleniyor...' : 'Eksik Sütunları Ekle'}
                         </button>
                     </div>
                 </div>
 
-                {/* Result Display */}
-                {result && (
-                    <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-6 mb-6">
-                        <div className="flex items-start">
-                            <div className="flex-shrink-0">
-                                <svg className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div className="ml-3 flex-1">
-                                <h3 className="text-lg font-bold text-green-800 mb-2">✅ Success!</h3>
-                                <p className="text-green-700 mb-3">{result.message}</p>
-                                <pre className="bg-green-100 p-4 rounded-lg overflow-auto text-sm">
-                                    {JSON.stringify(result, null, 2)}
-                                </pre>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                {/* Ramen Fix */}
+                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 mb-8 border-l-4 border-l-green-500">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                        <FaUtensils className="text-green-400" />
+                        3. Özel: Dana Etli Ramen Düzeltmesi (Acil)
+                    </h2>
+                    <p className="text-sm text-gray-400 mb-4">
+                        "Dana etli ramen - 牛肉拉面" ürününü bulur ve otomatik olarak günceller:
+                    </p>
+                    <ul className="list-disc list-inside text-sm text-gray-300 mb-6 bg-gray-900/50 p-3 rounded">
+                        <li>Fiyat: 248 -> 228 TL (Olarak ayarlanır)</li>
+                        <li>Varyant: Küçük (228 TL)</li>
+                        <li>Varyant: Büyük (248 TL)</li>
+                    </ul>
+                    <button
+                        onClick={() => callEndpoint('fix-ramen-pricing', 'Ramen Düzeltmesi')}
+                        disabled={loading}
+                        className="w-full py-4 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-lg transition-colors disabled:opacity-50 shadow-lg shadow-green-900/50"
+                    >
+                        {loading ? 'İşleniyor...' : 'RAMEN FİYATLARINI DÜZELT'}
+                    </button>
+                </div>
 
-                {/* Error Display */}
-                {error && (
-                    <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6 mb-6">
-                        <div className="flex items-start">
-                            <div className="flex-shrink-0">
-                                <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div className="ml-3 flex-1">
-                                <h3 className="text-lg font-bold text-red-800 mb-2">❌ Error</h3>
-                                <p className="text-red-700">{error}</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Instructions */}
-                <div className="bg-white rounded-2xl shadow-xl p-8">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">📋 Instructions</h2>
-                    <ol className="space-y-3 text-gray-700">
-                        <li className="flex items-start">
-                            <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</span>
-                            <span>Click the "Fix Database Schema" button above</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</span>
-                            <span>Wait for the operation to complete</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</span>
-                            <span>Check the result message to confirm all columns were added</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">4</span>
-                            <span>Return to your menu management page and try creating items again</span>
-                        </li>
-                    </ol>
-
-                    <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded">
-                        <p className="text-sm text-yellow-800">
-                            <strong>Note:</strong> This operation is safe to run multiple times. Existing columns will not be affected.
-                        </p>
-                    </div>
+                {/* Logs */}
+                <div className="bg-black p-4 rounded-xl border border-gray-800 font-mono text-sm h-64 overflow-y-auto">
+                    <div className="text-gray-500 mb-2 border-b border-gray-800 pb-1">İşlem Kayıtları (Logs)</div>
+                    {logs.length === 0 && <div className="text-gray-600 italic">Henüz işlem yapılmadı...</div>}
+                    {logs.map((log, i) => (
+                        <div key={i} className="mb-1">{log}</div>
+                    ))}
                 </div>
             </div>
         </div>
