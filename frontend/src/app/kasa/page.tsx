@@ -762,17 +762,22 @@ export default function KasaPanel() {
     if (!selectedOrder) return;
     try {
       addLog('Saving order changes...', 'network');
+      // Calculate items with proper totalPrice
+      const processedItems = selectedOrder.items.map(item => ({
+        ...item,
+        price: Number(item.price || (item as any).unitPrice || 0),
+        totalPrice: (Number(item.price || (item as any).unitPrice || 0)) * (Number(item.quantity || 1))
+      }));
+
+      // Calculate new totalAmount from all items
+      const calculatedTotal = processedItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+
       const response = await fetch(`${API_URL}/orders/${selectedOrder.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: selectedOrder.items.map(item => ({
-            ...item,
-            price: Number(item.price || item.unitPrice || 0),
-            // Send totalPrice explicitly
-            totalPrice: (Number(item.price || item.unitPrice || 0)) * (Number(item.quantity || 1))
-          })),
-          totalAmount: selectedOrder.totalAmount,
+          items: processedItems,
+          totalAmount: calculatedTotal.toFixed(2),
           cashierNote: selectedOrder.cashierNote,
           discountAmount: selectedOrder.discountAmount,
           discountReason: selectedOrder.discountReason

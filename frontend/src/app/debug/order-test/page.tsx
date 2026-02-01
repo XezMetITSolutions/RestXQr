@@ -176,9 +176,13 @@ export default function OrderDebugPage() {
             totalPrice: (Number(item.price || item.unitPrice || 0)) * (Number(item.quantity || 1))
         }));
 
+        // Calculate totalAmount from items
+        const calculatedTotal = sanitizedItems.reduce((sum: number, item: any) =>
+            sum + (Number(item.totalPrice) || 0), 0);
+
         const payload = {
             items: sanitizedItems,
-            totalAmount: testOrder.totalAmount, // Backend might recalc this too
+            totalAmount: calculatedTotal.toFixed(2),
             cashierNote: 'Debug Update'
         };
 
