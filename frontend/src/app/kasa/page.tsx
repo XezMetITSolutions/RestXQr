@@ -719,7 +719,7 @@ export default function KasaPanel() {
     setDeleteConfirmIndex(null);
   };
 
-  const addItemToOrder = (item: any) => {
+  const addItemToOrder = (item: any, delta: number = 1) => {
     if (!selectedOrder) return;
     saveToUndo(selectedOrder);
 
@@ -728,16 +728,25 @@ export default function KasaPanel() {
 
     let updatedItems = [...selectedOrder.items];
     if (existingIndex >= 0) {
-      updatedItems[existingIndex] = {
-        ...updatedItems[existingIndex],
-        quantity: updatedItems[existingIndex].quantity + 1
-      };
-    } else {
+      const newQuantity = updatedItems[existingIndex].quantity + delta;
+
+      if (newQuantity <= 0) {
+        // Remove item if quantity drops to 0 or less
+        updatedItems = updatedItems.filter((_, i) => i !== existingIndex);
+      } else {
+        // Update quantity
+        updatedItems[existingIndex] = {
+          ...updatedItems[existingIndex],
+          quantity: newQuantity
+        };
+      }
+    } else if (delta > 0) {
+      // Add new item only if delta is positive
       updatedItems.push({
         id: item.id,
         name: item.name,
         price: Number(item.price),
-        quantity: 1,
+        quantity: delta,
         notes: ''
       });
     }
@@ -1936,44 +1945,50 @@ export default function KasaPanel() {
                       className="w-full pl-9 p-2 bg-gray-100 rounded-lg text-sm font-bold border border-transparent focus:bg-white focus:border-green-500 outline-none"
                     />
                   </div>
-                  <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar pb-1">
-                    <button onClick={() => setSelectedMenuCategory('all')} className={`px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap ${selectedMenuCategory === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                      TÜMÜ
-                    </button>
-                    {menuCategories.map(cat => (
-                      <button key={cat.id} onClick={() => setSelectedMenuCategory(cat.id)} className={`px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap ${selectedMenuCategory === cat.id ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                        {cat.name}
-                      </button>
-                    ))}
-                  </div>
+
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-2">
                     {menuItems
                       .filter(item => {
                         if (selectedMenuCategory !== 'all' && item.categoryId !== selectedMenuCategory) return false;
                         if (menuSearchTerm && !item.name.toLowerCase().includes(menuSearchTerm.toLowerCase())) return false;
                         return true;
                       })
-                      .map((item, idx) => (
-                        <div key={idx} onClick={() => addItemToOrder(item)} className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 cursor-pointer hover:border-green-500 hover:shadow-md transition-all active:scale-95 group">
-                          <div className="aspect-square bg-gray-100 rounded-lg mb-2 relative overflow-hidden">
-                            {item.imageUrl ? (
-                              <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${API_URL.replace('/api', '')}${item.imageUrl}`} alt={item.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                <FaUtensils />
-                              </div>
-                            )}
-                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <FaPlus className="text-white text-2xl" />
+                      .map((item, idx) => {
+                        // Find current quantity in order
+                        const inOrder = selectedOrder.items.find((i) => i.name === item.name && JSON.stringify(i.notes) === JSON.stringify(item.notes || ''));
+                        const currentQty = inOrder ? inOrder.quantity : 0;
+
+                        return (
+                          <div key={idx} className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center group hover:border-blue-300">
+                            <div className="flex-1">
+                              <div className="font-bold text-gray-800 text-sm line-clamp-1">{item.name}</div>
+                              <div className="font-bold text-green-600 text-xs">{item.price}₺</div>
+                            </div>
+
+                            <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1 border border-gray-100">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); addItemToOrder(item, -1); }}
+                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${currentQty > 0 ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                                disabled={currentQty === 0}
+                              >
+                                <FaMinus size={10} />
+                              </button>
+                              <span className={`w-6 text-center font-black text-sm ${currentQty > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
+                                {currentQty}
+                              </span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); addItemToOrder(item, 1); }}
+                                className="w-8 h-8 flex items-center justify-center bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                              >
+                                <FaPlus size={10} />
+                              </button>
                             </div>
                           </div>
-                          <div className="font-bold text-gray-800 text-xs line-clamp-1">{item.name}</div>
-                          <div className="font-black text-green-600 text-xs mt-1">{item.price}₺</div>
-                        </div>
-                      ))}
+                        );
+                      })}
                   </div>
                   {menuItems.length === 0 && (
                     <div className="text-center text-gray-400 mt-10">
