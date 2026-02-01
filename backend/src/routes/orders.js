@@ -375,33 +375,50 @@ router.post('/', async (req, res) => {
     const autoApprove = hasDrinks && !hasFood;
     console.log(`📋 Sipariş analizi: hasDrinks=${hasDrinks}, hasFood=${hasFood}, autoApprove=${autoApprove}`);
 
-    // Total amount hesapla
+    // Total amount hesapla ve verileri temizle
     let totalAmount = 0;
+    const sanitizedItems = [];
+
     for (const it of items) {
-      const qty = Number(it.quantity || 1);
-      const unitPrice = Number(it.unitPrice || it.price || 0);
-      totalAmount += qty * unitPrice;
+      const qty = Math.max(1, Number(it.quantity) || 1);
+      const unitPrice = parseFloat(String(it.unitPrice || it.price || 0));
+      const lineTotal = qty * (isNaN(unitPrice) ? 0 : unitPrice);
+
+      totalAmount += lineTotal;
+
+      // Item bazlı kitchen station resolve (içecek ayrımı için)
+      let itemNote = it.notes || '';
+
+      sanitizedItems.push({
+        ...it,
+        quantity: qty,
+        unitPrice: isNaN(unitPrice) ? 0 : unitPrice,
+        totalPrice: lineTotal,
+        notes: itemNote
+      });
     }
+
+    if (isNaN(totalAmount)) totalAmount = 0;
+
     // OrderType validation (DB ENUM sync)
     const validOrderTypes = ['dine_in', 'takeaway', 'delivery'];
     const finalOrderType = validOrderTypes.includes(orderType) ? orderType : 'dine_in';
+
+    console.log('✅ Finalizing order with total:', totalAmount);
 
     const order = await Order.create({
       restaurantId: actualRestaurantId,
       tableNumber: tableNumber || null,
       customerName: customerName || null,
-      status: autoApprove ? 'approved' : 'pending', // İçecek ise direkt approved
-      totalAmount,
+      status: 'pending',
+      totalAmount: totalAmount.toFixed(2),
       notes: notes || null,
       orderType: finalOrderType,
-      approved: autoApprove // İçecek ise direkt onaylı
+      approved: autoApprove
     });
 
-    for (const it of items) {
-      const qty = Number(it.quantity || 1);
-      const unitPrice = Number(it.unitPrice || it.price || 0);
-
-      // Resolve a valid menuItemId: prefer provided UUID; else try name lookup; else create placeholder
+    for (const it of sanitizedItems) {
+      // Resolve a valid menuItemId
       let resolvedMenuItemId = it.menuItemId;
       const looksLikeUuid = typeof resolvedMenuItemId === 'string' &&
         resolvedMenuItemId.length >= 8 &&
@@ -409,13 +426,11 @@ router.post('/', async (req, res) => {
 
       if (!resolvedMenuItemId || !looksLikeUuid) {
         try {
-          // Try find by name within this restaurant
           if (it.name) {
             const found = await MenuItem.findOne({ where: { restaurantId: actualRestaurantId, name: it.name } });
             if (found) {
               resolvedMenuItemId = found.id;
             } else {
-              // ensure default category exists
               let defCat = await MenuCategory.findOne({ where: { restaurantId: actualRestaurantId, name: 'Genel' } });
               if (!defCat) {
                 defCat = await MenuCategory.create({ restaurantId: actualRestaurantId, name: 'Genel' });
@@ -423,25 +438,24 @@ router.post('/', async (req, res) => {
               const created = await MenuItem.create({
                 restaurantId: actualRestaurantId,
                 categoryId: defCat.id,
-                name: it.name,
-                price: unitPrice,
-                description: it.notes || null,
-                kitchenStation: it.kitchenStation || null
+                name: typeof it.name === 'string' ? it.name : 'Ürün',
+                price: it.unitPrice,
+                description: it.notes || null
               });
               resolvedMenuItemId = created.id;
             }
           }
         } catch (e) {
-          console.warn('MenuItem resolve failed, using null id:', e?.message);
+          console.warn('MenuItem resolve failed:', e.message);
         }
       }
 
       await OrderItem.create({
         orderId: order.id,
         menuItemId: resolvedMenuItemId,
-        quantity: qty,
-        unitPrice,
-        totalPrice: qty * unitPrice,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice,
+        totalPrice: it.totalPrice,
         notes: it.notes || null,
         variations: it.variations || []
       });
