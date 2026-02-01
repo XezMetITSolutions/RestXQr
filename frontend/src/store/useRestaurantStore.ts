@@ -267,7 +267,10 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         description: typeof data.description === 'string' ? data.description : data.description?.tr || '',
         displayOrder: data.order || data.displayOrder || 0,
         isActive: data.isActive !== undefined ? data.isActive : true,
-        kitchenStation: data.kitchenStation || null
+        kitchenStation: data.kitchenStation || null,
+        discountPercentage: data.discountPercentage || null,
+        discountStartDate: data.discountStartDate || null,
+        discountEndDate: data.discountEndDate || null
       };
 
       console.log('🚀 Creating category:', { restaurantId, backendData });
@@ -314,7 +317,11 @@ const useRestaurantStore = create<RestaurantState>((set, get) => ({
         bundleItems: data.bundleItems || [],
         variations: data.variations || [],
         options: data.options || [],
-        translations: data.translations || {}
+        translations: data.translations || {},
+        discountPercentage: data.discountPercentage || null,
+        discountedPrice: data.discountedPrice || null,
+        discountStartDate: data.discountStartDate || null,
+        discountEndDate: data.discountEndDate || null
       };
 
       console.log('🚀 Creating menu item:', { restaurantId, backendData });

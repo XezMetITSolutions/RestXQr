@@ -272,6 +272,7 @@ export default function IsletmeGirisPage() {
                   placeholder="••••••••"
                   required
                   disabled={loading}
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"

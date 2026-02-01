@@ -449,6 +449,48 @@ END;
                     BEGIN
                         ALTER TABLE menu_items ADD COLUMN translations JSONB DEFAULT '{}'::jsonb;
                     EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN kitchen_station VARCHAR(50);
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN discount_percentage INTEGER DEFAULT NULL;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN discounted_price DECIMAL(10,2) DEFAULT NULL;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN discount_start_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_items ADD COLUMN discount_end_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+                END $$;
+            `);
+
+            // Update all menu_categories columns
+            await sequelize.query(`
+                DO $$
+                BEGIN
+                    BEGIN
+                        ALTER TABLE menu_categories ADD COLUMN kitchen_station VARCHAR(50);
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_categories ADD COLUMN discount_percentage INTEGER DEFAULT NULL;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_categories ADD COLUMN discount_start_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE menu_categories ADD COLUMN discount_end_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
                 END $$;
             `);
             console.log('✅ Updated all menu_items columns');

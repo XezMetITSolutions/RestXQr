@@ -141,6 +141,7 @@ export default function DebugLoginPage() {
               className="border rounded px-3 py-2"
               placeholder="password"
               type="password"
+              autoComplete="current-password"
               value={bizPassword}
               onChange={(e) => setBizPassword(e.target.value)}
             />
@@ -171,6 +172,7 @@ export default function DebugLoginPage() {
               className="border rounded px-3 py-2"
               placeholder="password"
               type="password"
+              autoComplete="current-password"
               value={staffPassword}
               onChange={(e) => setStaffPassword(e.target.value)}
             />

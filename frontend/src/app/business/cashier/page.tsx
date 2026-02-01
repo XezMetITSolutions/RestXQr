@@ -167,6 +167,10 @@ export default function CashierDashboard() {
     return un;
   }, []);
 
+  // Delete Confirmation State
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDeleteId, setItemToDeleteId] = useState<string | null>(null);
+
   // Siparişler - CentralOrderStore'dan al
   const centralOrders = getActiveOrders();
 
@@ -580,7 +584,20 @@ export default function CashierDashboard() {
   };
 
   const removeMenuItem = (itemId: string) => {
+    // If we are editing an active order, ask for confirmation
+    if (editingOrder) {
+      setItemToDeleteId(itemId);
+      setShowDeleteConfirm(true);
+    } else {
+      // For new orders (not saved yet), delete immediately
+      performRemoveMenuItem(itemId);
+    }
+  };
+
+  const performRemoveMenuItem = (itemId: string) => {
     setCurrentOrderItems(prev => prev.filter(item => item.id !== itemId));
+    setShowDeleteConfirm(false);
+    setItemToDeleteId(null);
   };
 
   const updateItemQuantity = (itemId: string, quantity: number) => {
@@ -795,7 +812,7 @@ export default function CashierDashboard() {
           <div className="flex justify-between items-center py-3 sm:py-4">
             <div className="flex items-center gap-2 sm:gap-4">
               <div>
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">{restaurantName} - <TranslatedText text="Kasa Paneli" /></h1>
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">{restaurantName} - <TranslatedText>Kasa Paneli</TranslatedText></h1>
                 <p className="text-xs sm:text-sm text-gray-600 hidden sm:block"><TranslatedText text="Ödemeleri yönet ve kasa işlemlerini takip et" /></p>
               </div>
             </div>
@@ -1482,98 +1499,122 @@ export default function CashierDashboard() {
           onClick={() => setShowEditModal(false)}
         >
           <div
-            className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-gray-200 flex justify-between items-start">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-200 flex justify-between items-start shrink-0">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">{t('Sipariş Düzenle')}</h3>
                 <p className="text-sm text-gray-600">{t('Masa')} {editingOrder.tableNumber} - {t('Sipariş No')}: {editingOrder.id}</p>
               </div>
-              <button
-                onClick={() => cancelOrder(editingOrder.id)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
-              >
-                <FaTimes />
-                {t('Siparişi İptal Et')}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => cancelOrder(editingOrder.id)}
+                  className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center gap-2"
+                >
+                  <FaTimes />
+                  {t('Siparişi İptal Et')}
+                </button>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600 p-2"
+                >
+                  <FaTimes className="text-xl" />
+                </button>
+              </div>
             </div>
 
-            <div className="p-6">
-              {/* Mevcut Ürünler */}
-              <div className="mb-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('Sipariş Ürünleri')}</h4>
-                <div className="space-y-3">
+            {/* Modal Content - Grid Layout */}
+            <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+
+              {/* LEFT SIDE: Current Items (Scrollable) */}
+              <div className="flex-1 flex flex-col p-6 overflow-hidden border-r border-gray-200 bg-gray-50/50">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <FaUtensils className="text-orange-500" /> {t('Sipariş İçeriği')}
+                </h4>
+
+                <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                   {currentOrderItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                    <div key={item.id} className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                       <div className="flex-1">
                         <h5 className="font-medium text-gray-900">{item.name.tr}</h5>
                         <p className="text-sm text-gray-600">{item.price}₺</p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
                           <button
                             onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
-                            className="p-1 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+                            className="w-8 h-8 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-50 transition-colors"
                           >
-                            <FaMinus className="text-xs" />
+                            <FaMinus className="text-xs text-gray-600" />
                           </button>
-                          <span className="w-8 text-center font-medium">{item.quantity}</span>
+                          <span className="w-8 text-center font-bold text-gray-800">{item.quantity}</span>
                           <button
                             onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
-                            className="p-1 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+                            className="w-8 h-8 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-50 transition-colors"
                           >
-                            <FaPlus className="text-xs" />
+                            <FaPlus className="text-xs text-gray-600" />
                           </button>
                         </div>
-                        <span className="font-semibold text-gray-900 w-20 text-right">
+                        <span className="font-bold text-gray-900 w-24 text-right">
                           {(item.price * item.quantity).toFixed(2)}₺
                         </span>
                         <button
                           onClick={() => removeMenuItem(item.id)}
-                          className="p-2 text-red-600 hover:bg-red-100 rounded transition-colors"
+                          className="w-10 h-10 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Ürünü Sil"
                         >
-                          <FaTrash className="text-sm" />
+                          <FaTrash />
                         </button>
                       </div>
                     </div>
                   ))}
+
+                  {currentOrderItems.length === 0 && (
+                    <div className="text-center py-12 text-gray-500 bg-white rounded-lg border border-dashed border-gray-300">
+                      <FaUtensils className="mx-auto text-4xl text-gray-300 mb-3" />
+                      <p>{t('Siparişte henüz ürün yok.')}</p>
+                      <p className="text-sm text-gray-400">{t('Sağ taraftan ürün ekleyebilirsiniz.')}</p>
+                    </div>
+                  )}
                 </div>
 
-                {currentOrderItems.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>{t('Siparişte ürün kalmadı. Sipariş otomatik olarak iptal edilecek.')}</p>
+                {/* Total Section */}
+                <div className="mt-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-medium text-gray-600">{t('Toplam Tutar')}:</span>
+                    <span className="text-2xl font-bold text-blue-600">
+                      {currentOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}₺
+                    </span>
                   </div>
-                )}
+                </div>
               </div>
 
-              {/* Yeni Ürün Ekleme */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-lg font-semibold text-gray-900">{t('Yeni Ürün Ekle')}</h4>
-                </div>
+              {/* RIGHT SIDE: Menu / New Items (Sidebar Style) */}
+              <div className="w-full lg:w-[400px] flex flex-col bg-white h-full relative z-0">
+                <div className="p-4 bg-white border-b border-gray-200 shadow-sm z-10">
+                  <h4 className="font-semibold text-gray-900 mb-3">{t('Ürün Ekle')}</h4>
 
-                {/* Arama ve Kategori Filtreleri */}
-                <div className="mb-4 space-y-3">
-                  {/* Arama */}
-                  <div className="relative">
+                  {/* Search */}
+                  <div className="relative mb-3">
                     <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
                       type="text"
                       placeholder={t('Ürün ara...')}
                       value={menuSearchTerm}
                       onChange={(e) => setMenuSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     />
                   </div>
 
-                  {/* Kategori Butonları */}
-                  <div className="flex flex-wrap gap-2">
+                  {/* Categories */}
+                  <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
                     <button
                       onClick={() => setSelectedCategory('all')}
-                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${selectedCategory === 'all'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selectedCategory === 'all'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                     >
                       {t('Tümü')}
@@ -1582,9 +1623,9 @@ export default function CashierDashboard() {
                       <button
                         key={category}
                         onClick={() => setSelectedCategory(category)}
-                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${selectedCategory === category
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selectedCategory === category
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                       >
                         {getCategoryName(category)}
@@ -1593,42 +1634,42 @@ export default function CashierDashboard() {
                   </div>
                 </div>
 
-                {/* Ürün Listesi */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
-                  {getFilteredMenuItems().map((menuItem) => (
-                    <button
-                      key={menuItem.id}
-                      onClick={() => addMenuItem(menuItem)}
-                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="text-left">
-                        <p className="font-medium text-gray-900">{menuItem.name.tr}</p>
-                        <p className="text-sm text-gray-600">{menuItem.price}₺</p>
+                {/* Product Grid */}
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-gray-50">
+                  <div className="grid grid-cols-2 gap-3">
+                    {getFilteredMenuItems().map((menuItem) => (
+                      <button
+                        key={menuItem.id}
+                        onClick={() => addMenuItem(menuItem)}
+                        className="flex flex-col items-start p-3 bg-white border border-gray-200 rounded-xl hover:border-blue-400 hover:shadow-md transition-all group text-left h-full"
+                      >
+                        <h5 className="font-medium text-gray-900 text-sm line-clamp-2 mb-1 group-hover:text-blue-600">
+                          {menuItem.name.tr}
+                        </h5>
+                        <div className="mt-auto w-full flex justify-between items-center">
+                          <span className="text-xs font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded">
+                            {menuItem.price}₺
+                          </span>
+                          <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <FaPlus className="text-xs" />
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+
+                    {getFilteredMenuItems().length === 0 && (
+                      <div className="col-span-full text-center py-8 text-gray-500">
+                        <p className="text-sm">{t('Ürün bulunamadı')}</p>
                       </div>
-                      <FaPlus className="text-green-600" />
-                    </button>
-                  ))}
-
-                  {getFilteredMenuItems().length === 0 && (
-                    <div className="col-span-full text-center py-8 text-gray-500">
-                      <p>{t('Arama kriterlerinize uygun ürün bulunamadı')}</p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Toplam */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-900">{t('Yeni Toplam')}:</span>
-                  <span className="text-xl font-bold text-blue-600">
-                    {currentOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}₺
-                  </span>
-                </div>
-              </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex gap-3">
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-gray-200 flex gap-3 bg-gray-50 shrink-0">
               <button
                 onClick={() => {
                   setShowEditModal(false);
@@ -1637,16 +1678,51 @@ export default function CashierDashboard() {
                   setMenuSearchTerm('');
                   setSelectedCategory('all');
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-white hover:shadow-sm transition-all"
               >
-                İptal
+                Vazgeç
               </button>
               <button
                 onClick={() => updateOrderItems(editingOrder.id, currentOrderItems)}
                 disabled={currentOrderItems.length === 0}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-[2] px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
+                <FaCheck />
                 {t('Değişiklikleri Kaydet')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 transform transition-all scale-100">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaTrash className="text-2xl text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Emin misiniz?</h3>
+              <p className="text-gray-500 text-sm">
+                Bu ürünü siparişten silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setItemToDeleteId(null);
+                }}
+                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors"
+              >
+                Hayır, Vazgeç
+              </button>
+              <button
+                onClick={() => itemToDeleteId && performRemoveMenuItem(itemToDeleteId)}
+                className="flex-1 px-4 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-200 transition-colors"
+              >
+                Evet, Sil
               </button>
             </div>
           </div>

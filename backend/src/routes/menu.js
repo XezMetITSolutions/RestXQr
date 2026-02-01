@@ -56,13 +56,24 @@ router.get('/:restaurantId/menu', async (req, res) => {
   } catch (error) {
     console.error('Get restaurant menu error:', error);
 
-    // Check if it's a missing column error
-    if (error.name === 'SequelizeDatabaseError' && error.message.includes('column') && error.message.includes('does not exist')) {
+    // Check for common Sequelize errors that indicate schema issues
+    const isSchemaError =
+      (error.name === 'SequelizeDatabaseError' && (
+        error.message.includes('column') ||
+        error.message.includes('does not exist') ||
+        error.message.includes('relation') ||
+        error.original?.code === '42703' // PostgreSQL undefined_column
+      )) ||
+      error.name === 'SequelizeValidationError';
+
+    if (isSchemaError) {
       return res.status(200).json({
         success: true,
         data: { categories: [], items: [] },
-        warning: 'Database schema needs update. Some columns are missing. Please run /api/admin-fix/fix-db-schema',
-        error: error.message
+        warning: 'Veritabanı şeması güncel değil. Bazı sütunlar eksik olabilir.',
+        suggestion: 'Lütfen /api/admin-fix/fix-db-schema adresini ziyaret ederek şemayı düzeltin.',
+        error: error.message,
+        details: error.original?.detail
       });
     }
 
@@ -119,7 +130,7 @@ router.get('/:restaurantId/menu/categories', async (req, res) => {
 router.post('/:restaurantId/menu/categories', async (req, res) => {
   try {
     const { restaurantId } = req.params;
-    const { name, description, order, isActive } = req.body;
+    const { name, description, order, isActive, discountPercentage, discountStartDate, discountEndDate } = req.body;
 
     // Verify restaurant exists
     const restaurant = await Restaurant.findByPk(restaurantId);
@@ -154,7 +165,10 @@ router.post('/:restaurantId/menu/categories', async (req, res) => {
       name: categoryName,
       description: categoryDescription || null,
       displayOrder: order !== undefined ? order : 0,
-      isActive: isActive !== undefined ? isActive : true
+      isActive: isActive !== undefined ? isActive : true,
+      discountPercentage: discountPercentage || null,
+      discountStartDate: discountStartDate ? new Date(discountStartDate) : null,
+      discountEndDate: discountEndDate ? new Date(discountEndDate) : null
     });
 
     res.status(201).json({
@@ -175,7 +189,7 @@ router.post('/:restaurantId/menu/categories', async (req, res) => {
 router.put('/:restaurantId/menu/categories/:categoryId', async (req, res) => {
   try {
     const { restaurantId, categoryId } = req.params;
-    const { name, description, order, isActive } = req.body;
+    const { name, description, order, isActive, discountPercentage, discountStartDate, discountEndDate } = req.body;
 
     const category = await MenuCategory.findOne({
       where: { id: categoryId, restaurantId }
@@ -204,7 +218,10 @@ router.put('/:restaurantId/menu/categories/:categoryId', async (req, res) => {
       name: categoryName,
       description: categoryDescription,
       displayOrder: order !== undefined ? order : category.displayOrder,
-      isActive: isActive !== undefined ? isActive : category.isActive
+      isActive: isActive !== undefined ? isActive : category.isActive,
+      discountPercentage: discountPercentage !== undefined ? discountPercentage : category.discountPercentage,
+      discountStartDate: discountStartDate !== undefined ? (discountStartDate ? new Date(discountStartDate) : null) : category.discountStartDate,
+      discountEndDate: discountEndDate !== undefined ? (discountEndDate ? new Date(discountEndDate) : null) : category.discountEndDate
     });
 
     res.json({
@@ -305,14 +322,7 @@ router.get('/:restaurantId/menu/items/:itemId', async (req, res) => {
     const { restaurantId, itemId } = req.params;
 
     const item = await MenuItem.findOne({
-      include: [
-        {
-          model: MenuCategory,
-          as: 'category',
-          where: { restaurantId }
-        }
-      ],
-      where: { id: itemId }
+      where: { id: itemId, restaurantId }
     });
 
     if (!item) {
@@ -364,7 +374,11 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       portion,
       kitchenStation,
       variants,
-      translations
+      translations,
+      discountPercentage,
+      discountedPrice,
+      discountStartDate,
+      discountEndDate
     } = req.body;
 
     console.log('Backend - imageUrl uzunluğu:', imageUrl?.length || 0);
@@ -451,7 +465,11 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
       options: req.body.options || [],
       type: req.body.type || 'single',
       bundleItems: req.body.bundleItems || [],
-      translations: translations || {}
+      translations: translations || {},
+      discountPercentage: discountPercentage || null,
+      discountedPrice: discountedPrice || null,
+      discountStartDate: discountStartDate ? new Date(discountStartDate) : null,
+      discountEndDate: discountEndDate ? new Date(discountEndDate) : null
     });
 
     console.log('Backend - Oluşturulan item:', {
@@ -490,14 +508,7 @@ router.put('/:restaurantId/menu/items/:itemId', async (req, res) => {
 
     // Find item and verify it belongs to the restaurant
     const item = await MenuItem.findOne({
-      include: [
-        {
-          model: MenuCategory,
-          as: 'category',
-          where: { restaurantId }
-        }
-      ],
-      where: { id: itemId }
+      where: { id: itemId, restaurantId }
     });
 
     if (!item) {
