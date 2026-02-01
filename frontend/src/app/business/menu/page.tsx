@@ -41,7 +41,8 @@ import {
   FaFileDownload,
   FaArrowUp,
   FaArrowDown,
-  FaImage
+  FaImage,
+  FaTools
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import useRestaurantStore from '@/store/useRestaurantStore';
