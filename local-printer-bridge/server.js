@@ -324,7 +324,6 @@ app.post('/test/:ip', async (req, res) => {
         }
 
         printer.alignCenter();
-        printer.setTextDoubleHeight();
         printer.bold(true);
         printer.add(CMD.CP857);
         printer.add(encodeText("MASA 15"));
@@ -351,7 +350,6 @@ app.post('/test/:ip', async (req, res) => {
         for (const item of testItems) {
             // Line 1: Quantity + Turkish Name
             printer.bold(true);
-            printer.setTextDoubleHeight();
             printer.add(CMD.CP857);
             printer.add(encodeText(`${item.qty}x ${item.tr}\n`));
             printer.setTextNormal();
@@ -430,7 +428,6 @@ app.post('/print/:ip', async (req, res) => {
 
         // Format Kitchen Receipt
         printer.alignCenter();
-        printer.setTextDoubleHeight();
         printer.bold(true);
         printer.add(CMD.CP857);
         printer.add(encodeText(`MASA ${tableNumber || '?'}`));
@@ -448,9 +445,9 @@ app.post('/print/:ip', async (req, res) => {
         for (const item of items) {
             // Turkish Name
             printer.bold(true);
-            printer.setTextDoubleHeight();
             printer.add(CMD.CP857);
             printer.add(encodeText(`${item.quantity}x ${item.name}\n`));
+            printer.bold(false);
             printer.setTextNormal();
 
             // Sürüm/Varyasyon Bilgisi (Küçük, Büyük vb.)
@@ -632,7 +629,6 @@ app.post('/debug/print-stations', async (req, res) => {
                     }
 
                     printer.alignCenter();
-                    printer.setTextDoubleHeight();
                     printer.bold(true);
                     printer.add(CMD.CP857);
                     printer.add(encodeText(`MASA ${tableNumber}`));
@@ -644,10 +640,19 @@ app.post('/debug/print-stations', async (req, res) => {
 
                     for (const item of stationItems) {
                         printer.bold(true);
-                        printer.setTextDoubleHeight();
                         printer.add(CMD.CP857);
                         printer.add(encodeText(`${item.quantity}x ${item.name}\n`));
+                        printer.bold(false);
                         printer.setTextNormal();
+
+                        // Chinese Name (if available) - Added support for stations
+                        const chineseName = item.translations?.zh?.name || item.nameChinese;
+                        if (chineseName) {
+                            printer.bold(false);
+                            printer.add(CMD.GB18030_ON);
+                            printer.add(encodeText(`   ${chineseName}\n`, 'gb18030'));
+                            printer.add(CMD.GB18030_OFF);
+                        }
 
                         // Varyasyon Bilgisi
                         const variation = item.selectedVariation?.name || item.variationName || item.variation;
