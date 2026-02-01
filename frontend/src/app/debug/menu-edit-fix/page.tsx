@@ -11,6 +11,7 @@ export default function MenuEditFixPage() {
     const [loading, setLoading] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
     const [testResult, setTestResult] = useState<any>(null);
+    const [recentItems, setRecentItems] = useState<any[]>([]);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
@@ -172,8 +173,26 @@ export default function MenuEditFixPage() {
     };
 
 
+    const fetchRecentItems = async () => {
+        setLoading(true);
+        addLog('Fetching latest items from database for reference...');
+        try {
+            const res = await fetch(`${API_URL}/admin-fix/debug-items`);
+            const data = await res.json();
+            if (data.success) {
+                setRecentItems(data.items);
+                addLog(`Found ${data.items.length} recent items.`);
+            }
+        } catch (err: any) {
+            addLog(`Error: ${err.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchSchema();
+        fetchRecentItems();
     }, []);
 
     const expectedColumns = [
@@ -224,12 +243,44 @@ export default function MenuEditFixPage() {
                                         className="w-full p-2 border rounded-lg text-sm font-mono"
                                     />
                                 </div>
-                                <button
-                                    onClick={fetchItem}
-                                    className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-all"
-                                >
-                                    FETCH ITEM DATA
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={fetchItem}
+                                        className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-all"
+                                    >
+                                        FETCH ITEM DATA
+                                    </button>
+                                    <button
+                                        onClick={fetchRecentItems}
+                                        title="Reload Database Items"
+                                        className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all border border-gray-200"
+                                    >
+                                        <FaSync className={loading ? 'animate-spin' : ''} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-h-[400px] overflow-y-auto custom-scrollbar">
+                            <h2 className="font-black text-sm uppercase text-purple-600 mb-4 tracking-tighter">Latest Database Items</h2>
+                            <div className="space-y-2">
+                                {recentItems.map(i => (
+                                    <button
+                                        key={i.id}
+                                        onClick={() => {
+                                            setRestaurantId(i.restaurantId);
+                                            setItemId(i.id);
+                                            setItem(i);
+                                            addLog(`Selected: ${i.name}`);
+                                        }}
+                                        className={`w-full text-left p-3 rounded-xl border text-xs transition-all ${itemId === i.id ? 'border-purple-500 bg-purple-50' : 'border-gray-100 hover:border-purple-200 hover:bg-gray-50'}`}
+                                    >
+                                        <div className="font-bold truncate">{i.name}</div>
+                                        <div className="text-[10px] text-gray-400 font-mono truncate">{i.id}</div>
+                                        <div className="text-[10px] text-blue-500 mt-1">{i.restaurant?.name || 'Unknown Rest.'}</div>
+                                    </button>
+                                ))}
+                                {recentItems.length === 0 && <p className="text-gray-400 italic text-xs">No items found yet...</p>}
                             </div>
                         </div>
 
