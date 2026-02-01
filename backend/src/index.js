@@ -749,6 +749,7 @@ app.get('/api/debug/add-menu-items', async (req, res) => {
 
 // TÜM RESTORANLARIN PLANLARINI VE SUPERADMIN KULLANICILARINI DÜZELT
 app.get('/api/debug/fix-plans', async (req, res) => {
+  // ... (existing code for fix-plans)
   console.log('🔧 Fix plans endpoint called');
   try {
     const { Restaurant, Staff } = require('./models');
@@ -798,24 +799,97 @@ app.get('/api/debug/fix-plans', async (req, res) => {
       results.push({
         name: restaurant.name,
         plan: restaurant.subscriptionPlan,
-        limitsFixed: needsLimitUpdate,
-        superadminCreated: created
+        updated: needsLimitUpdate
       });
     }
 
-    res.json({
-      success: true,
-      message: 'Tüm restoran planları ve superadmin kullanıcıları düzeltildi.',
-      results
-    });
+    res.json({ success: true, results });
   } catch (error) {
-    console.error('❌ Fix Plans Error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Plan düzeltme hatası',
-      error: error.message
-    });
+    console.error('Fix plans error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
+});
+
+
+// SCHEMA INSPECTOR
+app.get('/api/debug/schema/:tableName', async (req, res) => {
+  try {
+    const { sequelize } = require('./models');
+    const { tableName } = req.params;
+
+    const [columns] = await sequelize.query(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns 
+      WHERE table_name = '${tableName}';
+    `);
+
+    res.json({ success: true, columns });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// RAW MENU ITEM SEARCH
+app.get('/api/debug/menu-item-raw', async (req, res) => {
+  try {
+    const { MenuItem } = require('./models');
+    const { search } = req.query;
+    const { Op } = require('sequelize');
+
+    const items = await MenuItem.findAll({
+      where: {
+        name: { [Op.iLike]: `%${search}%` }
+      }
+    });
+
+    res.json({ success: true, items });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GENERIC COLUMN ADDER
+app.post('/api/debug/add-column', async (req, res) => {
+  try {
+    const { sequelize } = require('./models');
+    const { tableName, columnName, columnType } = req.body;
+
+    // Check if exists
+    const [check] = await sequelize.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name='${tableName}' AND column_name='${columnName}';
+    `);
+
+    if (check.length > 0) {
+      return res.json({ success: true, message: 'Column already exists' });
+    }
+
+    await sequelize.query(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnType}`);
+
+    res.json({ success: true, message: `Added ${columnName} to ${tableName}` });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+limitsFixed: needsLimitUpdate,
+  superadminCreated: created
+      });
+    }
+
+res.json({
+  success: true,
+  message: 'Tüm restoran planları ve superadmin kullanıcıları düzeltildi.',
+  results
+});
+  } catch (error) {
+  console.error('❌ Fix Plans Error:', error);
+  res.status(500).json({
+    success: false,
+    message: 'Plan düzeltme hatası',
+    error: error.message
+  });
+}
 });
 
 // TÜM SİPARİŞLERİ SİL (Debug/Test için)
