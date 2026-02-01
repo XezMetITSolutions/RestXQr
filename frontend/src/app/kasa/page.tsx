@@ -1262,7 +1262,14 @@ export default function KasaPanel() {
                 return (
                   <div
                     key={order.id}
-                    className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 transition-all group border-transparent hover:border-green-500"
+                    className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 transition-all group border-transparent hover:border-green-500 cursor-pointer"
+                    onClick={() => {
+                      setSelectedOrder(order);
+                      setUndoStack([]);
+                      setShowPaymentModal(true);
+                      setManualAmount('');
+                      setPaymentTab('full');
+                    }}
                   >
                     <div className="p-5 flex justify-between items-center border-b bg-gray-50">
                       <div className="flex items-center gap-3">
@@ -1325,7 +1332,8 @@ export default function KasaPanel() {
 
                         {order.tableNumber == null && !order.id.includes('grouped') && (
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               if (confirm('Bu masasız siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
                                 fetch(`${API_URL}/orders/${order.id}`, {
                                   method: 'DELETE',
@@ -1355,14 +1363,15 @@ export default function KasaPanel() {
                       <div className="flex gap-3 mt-6">
                         {order.approved ? (
                           hasPermission('cashier_process_payment') && (
-                            <button onClick={() => { setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
+                            <button onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); setUndoStack([]); setShowPaymentModal(true); setManualAmount(''); setPaymentTab('full'); }} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-green-600 transition-all shadow-lg active:scale-95">
                               ÖDEME AL
                             </button>
                           )
                         ) : (
                           hasPermission('cashier_approve_orders') && (
                             <button
-                              onClick={async () => {
+                              onClick={async (e) => {
+                                e.stopPropagation();
                                 try {
                                   if (order.id.includes('grouped')) {
                                     const tableOrders = order.originalOrders || [];
@@ -1409,7 +1418,8 @@ export default function KasaPanel() {
 
                         {hasPermission('cashier_reject_orders') && (
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
                                 if (order.id.includes('grouped')) {
                                   // Simplified deletion logic

@@ -1063,89 +1063,154 @@ export default function CashierDashboard() {
 
         {/* Sipariş Listesi */}
         <div className="bg-white rounded-lg shadow">
-          <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+          <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-base sm:text-lg font-semibold text-gray-900"><TranslatedText text="Siparişler" /></h2>
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                {t('Liste')}
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'grid' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                {t('Tüm Masalar')}
+              </button>
+            </div>
           </div>
           <div className="divide-y divide-gray-200">
-            {sortedOrders.map((order) => (
-              <div key={order.id} className="p-3 sm:p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
-                  <div className="flex-1">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">{t('Masa')} {order.tableNumber}</h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)} ${incomingBillBlink && order.tableNumber === incomingBillBlink.table ? 'animate-pulse ring-2 ring-red-400' : ''}`}>
-                        {getStatusText(order.status)}
-                      </span>
-                      {/* Hesap talebi bildirimi */}
-                      {billRequests.some(request => request.tableNumber === order.tableNumber) && (
-                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 animate-pulse">
-                          <FaReceipt className="inline mr-1" />
-                          {t('Hesap Talebi')}
-                        </span>
-                      )}
-                    </div>
+            {viewMode === 'grid' ? (
+              <div className="p-4 sm:p-6 grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 sm:gap-4">
+                {Array.from({ length: 20 }, (_, i) => i + 1).map(tableNum => {
+                  const tableOrder = demoOrders.find(o => o.tableNumber === tableNum && o.status !== 'paid');
+                  const hasOrder = !!tableOrder;
+                  const hasBillRequest = billRequests.some(request => request.tableNumber === tableNum);
+                  const isBlinking = incomingBillBlink && tableNum === incomingBillBlink.table;
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">{t('Sipariş Detayları')}:</p>
-                        <div className="space-y-1">
-                          {order.items.map((item, index) => (
-                            <div key={index} className="flex justify-between text-sm">
-                              <span>{item.name.tr} x{item.quantity}</span>
-                              <span>{(item.price * item.quantity).toFixed(2)}₺</span>
-                            </div>
-                          ))}
+                  return (
+                    <button
+                      key={tableNum}
+                      onClick={() => {
+                        if (hasOrder) {
+                          setSelectedOrder(tableOrder);
+                          setShowPaymentModal(true);
+                        }
+                      }}
+                      className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition-all relative ${hasOrder
+                        ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-sm hover:scale-105 active:scale-95'
+                        : 'bg-white border-gray-100 text-gray-300 cursor-default'
+                        } ${isBlinking ? 'animate-pulse ring-4 ring-red-400 border-red-500' : ''}`}
+                    >
+                      <span className="text-lg font-bold">{tableNum}</span>
+                      {hasOrder && (
+                        <span className="text-[10px] font-bold">{tableOrder.total.toFixed(0)}₺</span>
+                      )}
+                      {hasBillRequest && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center border-2 border-white">
+                          <FaReceipt className="text-white text-[8px]" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              sortedOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="p-3 sm:p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setSelectedOrder(order);
+                    setShowPaymentModal(true);
+                  }}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">{t('Masa')} {order.tableNumber}</h3>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)} ${incomingBillBlink && order.tableNumber === incomingBillBlink.table ? 'animate-pulse ring-2 ring-red-400' : ''}`}>
+                          {getStatusText(order.status)}
+                        </span>
+                        {/* Hesap talebi bildirimi */}
+                        {billRequests.some(request => request.tableNumber === order.tableNumber) && (
+                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 animate-pulse">
+                            <FaReceipt className="inline mr-1" />
+                            {t('Hesap Talebi')}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">{t('Sipariş Detayları')}:</p>
+                          <div className="space-y-1">
+                            {order.items.map((item, index) => (
+                              <div key={index} className="flex justify-between text-sm">
+                                <span>{item.name.tr} x{item.quantity}</span>
+                                <span>{(item.price * item.quantity).toFixed(2)}₺</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">{t('Sipariş Bilgileri')}:</p>
+                          <p className="text-sm text-gray-900">{t('Sipariş No')}: {order.id}</p>
+                          <p className="text-sm text-gray-900">{t('Tarih')}: {new Date(order.timestamp).toLocaleString('tr-TR')}</p>
+                          <p className="text-sm font-semibold text-gray-900">{t('Toplam')}: {order.total.toFixed(2)}₺</p>
                         </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">{t('Sipariş Bilgileri')}:</p>
-                        <p className="text-sm text-gray-900">{t('Sipariş No')}: {order.id}</p>
-                        <p className="text-sm text-gray-900">{t('Tarih')}: {new Date(order.timestamp).toLocaleString('tr-TR')}</p>
-                        <p className="text-sm font-semibold text-gray-900">{t('Toplam')}: {order.total.toFixed(2)}₺</p>
-                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 ml-4">
+                      {/* Ödeme Al (durum/hesap talebine göre) */}
+                      {(order.status === 'ready' || order.status === 'delivered' || (order.status === 'pending' && billRequests.some(request => request.tableNumber === order.tableNumber))) && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedOrder(order);
+                              setShowPaymentModal(true);
+                            }}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                          >
+                            <FaCreditCard />
+                            {t('Ödeme Al')}
+                          </button>
+                        </>
+                      )}
+
+                      {/* Siparişi Düzenle: her zaman göster */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditingOrder(order);
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                      >
+                        <FaPlus />
+                        {t('Siparişi Düzenle')}
+                      </button>
+
+                      {/* Ödenen Siparişler - Ödendi Butonu (Fiş Yazdır) */}
+                      {order.status === 'paid' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePrintReceipt(order);
+                          }}
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                        >
+                          <FaCheck />
+                          {t('Ödendi')}
+                        </button>
+                      )}
                     </div>
                   </div>
-
-                  <div className="flex flex-col gap-2 ml-4">
-                    {/* Ödeme Al (durum/hesap talebine göre) */}
-                    {(order.status === 'ready' || order.status === 'delivered' || (order.status === 'pending' && billRequests.some(request => request.tableNumber === order.tableNumber))) && (
-                      <>
-                        <button
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setShowPaymentModal(true);
-                          }}
-                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
-                        >
-                          <FaCreditCard />
-                          {t('Ödeme Al')}
-                        </button>
-                      </>
-                    )}
-
-                    {/* Siparişi Düzenle: her zaman göster */}
-                    <button
-                      onClick={() => startEditingOrder(order)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                    >
-                      <FaPlus />
-                      {t('Siparişi Düzenle')}
-                    </button>
-
-                    {/* Ödenen Siparişler - Ödendi Butonu (Fiş Yazdır) */}
-                    {order.status === 'paid' && (
-                      <button
-                        onClick={() => handlePrintReceipt(order)}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                      >
-                        <FaCheck />
-                        {t('Ödendi')}
-                      </button>
-                    )}
-                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

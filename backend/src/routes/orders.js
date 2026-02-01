@@ -739,12 +739,32 @@ router.put('/:id', async (req, res) => {
         const mId = item.menuItemId || item.id;
         if (!mId) continue;
 
+        let unitPrice = parseFloat(String(item.price || item.unitPrice || 0));
+
+        // If price is 0 or NaN, try to look it up from MenuItem table
+        if (isNaN(unitPrice) || unitPrice <= 0) {
+          try {
+            const menuItem = await MenuItem.findByPk(mId);
+            if (menuItem) {
+              unitPrice = parseFloat(String(menuItem.price || 0));
+            }
+          } catch (e) {
+            console.warn(`Price lookup failed for item ${mId}:`, e.message);
+          }
+        }
+
+        // Final safety check to ensure it's a valid number
+        if (isNaN(unitPrice)) unitPrice = 0;
+
+        const qty = Number(item.quantity || 1);
+        const totalPrice = unitPrice * qty;
+
         await OrderItem.create({
           orderId: id,
           menuItemId: mId,
-          quantity: Number(item.quantity || 1),
-          unitPrice: parseFloat(String(item.price || item.unitPrice || 0)),
-          totalPrice: parseFloat(String((item.price || item.unitPrice || 0) * (item.quantity || 1))),
+          quantity: qty,
+          unitPrice: unitPrice,
+          totalPrice: isNaN(totalPrice) ? 0 : totalPrice,
           notes: item.notes || ''
         });
       }
