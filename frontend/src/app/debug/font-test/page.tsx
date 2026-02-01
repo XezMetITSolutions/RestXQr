@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { FaPrint, FaCheck, FaPlug, FaWifi } from 'react-icons/fa';
 
-const BRIDGE_URL = 'http://localhost:3005';
+const BRIDGE_URL = 'http://127.0.0.1:3005';
 
 export default function FontTestPage() {
     const [printerIP, setPrinterIP] = useState('192.168.10.198');
@@ -21,6 +21,16 @@ export default function FontTestPage() {
         { id: 'size5', name: 'Çok Büyük', description: 'Çift yükseklik + genişlik, bold', config: { doubleHeight: true, doubleWidth: true, bold: true } },
     ];
 
+    // Response helper to avoid JSON parsing errors
+    const safeParseJson = async (response: Response) => {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return await response.json();
+        }
+        const text = await response.text();
+        throw new Error(`Sunucudan beklenen JSON yanıtı gelmedi. Gelen veri: ${text.substring(0, 100)}...`);
+    };
+
     // Bridge bağlantısını test et
     const testBridge = async () => {
         setBridgeStatus('⏳ Bridge kontrol ediliyor...');
@@ -30,9 +40,10 @@ export default function FontTestPage() {
                 signal: AbortSignal.timeout(3000)
             });
             if (response.ok) {
+                await safeParseJson(response);
                 setBridgeStatus('✅ Local Bridge çalışıyor!');
             } else {
-                setBridgeStatus('❌ Bridge yanıt vermiyor');
+                setBridgeStatus(`❌ Bridge hata döndürdü (Kod: ${response.status})`);
             }
         } catch (error: any) {
             setBridgeStatus(`❌ Bridge bulunamadı: ${error.message}`);
@@ -53,7 +64,7 @@ export default function FontTestPage() {
                 signal: AbortSignal.timeout(5000)
             });
 
-            const data = await response.json();
+            const data = await safeParseJson(response);
             if (data.success) {
                 setConnectionStatus(`✅ Yazıcı bağlantısı başarılı! (${printerIP}:${printerPort})`);
             } else {
@@ -83,7 +94,7 @@ export default function FontTestPage() {
                 signal: AbortSignal.timeout(10000)
             });
 
-            const data = await response.json();
+            const data = await safeParseJson(response);
             if (data.success) {
                 setResults(prev => ({ ...prev, [sizeConfig.id]: '✅ Başarılı!' }));
             } else {

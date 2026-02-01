@@ -672,6 +672,17 @@ app.post('/debug/test-specific-path', async (req, res) => {
     }
 });
 
+// 404 Handler for JSON responses
+app.use((req, res) => {
+    console.log(`🔍 404 - Not Found: ${req.method} ${req.path}`);
+    res.status(404).json({
+        success: false,
+        error: "Route not found. Please restart the bridge if you just updated it.",
+        path: req.path,
+        method: req.method
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`
 🚀 LOCAL PRINTER BRIDGE RUNNING!
