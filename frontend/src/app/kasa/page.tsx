@@ -762,7 +762,55 @@ export default function KasaPanel() {
     if (!selectedOrder) return;
     try {
       addLog('Saving order changes...', 'network');
-      // Calculate items with proper totalPrice
+
+      // Check if this is a grouped order (virtual ID)
+      const isGroupedOrder = selectedOrder.id.includes('-grouped') || selectedOrder.originalOrders;
+
+      if (isGroupedOrder && selectedOrder.originalOrders && selectedOrder.originalOrders.length > 0) {
+        // Handle grouped orders - update each original order
+        addLog(`Updating ${selectedOrder.originalOrders.length} grouped orders...`, 'network');
+
+        for (const originalOrder of selectedOrder.originalOrders) {
+          // Get items for this original order
+          const orderItems = selectedOrder.items.filter((item: any) =>
+            item.originalOrderId === originalOrder.id || !item.originalOrderId
+          );
+
+          if (orderItems.length > 0) {
+            const processedItems = orderItems.map((item: OrderItem) => ({
+              ...item,
+              price: Number(item.price || 0),
+              totalPrice: Number(item.price || 0) * Number(item.quantity || 1)
+            }));
+
+            const calculatedTotal = processedItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+
+            const response = await fetch(`${API_URL}/orders/${originalOrder.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                items: processedItems,
+                totalAmount: calculatedTotal.toFixed(2),
+                cashierNote: selectedOrder.cashierNote,
+                discountAmount: selectedOrder.discountAmount,
+                discountReason: selectedOrder.discountReason
+              })
+            });
+
+            const data = await response.json();
+            if (!data.success) {
+              addLog(`Failed to update order ${originalOrder.id}: ${data.message}`, 'error');
+            }
+          }
+        }
+
+        addLog('All grouped orders updated', 'success');
+        alert('Gruplu siparişler başarıyla güncellendi.');
+        fetchOrders();
+        return;
+      }
+
+      // Calculate items with proper totalPrice (single order)
       const processedItems = selectedOrder.items.map(item => ({
         ...item,
         price: Number(item.price || (item as any).unitPrice || 0),
