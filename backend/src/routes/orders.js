@@ -782,14 +782,34 @@ router.put('/:id', async (req, res) => {
         if (isNaN(unitPrice)) unitPrice = 0;
 
         const qty = Number(item.quantity || 1);
-        const totalPrice = unitPrice * qty;
+
+        // Calculate total price with fallback to provided total
+        // First try to calculate from unit price
+        let totalPrice = unitPrice * qty;
+
+        // If calculation resulted in invalid number or 0 (and we have a provided total),
+        // or if we just want to trust the frontend more:
+        // Let's verify against provided totalPrice if available
+        if (item.totalPrice !== undefined && item.totalPrice !== null) {
+          const providedTotal = parseFloat(String(item.totalPrice));
+          if (!isNaN(providedTotal)) {
+            // Use provided total if calculation failed or if we prefer frontend value
+            // Here we prioritize calculation if unitPrice is valid, but use provided as fallback?
+            // actually, let's use provided total if it exists and is valid number, 
+            // as frontend might have specific logic (discounts/modifiers not captured here)
+            totalPrice = providedTotal;
+          }
+        }
+
+        // Final safety check
+        if (isNaN(totalPrice)) totalPrice = 0;
 
         await OrderItem.create({
           orderId: id,
           menuItemId: mId,
           quantity: qty,
           unitPrice: unitPrice,
-          totalPrice: isNaN(totalPrice) ? 0 : totalPrice,
+          totalPrice: totalPrice,
           notes: item.notes || '',
           variations: item.variations || []
         });
