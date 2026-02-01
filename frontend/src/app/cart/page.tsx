@@ -315,13 +315,20 @@ function CartPageContent() {
         restaurantId,
         tableNumber: tableNumber || undefined,
         items: (items || []).map(item => {
+          // Varyasyon bilgisini nota ekle (Garanti olması için)
+          let itemNote = item.notes || '';
+          if (item.variant) {
+            const variantInfo = `Seçim: ${item.variant.name}`;
+            itemNote = itemNote ? `${itemNote} | ${variantInfo}` : variantInfo;
+          }
+
           return {
             menuItemId: item.itemId || item.id,
             name: typeof item.name === 'string' ? item.name : (item.name?.tr || item.name?.en || 'Ürün'),
             quantity: item.quantity,
             unitPrice: item.price, // Varyasyonlu fiyat zaten item.price içindedir
             price: item.price,
-            notes: item.notes || '',
+            notes: itemNote,
             variations: item.variant ? [item.variant] : []
           };
         }),
