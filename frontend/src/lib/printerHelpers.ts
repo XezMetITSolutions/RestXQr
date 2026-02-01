@@ -14,6 +14,7 @@ export interface ReceiptItem {
             description?: string;
         }
     };
+    variations?: any[];
 }
 
 export interface ReceiptData {
@@ -161,10 +162,24 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
             y += 45;
         }
 
-        if (item.notes) {
+        // Variation Rendering (New)
+        const variations = (item as any).variations || (item as any).selectedVariation || [];
+        const varList = Array.isArray(variations) ? variations : [variations];
+
+        if (varList.length > 0) {
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillStyle = '#333'; // Slightly gray/lighter bold for variation
+            const varText = `   * ${varList.map(v => typeof v === 'string' ? v : (v.name || v.value)).join(', ')} *`;
+            ctx.fillText(varText.toUpperCase(), 15, y);
+            y += 45;
+            ctx.fillStyle = 'black'; // Reset
+        }
+
+        const itemNote = item.notes || (item as any).note;
+        if (itemNote) {
             // "Not kalın harflerle olsun altı çizgili olsun"
             ctx.font = 'bold 34px sans-serif';
-            const noteText = `   NOT: ${item.notes}`;
+            const noteText = `   NOT: ${itemNote}`;
             ctx.fillText(noteText, 15, y);
 
             // Draw underline for the note
