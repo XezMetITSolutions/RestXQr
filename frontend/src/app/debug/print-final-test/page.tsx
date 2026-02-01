@@ -7,35 +7,36 @@ import { printReceiptViaBridge } from '@/lib/printerHelpers';
 export default function PrintFinalTestPage() {
     const [ip, setIp] = useState('192.168.1.13');
     const [bridgeUrl, setBridgeUrl] = useState('http://localhost:3005');
+    const [receiptType, setReceiptType] = useState<'KITCHEN' | 'BILL'>('KITCHEN');
     const [status, setStatus] = useState<{ message: string; type: 'info' | 'success' | 'error' }>({ message: 'Hazır', type: 'info' });
     const [loading, setLoading] = useState(false);
 
     const testData = {
-        orderNumber: "TEST-1234",
+        orderNumber: "ORD-999",
         tableNumber: "13",
-        checkNumber: "88",
-        staffName: "Debug Test",
-        header: "KROREN RESTORAN",
-        type: 'BILL' as const,
-        subtotal: 450.00,
-        total: 450.00,
+        checkNumber: "50",
+        staffName: "Mutfak Test",
+        header: "KROREN MUTFAK",
+        type: receiptType,
+        subtotal: 0,
+        total: 0,
         items: [
             {
                 name: "Hoxan - Dana Etli Ramen (Özel Seri)",
                 quantity: 2,
-                price: 150.00,
-                translations: { zh: { name: "禾祥牛肉拉面 (Long Translation Test)" } },
+                price: receiptType === 'BILL' ? 150.00 : undefined,
+                translations: { zh: { name: "禾祥牛肉拉面" } },
                 variations: ["Büyük Porsiyon", "Az Acılı"]
             },
             {
-                name: "Çin Mantısı (Geleneksel Şef Tarifi)",
+                name: "Çin Mantısı (Şefin Tavsiyesi)",
                 quantity: 1,
-                price: 150.00,
+                price: receiptType === 'BILL' ? 120.00 : undefined,
                 translations: { zh: { name: "传统手工水饺" } },
-                notes: "Lütfen sıcak servis edilsin, yanına ekstra acı sos eklensin."
+                notes: "Lütfen acı sosu bol olsun."
             }
         ],
-        footer: "Bizi Tercih Ettiğiniz İçin Teşekkürler!\nwww.restxqr.com"
+        footer: receiptType === 'BILL' ? "Afiyet Olsun!" : "Mutfak Kopyası - İstasyon Testi"
     };
 
     const handlePrint = async () => {
@@ -105,8 +106,8 @@ export default function PrintFinalTestPage() {
                             </div>
 
                             <div className={`mt-6 p-4 rounded-xl border ${status.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                                    status.type === 'error' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
-                                        'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                                status.type === 'error' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
+                                    'bg-blue-500/10 border-blue-500/20 text-blue-400'
                                 }`}>
                                 {status.message}
                             </div>
