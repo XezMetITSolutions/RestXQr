@@ -5,6 +5,14 @@ import { apiService } from '@/services/api';
 import { FaDatabase, FaCheck, FaTimes, FaSync, FaExclamationTriangle, FaTools } from 'react-icons/fa';
 
 const EXPECTED_COLUMNS = {
+    restaurants: [
+        'id', 'name', 'username', 'email', 'password', 'phone', 'address',
+        'logo', 'banner', 'is_active', 'rating', 'review_count',
+        'cuisine_types', 'features', 'business_hours', 'social_media',
+        'location', 'settings', 'printer_config', 'kitchen_stations',
+        'subscription_plan', 'subscription_status', 'max_tables', 'max_menu_items', 'max_staff',
+        'qr_code_settings', 'created_at', 'updated_at'
+    ],
     menu_items: [
         'id', 'restaurant_id', 'category_id', 'name', 'description', 'price',
         'image_url', 'video_url', 'video_thumbnail', 'video_duration',
@@ -21,13 +29,22 @@ const EXPECTED_COLUMNS = {
         'discount_percentage', 'discount_start_date', 'discount_end_date',
         'created_at', 'updated_at'
     ],
-    restaurants: [
-        'id', 'name', 'username', 'email', 'password', 'phone', 'address',
-        'logo', 'banner', 'is_active', 'rating', 'review_count',
-        'cuisine_types', 'features', 'business_hours', 'social_media',
-        'location', 'settings', 'printer_config', 'kitchen_stations',
-        'subscription_plan', 'subscription_status', 'max_tables', 'max_menu_items', 'max_staff',
-        'qr_code_settings', 'created_at', 'updated_at'
+    staff: [
+        'id', 'restaurantId', 'name', 'email', 'username', 'password',
+        'phone', 'role', 'status', 'permissions', 'createdAt', 'updatedAt'
+    ],
+    orders: [
+        'id', 'restaurant_id', 'table_number', 'customer_name', 'status',
+        'approved', 'total_amount', 'notes', 'order_type', 'paid_amount',
+        'discount_amount', 'discount_reason', 'cashier_note', 'created_at', 'updated_at'
+    ],
+    order_items: [
+        'id', 'order_id', 'menu_item_id', 'quantity', 'unit_price', 'total_price',
+        'notes', 'created_at', 'updated_at'
+    ],
+    qr_tokens: [
+        'id', 'restaurant_id', 'table_number', 'token', 'expires_at', 'is_active',
+        'session_id', 'used_at', 'created_by', 'created_at', 'updated_at'
     ]
 };
 
@@ -193,9 +210,7 @@ export default function SchemaDebugPage() {
                     </div>
                 ) : (
                     <>
-                        {renderComparison('restaurants')}
-                        {renderComparison('menu_items')}
-                        {renderComparison('menu_categories')}
+                        {Object.keys(EXPECTED_COLUMNS).map(tableName => renderComparison(tableName))}
                     </>
                 )}
             </div>

@@ -477,32 +477,106 @@ END;
                 DO $$
                 BEGIN
                     BEGIN
-                        ALTER TABLE menu_categories ADD COLUMN kitchen_station VARCHAR(50);
+                        ALTER TABLE menu_categories ADD COLUMN IF NOT EXISTS kitchen_station VARCHAR(50);
                     EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
 
                     BEGIN
-                        ALTER TABLE menu_categories ADD COLUMN discount_percentage INTEGER DEFAULT NULL;
+                        ALTER TABLE menu_categories ADD COLUMN IF NOT EXISTS discount_percentage INTEGER DEFAULT NULL;
                     EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
 
                     BEGIN
-                        ALTER TABLE menu_categories ADD COLUMN discount_start_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+                        ALTER TABLE menu_categories ADD COLUMN IF NOT EXISTS discount_start_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;
                     EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
 
                     BEGIN
-                        ALTER TABLE menu_categories ADD COLUMN discount_end_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+                        ALTER TABLE menu_categories ADD COLUMN IF NOT EXISTS discount_end_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;
                     EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
                 END $$;
             `);
-            console.log('✅ Updated all menu_items columns');
-        } catch (e) {
-            console.error('Error updating menu_items columns:', e.message);
-        }
 
-        res.json({
-            success: true,
-            message: 'Database schema updated. Check /business/menu/debug to verify columns.'
-        });
+            // Update restaurants columns
+            await sequelize.query(`
+                DO $$
+                BEGIN
+                    BEGIN
+                        ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS kitchen_stations JSONB DEFAULT '[]'::jsonb;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS printer_config JSONB DEFAULT '{}'::jsonb;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS max_tables INTEGER DEFAULT 20;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+                    
+                    BEGIN
+                        ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS max_menu_items INTEGER DEFAULT 100;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS max_staff INTEGER DEFAULT 5;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+                END $$;
+            `);
+
+            // Update staff columns
+            await sequelize.query(`
+                DO $$
+                BEGIN
+                    BEGIN
+                        ALTER TABLE staff ADD COLUMN IF NOT EXISTS permissions JSONB DEFAULT '{}'::jsonb;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+                END $$;
+            `);
+
+            // Update orders columns
+            await sequelize.query(`
+                DO $$
+                BEGIN
+                    BEGIN
+                        ALTER TABLE orders ADD COLUMN IF NOT EXISTS approved BOOLEAN DEFAULT false;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type VARCHAR(20) DEFAULT 'dine_in';
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+
+                    BEGIN
+                        ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_amount DECIMAL(10,2) DEFAULT 0;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+                    
+                    BEGIN
+                        ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_amount DECIMAL(10,2) DEFAULT 0;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+                END $$;
+            `);
+
+            // Update qr_tokens columns
+            await sequelize.query(`
+                DO $$
+                BEGIN
+                    BEGIN
+                        ALTER TABLE qr_tokens ADD COLUMN IF NOT EXISTS session_id UUID;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+                    
+                    BEGIN
+                        ALTER TABLE qr_tokens ADD COLUMN IF NOT EXISTS used_at TIMESTAMP WITH TIME ZONE;
+                    EXCEPTION WHEN duplicate_column THEN RAISE NOTICE 'column already exists'; END;
+                END $$;
+            `);
+
+            console.log('✅ Updated all business tables columns');
+        } catch (e) {
+            console.error('Error updating business tables columns:', e.message);
+        }
+        res.json({ success: true, message: 'Tüm iş sayfaları için veritabanı şeması güncellendi.' });
     } catch (error) {
+        console.error('Error fixing DB schema:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
@@ -511,28 +585,22 @@ router.get('/table-info', async (req, res) => {
     try {
         const { sequelize } = require('../models');
 
-        // Get columns for menu_items
-        const [menuItemsColumns] = await sequelize.query(`
-            SELECT column_name, data_type, is_nullable, column_default
-            FROM information_schema.columns
-            WHERE table_name = 'menu_items'
-            ORDER BY ordinal_position;
-        `);
+        const tables = ['restaurants', 'menu_items', 'menu_categories', 'staff', 'orders', 'order_items', 'qr_tokens'];
+        const tableInfo = {};
 
-        // Get columns for menu_categories
-        const [menuCategoriesColumns] = await sequelize.query(`
-            SELECT column_name, data_type, is_nullable, column_default
-            FROM information_schema.columns
-            WHERE table_name = 'menu_categories'
-            ORDER BY ordinal_position;
-        `);
+        for (const table of tables) {
+            const [columns] = await sequelize.query(`
+                SELECT column_name, data_type, is_nullable, column_default
+                FROM information_schema.columns
+                WHERE table_name = '${table}'
+                ORDER BY ordinal_position;
+            `);
+            tableInfo[table] = columns;
+        }
 
         res.json({
             success: true,
-            tables: {
-                menu_items: menuItemsColumns,
-                menu_categories: menuCategoriesColumns
-            }
+            tables: tableInfo
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
