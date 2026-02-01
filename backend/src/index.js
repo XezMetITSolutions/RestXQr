@@ -874,13 +874,19 @@ app.post('/api/debug/add-column', async (req, res) => {
 });
 limitsFixed: needsLimitUpdate,
   superadminCreated: created
-      });
-    }
+    }); // End of push
+  } // End of loop
 
 res.json({
   success: true,
   message: 'Tüm restoran planları ve superadmin kullanıcıları düzeltildi.',
   results
+});
+
+} catch (error) {
+  success: true,
+    message: 'Tüm restoran planları ve superadmin kullanıcıları düzeltildi.',
+      results
 });
   } catch (error) {
   console.error('❌ Fix Plans Error:', error);
