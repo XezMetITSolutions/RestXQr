@@ -23,14 +23,35 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
   const [selectedVariant, setSelectedVariant] = useState<{ name: string, price: number } | null>(null);
 
   useEffect(() => {
-    if (item.variations?.length > 0) {
-      setSelectedVariant(item.variations[0]);
-    } else if (item.variants?.length > 0) {
-      setSelectedVariant(item.variants[0]);
-    } else {
-      setSelectedVariant(null);
+    let initialVariant = null;
+    if (item.variations && item.variations.length > 0) {
+      initialVariant = item.variations[0];
+    } else if (item.variants && item.variants.length > 0) {
+      initialVariant = item.variants[0];
+    }
+
+    setSelectedVariant(initialVariant);
+    if (initialVariant) {
+      setNotes(`* ${initialVariant.name} *`);
     }
   }, [item]);
+
+  // Varyasyon değiştikçe notu güncelle
+  useEffect(() => {
+    if (selectedVariant) {
+      setNotes(prev => {
+        // Eğer not alanı boşsa veya sadece eski bir varyasyon varsa direkt yenisini yaz
+        const variantList = [...(item.variations || []), ...(item.variants || [])].map(v => v?.name).filter(Boolean);
+
+        let cleanedNotes = prev;
+        variantList.forEach(vName => {
+          cleanedNotes = cleanedNotes.replace(new RegExp(`\\* ${vName} \\*`, 'g'), '').trim();
+        });
+
+        return cleanedNotes ? `${cleanedNotes} * ${selectedVariant.name} *` : `* ${selectedVariant.name} *`;
+      });
+    }
+  }, [selectedVariant, item.variations, item.variants]);
 
   // 3. Helper: Calculate discounted price
   const getDiscountedPrice = useCallback(() => {
@@ -114,7 +135,7 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
     addItem({
       itemId: item.id,
       name: typeof item.name === 'string' ? { en: item.name, tr: item.name } : item.name,
-      price: currentPrice, // 5. Use the calculated currentPrice (which now reflects discounts)
+      price: currentPrice,
       variant: selectedVariant || undefined,
       quantity,
       image: imageUrl,
@@ -216,11 +237,11 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
           </div>
 
           {/* Variations (was Variants) */}
-          {(item.variations?.length > 0 || item.variants?.length > 0) && (
+          {((item.variations && item.variations.length > 0) || (item.variants && item.variants.length > 0)) && (
             <div className="mb-4">
               <h3 className="font-semibold mb-2">Varyasyonlar</h3>
               <div className="flex flex-col gap-2">
-                {(item.variations || item.variants).map((v: any, i: number) => (
+                {(item.variations || item.variants || []).map((v: any, i: number) => (
                   <label
                     key={i}
                     className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${selectedVariant?.name === v.name
