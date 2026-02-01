@@ -3,7 +3,17 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const iconv = require('iconv-lite');
 const { ThermalPrinter, PrinterTypes, CharacterSet } = require('node-thermal-printer');
+
+const turkishCharMap = {
+    'ğ': '\xA7', 'Ğ': '\xA6',
+    'ü': '\x81', 'Ü': '\x9A',
+    'ş': '\x9F', 'Ş': '\x9E',
+    'ı': '\x8D', 'İ': '\x98',
+    'ö': '\x94', 'Ö': '\x99',
+    'ç': '\x87', 'Ç': '\x80'
+};
 
 const app = express();
 const PORT = 3005;

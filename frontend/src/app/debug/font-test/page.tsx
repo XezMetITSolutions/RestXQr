@@ -1,17 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaPrint, FaCheck, FaPlug, FaWifi } from 'react-icons/fa';
 
 const BRIDGE_URL = 'http://127.0.0.1:3005';
 
 export default function FontTestPage() {
+    const [isMounted, setIsMounted] = useState(false);
     const [printerIP, setPrinterIP] = useState('192.168.10.198');
     const [printerPort, setPrinterPort] = useState('9100');
     const [loading, setLoading] = useState<string | null>(null);
     const [results, setResults] = useState<{ [key: string]: string }>({});
     const [connectionStatus, setConnectionStatus] = useState<string>('');
     const [bridgeStatus, setBridgeStatus] = useState<string>('');
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!isMounted) return null;
 
     const fontSizes = [
         { id: 'size1', name: 'Çok Küçük', description: 'Normal boyut, bold yok', config: { doubleHeight: false, doubleWidth: false, bold: false } },
