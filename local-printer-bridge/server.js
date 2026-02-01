@@ -16,6 +16,16 @@ app.use(cors({
 
 app.use(express.json());
 
+// Request logger for debugging
+app.use((req, res, next) => {
+    console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+    next();
+});
+
+// Explicit OPTIONS handler for CORS preflight
+app.options('*', cors());
+
+
 // ESC/POS Commands
 const CMD = {
     CP857: Buffer.from([0x1B, 0x74, 13]),      // ESC t 13 -> PC857
@@ -84,12 +94,12 @@ async function resolveWindowsPrinterPath(printerName) {
 }
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/debug/health', (req, res) => {
     res.json({ success: true, message: 'Local Bridge is running', timestamp: new Date().toISOString() });
 });
 
 // Test connection endpoint
-app.post('/test-connection', async (req, res) => {
+app.post('/debug/test-connection', async (req, res) => {
     const { ip, port = 9100 } = req.body;
     console.log(`🔌 Testing connection to ${ip}:${port}...`);
 
@@ -115,7 +125,7 @@ app.post('/test-connection', async (req, res) => {
 });
 
 // Font size test print endpoint
-app.post('/print-font-test', async (req, res) => {
+app.post('/debug/print-font-test', async (req, res) => {
     const { ip, port = 9100, fontConfig, sizeName, sizeDescription } = req.body;
     console.log(`🖨️ Font Test: ${sizeName} - IP: ${ip}:${port}`);
 

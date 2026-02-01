@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { FaPrint, FaCheck, FaPlug, FaWifi } from 'react-icons/fa';
 
-const BRIDGE_URL = 'http://127.0.0.1:3005';
+const BRIDGE_URL = 'http://localhost:3005';
 
 export default function FontTestPage() {
     const [printerIP, setPrinterIP] = useState('192.168.10.198');
@@ -35,7 +35,7 @@ export default function FontTestPage() {
     const testBridge = async () => {
         setBridgeStatus('⏳ Bridge kontrol ediliyor...');
         try {
-            const response = await fetch(`${BRIDGE_URL}/health`, {
+            const response = await fetch(`${BRIDGE_URL}/debug/health`, {
                 method: 'GET',
                 signal: AbortSignal.timeout(3000)
             });
@@ -54,7 +54,7 @@ export default function FontTestPage() {
     const testPrinterConnection = async () => {
         setConnectionStatus('⏳ Yazıcı kontrol ediliyor...');
         try {
-            const response = await fetch(`${BRIDGE_URL}/test-connection`, {
+            const response = await fetch(`${BRIDGE_URL}/debug/test-connection`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -81,7 +81,8 @@ export default function FontTestPage() {
         setResults(prev => ({ ...prev, [sizeConfig.id]: 'Yazdırılıyor...' }));
 
         try {
-            const response = await fetch(`${BRIDGE_URL}/print-font-test`, {
+            // printer-test ile aynı mantık: hata kontrolü yapmadan gönder
+            const response = await fetch(`${BRIDGE_URL}/debug/print-font-test`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -90,18 +91,16 @@ export default function FontTestPage() {
                     fontConfig: sizeConfig.config,
                     sizeName: sizeConfig.name,
                     sizeDescription: sizeConfig.description
-                }),
-                signal: AbortSignal.timeout(10000)
+                })
             });
 
-            const data = await safeParseJson(response);
-            if (data.success) {
+            if (response.ok) {
                 setResults(prev => ({ ...prev, [sizeConfig.id]: '✅ Başarılı!' }));
             } else {
-                setResults(prev => ({ ...prev, [sizeConfig.id]: `❌ Hata: ${data.error || data.message}` }));
+                setResults(prev => ({ ...prev, [sizeConfig.id]: `❌ Hata: ${response.status}` }));
             }
         } catch (error: any) {
-            setResults(prev => ({ ...prev, [sizeConfig.id]: `❌ Bağlantı hatası: ${error.message}` }));
+            setResults(prev => ({ ...prev, [sizeConfig.id]: `❌ Bridge Hatası: Bridge çalışıyor mu? (${BRIDGE_URL})` }));
         } finally {
             setLoading(null);
         }
