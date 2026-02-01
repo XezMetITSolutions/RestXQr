@@ -1058,6 +1058,25 @@ export default function KasaPanel() {
                   const orderCount = hasOrder && tableOrder.originalOrders ? tableOrder.originalOrders.length : (hasOrder ? 1 : 0);
                   const remaining = hasOrder ? (Number(tableOrder.totalAmount || 0) - Number(tableOrder.paidAmount || 0) - Number(tableOrder.discountAmount || 0)) : 0;
 
+                  // Calculate Duration
+                  let durationStr = '';
+                  if (hasOrder) {
+                    let startTimeStr = (tableOrder as any).createdAt;
+                    if (tableOrder.originalOrders && tableOrder.originalOrders.length > 0) {
+                      const earliest = tableOrder.originalOrders.reduce((min: any, o: any) => {
+                        return new Date(o.createdAt).getTime() < new Date(min).getTime() ? o.createdAt : min;
+                      }, tableOrder.originalOrders[0].createdAt);
+                      startTimeStr = earliest;
+                    }
+                    if (startTimeStr) {
+                      const diffMs = currentTime.getTime() - new Date(startTimeStr).getTime();
+                      const diffMins = Math.floor(diffMs / 60000);
+                      const hrs = Math.floor(diffMins / 60);
+                      const mins = diffMins % 60;
+                      durationStr = hrs > 0 ? `${hrs}sa ${mins}dk` : `${mins}dk`;
+                    }
+                  }
+
                   return (
                     <button
                       key={tableNum}
@@ -1068,11 +1087,16 @@ export default function KasaPanel() {
                           setShowPaymentModal(true);
                           setManualAmount('');
                           setPaymentTab('full');
+                        } else {
+                          // Empty table - Create Order
+                          if (confirm(`Masa ${tableNum} için yeni sipariş sayfası açılsın mı?`)) {
+                            window.open(`/menu?tableId=${tableNum}`, '_blank');
+                          }
                         }
                       }}
                       className={`aspect-square rounded-2xl font-black text-xl flex flex-col items-center justify-center gap-1 transition-all shadow-md relative ${hasOrder
                         ? 'bg-gradient-to-br from-green-500 to-green-600 text-white hover:scale-105 hover:shadow-xl cursor-pointer'
-                        : 'bg-white text-gray-400 hover:bg-gray-50 cursor-default'
+                        : 'bg-white text-gray-400 hover:bg-gray-50 hover:text-green-500 hover:border-green-200 border-2 border-transparent cursor-pointer'
                         }`}
                     >
                       <span className="text-2xl">{tableNum}</span>
@@ -1084,7 +1108,15 @@ export default function KasaPanel() {
                             </span>
                           )}
                           <span className="text-[10px] font-bold opacity-90">{remaining.toFixed(0)}₺</span>
+                          <div className="absolute top-1 left-1 bg-black/20 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1">
+                            <FaClock size={8} /> {durationStr}
+                          </div>
                         </>
+                      )}
+                      {!hasOrder && (
+                        <div className="text-[8px] font-bold uppercase tracking-widest opacity-0 hover:opacity-100 transition-opacity absolute bottom-2">
+                          SİPARİŞ EKLE
+                        </div>
                       )}
                     </button>
                   );
