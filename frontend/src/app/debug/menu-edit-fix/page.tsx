@@ -120,26 +120,57 @@ export default function MenuEditFixPage() {
     };
 
     const testAllFieldsOneByOne = async () => {
-        if (!item) return alert('First fetch an item');
+        addLog('Starting diagnosis sequence...');
 
-        const fields = [
-            { name: 'Basic (Name)', payload: { name: item.name + ' (Test)' } },
+        const testPayloads = [
+            { name: 'Basic (Name Only)', payload: { name: 'Diagnosis Test Item' } },
             { name: 'Campaign (Discount %)', payload: { discountPercentage: 10 } },
-            { name: 'Campaign (Discount Price)', payload: { discountedPrice: 9.99 } },
+            { name: 'Campaign (Discount Price)', payload: { discountedPrice: 99.99 } },
+            { name: 'Campaign (Dates)', payload: { discountStartDate: new Date().toISOString() } },
             { name: 'JSON (Variations)', payload: { variations: [] } },
             { name: 'JSON (Options)', payload: { options: [] } },
             { name: 'JSON (Allergens)', payload: { allergens: [] } },
-            { name: 'Kitchen Station', payload: { kitchenStation: 'test' } },
-            { name: 'Type', payload: { type: 'single' } }
+            { name: 'Kitchen Station', payload: { kitchenStation: 'test_station' } },
+            { name: 'Type', payload: { type: 'single' } },
+            { name: 'Description (Text)', payload: { description: 'test description' } }
         ];
 
-        for (const test of fields) {
-            addLog(`Running test: ${test.name}`);
+        for (const test of testPayloads) {
+            addLog(`🧪 Testing: ${test.name}`);
             await testUpdate(test.payload);
-            // Small delay
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 800));
+        }
+        addLog('Diagnosis sequence completed.');
+    };
+
+    const fixEverything = async () => {
+        setLoading(true);
+        addLog('🚀 CRITICAL FIX: Running all database migrations...');
+        try {
+            addLog('Step 1: fix-db-schema...');
+            const res1 = await fetch(`${API_URL}/admin-fix/fix-db-schema`);
+            const data1 = await res1.json();
+            addLog(`Step 1 Result: ${data1.message}`);
+
+            addLog('Step 2: apply-campaigns...');
+            const res2 = await fetch(`${API_URL}/admin-fix/apply-campaigns`);
+            const data2 = await res2.json();
+            addLog(`Step 2 Result: ${data2.success ? 'Success' : 'Failed'}`);
+
+            addLog('Step 3: apply-variants...');
+            const res3 = await fetch(`${API_URL}/admin-fix/apply-variants`);
+            const data3 = await res3.json();
+            addLog(`Step 3 Result: ${data3.error ? 'Error' : 'Success'}`);
+
+            addLog('✅ All migrations attempted. Refreshing schema...');
+            await fetchSchema();
+        } catch (err: any) {
+            addLog(`💥 Migration Error: ${err.message}`);
+        } finally {
+            setLoading(false);
         }
     };
+
 
     useEffect(() => {
         fetchSchema();
@@ -260,12 +291,21 @@ export default function MenuEditFixPage() {
                             </div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm bg-gradient-to-br from-white to-red-50">
+                            <h2 className="font-black text-sm uppercase text-red-600 mb-4 tracking-tighter">Emergency Actions</h2>
+                            <button
+                                onClick={fixEverything}
+                                disabled={loading}
+                                className="w-full py-4 bg-red-600 text-white rounded-xl font-black text-sm hover:bg-red-700 disabled:opacity-50 transition-all flex justify-center items-center gap-2 mb-4 animate-pulse shadow-lg"
+                            >
+                                <FaSync /> FIX ALL DATABASE ISSUES
+                            </button>
+
                             <h2 className="font-black text-sm uppercase text-orange-600 mb-4 tracking-tighter">Interactive Test</h2>
                             <p className="text-xs text-gray-500 mb-4">Run automated sequential field updates to find the exact column causing the 500 error.</p>
                             <button
                                 onClick={testAllFieldsOneByOne}
-                                disabled={loading || !item}
+                                disabled={loading}
                                 className="w-full py-4 bg-orange-600 text-white rounded-xl font-black text-sm hover:bg-orange-700 disabled:opacity-50 transition-all flex justify-center items-center gap-2"
                             >
                                 <FaBug /> START FULL DIAGNOSIS
