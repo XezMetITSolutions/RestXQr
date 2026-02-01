@@ -113,6 +113,7 @@ export default function KasaPanel() {
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [isNewOrder, setIsNewOrder] = useState(false);
 
   // Delete Confirm State
   const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
@@ -758,8 +759,54 @@ export default function KasaPanel() {
     setSelectedOrder({ ...selectedOrder, items: updatedItems, totalAmount: newTotal });
   };
 
+  const handleCreateOrder = async () => {
+    if (!selectedOrder) return;
+    try {
+      addLog('Creating new order...', 'network');
+
+      const processedItems = selectedOrder.items.map(item => ({
+        ...item,
+        menuItemId: (item as any).menuItemId || item.id,
+        price: Number(item.price),
+        totalPrice: Number(item.price) * Number(item.quantity)
+      }));
+
+      const response = await fetch(`${API_URL}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurantId,
+          tableNumber: selectedOrder.tableNumber,
+          items: processedItems,
+          totalAmount: selectedOrder.totalAmount,
+          status: 'pending',
+          orderType: 'dine_in',
+          approved: true // Kasiyer eklediği için direkt onaylı
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        addLog('Order created successfully', 'success');
+        alert('Yeni sipariş başarıyla oluşturuldu.');
+        setShowPaymentModal(false);
+        setIsNewOrder(false);
+        fetchOrders();
+      } else {
+        alert('Sipariş oluşturulamadı: ' + data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Sipariş oluşturma hatası oluştu.');
+    }
+  };
+
   const handleSaveOrder = async () => {
     if (!selectedOrder) return;
+    if (isNewOrder) {
+      handleCreateOrder();
+      return;
+    }
     try {
       addLog('Saving order changes...', 'network');
 
@@ -1281,9 +1328,26 @@ export default function KasaPanel() {
                           setPaymentTab('full');
                         } else {
                           // Empty table - Create Order
-                          if (confirm(`Masa ${tableNum} için yeni sipariş sayfası açılsın mı?`)) {
-                            window.open(`/menu?tableId=${tableNum}`, '_blank');
-                          }
+                          const blankOrder: Order = {
+                            id: 'temp-' + Date.now(),
+                            restaurantId: restaurantId,
+                            tableNumber: tableNum,
+                            items: [],
+                            totalAmount: 0,
+                            paidAmount: 0,
+                            discountAmount: 0,
+                            status: 'pending',
+                            orderType: 'dine_in',
+                            approved: true,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setSelectedOrder(blankOrder);
+                          setIsNewOrder(true);
+                          setUndoStack([]);
+                          setShowPaymentModal(true);
+                          setManualAmount('');
+                          setPaymentTab('full');
                         }
                       }}
                       className={`aspect-square rounded-2xl font-black text-xl flex flex-col items-center justify-center gap-1 transition-all shadow-md relative ${hasOrder
@@ -1682,7 +1746,7 @@ export default function KasaPanel() {
                     onClick={handleSaveOrder}
                     className="w-full py-2 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 flex items-center justify-center gap-2 border border-blue-200"
                   >
-                    <FaSave /> SİPARİŞİ GÜNCELLE / KAYDET
+                    <FaSave /> {isNewOrder ? 'YENİ SİPARİŞİ OLUŞTUR' : 'SİPARİŞİ GÜNCELLE / KAYDET'}
                   </button>
                 </div>
               </div>
@@ -1691,7 +1755,7 @@ export default function KasaPanel() {
               <div className="w-[44%] bg-white flex flex-col h-full relative border-r border-gray-200">
                 {/* Close Butonu */}
                 <div className="absolute top-4 right-4 z-10">
-                  <button onClick={() => { setShowPaymentModal(false); setSelectedOrder(null); setShowCashPad(false); }} className="p-2 bg-gray-100 text-gray-500 rounded hover:bg-red-100 hover:text-red-500 transition-colors">
+                  <button onClick={() => { setShowPaymentModal(false); setSelectedOrder(null); setShowCashPad(false); setIsNewOrder(false); }} className="p-2 bg-gray-100 text-gray-500 rounded hover:bg-red-100 hover:text-red-500 transition-colors">
                     <FaTimesCircle size={24} />
                   </button>
                 </div>
