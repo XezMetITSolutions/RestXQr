@@ -5,12 +5,13 @@ import apiService from '@/services/api';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export default function OrderUpdateDebug() {
-    const { authenticatedRestaurant, authenticatedStaff } = useAuthStore();
+    const { authenticatedRestaurant, authenticatedStaff, user } = useAuthStore();
     const [orders, setOrders] = useState<any[]>([]);
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
     const [editedItems, setEditedItems] = useState<any[]>([]);
+    const [manualRestaurantId, setManualRestaurantId] = useState('kroren');
 
     const addLog = (message: string) => {
         const timestamp = new Date().toLocaleTimeString();
@@ -23,24 +24,60 @@ export default function OrderUpdateDebug() {
             setLoading(true);
             addLog('🔄 Siparişler yükleniyor...');
 
-            const restaurantId = authenticatedRestaurant?.id || authenticatedStaff?.restaurantId;
+            addLog(`🔍 Auth State Check:`);
+            addLog(`  - authenticatedRestaurant: ${authenticatedRestaurant?.id || 'null'}`);
+            addLog(`  - authenticatedStaff: ${authenticatedStaff?.restaurantId || 'null'}`);
+            addLog(`  - user: ${user?.id || 'null'}`);
+            addLog(`  - manualRestaurantId: ${manualRestaurantId}`);
+
+            let restaurantId = authenticatedRestaurant?.id || authenticatedStaff?.restaurantId || manualRestaurantId;
+
             if (!restaurantId) {
-                addLog('❌ Restaurant ID bulunamadı');
+                addLog('❌ Restaurant ID yok - Manuel ID girin');
+                setLoading(false);
                 return;
             }
 
-            addLog(`📍 Restaurant ID: ${restaurantId}`);
+            let finalRestaurantId = restaurantId;
 
-            const response = await apiService.getOrders(restaurantId, 'pending,preparing,ready');
+            // If it's a username (no hyphens), try to resolve it to UUID
+            if (restaurantId && !restaurantId.includes('-')) {
+                addLog(`📍 Restaurant Username tespit edildi: ${restaurantId}`);
+                addLog(`🔄 Username -> UUID çözümleniyor...`);
+
+                try {
+                    const restResponse = await apiService.getRestaurantByUsername(restaurantId);
+                    if (restResponse.success && restResponse.data) {
+                        finalRestaurantId = restResponse.data.id;
+                        addLog(`✅ UUID çözüldü: ${finalRestaurantId}`);
+                    } else {
+                        addLog(`❌ Username çözülemedi: ${restaurantId}`);
+                        setLoading(false);
+                        return;
+                    }
+                } catch (err: any) {
+                    addLog(`❌ Restaurant bulunamadı: ${err.message}`);
+                    setLoading(false);
+                    return;
+                }
+            } else {
+                addLog(`📍 Restaurant UUID kullanılıyor: ${restaurantId}`);
+            }
+
+            const response = await apiService.getOrders(finalRestaurantId, 'pending,preparing,ready');
 
             if (response.success && response.data) {
                 setOrders(response.data);
                 addLog(`✅ ${response.data.length} sipariş yüklendi`);
             } else {
                 addLog('❌ Sipariş yüklenemedi');
+                addLog(JSON.stringify(response, null, 2));
             }
         } catch (error: any) {
             addLog(`❌ Hata: ${error.message}`);
+            if (error.stack) {
+                addLog(`Stack: ${error.stack}`);
+            }
         } finally {
             setLoading(false);
         }
@@ -123,11 +160,34 @@ export default function OrderUpdateDebug() {
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-bold mb-8">Sipariş Güncelleme Debug</h1>
 
+                {/* Manuel Restaurant ID Input */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Restaurant ID/Username (kroren ise 'kroren' yaz):
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={manualRestaurantId}
+                            onChange={(e) => setManualRestaurantId(e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="kroren"
+                        />
+                        <button
+                            onClick={loadOrders}
+                            disabled={loading}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-semibold"
+                        >
+                            {loading ? 'Yükleniyor...' : 'Siparişleri Getir'}
+                        </button>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-8">
                     {/* Sol panel - Siparişler */}
                     <div className="bg-white rounded-lg shadow p-6">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold">Siparişler</h2>
+                            <h2 className="text-xl font-semibold">Siparişler ({orders.length})</h2>
                             <button
                                 onClick={loadOrders}
                                 disabled={loading}
@@ -138,40 +198,46 @@ export default function OrderUpdateDebug() {
                         </div>
 
                         <div className="space-y-4 max-h-96 overflow-y-auto">
-                            {orders.map(order => (
-                                <div
-                                    key={order.id}
-                                    onClick={() => selectOrder(order)}
-                                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedOrder?.id === order.id
+                            {orders.length === 0 ? (
+                                <div className="text-center text-gray-500 py-8">
+                                    Sipariş bulunamadı
+                                </div>
+                            ) : (
+                                orders.map(order => (
+                                    <div
+                                        key={order.id}
+                                        onClick={() => selectOrder(order)}
+                                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedOrder?.id === order.id
                                             ? 'border-blue-500 bg-blue-50'
                                             : 'border-gray-200 hover:border-gray-300'
-                                        }`}
-                                >
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <span className="font-semibold">Masa {order.tableNumber}</span>
-                                            <span className="text-sm text-gray-600 ml-2">{order.status}</span>
+                                            }`}
+                                    >
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <span className="font-semibold">Masa {order.tableNumber}</span>
+                                                <span className="text-sm text-gray-600 ml-2">{order.status}</span>
+                                            </div>
+                                            <span className="font-bold text-green-600">{order.totalAmount}₺</span>
                                         </div>
-                                        <span className="font-bold text-green-600">{order.totalAmount}₺</span>
+                                        <div className="text-sm text-gray-600">
+                                            {order.items?.length || 0} ürün
+                                        </div>
+                                        <div className="text-xs text-gray-400 mt-1">
+                                            ID: {order.id}
+                                        </div>
                                     </div>
-                                    <div className="text-sm text-gray-600">
-                                        {order.items?.length || 0} ürün
-                                    </div>
-                                    <div className="text-xs text-gray-400 mt-1">
-                                        ID: {order.id}
-                                    </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
 
                     {/* Sağ panel - Sipariş detayı */}
                     <div className="bg-white rounded-lg shadow p-6">
                         <h2 className="text-xl font-semibold mb-4">
-                            {selectedOrder ? `Sipariş: ${selectedOrder.id}` : 'Sipariş Seçilmedi'}
+                            {selectedOrder ? `Sipariş: ${selectedOrder.id.substring(0, 8)}...` : 'Sipariş Seçilmedi'}
                         </h2>
 
-                        {selectedOrder && (
+                        {selectedOrder ? (
                             <div>
                                 <div className="mb-4 p-4 bg-gray-50 rounded-lg">
                                     <div className="text-sm text-gray-600">Masa: {selectedOrder.tableNumber}</div>
@@ -183,34 +249,44 @@ export default function OrderUpdateDebug() {
 
                                 <div className="space-y-3 mb-4">
                                     <h3 className="font-semibold">Ürünler:</h3>
-                                    {editedItems.map((item, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                            <div className="flex-1">
-                                                <div className="font-medium">
-                                                    {typeof item.name === 'string' ? item.name : item.name?.tr || item.name?.en || 'Ürün'}
-                                                </div>
-                                                <div className="text-sm text-gray-600">
-                                                    {item.quantity}x @ {item.price}₺ = {(item.quantity * item.price).toFixed(2)}₺
-                                                </div>
-                                                <div className="text-xs text-gray-400">ID: {item.id}</div>
-                                            </div>
-                                            <button
-                                                onClick={() => removeItem(item.id)}
-                                                className="ml-4 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                                            >
-                                                Sil
-                                            </button>
+                                    {editedItems.length === 0 ? (
+                                        <div className="text-center text-gray-500 py-4 bg-gray-50 rounded">
+                                            Hiç ürün yok
                                         </div>
-                                    ))}
+                                    ) : (
+                                        editedItems.map((item, idx) => (
+                                            <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                <div className="flex-1">
+                                                    <div className="font-medium">
+                                                        {typeof item.name === 'string' ? item.name : item.name?.tr || item.name?.en || 'Ürün'}
+                                                    </div>
+                                                    <div className="text-sm text-gray-600">
+                                                        {item.quantity}x @ {item.price}₺ = {(item.quantity * item.price).toFixed(2)}₺
+                                                    </div>
+                                                    <div className="text-xs text-gray-400">ID: {item.id}</div>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeItem(item.id)}
+                                                    className="ml-4 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                                                >
+                                                    Sil
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
 
                                 <button
                                     onClick={updateOrder}
-                                    disabled={loading}
+                                    disabled={loading || editedItems.length === 0}
                                     className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-semibold"
                                 >
                                     {loading ? 'Güncelleniyor...' : 'Siparişi Güncelle'}
                                 </button>
+                            </div>
+                        ) : (
+                            <div className="text-center text-gray-500 py-8">
+                                Sol panelden bir sipariş seçin
                             </div>
                         )}
                     </div>
