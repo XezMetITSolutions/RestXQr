@@ -746,6 +746,7 @@ router.put('/:id', async (req, res) => {
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
     const oldApproved = order.approved;
+    const previousStatus = order.status;
 
     // Sync items and update order
     if (status) order.status = status;
@@ -977,7 +978,11 @@ router.put('/:id', async (req, res) => {
     }
 
     // Ödeme tamamlandığında QR token'ı yenile (eski token'ı deaktive et, yeni token oluştur)
-    if (status === 'completed' && previousStatus !== 'completed' && order.tableNumber) {
+    // KROREN ÖZEL: Kroren için QR kodları kalıcıdır, yenileme yapma.
+    const isKroren = order.restaurantId === '37b0322a-e11f-4ef1-b108-83be310aaf4d' ||
+      (order.restaurant && (order.restaurant.username === 'kroren' || order.restaurant.username === 'kroren-levent'));
+
+    if (status === 'completed' && previousStatus !== 'completed' && order.tableNumber && !isKroren) {
       try {
         console.log(`💳 Ödeme tamamlandı, QR token yenileniyor: Masa ${order.tableNumber}, Restoran ${order.restaurantId}`);
 
