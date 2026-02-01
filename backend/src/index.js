@@ -173,7 +173,8 @@ app.get('/api/debug/update-kroren-printers', async (req, res) => {
         manti: { name: 'MANTI', ip: '192.168.10.199', port: 9100, enabled: true, type: 'epson', language: 'tr' },
         icecek1: { name: 'İÇECEK 1', ip: '192.168.10.192', port: 9100, enabled: true, type: 'epson', language: 'tr' },
         icecek2: { name: 'İÇECEK 2', ip: '192.168.10.191', port: 9100, enabled: true, type: 'epson', language: 'tr' },
-        kasa: { name: 'KASA', ip: '192.168.10.198', port: 9100, enabled: true, type: 'epson', language: 'tr' }
+        kasa: { name: 'KASA', ip: '192.168.10.198', port: 9100, enabled: true, type: 'epson', language: 'tr' },
+        kebap: { name: 'KEBAP', ip: '192.168.10.195', port: 9100, enabled: true, type: 'epson', language: 'tr' }
       };
       const krorenStations = [
         { id: 'kavurma', name: 'KAVURMA', emoji: '🥩', color: '#ef4444', order: 1 },
@@ -181,13 +182,14 @@ app.get('/api/debug/update-kroren-printers', async (req, res) => {
         { id: 'manti', name: 'MANTI', emoji: '🥟', color: '#f59e0b', order: 3 },
         { id: 'icecek1', name: 'İÇECEK 1', emoji: '🥤', color: '#3b82f6', order: 4 },
         { id: 'icecek2', name: 'İÇECEK 2', emoji: '🥤', color: '#0ea5e9', order: 5 },
-        { id: 'kasa', name: 'KASA', emoji: '💰', color: '#10b981', order: 6 }
+        { id: 'kasa', name: 'KASA', emoji: '💰', color: '#10b981', order: 6 },
+        { id: 'kebap', name: 'KEBAP', emoji: '🍢', color: '#8b5cf6', order: 7 }
       ];
       await Restaurant.update(
         { printerConfig: krorenConfig, kitchenStations: krorenStations },
         { where: { id: kroren.id } }
       );
-      results.push('✅ kroren (Merkez) güncellendi (Kavurma, Ramen, Manti, İçecek 1, İçecek 2, Kasa)');
+      results.push('✅ kroren (Merkez) güncellendi (Kavurma, Ramen, Manti, İçecek 1, İçecek 2, Kasa, Kebap)');
     }
 
     // 2. KROREN-LEVENT

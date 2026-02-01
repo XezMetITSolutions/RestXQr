@@ -55,7 +55,7 @@
     },
     "1769866818213": {
         "name": "KEBAP",
-        "ip": "",
+        "ip": "192.168.10.195",
         "port": 9100,
         "enabled": true,
         "type": "epson",
