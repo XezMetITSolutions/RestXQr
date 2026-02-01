@@ -112,16 +112,22 @@ export default function OrderUpdateDebug() {
             const newTotal = editedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             addLog(`💰 Yeni toplam: ${newTotal}₺`);
 
-            const itemsForApi = editedItems.map(item => ({
-                menuItemId: item.menuItemId || item.id,
-                id: item.id,
-                name: typeof item.name === 'string' ? item.name : item.name?.tr || item.name?.en || 'Ürün',
-                quantity: item.quantity,
-                price: item.price,
-                unitPrice: item.price,
-                totalPrice: item.price * item.quantity,
-                notes: item.notes || ''
-            }));
+            const itemsForApi = editedItems.map(item => {
+                const price = Number(item.price);
+                const quantity = Number(item.quantity);
+                const total = price * quantity;
+
+                return {
+                    menuItemId: item.menuItemId || item.id,
+                    id: item.id,
+                    name: typeof item.name === 'string' ? item.name : item.name?.tr || item.name?.en || 'Ürün',
+                    quantity: quantity,
+                    price: price,
+                    unitPrice: price,
+                    totalPrice: isNaN(total) ? 0 : total,
+                    notes: item.notes || ''
+                };
+            });
 
             addLog('📤 Backend\'e gönderilecek data:');
             addLog(JSON.stringify({ items: itemsForApi, totalAmount: newTotal }, null, 2));
@@ -141,6 +147,7 @@ export default function OrderUpdateDebug() {
                 setEditedItems([]);
             } else {
                 addLog('❌ Sipariş güncellenemedi');
+                if (response.message) addLog(`Backend Mesajı: ${response.message}`);
             }
         } catch (error: any) {
             addLog(`❌ Hata: ${error.message}`);
@@ -153,6 +160,7 @@ export default function OrderUpdateDebug() {
     };
 
     useEffect(() => {
+        addLog('🚀 Debug Page v2.0 Loaded (Fixed totalPrice)');
         loadOrders();
     }, []);
 
