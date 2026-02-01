@@ -325,6 +325,7 @@ app.post('/test/:ip', async (req, res) => {
 
         printer.alignCenter();
         printer.setTextDoubleHeight();
+        printer.setTextDoubleWidth();
         printer.bold(true);
         printer.add(CMD.CP857);
         printer.add(encodeText("MASA 15"));
@@ -349,10 +350,13 @@ app.post('/test/:ip', async (req, res) => {
         ];
 
         for (const item of testItems) {
-            // Line 1: Quantity + Turkish Name
+            // Line 1: Quantity + Turkish Name (Çok Büyük)
             printer.bold(true);
+            printer.setTextDoubleHeight();
+            printer.setTextDoubleWidth();
             printer.add(CMD.CP857);
             printer.add(encodeText(`${item.qty}x ${item.tr}\n`));
+            printer.setTextNormal();
 
             // Line 2: Chinese Name
             printer.bold(false);
@@ -429,6 +433,7 @@ app.post('/print/:ip', async (req, res) => {
         // Format Kitchen Receipt
         printer.alignCenter();
         printer.setTextDoubleHeight();
+        printer.setTextDoubleWidth();
         printer.bold(true);
         printer.add(CMD.CP857);
         printer.add(encodeText(`MASA ${tableNumber || '?'}`));
@@ -442,10 +447,30 @@ app.post('/print/:ip', async (req, res) => {
 
         printer.alignLeft();
         for (const item of items) {
-            // Turkish Name
+            // Turkish Name (Çok Büyük)
             printer.bold(true);
+            printer.setTextDoubleHeight();
+            printer.setTextDoubleWidth();
             printer.add(CMD.CP857);
             printer.add(encodeText(`${item.quantity}x ${item.name}\n`));
+            printer.setTextNormal();
+
+            // Sürüm/Varyasyon Bilgisi (Küçük, Büyük vb.)
+            const variation = item.selectedVariation?.name || item.variationName || item.variation;
+            if (variation) {
+                printer.bold(true);
+                printer.add(CMD.CP857);
+                printer.add(encodeText(`   * ${variation.toUpperCase()} *\n`));
+                printer.bold(false);
+            }
+
+            // Seçenekler (Ekstralar vb.)
+            if (item.selectedOptions && Array.isArray(item.selectedOptions) && item.selectedOptions.length > 0) {
+                printer.add(CMD.CP857);
+                item.selectedOptions.forEach(opt => {
+                    printer.println(`   + ${opt.name || opt}`);
+                });
+            }
 
             // Chinese Name (if available)
             const chineseName = item.translations?.zh?.name || item.nameChinese;
@@ -459,8 +484,10 @@ app.post('/print/:ip', async (req, res) => {
             // Notes (Turkish)
             printer.bold(false);
             if (item.notes) {
+                printer.bold(true);
                 printer.add(CMD.CP857);
-                printer.add(encodeText(`   NOT: ${item.notes}\n`));
+                printer.add(encodeText(`   [ NOT: ${item.notes} ]\n`));
+                printer.bold(false);
             }
             printer.newLine();
         }
@@ -598,6 +625,7 @@ app.post('/debug/print-stations', async (req, res) => {
 
                     printer.alignCenter();
                     printer.setTextDoubleHeight();
+                    printer.setTextDoubleWidth();
                     printer.bold(true);
                     printer.add(CMD.CP857);
                     printer.add(encodeText(`MASA ${tableNumber}`));
@@ -609,13 +637,33 @@ app.post('/debug/print-stations', async (req, res) => {
 
                     for (const item of stationItems) {
                         printer.bold(true);
+                        printer.setTextDoubleHeight();
+                        printer.setTextDoubleWidth();
                         printer.add(CMD.CP857);
                         printer.add(encodeText(`${item.quantity}x ${item.name}\n`));
+                        printer.setTextNormal();
+
+                        // Varyasyon Bilgisi
+                        const variation = item.selectedVariation?.name || item.variationName || item.variation;
+                        if (variation) {
+                            printer.bold(true);
+                            printer.add(CMD.CP857);
+                            printer.add(encodeText(`   * ${variation.toUpperCase()} *\n`));
+                            printer.bold(false);
+                        }
+
+                        // Seçenekler
+                        if (item.selectedOptions && Array.isArray(item.selectedOptions) && item.selectedOptions.length > 0) {
+                            printer.add(CMD.CP857);
+                            item.selectedOptions.forEach(opt => {
+                                printer.println(`   + ${opt.name || opt}`);
+                            });
+                        }
 
                         if (item.notes) {
                             printer.bold(false);
                             printer.add(CMD.CP857);
-                            printer.add(encodeText(`   NOT: ${item.notes}\n`));
+                            printer.add(encodeText(`   [ NOT: ${item.notes} ]\n`));
                         }
                     }
 
