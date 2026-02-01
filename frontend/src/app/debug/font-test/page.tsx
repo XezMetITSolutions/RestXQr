@@ -1,15 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { FaPrint, FaCheck } from 'react-icons/fa';
+import { FaPrint, FaCheck, FaPlug, FaWifi } from 'react-icons/fa';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://restxqr-api.onrender.com/api';
+const BRIDGE_URL = 'http://localhost:3005';
 
 export default function FontTestPage() {
-    const [printerIP, setPrinterIP] = useState('192.168.1.100');
+    const [printerIP, setPrinterIP] = useState('192.168.10.198');
     const [printerPort, setPrinterPort] = useState('9100');
     const [loading, setLoading] = useState<string | null>(null);
     const [results, setResults] = useState<{ [key: string]: string }>({});
+    const [connectionStatus, setConnectionStatus] = useState<string>('');
+    const [bridgeStatus, setBridgeStatus] = useState<string>('');
 
     const fontSizes = [
         { id: 'size1', name: 'Çok Küçük', description: 'Normal boyut, bold yok', config: { doubleHeight: false, doubleWidth: false, bold: false } },
@@ -19,21 +21,66 @@ export default function FontTestPage() {
         { id: 'size5', name: 'Çok Büyük', description: 'Çift yükseklik + genişlik, bold', config: { doubleHeight: true, doubleWidth: true, bold: true } },
     ];
 
+    // Bridge bağlantısını test et
+    const testBridge = async () => {
+        setBridgeStatus('⏳ Bridge kontrol ediliyor...');
+        try {
+            const response = await fetch(`${BRIDGE_URL}/health`, {
+                method: 'GET',
+                signal: AbortSignal.timeout(3000)
+            });
+            if (response.ok) {
+                setBridgeStatus('✅ Local Bridge çalışıyor!');
+            } else {
+                setBridgeStatus('❌ Bridge yanıt vermiyor');
+            }
+        } catch (error: any) {
+            setBridgeStatus(`❌ Bridge bulunamadı: ${error.message}`);
+        }
+    };
+
+    // Yazıcı bağlantısını test et (bridge üzerinden)
+    const testPrinterConnection = async () => {
+        setConnectionStatus('⏳ Yazıcı kontrol ediliyor...');
+        try {
+            const response = await fetch(`${BRIDGE_URL}/test-connection`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ip: printerIP,
+                    port: parseInt(printerPort)
+                }),
+                signal: AbortSignal.timeout(5000)
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setConnectionStatus(`✅ Yazıcı bağlantısı başarılı! (${printerIP}:${printerPort})`);
+            } else {
+                setConnectionStatus(`❌ Yazıcı bağlantısı başarısız: ${data.error || 'Bilinmeyen hata'}`);
+            }
+        } catch (error: any) {
+            setConnectionStatus(`❌ Bağlantı hatası: ${error.message}`);
+        }
+    };
+
+    // Font testi yazdır (bridge üzerinden)
     const printTest = async (sizeConfig: typeof fontSizes[0]) => {
         setLoading(sizeConfig.id);
         setResults(prev => ({ ...prev, [sizeConfig.id]: 'Yazdırılıyor...' }));
 
         try {
-            const response = await fetch(`${API_URL}/debug/print-font-test`, {
+            const response = await fetch(`${BRIDGE_URL}/print-font-test`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    printerIP,
-                    printerPort: parseInt(printerPort),
+                    ip: printerIP,
+                    port: parseInt(printerPort),
                     fontConfig: sizeConfig.config,
                     sizeName: sizeConfig.name,
                     sizeDescription: sizeConfig.description
-                })
+                }),
+                signal: AbortSignal.timeout(10000)
             });
 
             const data = await response.json();
@@ -52,7 +99,7 @@ export default function FontTestPage() {
     const printAll = async () => {
         for (const size of fontSizes) {
             await printTest(size);
-            await new Promise(resolve => setTimeout(resolve, 2000)); // 2 saniye bekle
+            await new Promise(resolve => setTimeout(resolve, 2000));
         }
     };
 
@@ -62,9 +109,28 @@ export default function FontTestPage() {
             <p className="text-gray-400 mb-8">Farklı font boyutlarını test edin ve hangisini beğendiğinizi seçin.</p>
 
             {/* Yazıcı Ayarları */}
-            <div className="bg-gray-800 rounded-lg p-6 mb-8 max-w-xl">
+            <div className="bg-gray-800 rounded-lg p-6 mb-8 max-w-2xl">
                 <h2 className="text-xl font-semibold mb-4">Yazıcı Ayarları</h2>
-                <div className="grid grid-cols-2 gap-4">
+
+                {/* Bridge Durumu */}
+                <div className="mb-4 p-3 bg-gray-700 rounded-lg">
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-300">Local Bridge: {BRIDGE_URL}</span>
+                        <button
+                            onClick={testBridge}
+                            className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded text-sm font-semibold flex items-center gap-2"
+                        >
+                            <FaPlug /> Bridge Test
+                        </button>
+                    </div>
+                    {bridgeStatus && (
+                        <div className={`mt-2 text-sm ${bridgeStatus.includes('✅') ? 'text-green-400' : bridgeStatus.includes('❌') ? 'text-red-400' : 'text-yellow-400'}`}>
+                            {bridgeStatus}
+                        </div>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">IP Adresi</label>
                         <input
@@ -72,7 +138,7 @@ export default function FontTestPage() {
                             value={printerIP}
                             onChange={(e) => setPrinterIP(e.target.value)}
                             className="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
-                            placeholder="192.168.1.100"
+                            placeholder="192.168.10.198"
                         />
                     </div>
                     <div>
@@ -86,6 +152,19 @@ export default function FontTestPage() {
                         />
                     </div>
                 </div>
+
+                {/* Bağlantı Testi */}
+                <button
+                    onClick={testPrinterConnection}
+                    className="w-full bg-green-600 hover:bg-green-500 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+                >
+                    <FaWifi /> YAZICI BAĞLANTI TESTİ
+                </button>
+                {connectionStatus && (
+                    <div className={`mt-3 p-3 rounded text-sm ${connectionStatus.includes('✅') ? 'bg-green-900 text-green-300' : connectionStatus.includes('❌') ? 'bg-red-900 text-red-300' : 'bg-yellow-900 text-yellow-300'}`}>
+                        {connectionStatus}
+                    </div>
+                )}
             </div>
 
             {/* Font Boyutları */}
@@ -95,7 +174,7 @@ export default function FontTestPage() {
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-4xl font-bold text-blue-400">#{index + 1}</span>
                             <span className={`text-sm px-3 py-1 rounded-full ${size.config.doubleHeight && size.config.doubleWidth ? 'bg-red-600' :
-                                    size.config.doubleHeight || size.config.doubleWidth ? 'bg-yellow-600' : 'bg-green-600'
+                                size.config.doubleHeight || size.config.doubleWidth ? 'bg-yellow-600' : 'bg-green-600'
                                 }`}>
                                 {size.name}
                             </span>
@@ -114,8 +193,8 @@ export default function FontTestPage() {
                             onClick={() => printTest(size)}
                             disabled={loading !== null}
                             className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors ${loading === size.id
-                                    ? 'bg-blue-700 cursor-wait'
-                                    : 'bg-blue-600 hover:bg-blue-500'
+                                ? 'bg-blue-700 cursor-wait'
+                                : 'bg-blue-600 hover:bg-blue-500'
                                 }`}
                         >
                             {loading === size.id ? (
@@ -132,7 +211,7 @@ export default function FontTestPage() {
 
                         {results[size.id] && (
                             <div className={`mt-3 p-2 rounded text-sm ${results[size.id].includes('✅') ? 'bg-green-900 text-green-300' :
-                                    results[size.id].includes('❌') ? 'bg-red-900 text-red-300' : 'bg-gray-700'
+                                results[size.id].includes('❌') ? 'bg-red-900 text-red-300' : 'bg-gray-700'
                                 }`}>
                                 {results[size.id]}
                             </div>
