@@ -217,7 +217,7 @@ router.get('/verify/:token', async (req, res) => {
         tableNumber: qrToken.tableNumber,
         expiresAt: qrToken.expiresAt,
         remainingMinutes: Math.floor((new Date(qrToken.expiresAt) - new Date()) / 60000),
-        isActive: qrToken.isActive,
+        isActive: isKroren ? true : qrToken.isActive,
         token: qrToken.token
       }
     });
