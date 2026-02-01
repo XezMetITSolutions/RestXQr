@@ -196,7 +196,10 @@ router.get('/verify/:token', async (req, res) => {
     }
 
     // Token validity: Always accept existing tokens (disable isActive/expiry checks for permanent QR codes)
-    if (!qrToken.isActive) {
+    const isKroren = qrToken.restaurantId === '37b0322a-e11f-4ef1-b108-83be310aaf4d' ||
+      (qrToken.Restaurant && (qrToken.Restaurant.username === 'kroren' || qrToken.Restaurant.username === 'kroren-levent'));
+
+    if (!qrToken.isActive && !isKroren) {
       return res.status(404).json({
         success: false,
         message: 'QR code has been deactivated'
