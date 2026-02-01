@@ -714,19 +714,12 @@ export default function KasaPanel() {
       return;
     }
 
-    setDeleteConfirmIndex(index);
-    setShowDeleteConfirm(true);
-    addLog('Delete confirmation modal triggered', 'debug');
-  };
-
-  const confirmDelete = () => {
-    if (!selectedOrder || deleteConfirmIndex === null) return;
+    // Direct deletion without confirmation modal
     saveToUndo(selectedOrder);
-    const updatedItems = selectedOrder.items.filter((_, i) => i !== deleteConfirmIndex);
+    const updatedItems = selectedOrder.items.filter((_, i) => i !== index);
     const newTotal = updatedItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
     setSelectedOrder({ ...selectedOrder, items: updatedItems, totalAmount: newTotal });
-    setShowDeleteConfirm(false);
-    setDeleteConfirmIndex(null);
+    addLog(`Item at index ${index} removed locally`, 'info');
   };
 
   const addItemToOrder = (item: any, delta: number = 1) => {
@@ -2233,34 +2226,7 @@ export default function KasaPanel() {
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/80 z-[300] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-gray-100 p-6 flex flex-col gap-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaTrash size={24} />
-              </div>
-              <h3 className="text-xl font-black text-gray-800">ÜRÜNÜ SİL</h3>
-              <p className="text-gray-500 font-bold text-sm mt-2">Bu ürünü siparişten çıkarmak istediğinize emin misiniz?</p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmIndex(null); }}
-                className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-xl font-black hover:bg-gray-200 transition-colors"
-              >
-                İPTAL
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="flex-1 py-3 bg-red-500 text-white rounded-xl font-black hover:bg-red-600 transition-colors"
-              >
-                SİL
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
     </div>
   );
