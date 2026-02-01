@@ -445,9 +445,10 @@ router.post('/:restaurantId/menu/items', async (req, res) => {
 
 // PUT /api/restaurants/:restaurantId/menu/items/:itemId - Update menu item
 router.put('/:restaurantId/menu/items/:itemId', async (req, res) => {
+  let updateData = null;
   try {
     const { restaurantId, itemId } = req.params;
-    const updateData = req.body;
+    updateData = req.body;
 
     // Find item and verify it belongs to the restaurant
     const item = await MenuItem.findOne({
