@@ -1080,27 +1080,12 @@ router.put('/:id', async (req, res) => {
       }
     }
 
-    // Items değiştiyse güncelle
-    if (items && Array.isArray(items)) {
-      // Mevcut order items'ları sil
-      await OrderItem.destroy({ where: { orderId: id } });
-
-      // Yeni items'ları ekle
-      for (const item of items) {
-        await OrderItem.create({
-          orderId: id,
-          menuItemId: item.id || item.menuItemId,
-          quantity: item.quantity || 1,
-          unitPrice: item.price || item.unitPrice || 0,
-          notes: item.notes || ''
-        });
-      }
-
-      // Total amount'u güncelle
-      if (totalAmount) {
-        order.totalAmount = totalAmount;
-        await order.save();
-      }
+    // NOTE: Items are already processed above (lines 760-831) with proper totalPrice calculation.
+    // This duplicate block was removed as it was causing notNull Violation errors.
+    // If you need to update totalAmount separately:
+    if (totalAmount !== undefined && !items) {
+      order.totalAmount = totalAmount;
+      await order.save();
     }
 
     const responseData = order.get({ plain: true });
