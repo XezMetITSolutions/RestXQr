@@ -180,15 +180,36 @@ export default function CashierDashboard() {
   const demoOrders: Order[] = centralOrders.map(centralOrder => ({
     id: centralOrder.id,
     tableNumber: centralOrder.tableNumber,
-    items: centralOrder.items.map(item => ({
-      id: item.id,
-      itemId: item.id,
-      name: { tr: item.name, en: item.name },
-      price: item.price,
-      quantity: item.quantity,
-      category: item.category || 'food',
-      notes: item.notes || ''
-    })),
+    items: (centralOrder.items || []).map(item => {
+      // Handle polymorphic name (string or object) safely
+      let trName = 'Ürün';
+      let enName = 'Product';
+
+      try {
+        if (item.name) {
+          if (typeof item.name === 'string') {
+            trName = item.name;
+            enName = item.name;
+          } else if (typeof item.name === 'object') {
+            const n = item.name as any;
+            trName = n.tr || n.en || 'Ürün';
+            enName = n.en || n.tr || 'Product';
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing item name:', e);
+      }
+
+      return {
+        id: item.id,
+        itemId: item.id,
+        name: { tr: trName, en: enName },
+        price: item.price,
+        quantity: item.quantity,
+        category: item.category || 'food',
+        notes: item.notes || ''
+      };
+    }),
     total: centralOrder.totalAmount,
     status: centralOrder.status as 'pending' | 'preparing' | 'ready' | 'delivered' | 'paid',
     timestamp: new Date(centralOrder.createdAt).getTime(),
