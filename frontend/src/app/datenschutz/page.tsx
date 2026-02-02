@@ -20,135 +20,130 @@ function DatenschutzContent() {
         tr: {
             title: 'Gizlilik Politikası',
             lastUpdated: 'Son Güncelleme: 11 Ocak 2025',
-            intro: 'Bu Gizlilik Politikası, restXqr olarak kişisel verilerinizi nasıl topladığımız, kullandığımız ve koruduğumuzu açıklamaktadır.',
+            intro: 'RestXQr olarak güvenliğinize önem veriyoruz. Bu politika, dijital menü hizmetlerimiz sırasında verilerinizin nasıl işlendiğini belirtir.',
             dataCollection: {
-                title: 'Veri Toplama',
-                text: 'Aşağıdaki bilgileri toplayabiliriz:',
+                title: 'Hangi Verileri Topluyoruz?',
+                text: 'Hizmet kalitemizi artırmak adına şu verileri işleyebiliriz:',
                 list: [
-                    'İsim ve iletişim bilgileri',
-                    'E-posta adresi',
-                    'Telefon numarası',
-                    'Kullanım verileri ve analitik bilgiler'
+                    'İletişim bilgileri (Ad, E-posta, Telefon)',
+                    'Restoran işletme bilgileri',
+                    'Sistem kullanım istatistikleri',
+                    'IP adresi ve tarayıcı bilgileri (Güvenlik amaçlı)'
                 ]
             },
             dataUse: {
-                title: 'Veri Kullanımı',
-                text: 'Toplanan veriler aşağıdaki amaçlarla kullanılır:',
+                title: 'Verilerin Kullanım Amacı',
+                text: 'Toplanan veriler şu amaçlarla sınırlı kalmak kaydıyla kullanılır:',
                 list: [
-                    'Hizmetlerimizi sağlamak ve iyileştirmek',
-                    'Müşteri desteği sunmak',
-                    'Yasal yükümlülükleri yerine getirmek',
-                    'Güvenliği sağlamak'
+                    'Sipariş süreçlerinin yönetimi',
+                    'Kullanıcı paneline erişim sağlanması',
+                    'Yazılım güncellemeleri ve teknik destek',
+                    'Yasal bildirimlerin yapılması'
                 ]
             },
             dataProtection: {
-                title: 'Veri Koruma',
-                text: 'Kişisel verilerinizin güvenliğini sağlamak için uygun teknik ve organizasyonel önlemler alıyoruz.'
+                title: 'Veri Güvenliği',
+                text: 'Verileriniz endüstri standardı SSL sertifikaları ve şifrelenmiş veri tabanları ile korunmaktadır. Üçüncü şahıslarla ticari amaçla paylaşılmaz.'
             },
             rights: {
-                title: 'Haklarınız',
-                text: 'Aşağıdaki haklara sahipsiniz:',
+                title: 'Kullanıcı Hakları',
+                text: 'KVKK ve GDPR kapsamında şu haklara sahipsiniz:',
                 list: [
-                    'Kişisel verilerinize erişim hakkı',
-                    'Verilerinizin düzeltilmesini talep etme hakkı',
-                    'Verilerinizin silinmesini talep etme hakkı',
-                    'Veri işlemeye itiraz etme hakkı'
+                    'Verilerinizin kopyasını talep etme',
+                    'Hatalı bilgilerin düzeltilmesini isteme',
+                    'Hesap silme ile birlikte verilerin yok edilmesini talep etme'
                 ]
             },
             contact: {
-                title: 'İletişim',
-                text: 'Gizlilik politikamız hakkında sorularınız için bizimle iletişime geçebilirsiniz:',
-                email: 'info@restxqr.com',
+                title: 'Bize Ulaşın',
+                text: 'Veri güvenliği hakkında sorularınız için:',
+                email: 'privacy@restxqr.com',
                 phone: '+43 660 868 22 01'
             }
         },
         de: {
             title: 'Datenschutzerklärung',
             lastUpdated: 'Letzte Aktualisierung: 11. Januar 2025',
-            intro: 'Diese Datenschutzerklärung erklärt, wie restXqr Ihre persönlichen Daten sammelt, verwendet und schützt.',
+            intro: 'Detaillierte Informationen zum Schutz Ihrer persönlichen Daten bei der Nutzung von RestXQr.',
             dataCollection: {
                 title: 'Datenerfassung',
-                text: 'Wir können folgende Informationen sammeln:',
+                text: 'Wir erfassen folgende Daten zur Optimierung unserer Dienste:',
                 list: [
-                    'Name und Kontaktinformationen',
-                    'E-Mail-Adresse',
-                    'Telefonnummer',
-                    'Nutzungsdaten und Analysedaten'
+                    'Kontaktdaten (Name, E-Mail)',
+                    'Unternehmensdaten für Rechnungsstellung',
+                    'Nutzungsstatistiken',
+                    'Sicherheitsrelevante Logfiles'
                 ]
             },
             dataUse: {
-                title: 'Datenverwendung',
-                text: 'Die gesammelten Daten werden für folgende Zwecke verwendet:',
+                title: 'Verwendung der Daten',
+                text: 'Die Daten werden ausschließlich verwendet für:',
                 list: [
-                    'Bereitstellung und Verbesserung unserer Dienste',
-                    'Kundensupport',
-                    'Erfüllung gesetzlicher Verpflichtungen',
-                    'Gewährleistung der Sicherheit'
+                    'Bereitstellung der digitalen Menüplattform',
+                    'Supportanfragen',
+                    'Systemstabilität und Sicherheit'
                 ]
             },
             dataProtection: {
-                title: 'Datenschutz',
-                text: 'Wir ergreifen angemessene technische und organisatorische Maßnahmen, um die Sicherheit Ihrer persönlichen Daten zu gewährleisten.'
+                title: 'Sicherheit',
+                text: 'Ihre Daten werden nach modernsten Sicherheitsstandards (SSL/Verschlüsselung) gespeichert.'
             },
             rights: {
                 title: 'Ihre Rechte',
-                text: 'Sie haben folgende Rechte:',
+                text: 'Sie haben das Recht auf Auskunft, Löschung und Berichtigung Ihrer Daten gemäß DSGVO.',
                 list: [
-                    'Recht auf Zugang zu Ihren persönlichen Daten',
-                    'Recht auf Berichtigung Ihrer Daten',
-                    'Recht auf Löschung Ihrer Daten',
-                    'Recht auf Widerspruch gegen die Datenverarbeitung'
+                    'Recht auf Auskunft',
+                    'Recht auf Löschung',
+                    'Recht auf Datenübertragbarkeit'
                 ]
             },
             contact: {
                 title: 'Kontakt',
-                text: 'Bei Fragen zu unserer Datenschutzerklärung können Sie uns kontaktieren:',
-                email: 'info@restxqr.com',
+                text: 'Bei Fragen zum Datenschutz:',
+                email: 'privacy@restxqr.com',
                 phone: '+43 660 868 22 01'
             }
         },
         en: {
             title: 'Privacy Policy',
             lastUpdated: 'Last Updated: January 11, 2025',
-            intro: 'This Privacy Policy explains how restXqr collects, uses, and protects your personal data.',
+            intro: 'Learn how RestXQr handles your private information with care and security.',
             dataCollection: {
                 title: 'Data Collection',
-                text: 'We may collect the following information:',
+                text: 'We collect certain data to provide better services:',
                 list: [
-                    'Name and contact information',
-                    'Email address',
-                    'Phone number',
-                    'Usage data and analytics'
+                    'Contact information',
+                    'Business details',
+                    'Analytic data for performance',
+                    'Security logs'
                 ]
             },
             dataUse: {
-                title: 'Data Use',
-                text: 'The collected data is used for the following purposes:',
+                title: 'Purpose of Processing',
+                text: 'Data is used for:',
                 list: [
-                    'Providing and improving our services',
+                    'Managing digital menu operations',
                     'Customer support',
-                    'Fulfilling legal obligations',
-                    'Ensuring security'
+                    'Fulfilling legal and billing requirements'
                 ]
             },
             dataProtection: {
-                title: 'Data Protection',
-                text: 'We take appropriate technical and organizational measures to ensure the security of your personal data.'
+                title: 'Data Security',
+                text: 'Standard encryption techniques are used to protect your data across our platforms.'
             },
             rights: {
                 title: 'Your Rights',
-                text: 'You have the following rights:',
+                text: 'Under GDPR, you have several rights regarding your data:',
                 list: [
-                    'Right to access your personal data',
-                    'Right to rectification of your data',
-                    'Right to erasure of your data',
-                    'Right to object to data processing'
+                    'Right to access',
+                    'Right to be forgotten',
+                    'Right to data correction'
                 ]
             },
             contact: {
-                title: 'Contact',
-                text: 'For questions about our privacy policy, you can contact us:',
-                email: 'info@restxqr.com',
+                title: 'Contact Us',
+                text: 'For any privacy concerns:',
+                email: 'privacy@restxqr.com',
                 phone: '+43 660 868 22 01'
             }
         }

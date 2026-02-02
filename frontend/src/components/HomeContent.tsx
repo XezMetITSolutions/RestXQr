@@ -478,108 +478,6 @@ export default function HomeContent() {
                 </div>
             </section>
 
-            {/* Modern FAQ Section */}
-            <section className="py-24 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-pink-600/5"></div>
-                <div className="container mx-auto px-4 relative z-10">
-                    <div className="text-center mb-20">
-                        <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-lg font-bold mb-6 shadow-lg">
-                            <FaLightbulb className="mr-3" />
-                            {t('faq')}
-                        </div>
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-8">
-                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                {t('curiosities')}
-                            </span>
-                        </h2>
-                        <p className="text-2xl text-gray-600 max-w-4xl mx-auto font-medium leading-relaxed">
-                            <span className="font-black text-gray-900">{t('faqDesc')}</span>
-                        </p>
-                    </div>
-
-                    <div className="max-w-4xl mx-auto space-y-6">
-                        {faqs.map((faq, index) => (
-                            <div key={index} className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 border-2 border-gray-100 hover:border-gray-200">
-                                <button
-                                    onClick={() => toggleFAQ(index)}
-                                    className="w-full p-8 text-left flex items-center justify-between group"
-                                >
-                                    <div className="flex items-center">
-                                        <div className={`bg-gradient-to-r ${faq.color === 'orange-500' ? 'from-orange-500 to-red-500' : faq.color === 'blue-500' ? 'from-blue-500 to-cyan-500' : faq.color === 'green-500' ? 'from-green-500 to-emerald-500' : faq.color === 'purple-500' ? 'from-purple-500 to-pink-500' : faq.color === 'red-500' ? 'from-red-500 to-pink-500' : faq.color === 'yellow-500' ? 'from-yellow-500 to-orange-500' : faq.color === 'indigo-500' ? 'from-indigo-500 to-purple-500' : 'from-pink-500 to-red-500'} w-12 h-12 rounded-xl flex items-center justify-center mr-6 group-hover:animate-bounce`}>
-                                            <faq.icon className="text-white text-xl" />
-                                        </div>
-                                        <h3 className="text-xl font-black text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
-                                            {faq.question}
-                                        </h3>
-                                    </div>
-                                    <div className="text-gray-400 group-hover:text-blue-600 transition-colors duration-300">
-                                        {openFAQ === index ? (
-                                            <FaChevronUp className="text-xl" />
-                                        ) : (
-                                            <FaChevronDown className="text-xl" />
-                                        )}
-                                    </div>
-                                </button>
-                                {openFAQ === index && (
-                                    <div className="px-8 pb-8">
-                                        <div className="border-t border-gray-100 pt-6">
-                                            <p className="text-gray-600 text-lg leading-relaxed">
-                                                {faq.answer}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Modern CTA Section */}
-            <section className="py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
-                <div className="absolute inset-0">
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
-                    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse"></div>
-                    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
-                </div>
-
-                <div className="container mx-auto px-4 text-center relative z-10">
-                    <div className="max-w-5xl mx-auto">
-                        <div className="inline-flex items-center px-6 py-3 bg-white/10 text-white rounded-full text-lg font-bold mb-8 backdrop-blur-xl border border-white/20">
-                            <FaRocket className="mr-3 text-orange-400 animate-bounce" />
-                            {t('startNow')}
-                        </div>
-
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-8">
-                            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                                {t('digitizeRestaurant')}
-                            </span>
-                        </h2>
-
-                        <p className="text-3xl text-gray-200 mb-12 leading-relaxed font-medium">
-                            {t('startToday')}
-                        </p>
-
-                        <div className="flex flex-col sm:flex-row justify-center gap-4 md:gap-8 mb-16">
-                            <button
-                                onClick={() => setShowDemoModal(true)}
-                                className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 hover:from-blue-500 hover:to-purple-500"
-                            >
-                                <FaUsers className="text-2xl group-hover:animate-bounce" />
-                                <span>{t('requestDemo')}</span>
-                            </button>
-                            <button
-                                onClick={() => setShowDemoModal(true)}
-                                className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105"
-                            >
-                                <FaPhone className="inline mr-4 text-2xl group-hover:animate-bounce" />
-                                <span>{t('contactNow')}</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             {/* Premium Footer */}
             <footer className="bg-slate-950 text-white pt-24 pb-12 border-t border-white/5">
                 <div className="container mx-auto px-4 max-w-7xl">
@@ -643,26 +541,22 @@ export default function HomeContent() {
                                 <Link href="/cookies" className="block text-lg text-gray-400 hover:text-white font-medium transition-colors">
                                     {t('cookiesPolicy')}
                                 </Link>
-                                <Link href="/privacy" className="block text-lg text-gray-400 hover:text-white font-medium transition-colors">
+                                <Link href="/datenschutz" className="block text-lg text-gray-400 hover:text-white font-medium transition-colors">
                                     {t('privacyPolicy')}
                                 </Link>
                                 <Link href="/terms" className="block text-lg text-gray-400 hover:text-white font-medium transition-colors">
                                     {t('termsOfService')}
                                 </Link>
-                                <Link href="/legal" className="block text-lg text-gray-400 hover:text-white font-medium transition-colors">
+                                <Link href="/impressum" className="block text-lg text-gray-400 hover:text-white font-medium transition-colors">
                                     {t('legalInfo')}
                                 </Link>
                             </div>
                         </div>
                     </div>
 
-                    <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div className="text-gray-500 font-medium">
+                    <div className="pt-8 border-t border-white/5 text-center">
+                        <div className="text-gray-500 font-medium italic">
                             &copy; {new Date().getFullYear()} RestXQr. {t('allRightsReserved')}
-                        </div>
-                        <div className="flex gap-6">
-                            <span className="text-gray-500 hover:text-gray-300 transition-colors text-sm font-bold tracking-widest cursor-pointer uppercase">Instagram</span>
-                            <span className="text-gray-500 hover:text-gray-300 transition-colors text-sm font-bold tracking-widest cursor-pointer uppercase">Linkedin</span>
                         </div>
                     </div>
                 </div>

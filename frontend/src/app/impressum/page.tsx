@@ -22,27 +22,27 @@ function ImpressumContent() {
             lastUpdated: 'Son Güncelleme: 11 Ocak 2025',
             company: {
                 title: 'Şirket Bilgileri',
-                name: 'restXqr',
-                address: 'Adres bilgileri',
+                name: 'RestXQr Tech Solutions',
+                address: 'Viyana, Avusturya',
                 email: 'info@restxqr.com',
                 phone: '+43 660 868 22 01'
             },
             responsible: {
                 title: 'Sorumlu Kişi',
-                text: 'Bu web sitesinin içeriğinden sorumlu kişi:',
-                name: 'restXqr Yönetimi'
+                text: 'İçerik Yönetimi:',
+                name: 'RestXQr Operasyon Ekibi'
             },
             disclaimer: {
                 title: 'Sorumluluk Reddi',
-                text: 'Bu web sitesindeki bilgiler genel bilgilendirme amaçlıdır. İçeriklerin doğruluğu, güncelliği veya eksiksizliği konusunda garanti verilmez.'
+                text: 'Web sitemizdeki tüm bilgiler genel bilgilendirme içindir. Bilgilerin doğruluğunu sağlamak için azami çaba gösterilmektedir.'
             },
             copyright: {
                 title: 'Telif Hakkı',
-                text: 'Bu web sitesindeki tüm içerikler telif hakkı ile korunmaktadır. İzinsiz kullanım yasaktır.'
+                text: 'Tüm hakları saklıdır. RestXQr sistemindeki metin, görsel ve yazılımlar izinsiz kullanılamaz.'
             },
             contact: {
                 title: 'İletişim',
-                text: 'Sorularınız için bizimle iletişime geçebilirsiniz:',
+                text: 'Kurumsal iletişim kanallarımız:',
                 email: 'info@restxqr.com',
                 phone: '+43 660 868 22 01'
             }
@@ -52,27 +52,27 @@ function ImpressumContent() {
             lastUpdated: 'Letzte Aktualisierung: 11. Januar 2025',
             company: {
                 title: 'Firmenangaben',
-                name: 'restXqr',
-                address: 'Adressinformationen',
+                name: 'RestXQr Tech Solutions',
+                address: 'Wien, Österreich',
                 email: 'info@restxqr.com',
                 phone: '+43 660 868 22 01'
             },
             responsible: {
                 title: 'Verantwortlich',
-                text: 'Verantwortlich für den Inhalt dieser Website:',
-                name: 'restXqr Management'
+                text: 'Verantwortlich für den Inhalt:',
+                name: 'RestXQr Operations Team'
             },
             disclaimer: {
                 title: 'Haftungsausschluss',
-                text: 'Die Informationen auf dieser Website dienen nur zur allgemeinen Information. Es wird keine Garantie für die Richtigkeit, Aktualität oder Vollständigkeit der Inhalte übernommen.'
+                text: 'Alle Inhalte dienen der allgemeinen Information. Wir übernehmen keine Haftung für externe Links.'
             },
             copyright: {
                 title: 'Urheberrecht',
-                text: 'Alle Inhalte dieser Website sind urheberrechtlich geschützt. Unerlaubte Verwendung ist verboten.'
+                text: 'Alle Rechte vorbehalten. Inhalte dürfen nicht ohne Genehmigung kopiert werden.'
             },
             contact: {
                 title: 'Kontakt',
-                text: 'Bei Fragen können Sie uns kontaktieren:',
+                text: 'Kontaktieren Sie uns unter:',
                 email: 'info@restxqr.com',
                 phone: '+43 660 868 22 01'
             }
@@ -82,27 +82,27 @@ function ImpressumContent() {
             lastUpdated: 'Last Updated: January 11, 2025',
             company: {
                 title: 'Company Information',
-                name: 'restXqr',
-                address: 'Address information',
+                name: 'RestXQr Tech Solutions',
+                address: 'Vienna, Austria',
                 email: 'info@restxqr.com',
                 phone: '+43 660 868 22 01'
             },
             responsible: {
                 title: 'Responsible Person',
-                text: 'Responsible for the content of this website:',
-                name: 'restXqr Management'
+                text: 'Responsible for content:',
+                name: 'RestXQr Operations Team'
             },
             disclaimer: {
                 title: 'Disclaimer',
-                text: 'The information on this website is for general information purposes only. No guarantee is given for the accuracy, timeliness, or completeness of the content.'
+                text: 'The information is for general purposes only. We strive for accuracy but cannot guarantee it.'
             },
             copyright: {
                 title: 'Copyright',
-                text: 'All content on this website is protected by copyright. Unauthorized use is prohibited.'
+                text: 'All rights reserved. Unauthorized duplication is prohibited.'
             },
             contact: {
                 title: 'Contact',
-                text: 'For questions, you can contact us:',
+                text: 'Corporate contact details:',
                 email: 'info@restxqr.com',
                 phone: '+43 660 868 22 01'
             }
