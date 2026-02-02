@@ -977,7 +977,9 @@ export default function KasaPanel() {
             const success = await printReceiptViaBridge(BRIDGE_URL, result.ip, {
               orderNumber: orderId,
               tableNumber: (data.order?.tableNumber || data.data?.tableNumber || '?').toString(),
-              items: result.stationItems
+              items: result.stationItems,
+              header: 'KROREN MUTFAK',
+              type: 'KITCHEN'
             });
 
             if (success) {
