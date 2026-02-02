@@ -14,6 +14,7 @@ interface OrderItem {
   price: number;
   notes?: string;
   variations?: any[];
+  _sourceOrderId?: string;  // Track which order this item came from in grouped views
 }
 
 interface Order {
@@ -275,7 +276,11 @@ export default function KasaPanel() {
 
           tableOrders.forEach(order => {
             order.items.forEach(item => {
-              allItems.push(item);
+              // Add source order tracking to each item
+              allItems.push({
+                ...item,
+                _sourceOrderId: order.id  // Track which order this item came from
+              });
             });
             totalAmount += Number(order.totalAmount) || 0;
             totalPaidAmount += Number(order.paidAmount) || 0;
@@ -870,47 +875,125 @@ export default function KasaPanel() {
           }
         });
 
+        // 4. Handle Reductions/Deletions
+        const orderUpdates = new Map<string, any[]>();
+
         if (hasReductions) {
-          alert('UYARI: Gruplanmış/Masalı görünümde ürün MİKTAR AZALTMA veya SİLME işlemi desteklenmemektedir.\n\nFazla girilen ürünleri iptal etmek için lütfen listeden tekil sipariş kaydını bulup işlem yapınız.\n\nŞu an sadece yeni eklediğiniz ürünler kaydedilecektir.');
+          addLog('Processing item reductions/deletions...', 'info');
+
+          // For each reduction, find which original order(s) to reduce from (FIFO)
+          originalInventory.forEach((origQty, key) => {
+            const newQty = newInventory.get(key) || 0;
+            const diff = origQty - newQty;
+
+            if (diff > 0) {
+              let remainingToReduce = diff;
+
+              for (const order of selectedOrder.originalOrders!) {
+                if (remainingToReduce <= 0) break;
+
+                const matchingItems = (order.items || []).filter((item: any) => {
+                  const itemKey = `${item.name}|${item.price}|${JSON.stringify(item.variations || [])}`;
+                  return itemKey === key;
+                });
+
+                for (const item of matchingItems) {
+                  if (remainingToReduce <= 0) break;
+
+                  const reduceBy = Math.min(item.quantity, remainingToReduce);
+                  const newItemQty = item.quantity - reduceBy;
+
+                  if (!orderUpdates.has(order.id)) {
+                    orderUpdates.set(order.id, [...order.items]);
+                  }
+
+                  const updateList = orderUpdates.get(order.id)!;
+                  const itemIndex = updateList.findIndex((i: any) => i.id === item.id);
+
+                  if (newItemQty <= 0) {
+                    updateList.splice(itemIndex, 1);
+                  } else {
+                    updateList[itemIndex] = { ...updateList[itemIndex], quantity: newItemQty };
+                  }
+
+                  remainingToReduce -= reduceBy;
+                }
+              }
+            }
+          });
+
+          // Execute order updates/deletions
+          for (const [orderId, updatedItems] of Array.from(orderUpdates.entries())) {
+            if (updatedItems.length === 0) {
+              await fetch(`${API_URL}/orders/${orderId}`, { method: 'DELETE' });
+              addLog(`Order ${orderId} deleted (no items)`, 'success');
+            } else {
+              const newTotal = updatedItems.reduce((sum: number, item: any) =>
+                sum + (Number(item.price) * Number(item.quantity)), 0
+              );
+
+              await fetch(`${API_URL}/orders/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  items: updatedItems.map((item: any) => ({
+                    ...item,
+                    totalPrice: Number(item.price) * Number(item.quantity)
+                  })),
+                  totalAmount: newTotal
+                })
+              });
+              addLog(`Order ${orderId} updated`, 'success');
+            }
+          }
         }
 
-        if (itemsToAdd.length === 0) {
-          if (!hasReductions) alert('Herhangi bir yeni ürün eklemesi algılanmadı.');
+        if (itemsToAdd.length === 0 && !hasReductions) {
+          alert('Herhangi bir değişiklik algılanmadı.');
           return;
         }
 
-        // 4. Yeni ürünler için sipariş oluştur (POST)
-        addLog(`Adding ${itemsToAdd.length} new items to table ${selectedOrder.tableNumber}`, 'info');
+        // 5. Add new items (if any)
+        if (itemsToAdd.length > 0) {
+          addLog(`Adding ${itemsToAdd.length} new items to table ${selectedOrder.tableNumber}`, 'info');
 
-        const response = await fetch(`${API_URL}/orders`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            restaurantId,
-            tableNumber: selectedOrder.tableNumber,
-            items: itemsToAdd,
-            totalAmount: itemsToAdd.reduce((sum, item) => sum + item.totalPrice, 0),
-            status: 'pending',
-            orderType: 'dine_in',
-            approved: true,
-            cashierNote: 'Kasa güncellemesi ile eklendi'
-          })
-        });
+          const response = await fetch(`${API_URL}/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              restaurantId,
+              tableNumber: selectedOrder.tableNumber,
+              items: itemsToAdd,
+              totalAmount: itemsToAdd.reduce((sum, item) => sum + item.totalPrice, 0),
+              status: 'pending',
+              orderType: 'dine_in',
+              approved: true,
+              cashierNote: 'Kasa güncellemesi ile eklendi'
+            })
+          });
 
-        const data = await response.json();
+          const data = await response.json();
 
-        if (data.success) {
+          if (!data.success) {
+            addLog(`Failed to add items: ${data.message}`, 'error');
+            alert('Ürünler kaydedilemedi: ' + data.message);
+            return;
+          }
+
           addLog('Additional items added successfully', 'success');
-          alert('Yeni ürünler masaya başarıyla eklendi.');
 
           if (data.data?.printResults) {
             await handlePrintFailover(data, data.data.id, false);
           }
-          fetchOrders();
-        } else {
-          addLog(`Failed to add items: ${data.message}`, 'error');
-          alert('Ürünler kaydedilemedi: ' + data.message);
         }
+
+        // Success message
+        let successMsg = [];
+        if (itemsToAdd.length > 0) successMsg.push(`${itemsToAdd.length} yeni ürün eklendi`);
+        if (hasReductions) successMsg.push(`${orderUpdates.size} sipariş güncellendi`);
+
+        alert(successMsg.join(', ') + '.');
+        fetchOrders();
         return;
       }
 
