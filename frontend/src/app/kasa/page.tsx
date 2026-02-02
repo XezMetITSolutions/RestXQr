@@ -1823,29 +1823,58 @@ export default function KasaPanel() {
               {/* SOL PANEL: ÜRÜNLER (Scrollable) - Width 25% */}
               <div className="w-[28%] bg-gray-50 border-r border-gray-200 flex flex-col h-full shrink-0">
                 {/* Header */}
-                <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center shrink-0">
-                  <div>
+                <div className="p-4 bg-white border-b border-gray-200 shrink-0">
+                  <div className="flex justify-between items-center mb-2">
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                       {selectedOrder.tableNumber && <span className="bg-gray-800 text-white px-2 py-1 rounded text-sm">MASA {selectedOrder.tableNumber}</span>}
                       {!selectedOrder.tableNumber && <span className="bg-orange-500 text-white px-2 py-1 rounded text-sm">PAKET / WEB</span>}
                     </h2>
+                    {undoStack.length > 0 && (
+                      <button onClick={handleUndo} className="text-xs font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded hover:bg-orange-200">GERİ AL</button>
+                    )}
                   </div>
-                  {undoStack.length > 0 && (
-                    <button onClick={handleUndo} className="text-xs font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded hover:bg-orange-200">GERİ AL</button>
-                  )}
+                  <button
+                    onClick={() => handleManualPrint(selectedOrder.id, true)}
+                    className="w-full py-2 bg-purple-50 border border-purple-200 text-purple-700 rounded-lg text-xs font-bold hover:bg-purple-100 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FaPrint size={12} /> TÜM SİPARİŞLERİ YAZDIR
+                  </button>
                 </div>
 
                 {/* Liste */}
                 <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
-                  {selectedOrder.items.map((item, idx) => {
-                    const sel = selectedItemIndexes.includes(idx);
+                  {(() => {
+                    // Merge duplicate items (same name, price, variations)
+                    const mergedMap = new Map<string, any>();
+                    selectedOrder.items.forEach((item, originalIdx) => {
+                      const key = `${item.name}|${item.price}|${JSON.stringify(item.variations || [])}`;
+                      if (mergedMap.has(key)) {
+                        const existing = mergedMap.get(key);
+                        existing.quantity += item.quantity;
+                        existing.originalIndexes.push(originalIdx);
+                      } else {
+                        mergedMap.set(key, { ...item, originalIndexes: [originalIdx] });
+                      }
+                    });
+                    return Array.from(mergedMap.values());
+                  })().map((item, displayIdx) => {
+                    // Check if any of the original indexes are selected
+                    const sel = item.originalIndexes.some((idx: number) => selectedItemIndexes.includes(idx));
                     return (
                       <div
-                        key={idx}
+                        key={displayIdx}
                         onClick={() => {
                           if (paymentTab === 'partial') {
-                            setSelectedItemIndexes(p => p.includes(idx) ? p.filter(i => i !== idx) : [...p, idx]);
-                            setManualAmount(''); // Clear manual if selecting items
+                            // Toggle all original indexes
+                            setSelectedItemIndexes(p => {
+                              const allSelected = item.originalIndexes.every((idx: number) => p.includes(idx));
+                              if (allSelected) {
+                                return p.filter((i: number) => !item.originalIndexes.includes(i));
+                              } else {
+                                return [...p, ...item.originalIndexes.filter((idx: number) => !p.includes(idx))];
+                              }
+                            });
+                            setManualAmount('');
                           }
                         }}
                         className={`p-3 bg-white border border-gray-200 rounded-lg flex flex-col gap-2 cursor-pointer transition-all ${sel ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:border-gray-300'}`}
@@ -1864,17 +1893,17 @@ export default function KasaPanel() {
 
                         <div className="flex justify-between items-center mt-1">
                           <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                            <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(idx, item.quantity - 1); }} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded"><FaMinus size={10} /></button>
+                            <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(item.originalIndexes[0], item.quantity - 1); }} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded"><FaMinus size={10} /></button>
                             <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
-                            <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(idx, item.quantity + 1); }} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded"><FaPlus size={10} /></button>
+                            <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(item.originalIndexes[0], item.quantity + 1); }} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded"><FaPlus size={10} /></button>
                           </div>
 
                           <div className="flex gap-1">
                             {paymentTab === 'full' && hasPermission('cashier_apply_discount') &&
-                              <button onClick={(e) => { e.stopPropagation(); applyTreat(idx); }} className="p-1.5 bg-orange-100 text-orange-600 rounded hover:bg-orange-200"><FaUtensils size={12} /></button>
+                              <button onClick={(e) => { e.stopPropagation(); applyTreat(item.originalIndexes[0]); }} className="p-1.5 bg-orange-100 text-orange-600 rounded hover:bg-orange-200"><FaUtensils size={12} /></button>
                             }
                             {paymentTab === 'full' &&
-                              <button onClick={(e) => { e.stopPropagation(); removeItem(idx); }} className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200"><FaTrash size={12} /></button>
+                              <button onClick={(e) => { e.stopPropagation(); removeItem(item.originalIndexes[0]); }} className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200"><FaTrash size={12} /></button>
                             }
                           </div>
                         </div>
