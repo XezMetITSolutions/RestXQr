@@ -145,23 +145,23 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative shadow-2xl animate-in fade-in zoom-in duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b" style={{ borderColor: 'var(--brand-subtle)' }}>
-          <h2 className="text-lg font-semibold">{getName()}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <FaTimes size={20} />
-          </button>
-        </div>
+        {/* Close Button Overlay */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-20 bg-white/90 backdrop-blur-md text-gray-800 hover:text-gray-900 p-2 rounded-full shadow-lg transition-all active:scale-95"
+          aria-label="Kapat"
+        >
+          <div className="hover:rotate-90 transition-transform duration-300">
+            <FaTimes size={18} />
+          </div>
+        </button>
 
-        {/* Image */}
+        {/* Hero Image Section */}
         <div
-          className="relative h-48 w-full cursor-pointer"
+          className="relative h-64 sm:h-72 w-full cursor-pointer overflow-hidden group"
           onClick={() => {
             const finalImage = item.imageUrl || item.image;
             if (finalImage) {
@@ -185,7 +185,7 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
               <img
                 src={src}
                 alt={getName()}
-                className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = '/placeholder-food.jpg';
@@ -193,88 +193,63 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
               />
             );
           })()}
-          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all flex items-center justify-center">
-            <div className="bg-white bg-opacity-80 rounded-full p-2 opacity-0 hover:opacity-100 transition-opacity">
-              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-              </svg>
-            </div>
-          </div>
+
+          {/* Image Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+
           {item.popular && (
-            <div className="absolute top-2 left-2 text-xs px-2 py-1 rounded-full flex items-center" style={{ backgroundColor: 'var(--brand-strong)', color: 'var(--on-primary)' }}>
-              <FaStar className="mr-1" size={10} />
+            <div className="absolute top-4 left-4 text-xs font-bold px-3 py-1.5 rounded-full flex items-center shadow-md backdrop-blur-md z-10" style={{ backgroundColor: 'rgba(211, 84, 0, 0.9)', color: '#fff' }}>
+              <FaStar className="mr-1 scale-110" size={10} />
               Popüler
             </div>
           )}
+
+          <div className="absolute bottom-4 right-4 bg-black/30 backdrop-blur-md text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+            </svg>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="p-4">
-          <p className="text-gray-600 mb-4">{getDescription()}</p>
-
-          <div className="text-2xl font-bold mb-4" style={{ color: 'var(--brand-strong)' }}>
-            {currentPrice} ₺
+        {/* Content Area */}
+        <div className="p-6">
+          <div className="flex justify-between items-start mb-2 gap-4">
+            <h2 className="text-2xl font-extrabold text-gray-900 leading-tight">{getName()}</h2>
+            <div className="text-2xl font-black whitespace-nowrap" style={{ color: 'var(--brand-strong)' }}>
+              {currentPrice % 1 === 0 ? currentPrice : currentPrice.toFixed(2)} ₺
+            </div>
           </div>
 
-          {/* Variations (was Variants) */}
-          {((item.variations && item.variations.length > 0) || (item.variants && item.variants.length > 0)) && (
-            <div className="mb-4">
-              <h3 className="font-semibold mb-2">Varyasyonlar</h3>
-              <div className="flex flex-col gap-2">
-                {(item.variations || item.variants || []).map((v: any, i: number) => (
-                  <label
-                    key={i}
-                    className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${selectedVariant?.name === v.name
-                      ? 'border-[var(--brand-strong)] bg-opacity-5'
-                      : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    style={{
-                      backgroundColor: selectedVariant?.name === v.name ? 'rgba(211, 84, 0, 0.05)' : 'transparent'
-                    }}
-                    onClick={() => setSelectedVariant(v)}
-                  >
-                    <div className="flex items-center">
-                      <div className={`w-4 h-4 rounded-full border mr-3 flex items-center justify-center ${selectedVariant?.name === v.name
-                        ? 'border-[var(--brand-strong)]'
-                        : 'border-gray-400'
-                        }`}>
-                        {selectedVariant?.name === v.name && (
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--brand-strong)' }} />
-                        )}
-                      </div>
-                      <span className={selectedVariant?.name === v.name ? 'font-medium' : ''}>{v.name}</span>
-                    </div>
-                    <span className="font-semibold">{v.price} ₺</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
+          <p className="text-gray-600 text-sm leading-relaxed mb-4">{getDescription() || (currentLanguage === 'Turkish' ? 'Bu ürün için henüz açıklama bulunmuyor.' : 'No description available for this item.')}</p>
 
-          {/* Options */}
+          {/* Options Section */}
           {item.options && item.options.length > 0 && (
-            <div className="mb-4">
+            <div className="mb-6 space-y-4">
               {item.options.map((opt: any, idx: number) => (
-                <div key={idx} className="mb-3">
-                  <h3 className="font-semibold mb-2">{opt.name}</h3>
+                <div key={idx} className="space-y-3">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 ml-1">{opt.name}</h3>
                   <div className="flex flex-wrap gap-2">
                     {opt.values.map((val: string, vIdx: number) => (
-                      <label key={vIdx} className="flex items-center space-x-2 cursor-pointer bg-gray-50 px-3 py-2 rounded-md border border-gray-200 hover:bg-gray-100">
+                      <label key={vIdx} className="group relative flex items-center cursor-pointer">
                         <input
                           type="checkbox"
-                          name={`option-${idx}`}
-                          value={val}
-                          className="rounded text-[var(--brand-primary)] focus:ring-[var(--brand-primary)]"
+                          className="peer sr-only"
                           onChange={(e) => {
-                            // Handle option selection logic (simple array append for now? or single select?)
-                            // Since we don't have advanced validation, let's just create a note string.
                             setNotes(prev => {
                               if (e.target.checked) return prev ? `${prev}, ${val}` : val;
-                              return prev.replace(new RegExp(`(, )?${val}(, )?`), '').trim(); // simplistic remove
+                              // Match exactly 'val', possibly surrounded by ', '
+                              const regex = new RegExp(`(^|,\\s*)${val}($|,\\s*)`);
+                              return prev.replace(regex, (match, p1, p2) => {
+                                // If it was middle of list, keep one comma
+                                if (p1 && p2) return ', ';
+                                return '';
+                              }).trim();
                             })
                           }}
                         />
-                        <span className="text-sm">{val}</span>
+                        <div className="px-4 py-2 bg-gray-50 border-2 border-transparent rounded-xl text-sm font-medium text-gray-700 transition-all peer-checked:bg-[var(--brand-surface)] peer-checked:border-[var(--brand-strong)] peer-checked:text-[var(--brand-strong)] peer-checked:font-bold hover:bg-gray-100">
+                          {val}
+                        </div>
                       </label>
                     ))}
                   </div>
@@ -283,75 +258,114 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
             </div>
           )}
 
-          {/* Allergens */}
+          {/* Allergens Section */}
           {item.allergens && Array.isArray(item.allergens) && item.allergens.length > 0 && (
-            <div className="mb-4">
-              <h3 className="font-semibold mb-2">Alerjenler</h3>
-              <div className="flex flex-wrap gap-1">
-                {item.allergens.map((allergen, index) => (
-                  <span
+            <div className="mb-6">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 ml-1">Alerjenler</h3>
+              <div className="flex flex-wrap gap-2">
+                {item.allergens.map((allergen: any, index: number) => (
+                  <div
                     key={index}
-                    className="text-xs px-2 py-1 rounded-full"
-                    style={{ backgroundColor: 'var(--tone2-bg)', color: 'var(--tone2-text)', border: '1px solid var(--tone2-border)' }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100 shadow-sm"
                   >
-                    {typeof allergen === 'string' ? allergen : (allergen?.tr || '')}
-                  </span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                    {typeof allergen === 'string' ? allergen : (allergen?.[language] || allergen?.tr || allergen?.en || '')}
+                  </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Quantity */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-2">Adet</label>
-            <div className="flex items-center space-x-3">
+          <div className="h-[1px] bg-gray-100 w-full mb-6" />
+
+          {/* Variations Section */}
+          {((item.variations && item.variations.length > 0) || (item.variants && item.variants.length > 0)) && (
+            <div className="mb-6">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3">Varyasyonlar</h3>
+              <div className="grid grid-cols-1 gap-2.5">
+                {(item.variations || item.variants || []).map((v: any, i: number) => (
+                  <label
+                    key={i}
+                    className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${selectedVariant?.name === v.name
+                      ? 'border-[var(--brand-strong)] bg-[var(--brand-surface)] scale-[1.02]'
+                      : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
+                      }`}
+                    onClick={() => setSelectedVariant(v)}
+                  >
+                    <div className="flex items-center">
+                      <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center transition-colors ${selectedVariant?.name === v.name
+                        ? 'border-[var(--brand-strong)]'
+                        : 'border-gray-300'
+                        }`}>
+                        {selectedVariant?.name === v.name && (
+                          <div className="w-2.5 h-2.5 rounded-full animate-in fade-in zoom-in" style={{ backgroundColor: 'var(--brand-strong)' }} />
+                        )}
+                      </div>
+                      <span className={`text-sm ${selectedVariant?.name === v.name ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>{v.name}</span>
+                    </div>
+                    <span className={`text-sm font-bold ${selectedVariant?.name === v.name ? 'text-[var(--brand-strong)]' : 'text-gray-900'}`}>{v.price} ₺</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Quantity and Actions */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between bg-gray-50 p-4 rounded-2xl">
+              <span className="text-sm font-bold text-gray-700">Adet</span>
+              <div className="flex items-center space-x-1 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg transition-colors active:scale-90"
+                >
+                  <FaMinus size={12} />
+                </button>
+                <span className="text-lg font-bold w-10 text-center text-gray-900">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg transition-colors active:scale-90"
+                >
+                  <FaPlus size={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1.5 ml-1">
+                Özel Notlar
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Özel istekleriniz var mı? (Örn: Acısız olsun)"
+                className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-[var(--brand-strong)] focus:bg-white rounded-2xl resize-none transition-all outline-none text-sm min-h-[100px]"
+              />
+            </div>
+
+            {/* Sticky/Bottom Total and Button */}
+            <div className="pt-4 space-y-3">
+              <div className="flex justify-between items-center px-1">
+                <span className="text-gray-500 font-medium">Toplam</span>
+                <span className="text-2xl font-black text-gray-900">
+                  {(currentPrice * quantity).toFixed(2)} ₺
+                </span>
+              </div>
+
               <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="rounded-full p-2"
-                style={{ backgroundColor: 'var(--brand-surface)' }}
+                onClick={handleAddToCart}
+                className="w-full btn-gradient font-bold py-4 rounded-2xl shadow-xl shadow-brand/20 flex items-center justify-center gap-2 text-lg active:scale-[0.98]"
               >
-                <FaMinus size={12} />
-              </button>
-              <span className="text-lg font-semibold w-8 text-center">{quantity}</span>
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="rounded-full p-2"
-                style={{ backgroundColor: 'var(--brand-surface)' }}
-              >
-                <FaPlus size={12} />
+                <span>Sepete Ekle</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                <span>{(currentPrice * quantity).toFixed(2)} ₺</span>
               </button>
             </div>
           </div>
-
-          {/* Notes */}
-          <div className="mb-6">
-            <label className="block font-semibold mb-2">Özel Notlar</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Özel istekleriniz var mı?"
-              className="w-full p-3 border rounded-lg resize-none"
-              rows={3}
-            />
-          </div>
-
-          {/* Total */}
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-semibold">Toplam</span>
-            <span className="text-xl font-bold" style={{ color: 'var(--brand-strong)' }}>
-              {(currentPrice * quantity).toFixed(2)} ₺
-            </span>
-          </div>
-
-          {/* Add to Cart Button */}
-          <button
-            onClick={handleAddToCart}
-            className="w-full btn btn-primary font-semibold py-3 rounded-lg"
-          >
-            Sepete Ekle
-          </button>
         </div>
       </div>
+
     </div>
   );
 }
