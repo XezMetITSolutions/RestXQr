@@ -1541,6 +1541,7 @@ export default function KasaPanel() {
                             <button
                               onClick={async (e) => {
                                 e.stopPropagation();
+                                playNotificationSound(); // Play sound when approval button is clicked
                                 try {
                                   if (order.id.includes('grouped')) {
                                     const tableOrders = order.originalOrders || [];
