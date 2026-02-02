@@ -174,19 +174,27 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
     if (data.orderNote) {
         let cleanNote = data.orderNote;
 
-        // Remove "Ödeme: ...", "Bahşiş: ...", "Bağış: ..." info as it's not needed for kitchen
-        cleanNote = cleanNote.replace(/Ödeme:\s*[^|,\n]*/gi, '');
-        cleanNote = cleanNote.replace(/Bahşiş:\s*[^|,\n]*/gi, '');
-        cleanNote = cleanNote.replace(/Bağış:\s*[^|,\n]*/gi, '');
+        // 1. If there's a pipe, the part after it is usually metadata (Payment, Tips, etc.)
+        if (cleanNote.includes('|')) {
+            cleanNote = cleanNote.split('|')[0];
+        }
 
-        // Clean up symbols and extra spaces left over
-        cleanNote = cleanNote.replace(/[|]/g, ' ');
-        cleanNote = cleanNote.trim().replace(/^[,.\s]+|[,.\s]+$/g, '');
+        // 2. Remove common prefixes like ☕, NOT:, Not: etc.
+        // This regex looks for any non-alphanumeric chars at start (like emoji) followed by optional "NOT:"
+        cleanNote = cleanNote.replace(/^[^\w\s]*\s*NOT:\s*/gi, '');
+
+        // 3. Just in case metadata exists without a pipe, strip them too
+        cleanNote = cleanNote.replace(/Ödeme:\s*[^,\n]*/gi, '');
+        cleanNote = cleanNote.replace(/Bahşiş:\s*[^,\n]*/gi, '');
+        cleanNote = cleanNote.replace(/Bağış:\s*[^,\n]*/gi, '');
+
+        // Final cleanup of spaces and punctuation
+        cleanNote = cleanNote.trim().replace(/^[,.\s/|-]+|[,.\s/|-]+$/g, '');
 
         if (cleanNote) {
             ctx.textAlign = 'left';
             ctx.font = 'bold 28px sans-serif';
-            const noteTitle = "--- SİPARİŞ NOTU ---";
+            const noteTitle = "--- SIPARIS NOTU ---";
             ctx.fillText(noteTitle, 15, y);
             y += 35;
 
