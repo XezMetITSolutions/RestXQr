@@ -813,44 +813,103 @@ export default function KasaPanel() {
       const isGroupedOrder = selectedOrder.id.includes('-grouped') || selectedOrder.originalOrders;
 
       if (isGroupedOrder && selectedOrder.originalOrders && selectedOrder.originalOrders.length > 0) {
-        // Handle grouped orders - use the FIRST original order's ID for all items
-        // This is simpler and more reliable than trying to distribute items
-        const primaryOrder = selectedOrder.originalOrders[0];
-        addLog(`Updating grouped order using primary order: ${primaryOrder.id}`, 'network');
+        addLog('Processing grouped order update (Diff Mode)...', 'info');
 
-        const processedItems = selectedOrder.items.map((item: OrderItem) => ({
-          ...item,
-          menuItemId: (item as any).menuItemId || item.id,
-          price: Number(item.price || 0),
-          totalPrice: Number(item.price || 0) * Number(item.quantity || 1)
-        }));
+        // 1. Orijinal Siparişlerin Toplam Envanterini Çıkar
+        const originalInventory = new Map<string, number>();
+        selectedOrder.originalOrders.forEach((order: any) => {
+          if (order.items) {
+            order.items.forEach((item: any) => {
+              // Key: Name + Price + Variations (Unique signature)
+              const key = `${item.name}|${item.price}|${JSON.stringify(item.variations || [])}`;
+              const currentQty = originalInventory.get(key) || 0;
+              originalInventory.set(key, currentQty + Number(item.quantity || 1));
+            });
+          }
+        });
 
-        const calculatedTotal = processedItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+        // 2. Ekrandaki (Yeni) Siparişin Toplam Envanterini Çıkar
+        const newInventory = new Map<string, number>();
+        const itemDetails = new Map<string, any>();
 
-        console.log('🔄 Updating grouped order with items:', processedItems);
+        selectedOrder.items.forEach((item: any) => {
+          const key = `${item.name}|${item.price}|${JSON.stringify(item.variations || [])}`;
+          const currentQty = newInventory.get(key) || 0;
+          newInventory.set(key, currentQty + Number(item.quantity || 1));
+          if (!itemDetails.has(key)) itemDetails.set(key, item);
+        });
 
-        const response = await fetch(`${API_URL}/orders/${primaryOrder.id}`, {
-          method: 'PUT',
+        // 3. Farkları Bul (Sadece EKLEMELERİ al)
+        const itemsToAdd: any[] = [];
+        let hasReductions = false;
+
+        newInventory.forEach((newQty, key) => {
+          const originalQty = originalInventory.get(key) || 0;
+          const diff = newQty - originalQty;
+
+          if (diff > 0) {
+            // Yeni eklenen miktar
+            const detail = itemDetails.get(key);
+            itemsToAdd.push({
+              ...detail,
+              quantity: diff,
+              price: Number(detail.price),
+              totalPrice: Number(detail.price) * diff,
+              id: undefined, // Yeni item, ID'siz gönder ki backend yaratsın
+              menuItemId: detail.menuItemId || (detail.id?.length > 10 ? detail.id : undefined)
+            });
+          } else if (diff < 0) {
+            hasReductions = true;
+          }
+        });
+
+        // Silinmiş itemlar var mı?
+        originalInventory.forEach((origQty, key) => {
+          if (!newInventory.has(key)) {
+            hasReductions = true;
+          }
+        });
+
+        if (hasReductions) {
+          alert('UYARI: Gruplanmış/Masalı görünümde ürün MİKTAR AZALTMA veya SİLME işlemi desteklenmemektedir.\n\nFazla girilen ürünleri iptal etmek için lütfen listeden tekil sipariş kaydını bulup işlem yapınız.\n\nŞu an sadece yeni eklediğiniz ürünler kaydedilecektir.');
+        }
+
+        if (itemsToAdd.length === 0) {
+          if (!hasReductions) alert('Herhangi bir yeni ürün eklemesi algılanmadı.');
+          return;
+        }
+
+        // 4. Yeni ürünler için sipariş oluştur (POST)
+        addLog(`Adding ${itemsToAdd.length} new items to table ${selectedOrder.tableNumber}`, 'info');
+
+        const response = await fetch(`${API_URL}/orders`, {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            items: processedItems,
-            totalAmount: calculatedTotal.toFixed(2),
-            cashierNote: selectedOrder.cashierNote,
-            discountAmount: selectedOrder.discountAmount,
-            discountReason: selectedOrder.discountReason
+            restaurantId,
+            tableNumber: selectedOrder.tableNumber,
+            items: itemsToAdd,
+            totalAmount: itemsToAdd.reduce((sum, item) => sum + item.totalPrice, 0),
+            status: 'pending',
+            orderType: 'dine_in',
+            approved: true,
+            cashierNote: 'Kasa güncellemesi ile eklendi'
           })
         });
 
         const data = await response.json();
-        console.log('📝 Grouped order update response:', data);
 
         if (data.success) {
-          addLog('Grouped order updated successfully', 'success');
-          alert('Sipariş başarıyla güncellendi.');
+          addLog('Additional items added successfully', 'success');
+          alert('Yeni ürünler masaya başarıyla eklendi.');
+
+          if (data.data?.printResults) {
+            await handlePrintFailover(data, data.data.id, false);
+          }
           fetchOrders();
         } else {
-          addLog(`Failed to update grouped order: ${data.message}`, 'error');
-          alert('Sipariş kaydedilemedi: ' + data.message);
+          addLog(`Failed to add items: ${data.message}`, 'error');
+          alert('Ürünler kaydedilemedi: ' + data.message);
         }
         return;
       }
