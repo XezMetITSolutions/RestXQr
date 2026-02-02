@@ -149,120 +149,96 @@ export default function HomeContent() {
                 </div>
             </section>
 
-            {/* AI Image Optimization Section */}
-            <section className="py-24 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+            {/* Business Value & Efficiency Section */}
+            <section className="py-24 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-pink-600/5"></div>
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="text-center mb-20">
-                        <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full text-lg font-bold mb-6 shadow-lg">
-                            <FaBrain className="mr-3 animate-pulse" />
-                            {t('aiBadge')}
+                        <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-700 to-indigo-700 text-white rounded-full text-lg font-bold mb-6 shadow-xl">
+                            <FaChartLine className="mr-3 animate-pulse" />
+                            {t('efficiencyBadge')}
                         </div>
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-8">
-                            <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
-                                {t('aiTitle')}
+                        <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-gray-900 mb-8 leading-tight">
+                            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                {t('marketingSectionTitle')}
                             </span>
                         </h2>
-                        <p className="text-3xl text-gray-700 max-w-5xl mx-auto font-bold leading-relaxed">
-                            {t('aiDesc')}
+                        <p className="text-2xl md:text-3xl text-gray-700 max-w-5xl mx-auto font-medium leading-relaxed">
+                            {t('marketingSectionDesc')}
                         </p>
                     </div>
 
-                    <div className="max-w-7xl mx-auto">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                            {/* ÖNCESİ - Amatör (ai-after.jpg) */}
-                            <div className="text-center group">
-                                <div className="bg-white p-6 md:p-10 rounded-3xl shadow-2xl border-4 border-red-200 group-hover:border-red-300 transition-all duration-300 group-hover:shadow-3xl group-hover:scale-105">
-                                    <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-full text-xl font-black mb-8 inline-block shadow-lg">
-                                        ❌ {t('before')}
-                                    </div>
-                                    <div className="relative">
-                                        <img
-                                            src="/ai-after.jpg"
-                                            alt="AI Optimizasyonu Öncesi - Amatör Ürün Fotoğrafı"
-                                            className="w-full h-96 object-cover rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-300"
-                                        />
-                                        <div className="absolute top-6 left-6 bg-red-500 text-white px-6 py-3 rounded-xl font-black text-lg shadow-lg">
-                                            {t('amateurLook')}
-                                        </div>
-                                    </div>
-                                    <div className="mt-8 text-left">
-                                        <h3 className="text-2xl font-black text-gray-900 mb-6">{t('costSavings')}:</h3>
-                                        <ul className="space-y-3 text-gray-600 text-lg">
-                                            <li className="flex items-center"><span className="text-red-500 mr-3 text-xl">💰</span> {t('costSavingsDesc')}</li>
-                                        </ul>
-                                    </div>
-                                </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
+                        {/* Marketing & Ads */}
+                        <div className="bg-white p-10 rounded-[3rem] shadow-2xl border-b-8 border-blue-500 hover:transform hover:-translate-y-4 transition-all duration-500 group">
+                            <div className="bg-gradient-to-br from-blue-500 to-blue-700 w-24 h-24 rounded-3xl flex items-center justify-center mb-10 shadow-lg group-hover:rotate-12 transition-transform">
+                                <FaBell className="text-white text-4xl" />
                             </div>
-
-                            {/* SONRASI - Profesyonel (ai-before.jpg) */}
-                            <div className="text-center group">
-                                <div className="bg-white p-6 md:p-10 rounded-3xl shadow-2xl border-4 border-green-200 group-hover:border-green-300 transition-all duration-300 group-hover:shadow-3xl group-hover:scale-105">
-                                    <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-full text-xl font-black mb-8 inline-block shadow-lg">
-                                        ✅ {t('after')}
-                                    </div>
-                                    <div className="relative">
-                                        <img
-                                            src="/ai-before.jpg"
-                                            alt="AI Optimizasyonu Sonrası - Profesyonel Ürün Fotoğrafı"
-                                            className="w-full h-96 object-cover rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-300"
-                                        />
-                                        <div className="absolute top-6 left-6 bg-green-500 text-white px-6 py-3 rounded-xl font-black text-lg shadow-lg">
-                                            {t('proLook')}
-                                        </div>
-                                    </div>
-                                    <div className="mt-8 text-left">
-                                        <h3 className="text-2xl font-black text-gray-900 mb-6">{t('salesIncrease')}:</h3>
-                                        <ul className="space-y-3 text-gray-600 text-lg">
-                                            <li className="flex items-center"><span className="text-green-500 mr-3 text-xl">🚀</span> {t('fastResult')}</li>
-                                            <li className="flex items-center"><span className="text-green-500 mr-3 text-xl">💎</span> {t('proLook')}</li>
-                                            <li className="flex items-center"><span className="text-green-500 mr-3 text-xl">📈</span> {t('salesIncreaseDesc')}</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
+                            <h3 className="text-3xl font-black text-gray-900 mb-6">{t('marketingAdsTitle')}</h3>
+                            <p className="text-xl text-gray-600 leading-relaxed font-medium">
+                                {t('marketingAdsDesc')}
+                            </p>
                         </div>
 
-                        {/* AI Features */}
-                        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="bg-white p-10 rounded-3xl shadow-xl text-center border-2 border-purple-200 hover:border-purple-300 transition-all duration-300 hover:shadow-2xl hover:scale-105 group">
-                                <div className="bg-gradient-to-r from-purple-500 to-pink-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8 group-hover:animate-bounce">
-                                    <FaMagic className="text-white text-3xl" />
-                                </div>
-                                <h3 className="text-2xl font-black text-gray-900 mb-6">{t('costSavings')}</h3>
-                                <p className="text-gray-600 text-lg leading-relaxed">{t('costSavingsDesc')}</p>
+                        {/* Waiter Call Efficiency */}
+                        <div className="bg-white p-10 rounded-[3rem] shadow-2xl border-b-8 border-indigo-500 hover:transform hover:-translate-y-4 transition-all duration-500 group">
+                            <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 w-24 h-24 rounded-3xl flex items-center justify-center mb-10 shadow-lg group-hover:rotate-12 transition-transform">
+                                <FaUsers className="text-white text-4xl" />
                             </div>
-
-                            <div className="bg-white p-10 rounded-3xl shadow-xl text-center border-2 border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-2xl hover:scale-105 group">
-                                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8 group-hover:animate-bounce">
-                                    <FaChartLine className="text-white text-3xl" />
-                                </div>
-                                <h3 className="text-2xl font-black text-gray-900 mb-6">{t('salesIncrease')}</h3>
-                                <p className="text-gray-600 text-lg leading-relaxed">{t('salesIncreaseDesc')}</p>
-                            </div>
-
-                            <div className="bg-white p-10 rounded-3xl shadow-xl text-center border-2 border-green-200 hover:border-green-300 transition-all duration-300 hover:shadow-2xl hover:scale-105 group">
-                                <div className="bg-gradient-to-r from-green-500 to-emerald-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8 group-hover:animate-bounce">
-                                    <FaRocket className="text-white text-3xl" />
-                                </div>
-                                <h3 className="text-2xl font-black text-gray-900 mb-6">{t('fastResult')}</h3>
-                                <p className="text-gray-600 text-lg leading-relaxed">{t('fastResultDesc')}</p>
-                            </div>
+                            <h3 className="text-3xl font-black text-gray-900 mb-6">{t('waiterCallEfficiencyTitle')}</h3>
+                            <p className="text-xl text-gray-600 leading-relaxed font-medium">
+                                {t('waiterCallEfficiencyDesc')}
+                            </p>
                         </div>
 
-                        {/* CTA */}
-                        <div className="text-center mt-20">
-                            <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 text-white p-12 rounded-3xl shadow-2xl relative overflow-hidden">
-                                <div className="absolute inset-0 bg-white/10"></div>
-                                <div className="relative z-10">
-                                    <h3 className="text-4xl font-black mb-6">🚀 {t('tryNow')}</h3>
-                                    <p className="text-2xl mb-8 text-purple-100 leading-relaxed">
-                                        {t('tryNowDesc')}
-                                    </p>
-                                    <Link href="/panels" className="bg-white text-purple-600 px-12 py-6 rounded-2xl text-xl font-black hover:bg-purple-50 transition-all duration-300 shadow-lg inline-flex items-center gap-4 hover:scale-105">
-                                        <FaMagic className="text-2xl" />
-                                        {t('reviewAI')}
-                                    </Link>
+                        {/* Tailored Solutions */}
+                        <div className="bg-white p-10 rounded-[3rem] shadow-2xl border-b-8 border-purple-500 hover:transform hover:-translate-y-4 transition-all duration-500 group">
+                            <div className="bg-gradient-to-br from-purple-500 to-purple-700 w-24 h-24 rounded-3xl flex items-center justify-center mb-10 shadow-lg group-hover:rotate-12 transition-transform">
+                                <FaGem className="text-white text-4xl" />
+                            </div>
+                            <h3 className="text-3xl font-black text-gray-900 mb-6">{t('tailoredSolutionsTitle')}</h3>
+                            <p className="text-xl text-gray-600 leading-relaxed font-medium">
+                                {t('tailoredSolutionsDesc')}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Smaller AI Section - Move to "Additional Features" */}
+                    <div className="mt-32 pt-20 border-t border-gray-200">
+                        <div className="text-center mb-16">
+                            <h3 className="text-3xl md:text-4xl font-black text-gray-800 mb-4">{t('additionalFeatures')}</h3>
+                        </div>
+                        <div className="max-w-5xl mx-auto">
+                            <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 p-1 rounded-[4rem] shadow-2xl">
+                                <div className="bg-white rounded-[3.8rem] p-10 md:p-16 flex flex-col lg:flex-row items-center gap-12">
+                                    <div className="lg:w-1/2">
+                                        <div className="inline-flex items-center px-6 py-3 bg-purple-100 text-purple-700 rounded-full text-lg font-bold mb-6">
+                                            <FaBrain className="mr-3 animate-pulse" />
+                                            {t('aiBadge')}
+                                        </div>
+                                        <h3 className="text-3xl md:text-4xl font-black text-gray-900 mb-6">{t('aiTitle')}</h3>
+                                        <p className="text-xl text-gray-600 leading-relaxed mb-10 font-medium">
+                                            {t('aiDesc')}
+                                        </p>
+                                        <Link href="/panels" className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-10 py-5 rounded-2xl text-xl font-black hover:opacity-90 transition-all shadow-xl inline-flex items-center gap-4 hover:scale-105">
+                                            <FaMagic />
+                                            {t('reviewAI')}
+                                        </Link>
+                                    </div>
+                                    <div className="lg:w-1/2 grid grid-cols-2 gap-4">
+                                        <div className="bg-gray-50 p-6 rounded-3xl border-2 border-purple-100 text-center">
+                                            <div className="text-3xl font-black text-purple-600 mb-2">%300</div>
+                                            <div className="text-sm font-bold text-gray-500 uppercase tracking-wider">{t('statSales')}</div>
+                                        </div>
+                                        <div className="bg-gray-50 p-6 rounded-3xl border-2 border-blue-100 text-center">
+                                            <FaCamera className="text-3xl text-blue-600 mx-auto mb-2" />
+                                            <div className="text-sm font-bold text-gray-500 uppercase tracking-wider">{t('statAI')}</div>
+                                        </div>
+                                        <div className="bg-gray-50 p-6 rounded-3xl border-2 border-pink-100 text-center col-span-2">
+                                            <FaMagic className="text-3xl text-pink-600 mx-auto mb-2" />
+                                            <div className="text-sm font-bold text-gray-500 uppercase tracking-wider">{t('costSavings')}</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

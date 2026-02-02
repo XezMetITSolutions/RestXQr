@@ -352,6 +352,56 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'AI Optimizasyonunu İncele',
       de: 'KI-Optimierung testen',
     },
+    marketingSectionTitle: {
+      en: 'Boost Your Sales with Smart Marketing',
+      tr: 'Akıllı Pazarlama ile Satışlarınızı Katlayın',
+      de: 'Umsatz steigern mit smartem Marketing',
+    },
+    marketingSectionDesc: {
+      en: 'RestXQr gives you more than a menu. Use built-in campaign and advertising tools to drive customers to your best items.',
+      tr: 'RestXQr size bir menüden fazlasını sunar. Yerleşik kampanya, duyuru ve reklam araçlarıyla müşterilerinizi istediğiniz ürünlere yönlendirerek karlılığınızı artırın.',
+      de: 'RestXQr bietet mehr als nur ein Menü. Nutzen Sie Kampagnen- und Werbetools, um Kunden zu Ihren besten Artikeln zu führen.',
+    },
+    marketingAdsTitle: {
+      en: 'Smart Announcements & Ads',
+      tr: 'Akıllı Duyuru ve Reklam',
+      de: 'Smarte Ankündigungen & Werbung',
+    },
+    marketingAdsDesc: {
+      en: 'Communicate special daily offers and announcements directly to your customers\' phones through the menu.',
+      tr: 'Müşterilerinizin telefonuna doğrudan menü üzerinden kampanya ve duyurular ileterek onları karlı ürünlere yönlendirin.',
+      de: 'Senden Sie Angebote direkt auf die Smartphones Ihrer Kunden über das Menü.',
+    },
+    tailoredSolutionsTitle: {
+      en: 'Tailored Solutions for Your Business',
+      tr: 'İşletmenize Özel Çözümler',
+      de: 'Maßgeschneiderte Lösungen für Ihr Unternehmen',
+    },
+    tailoredSolutionsDesc: {
+      en: 'Every restaurant is unique. We provide customizable features and dedicated support to fit your specific operational needs.',
+      tr: 'Her işletme benzersizdir. Sizin operasyonel ihtiyaçlarınıza özel özelleştirmeler ve birebir çözümler sunuyoruz.',
+      de: 'Jedes Restaurant ist einzigartig. Wir bieten anpassbare Funktionen für Ihre Bedürfnisse.',
+    },
+    waiterCallEfficiencyTitle: {
+      en: 'Maximized Efficiency with Waiter Call',
+      tr: 'Garson Çağır ile Maksimum Verimlilik',
+      de: 'Maximale Effizienz mit Service-Ruf',
+    },
+    waiterCallEfficiencyDesc: {
+      en: 'Increase satisfaction and save time. Customers can call a waiter or request the bill with one click, reducing staffing needs during peak hours.',
+      tr: 'Müşteri memnuniyetini artırın ve zamandan tasarruf edin. Tek tuşla garson çağırma veya hesap isteme özelliği, yoğun saatlerde personel ihtiyacını optimize eder.',
+      de: 'Steigern Sie die Zufriedenheit und sparen Sie Zeit. Kunden können den Service per Klick rufen oder die Rechnung anfordern.',
+    },
+    efficiencyBadge: {
+      en: 'Efficiency & Satisfaction',
+      tr: 'Verimlilik ve Memnuniyet',
+      de: 'Effizienz & Zufriedenheit',
+    },
+    additionalFeatures: {
+      en: 'Additional Smart Features',
+      tr: 'Ek Akıllı Özellikler',
+      de: 'Zusätzliche Funktionen',
+    },
 
     // Landing Page - Services
     premiumServices: {
