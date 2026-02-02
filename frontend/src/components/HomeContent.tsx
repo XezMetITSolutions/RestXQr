@@ -124,26 +124,26 @@ export default function HomeContent() {
                         </button>
                         <button
                             onClick={() => setShowDemoModal(true)}
-                            className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105"
+                            className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white px-8 py-4 md:px-12 md:py-6 rounded-3xl text-lg md:text-xl font-black transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105 flex items-center justify-center gap-4"
                         >
-                            <FaRocket className="inline mr-4 text-2xl group-hover:animate-bounce" />
-                            <span>{t('requestDemo')}</span>
+                            <FaRocket className="text-2xl group-hover:animate-bounce" />
+                            <span>{t('startNow')}</span>
                         </button>
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                            <div className="text-4xl font-black text-green-400 mb-2">%300</div>
-                            <div className="text-lg text-gray-200">{t('statSales')}</div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto mb-12">
+                        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 transform hover:scale-105 transition-all duration-300">
+                            <div className="text-4xl md:text-5xl font-black text-green-400 mb-3">%300</div>
+                            <div className="text-lg md:text-xl text-gray-200 font-bold">{t('statSales')}</div>
                         </div>
-                        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                            <div className="text-4xl font-black text-blue-400 mb-2">AI</div>
-                            <div className="text-lg text-gray-200">{t('statAI')}</div>
+                        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 transform hover:scale-105 transition-all duration-300">
+                            <div className="text-4xl md:text-5xl font-black text-blue-400 mb-3">AI</div>
+                            <div className="text-lg md:text-xl text-gray-200 font-bold">{t('statAI')}</div>
                         </div>
-                        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                            <div className="text-4xl font-black text-purple-400 mb-2">24/7</div>
-                            <div className="text-lg text-gray-200">{t('statSupport')}</div>
+                        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 transform hover:scale-105 transition-all duration-300">
+                            <div className="text-4xl md:text-5xl font-black text-purple-400 mb-3">24/7</div>
+                            <div className="text-lg md:text-xl text-gray-200 font-bold">{t('statSupport')}</div>
                         </div>
                     </div>
                 </div>
@@ -555,11 +555,11 @@ export default function HomeContent() {
                         <div>
                             <h3 className="text-xl font-bold mb-4">restXqr</h3>
                             <p className="text-gray-400">
-                                {language === 'de' 
-                                    ? 'Moderne QR-Menü-Lösung für Restaurants' 
-                                    : language === 'en' 
-                                    ? 'Modern QR menu solution for restaurants'
-                                    : 'Restoranlar için modern QR menü çözümü'}
+                                {language === 'de'
+                                    ? 'Moderne QR-Menü-Lösung für Restaurants'
+                                    : language === 'en'
+                                        ? 'Modern QR menu solution for restaurants'
+                                        : 'Restoranlar için modern QR menü çözümü'}
                             </p>
                         </div>
                         <div>
