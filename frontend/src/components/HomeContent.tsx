@@ -56,30 +56,36 @@ export default function HomeContent() {
                         <br /><span className="text-gray-300">{t('heroSubtitle2')}</span>
                     </p>
 
-                    <div className="flex flex-col sm:flex-row justify-center gap-6 max-w-3xl mx-auto mb-16">
-                        <button onClick={() => setShowDemoModal(true)} className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-5 rounded-3xl text-xl font-black flex items-center justify-center gap-4 transition-all shadow-2xl hover:scale-105">
+                    <div className="flex flex-col sm:flex-row justify-center gap-6 max-w-4xl mx-auto mb-16">
+                        <button
+                            onClick={() => setShowDemoModal(true)}
+                            className="flex-1 min-w-[280px] group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-6 rounded-3xl text-xl font-black flex items-center justify-center gap-4 transition-all shadow-2xl hover:scale-105 active:scale-95 whitespace-nowrap"
+                        >
                             <FaUsers className="text-2xl" />
                             <span>{t('requestDemo')}</span>
                         </button>
-                        <button onClick={() => setShowDemoModal(true)} className="group bg-gradient-to-r from-green-600 to-blue-600 text-white px-10 py-5 rounded-3xl text-xl font-black flex items-center justify-center gap-4 transition-all shadow-2xl hover:scale-105">
+                        <button
+                            onClick={() => setShowDemoModal(true)}
+                            className="flex-1 min-w-[280px] group bg-gradient-to-r from-green-600 to-blue-600 text-white px-10 py-6 rounded-3xl text-xl font-black flex items-center justify-center gap-4 transition-all shadow-2xl hover:scale-105 active:scale-95 whitespace-nowrap"
+                        >
                             <FaRocket className="text-2xl" />
                             <span>{t('startNow')}</span>
                         </button>
                     </div>
 
-                    {/* Stats Metrics - Refined */}
+                    {/* Stats Metrics - Unified Heights */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
                         {[
                             { label: "ROI", title: t('statSales'), desc: t('statSalesDesc'), bg: "from-green-500 to-emerald-600", text: "text-green-400" },
                             { label: "AI", title: t('statAI'), desc: t('statAIDesc'), bg: "from-blue-500 to-indigo-600", text: "text-blue-400" },
                             { label: "24/7", title: t('statSupport'), desc: t('statSupportDesc'), bg: "from-purple-500 to-pink-600", text: "text-purple-400" }
                         ].map((stat, i) => (
-                            <div key={i} className="relative group">
+                            <div key={i} className="relative group h-full">
                                 <div className={`absolute -inset-0.5 bg-gradient-to-r ${stat.bg} rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-300`}></div>
-                                <div className="relative bg-black/40 backdrop-blur-3xl rounded-2xl p-8 border border-white/10 hover:border-white/20 transition-all">
+                                <div className="relative h-full bg-black/40 backdrop-blur-3xl rounded-2xl p-8 border border-white/10 hover:border-white/20 transition-all flex flex-col items-center text-center">
                                     <div className={`text-sm font-black tracking-[0.2em] ${stat.text} mb-4 uppercase`}>{stat.label}</div>
                                     <div className="text-xl md:text-2xl font-black text-white mb-3 leading-tight uppercase tracking-tight">{stat.title}</div>
-                                    <div className="text-gray-400 font-medium text-base">{stat.desc}</div>
+                                    <div className="text-gray-400 font-medium text-base mt-auto">{stat.desc}</div>
                                 </div>
                             </div>
                         ))}
@@ -105,12 +111,14 @@ export default function HomeContent() {
                             { icon: FaUsers, title: t('waiterCallEfficiencyTitle'), desc: t('waiterCallEfficiencyDesc'), bg: "bg-indigo-500", border: "hover:border-indigo-500" },
                             { icon: FaGem, title: t('tailoredSolutionsTitle'), desc: t('tailoredSolutionsDesc'), bg: "bg-purple-500", border: "hover:border-purple-500" }
                         ].map((item, i) => (
-                            <div key={i} className={`bg-white p-10 rounded-[2.5rem] shadow-xl border-b-8 border-transparent ${item.border} transition-all group`}>
-                                <div className={`${item.bg} w-20 h-20 rounded-2xl flex items-center justify-center mb-8 shadow-lg group-hover:rotate-6 transition-transform text-white text-3xl`}>
-                                    <item.icon />
+                            <div key={i} className="h-full">
+                                <div className={`h-full bg-white p-10 rounded-[2.5rem] shadow-xl border-b-8 border-transparent ${item.border} transition-all group flex flex-col items-start`}>
+                                    <div className={`${item.bg} w-20 h-20 rounded-2xl flex items-center justify-center mb-8 shadow-lg group-hover:rotate-6 transition-transform text-white text-3xl`}>
+                                        <item.icon />
+                                    </div>
+                                    <h3 className="text-2xl font-black mb-4">{item.title}</h3>
+                                    <p className="text-gray-600 font-medium leading-relaxed">{item.desc}</p>
                                 </div>
-                                <h3 className="text-2xl font-black mb-4">{item.title}</h3>
-                                <p className="text-gray-600 font-medium">{item.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -144,7 +152,7 @@ export default function HomeContent() {
                                 <div className="md:w-1/4 flex justify-center md:justify-end">
                                     <button
                                         onClick={() => setShowDemoModal(true)}
-                                        className={`bg-white ${feature.btnColor} px-8 py-4 rounded-2xl text-[15px] font-black hover:shadow-2xl transition-all flex items-center gap-3 hover:-translate-y-1 active:scale-95 whitespace-nowrap`}
+                                        className={`bg-white ${feature.btnColor} w-full md:w-60 py-4 rounded-2xl text-[15px] font-black hover:shadow-2xl transition-all flex items-center justify-center gap-3 hover:-translate-y-1 active:scale-95 whitespace-nowrap`}
                                     >
                                         <feature.icon className="text-xl" />
                                         {t('examineFeature')}
@@ -175,12 +183,14 @@ export default function HomeContent() {
                             { icon: FaGlobe, title: t('multiPlatform'), desc: t('multiPlatformDesc'), color: "indigo", bg: "bg-indigo-500", border: "border-indigo-100" },
                             { icon: FaHeart, title: t('support247'), desc: t('support247Desc'), color: "red", bg: "bg-red-500", border: "border-red-100" }
                         ].map((s, i) => (
-                            <div key={i} className={`bg-white p-10 rounded-[2.5rem] shadow-xl border-2 ${s.border} hover:border-transparent hover:shadow-2xl transition-all duration-300 group`}>
-                                <div className={`${s.bg} w-16 h-16 rounded-2xl flex items-center justify-center mb-8 text-white text-3xl group-hover:rotate-6 transition-transform shadow-lg`}>
-                                    <s.icon />
+                            <div key={i} className="h-full">
+                                <div className={`h-full bg-white p-10 rounded-[2.5rem] shadow-xl border-2 ${s.border} hover:border-transparent hover:shadow-2xl transition-all duration-300 group flex flex-col items-start`}>
+                                    <div className={`${s.bg} w-16 h-16 rounded-2xl flex items-center justify-center mb-8 text-white text-3xl group-hover:rotate-6 transition-transform shadow-lg`}>
+                                        <s.icon />
+                                    </div>
+                                    <h3 className="text-2xl font-black mb-4 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{s.title}</h3>
+                                    <p className="text-gray-600 text-lg leading-relaxed font-medium">{s.desc}</p>
                                 </div>
-                                <h3 className="text-2xl font-black mb-4 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{s.title}</h3>
-                                <p className="text-gray-600 text-lg leading-relaxed font-medium">{s.desc}</p>
                             </div>
                         ))}
                     </div>
