@@ -216,15 +216,22 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
             ctx.fillStyle = 'black'; // Reset
         }
 
-        const itemNote = item.notes || (item as any).note;
+        let itemNote = item.notes || (item as any).note;
+        if (itemNote) {
+            // Remove "Seçim:" parts as they are already shown in variations
+            itemNote = itemNote.replace(/Seçim:\s*[^,]+(,\s*)?/gi, '').trim();
+            // Clean up any leading/trailing punctuation left over
+            itemNote = itemNote.replace(/^[,.\s]+|[,.\s]+$/g, '');
+        }
+
         if (itemNote) {
             // "Not kalın harflerle olsun altı çizgili olsun"
-            ctx.font = 'bold 26px sans-serif';
+            ctx.font = 'bold 24px sans-serif';
             const noteText = `   NOT: ${itemNote}`;
 
             // Draw text and get next y
             const noteYBefore = y;
-            y = wrapText(noteText, 15, y, width - 30, 34);
+            y = wrapText(noteText, 15, y, width - 30, 30);
 
             // Draw underline for the note
             const textWidth = Math.min(ctx.measureText(noteText).width, width - 30);
@@ -285,11 +292,6 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
             ctx.fillText(line, width / 2, y);
             y += 28;
         });
-
-        // DEBUG FOOTER
-        y += 30;
-        ctx.font = 'bold 16px monospace';
-        ctx.fillText("DEBUG: FONT X-LARGE v2", width / 2, y);
     }
 
     y += 40;
