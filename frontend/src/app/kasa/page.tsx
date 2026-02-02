@@ -70,7 +70,7 @@ export default function KasaPanel() {
 
   // Refactored State
   const [paymentTab, setPaymentTab] = useState<'full' | 'partial' | 'hybrid'>('full');
-  const [selectedItemIndexes, setSelectedItemIndexes] = useState<number[]>([]);
+  const [selectedPartialItems, setSelectedPartialItems] = useState<Record<number, number>>({});
   const [manualAmount, setManualAmount] = useState<string>('');
   const [discountType, setDiscountType] = useState<'percent' | 'amount'>('percent');
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -167,8 +167,11 @@ export default function KasaPanel() {
       const manualNum = parseFloat(manualAmount);
       if (!isNaN(manualNum) && manualNum > 0) {
         amount = manualNum;
-      } else if (selectedItemIndexes.length > 0) {
-        amount = selectedItemIndexes.reduce((s, i) => s + (parseFloat(String(selectedOrder.items[i].price || 0)) * parseFloat(String(selectedOrder.items[i].quantity || 1))), 0);
+      } else if (Object.keys(selectedPartialItems).length > 0) {
+        amount = Object.entries(selectedPartialItems).reduce((sum, [idx, qty]) => {
+          const item = selectedOrder.items[Number(idx)];
+          return sum + (Number(item?.price || 0) * qty);
+        }, 0);
       } else {
         alert('Lütfen ürün seçin veya tutar girin.');
         return;
@@ -519,7 +522,7 @@ export default function KasaPanel() {
 
     if (isPartial && remaining > 0.05) {
       addLog(`Keeping modal open for remaining balance: ${remaining}`, 'info');
-      setSelectedItemIndexes([]);
+      setSelectedPartialItems({});
       setManualAmount('');
       setCashAmount('');
       setCardAmount('');
@@ -1858,26 +1861,44 @@ export default function KasaPanel() {
                     });
                     return Array.from(mergedMap.values());
                   })().map((item, displayIdx) => {
-                    // Check if any of the original indexes are selected
-                    const sel = item.originalIndexes.some((idx: number) => selectedItemIndexes.includes(idx));
+                    // Check selection status
+                    const totalQty = item.quantity;
+                    const currentSelected = item.originalIndexes.reduce((sum: number, idx: number) => sum + (selectedPartialItems[idx] || 0), 0);
+                    const isSelected = currentSelected > 0;
+
                     return (
                       <div
                         key={displayIdx}
                         onClick={() => {
                           if (paymentTab === 'partial') {
-                            // Toggle all original indexes
-                            setSelectedItemIndexes(p => {
-                              const allSelected = item.originalIndexes.every((idx: number) => p.includes(idx));
-                              if (allSelected) {
-                                return p.filter((i: number) => !item.originalIndexes.includes(i));
-                              } else {
-                                return [...p, ...item.originalIndexes.filter((idx: number) => !p.includes(idx))];
-                              }
-                            });
+                            let nextSelected = currentSelected + 1;
+                            if (nextSelected > totalQty) nextSelected = 0; // Cycle
+
+                            const newPartialItems = { ...selectedPartialItems };
+                            let remainingToAssign = nextSelected;
+                            let assignedTotal = 0;
+
+                            // Clear current selection for these indexes first
+                            item.originalIndexes.forEach((idx: number) => delete newPartialItems[idx]);
+
+                            if (remainingToAssign > 0) {
+                              item.originalIndexes.forEach((origIdx: number) => {
+                                if (remainingToAssign <= 0) return;
+                                const originalItemQty = selectedOrder.items[origIdx].quantity;
+                                const assign = Math.min(originalItemQty, remainingToAssign);
+                                if (assign > 0) {
+                                  newPartialItems[origIdx] = assign;
+                                  remainingToAssign -= assign;
+                                  assignedTotal += assign;
+                                }
+                              });
+                            }
+
+                            setSelectedPartialItems(newPartialItems);
                             setManualAmount('');
                           }
                         }}
-                        className={`p-3 bg-white border border-gray-200 rounded-lg flex flex-col gap-2 cursor-pointer transition-all ${sel ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:border-gray-300'}`}
+                        className={`p-3 bg-white border border-gray-200 rounded-lg flex flex-col gap-2 cursor-pointer transition-all ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:border-gray-300'}`}
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex flex-col w-3/4">
@@ -1888,7 +1909,14 @@ export default function KasaPanel() {
                               </span>
                             )}
                           </div>
-                          <span className="font-bold text-gray-900 text-sm">{item.price}₺</span>
+                          <div className="flex flex-col items-end">
+                            <span className="font-bold text-gray-900 text-sm">{item.price}₺</span>
+                            {paymentTab === 'partial' && currentSelected > 0 && (
+                              <span className="text-xs font-black text-white bg-blue-500 px-2 py-0.5 rounded-full mt-1">
+                                {currentSelected}/{totalQty}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex justify-between items-center mt-1">
@@ -2016,7 +2044,7 @@ export default function KasaPanel() {
                         }
 
                         // Determine if this is a partial payment for specific items
-                        const isPayingForSpecificItems = paymentTab === 'partial' && selectedItemIndexes.length > 0;
+                        const isPayingForSpecificItems = paymentTab === 'partial' && Object.keys(selectedPartialItems).length > 0;
 
                         const prevPaid = parseFloat(String(selectedOrder.paidAmount || 0));
                         const newPaidTotal = parseFloat((prevPaid + targetPaymentAmount).toFixed(2));
@@ -2027,15 +2055,24 @@ export default function KasaPanel() {
                           cashierNote: (selectedOrder.cashierNote || '') + ` [NAKİT: ${received}₺ -> P.ÜSTÜ: ${(received - targetPaymentAmount).toFixed(2)}₺]`
                         };
 
-                        // If paying for specific items, remove them from the order
+                        // If paying for specific items, deduct/remove them from the order
                         if (isPayingForSpecificItems) {
-                          const remainingItems = selectedOrder.items.filter((_, idx) => !selectedItemIndexes.includes(idx));
-                          const newTotal = remainingItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
+                          const remainingItems = selectedOrder.items.map((item, idx) => {
+                            const selectedQty = selectedPartialItems[idx] || 0;
+                            if (selectedQty > 0) {
+                              const newQty = item.quantity - selectedQty;
+                              if (newQty <= 0) return null; // Remove item if fully paid
+                              return { ...item, quantity: newQty };
+                            }
+                            return item;
+                          }).filter(Boolean);
+
+                          const newTotal = remainingItems.reduce((sum, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
                           updatedOrderData = {
                             ...updatedOrderData,
                             items: remainingItems,
                             totalAmount: newTotal,
-                            paidAmount: 0  // Reset paid amount since we removed the paid items
+                            paidAmount: 0  // Reset paid amount since we removed/deducted the paid items
                           };
                         }
 
@@ -2063,7 +2100,7 @@ export default function KasaPanel() {
                     {/* Tablar */}
                     <div className="flex gap-2 p-1 bg-gray-100 rounded-lg mb-6 w-full max-w-lg">
                       {(['full', 'partial', 'hybrid'] as const).map(t => (
-                        <button key={t} onClick={() => { setPaymentTab(t); setSelectedItemIndexes([]); setManualAmount(''); setCashAmount(''); setCardAmount(''); }}
+                        <button key={t} onClick={() => { setPaymentTab(t); setSelectedPartialItems({}); setManualAmount(''); setCashAmount(''); setCardAmount(''); }}
                           className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${paymentTab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
                           {t === 'full' ? 'TAMAMI' : t === 'partial' ? 'PARÇALI' : 'HİBRİT'}
                         </button>
@@ -2082,7 +2119,7 @@ export default function KasaPanel() {
                           {paymentTab === 'partial'
                             ? (Number(manualAmount) > 0
                               ? Number(manualAmount).toFixed(2)
-                              : selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i]?.price || 0) * Number(selectedOrder.items[i]?.quantity || 0)), 0).toFixed(2))
+                              : Object.entries(selectedPartialItems).reduce((s, [idx, qty]) => s + (Number(selectedOrder.items[Number(idx)].price || 0) * qty), 0).toFixed(2))
                             : paymentTab === 'hybrid' ? ((Number(cashAmount) || 0) + (Number(cardAmount) || 0)).toFixed(2)
                               : (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0)).toFixed(2)
                           }<span className="text-3xl text-gray-400 font-medium ml-1">₺</span>
@@ -2134,7 +2171,7 @@ export default function KasaPanel() {
                               <button key={n} onClick={() => {
                                 const rem = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
                                 setManualAmount((rem / n).toFixed(2));
-                                setSelectedItemIndexes([]); // Clear items if splitting
+                                setSelectedPartialItems({}); // Clear items if splitting
                               }} className="flex-1 py-3 bg-indigo-50 text-indigo-600 rounded-xl text-sm font-bold hover:bg-indigo-100 border border-indigo-200">
                                 1/{n}
                               </button>
@@ -2145,7 +2182,7 @@ export default function KasaPanel() {
                             <label className="text-xs font-bold text-gray-400 uppercase absolute top-2 left-4">TUTAR GİRİNİZ</label>
                             <input type="number"
                               value={manualAmount}
-                              onChange={e => { setManualAmount(e.target.value); setSelectedItemIndexes([]); }}
+                              onChange={e => { setManualAmount(e.target.value); setSelectedPartialItems({}); }}
                               className="w-full p-4 pt-8 bg-gray-50 border-2 border-gray-200 rounded-xl text-2xl font-bold text-center focus:border-blue-500 outline-none"
                               placeholder="0.00"
                             />
@@ -2252,8 +2289,8 @@ export default function KasaPanel() {
                                 // Priority: 1. Manual Entry, 2. Selected Items
                                 if (manualAmount && Number(manualAmount) > 0) {
                                   val = Number(manualAmount);
-                                } else if (selectedItemIndexes.length > 0) {
-                                  val = selectedItemIndexes.reduce((s, i) => s + (Number(selectedOrder.items[i].price || 0) * Number(selectedOrder.items[i].quantity || 1)), 0);
+                                } else if (Object.keys(selectedPartialItems).length > 0) {
+                                  val = Object.entries(selectedPartialItems).reduce((s, [idx, qty]) => s + (Number(selectedOrder.items[Number(idx)].price || 0) * qty), 0);
                                   isPayingForSpecificItems = true;
                                 } else {
                                   return alert('Lütfen ürün seçin veya tutar girin.');
@@ -2275,8 +2312,17 @@ export default function KasaPanel() {
 
                               // If paying for specific items, remove them from the order
                               if (isPayingForSpecificItems) {
-                                const remainingItems = selectedOrder.items.filter((_, idx) => !selectedItemIndexes.includes(idx));
-                                const newTotal = remainingItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
+                                const remainingItems = selectedOrder.items.map((item, idx) => {
+                                  const selectedQty = selectedPartialItems[idx] || 0;
+                                  if (selectedQty > 0) {
+                                    const newQty = item.quantity - selectedQty;
+                                    if (newQty <= 0) return null; // Remove item if fully paid
+                                    return { ...item, quantity: newQty };
+                                  }
+                                  return item;
+                                }).filter(Boolean);
+
+                                const newTotal = remainingItems.reduce((sum, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
                                 updatedOrderData = {
                                   ...updatedOrderData,
                                   items: remainingItems,
