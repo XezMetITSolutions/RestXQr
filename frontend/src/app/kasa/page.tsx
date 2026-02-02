@@ -2091,31 +2091,38 @@ export default function KasaPanel() {
 
                       {/* Hızlı İndirim - Tüm modlarda aktif */}
                       {(staffRole === 'manager' || staffRole === 'admin' || staffRole === 'cashier') && (
-                        <div className="flex flex-wrap justify-center gap-2 mt-4 px-4">
-                          {[5, 10, 16, 20, 25, 30].map(v => (
+                        <div className="mt-4 px-4 w-full">
+                          <div className="text-center text-xs font-bold text-gray-400 mb-2 uppercase">İNDİRİM UYGULA</div>
+                          <div className="flex flex-wrap justify-center gap-2">
+                            {[5, 10, 16, 20, 25, 30].map(v => (
+                              <button
+                                key={v}
+                                onClick={() => {
+                                  if (!selectedOrder) return;
+                                  saveToUndo(selectedOrder);
+                                  const amount = selectedOrder.totalAmount * (v / 100);
+                                  setSelectedOrder({
+                                    ...selectedOrder,
+                                    discountAmount: amount,
+                                    discountReason: `%${v} İndirim`
+                                  });
+                                }}
+                                className="px-4 py-2 bg-indigo-50 text-indigo-700 text-sm font-black border border-indigo-100 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm flex items-center gap-1 active:scale-95"
+                              >
+                                %{v}
+                              </button>
+                            ))}
                             <button
-                              key={v}
                               onClick={() => {
                                 if (!selectedOrder) return;
                                 saveToUndo(selectedOrder);
-                                const amount = selectedOrder.totalAmount * (v / 100);
-                                setSelectedOrder({ ...selectedOrder, discountAmount: amount });
+                                setSelectedOrder({ ...selectedOrder, discountAmount: 0, discountReason: undefined });
                               }}
-                              className="px-4 py-2 bg-indigo-50 text-indigo-700 text-sm font-black border border-indigo-100 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm flex items-center gap-1 active:scale-95"
+                              className="px-4 py-2 bg-red-50 text-red-600 text-sm font-black border border-red-100 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-95"
                             >
-                              %{v}
+                              SIFIRLA
                             </button>
-                          ))}
-                          <button
-                            onClick={() => {
-                              if (!selectedOrder) return;
-                              saveToUndo(selectedOrder);
-                              setSelectedOrder({ ...selectedOrder, discountAmount: 0 });
-                            }}
-                            className="px-4 py-2 bg-red-50 text-red-600 text-sm font-black border border-red-100 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-95"
-                          >
-                            SIFIRLA
-                          </button>
+                          </div>
                         </div>
                       )}
 
