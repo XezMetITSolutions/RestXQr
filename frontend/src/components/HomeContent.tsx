@@ -118,57 +118,69 @@ export default function HomeContent() {
             </section>
 
             {/* Consolidated Features - Compact & Premium */}
-            <section className="py-12 md:py-20 bg-white space-y-6 px-4">
-                {[
-                    { title: t('multiBranchTitle'), desc: t('multiBranchDesc'), gradient: "from-[#1e40af] to-[#2563eb]", icon: FaRocket, btnColor: "text-[#1e40af]" },
-                    { title: t('aiBannerTitle'), desc: t('aiBannerDesc'), gradient: "from-[#6d28d9] to-[#4f46e5]", icon: FaBrain, btnColor: "text-[#6d28d9]" },
-                    { title: t('multiLangTitle'), desc: t('multiLangDesc'), gradient: "from-[#008f5d] to-[#006b45]", icon: FaGlobe, btnColor: "text-[#008f5d]" },
-                    { title: t('allInOneTitle'), desc: t('allInOneDesc'), gradient: "from-[#e63900] to-[#b32d00]", icon: FaDesktop, btnColor: "text-[#e63900]" }
-                ].map((feature, i) => (
-                    <div key={i} className={`max-w-5xl mx-auto w-full bg-gradient-to-r ${feature.gradient} rounded-2xl p-5 md:p-8 shadow-xl relative overflow-hidden group border border-white/5`}>
-                        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl transition-transform duration-700 group-hover:scale-110"></div>
-                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                            <div className="text-center md:text-left md:w-3/4">
-                                <div className="inline-flex items-center gap-2 bg-white/20 text-white px-3 py-1 rounded-full text-[9px] font-black mb-3 backdrop-blur-md uppercase tracking-wider">
-                                    <feature.icon className="text-white/80" />
-                                    {t('tryNow')}
+            <section className="py-20 bg-white px-4">
+                <div className="container mx-auto max-w-5xl mb-12">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="h-px flex-1 bg-gray-200"></div>
+                        <span className="text-sm font-black text-blue-600 tracking-[0.3em] uppercase">{t('heroBadge')}</span>
+                        <div className="h-px flex-1 bg-gray-200"></div>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    {[
+                        { title: t('multiBranchTitle'), desc: t('multiBranchDesc'), gradient: "from-[#1e40af] to-[#2563eb]", icon: FaRocket, btnColor: "text-[#1e40af]" },
+                        { title: t('aiBannerTitle'), desc: t('aiBannerDesc'), gradient: "from-[#6d28d9] to-[#4f46e5]", icon: FaBrain, btnColor: "text-[#6d28d9]" },
+                        { title: t('multiLangTitle'), desc: t('multiLangDesc'), gradient: "from-[#008f5d] to-[#006b45]", icon: FaGlobe, btnColor: "text-[#008f5d]" },
+                        { title: t('allInOneTitle'), desc: t('allInOneDesc'), gradient: "from-[#e63900] to-[#b32d00]", icon: FaDesktop, btnColor: "text-[#e63900]" }
+                    ].map((feature, i) => (
+                        <div key={i} className={`max-w-5xl mx-auto w-full bg-gradient-to-r ${feature.gradient} rounded-2xl p-6 md:p-10 shadow-xl relative overflow-hidden group border border-white/5`}>
+                            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl transition-transform duration-700 group-hover:scale-110"></div>
+                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                                <div className="text-center md:text-left md:w-3/4">
+                                    <h3 className="text-2xl md:text-3xl font-black text-white mb-3 uppercase tracking-tight leading-tight">{feature.title}</h3>
+                                    <p className="text-base md:text-lg text-white/90 font-medium leading-relaxed max-w-2xl">{feature.desc}</p>
                                 </div>
-                                <h3 className="text-xl md:text-2xl font-black text-white mb-2 uppercase tracking-tight leading-tight">{feature.title}</h3>
-                                <p className="text-sm md:text-base text-white/90 font-medium leading-relaxed max-w-2xl">{feature.desc}</p>
-                            </div>
-                            <div className="md:w-1/4 flex justify-center md:justify-end">
-                                <button
-                                    onClick={() => setShowDemoModal(true)}
-                                    className={`bg-white ${feature.btnColor} px-6 py-3 rounded-xl text-[14px] font-black hover:shadow-2xl transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:scale-95`}
-                                >
-                                    <feature.icon className="text-lg" />
-                                    {t('examineFeature')}
-                                </button>
+                                <div className="md:w-1/4 flex justify-center md:justify-end">
+                                    <button
+                                        onClick={() => setShowDemoModal(true)}
+                                        className={`bg-white ${feature.btnColor} px-8 py-4 rounded-2xl text-[15px] font-black hover:shadow-2xl transition-all flex items-center gap-3 hover:-translate-y-1 active:scale-95 whitespace-nowrap`}
+                                    >
+                                        <feature.icon className="text-xl" />
+                                        {t('examineFeature')}
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </section>
 
             {/* Services */}
             <section className="py-24 bg-slate-50">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-16">
+                        <div className="inline-flex items-center px-6 py-2 bg-blue-600/10 text-blue-600 rounded-full text-sm font-black mb-4 uppercase tracking-widest">
+                            {t('premiumServices')}
+                        </div>
                         <h2 className="text-4xl md:text-5xl font-black mb-6">{t('ourServices')}</h2>
-                        <p className="text-xl text-gray-600 max-w-3xl mx-auto">{t('servicesDesc')}</p>
+                        <p className="text-xl text-gray-600 max-w-3xl mx-auto font-medium">{t('servicesDesc')}</p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
                         {[
-                            { icon: FaQrcode, title: t('qrMenuSystem'), desc: t('qrMenuDesc'), color: "orange", border: "border-orange-100 hover:border-orange-300", bg: "bg-orange-500" },
-                            { icon: FaShoppingCart, title: t('orderManagement'), desc: t('orderManagementDesc'), color: "blue", border: "border-blue-100 hover:border-blue-300", bg: "bg-blue-500" },
-                            { icon: FaBrain, title: t('aiTitle'), desc: t('aiDesc'), color: "purple", border: "border-purple-100 hover:border-purple-300", bg: "bg-purple-500" }
+                            { icon: FaQrcode, title: t('qrMenuSystem'), desc: t('qrMenuDesc'), color: "orange", bg: "bg-orange-500", border: "border-orange-100" },
+                            { icon: FaShoppingCart, title: t('orderManagement'), desc: t('orderManagementDesc'), color: "blue", bg: "bg-blue-500", border: "border-blue-100" },
+                            { icon: FaBrain, title: t('aiTitle'), desc: t('aiDesc'), color: "purple", bg: "bg-purple-500", border: "border-purple-100" },
+                            { icon: FaChartLine, title: t('detailedReporting'), desc: t('detailedReportingDesc'), color: "green", bg: "bg-green-500", border: "border-green-100" },
+                            { icon: FaGlobe, title: t('multiPlatform'), desc: t('multiPlatformDesc'), color: "indigo", bg: "bg-indigo-500", border: "border-indigo-100" },
+                            { icon: FaHeart, title: t('support247'), desc: t('support247Desc'), color: "red", bg: "bg-red-500", border: "border-red-100" }
                         ].map((s, i) => (
-                            <div key={i} className={`bg-white p-8 rounded-3xl shadow-lg border-2 ${s.border} transition-all`}>
-                                <div className={`${s.bg} w-14 h-14 rounded-xl flex items-center justify-center mb-6 text-white text-2xl`}>
+                            <div key={i} className={`bg-white p-10 rounded-[2.5rem] shadow-xl border-2 ${s.border} hover:border-transparent hover:shadow-2xl transition-all duration-300 group`}>
+                                <div className={`${s.bg} w-16 h-16 rounded-2xl flex items-center justify-center mb-8 text-white text-3xl group-hover:rotate-6 transition-transform shadow-lg`}>
                                     <s.icon />
                                 </div>
-                                <h3 className="text-xl font-black mb-3">{s.title}</h3>
-                                <p className="text-gray-600">{s.desc}</p>
+                                <h3 className="text-2xl font-black mb-4 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{s.title}</h3>
+                                <p className="text-gray-600 text-lg leading-relaxed font-medium">{s.desc}</p>
                             </div>
                         ))}
                     </div>
