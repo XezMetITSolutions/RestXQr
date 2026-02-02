@@ -73,18 +73,18 @@ export default function HomeContent() {
                         </button>
                     </div>
 
-                    {/* Stats Metrics - Ultra Minimalist */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
+                    {/* Stats Metrics - Bold Minimalism */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto mb-16">
                         {[
                             { label: "ROI", title: t('statSales'), bg: "from-green-500 to-emerald-600", text: "text-green-400" },
                             { label: "AI", title: t('statAI'), bg: "from-blue-500 to-indigo-600", text: "text-blue-400" },
                             { label: "24/7", title: t('statSupport'), bg: "from-purple-500 to-pink-600", text: "text-purple-400" }
                         ].map((stat, i) => (
                             <div key={i} className="relative group h-full">
-                                <div className={`absolute -inset-0.5 bg-gradient-to-r ${stat.bg} rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-300`}></div>
-                                <div className="relative h-full bg-black/40 backdrop-blur-3xl rounded-2xl p-10 border border-white/10 hover:border-white/20 transition-all flex flex-col items-center justify-center text-center">
-                                    <div className={`text-xs font-black tracking-[0.3em] ${stat.text} mb-4 uppercase`}>{stat.label}</div>
-                                    <div className="text-2xl md:text-3xl font-black text-white leading-tight uppercase tracking-tight">{stat.title}</div>
+                                <div className={`absolute -inset-1 bg-gradient-to-r ${stat.bg} rounded-[2.5rem] blur opacity-25 group-hover:opacity-40 transition duration-500`}></div>
+                                <div className="relative h-full bg-black/40 backdrop-blur-3xl rounded-[2rem] p-12 border border-white/10 hover:border-white/20 transition-all flex flex-col items-center justify-center text-center">
+                                    <div className={`text-sm font-black tracking-[0.4em] ${stat.text} mb-6 uppercase opacity-80`}>{stat.label}</div>
+                                    <div className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight uppercase tracking-tighter">{stat.title}</div>
                                 </div>
                             </div>
                         ))}
@@ -92,29 +92,29 @@ export default function HomeContent() {
                 </div>
             </section>
 
-            {/* Value Section - Minimalist */}
-            <section className="py-24 bg-slate-50 relative">
+            {/* Value Section - Bolder Minimalism */}
+            <section className="py-32 bg-slate-50 relative">
                 <div className="container mx-auto px-4">
-                    <div className="text-center mb-16">
-                        <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-700 to-indigo-700 text-white rounded-full text-lg font-bold mb-6">
+                    <div className="text-center mb-20">
+                        <div className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-700 to-indigo-700 text-white rounded-full text-xl font-black mb-8 shadow-xl">
                             <FaChartLine className="mr-3" />
                             {t('efficiencyBadge')}
                         </div>
-                        <h2 className="text-4xl md:text-6xl font-black text-gray-900 mb-6">{t('marketingSectionTitle')}</h2>
+                        <h2 className="text-5xl md:text-7xl font-black text-gray-900 mb-8 leading-tight tracking-tighter">{t('marketingSectionTitle')}</h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto">
                         {[
                             { icon: FaBell, title: t('marketingAdsTitle'), bg: "bg-blue-500", border: "hover:border-blue-500" },
                             { icon: FaUsers, title: t('waiterCallEfficiencyTitle'), bg: "bg-indigo-500", border: "hover:border-indigo-500" },
                             { icon: FaGem, title: t('tailoredSolutionsTitle'), bg: "bg-purple-500", border: "hover:border-purple-500" }
                         ].map((item, i) => (
                             <div key={i} className="h-full">
-                                <div className={`h-full bg-white p-12 rounded-[2.5rem] shadow-xl border-b-8 border-transparent ${item.border} transition-all group flex flex-col items-center text-center`}>
-                                    <div className={`${item.bg} w-20 h-20 rounded-2xl flex items-center justify-center mb-8 shadow-lg group-hover:rotate-6 transition-transform text-white text-3xl`}>
+                                <div className={`h-full bg-white p-14 rounded-[3rem] shadow-2xl border-b-[12px] border-transparent ${item.border} transition-all group flex flex-col items-center text-center`}>
+                                    <div className={`${item.bg} w-24 h-24 rounded-3xl flex items-center justify-center mb-10 shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 text-white text-4xl`}>
                                         <item.icon />
                                     </div>
-                                    <h3 className="text-2xl font-black uppercase tracking-tight">{item.title}</h3>
+                                    <h3 className="text-3xl font-black uppercase tracking-tight leading-tight">{item.title}</h3>
                                 </div>
                             </div>
                         ))}
@@ -122,35 +122,37 @@ export default function HomeContent() {
                 </div>
             </section>
 
-            {/* Consolidated Features - Titles Only */}
-            <section className="py-20 bg-white px-4">
-                <div className="container mx-auto max-w-5xl mb-12">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="h-px flex-1 bg-gray-200"></div>
-                        <span className="text-sm font-black text-blue-600 tracking-[0.3em] uppercase">{t('heroBadge')}</span>
-                        <div className="h-px flex-1 bg-gray-200"></div>
+            {/* Consolidated Features - Massive Titles */}
+            <section className="py-24 bg-white px-4">
+                <div className="container mx-auto max-w-6xl mb-16">
+                    <div className="flex items-center gap-6 mb-8">
+                        <div className="h-0.5 flex-1 bg-gray-100"></div>
+                        <span className="text-lg font-black text-blue-600 tracking-[0.4em] uppercase">{t('heroBadge')}</span>
+                        <div className="h-0.5 flex-1 bg-gray-100"></div>
                     </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-10">
                     {[
                         { title: t('multiBranchTitle'), gradient: "from-[#1e40af] to-[#2563eb]", icon: FaRocket, btnColor: "text-[#1e40af]" },
                         { title: t('aiBannerTitle'), gradient: "from-[#6d28d9] to-[#4f46e5]", icon: FaBrain, btnColor: "text-[#6d28d9]" },
                         { title: t('multiLangTitle'), gradient: "from-[#008f5d] to-[#006b45]", icon: FaGlobe, btnColor: "text-[#008f5d]" },
                         { title: t('allInOneTitle'), gradient: "from-[#e63900] to-[#b32d00]", icon: FaDesktop, btnColor: "text-[#e63900]" }
                     ].map((feature, i) => (
-                        <div key={i} className={`max-w-5xl mx-auto w-full bg-gradient-to-r ${feature.gradient} rounded-2xl p-8 md:p-12 shadow-xl relative overflow-hidden group border border-white/5`}>
-                            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl transition-transform duration-700 group-hover:scale-110"></div>
-                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                                <div className="text-center md:text-left flex-1">
-                                    <h3 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight">{feature.title}</h3>
+                        <div key={i} className={`max-w-6xl mx-auto w-full bg-gradient-to-r ${feature.gradient} rounded-[2.5rem] p-12 md:p-20 shadow-2xl relative overflow-hidden group border border-white/5`}>
+                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-white/10 rounded-full blur-[100px] transition-transform duration-1000 group-hover:scale-150"></div>
+
+                            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
+                                <div className="text-center lg:text-left flex-1">
+                                    <h3 className="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter leading-[0.9]">{feature.title}</h3>
                                 </div>
-                                <div className="md:w-1/4 flex justify-center md:justify-end">
+                                <div className="lg:w-1/3 flex justify-center lg:justify-end">
                                     <button
                                         onClick={() => setShowDemoModal(true)}
-                                        className={`bg-white ${feature.btnColor} w-full md:w-60 py-5 rounded-2xl text-lg font-black hover:shadow-2xl transition-all flex items-center justify-center gap-3 hover:-translate-y-1 active:scale-95 whitespace-nowrap`}
+                                        className={`bg-white ${feature.btnColor} w-full md:w-72 py-6 rounded-3xl text-2xl font-black shadow-2xl hover:shadow-[0_20px_50px_rgba(255,255,255,0.3)] transition-all flex items-center justify-center gap-4 hover:-translate-y-2 active:scale-95 whitespace-nowrap`}
                                     >
-                                        <feature.icon className="text-xl" />
+                                        <feature.icon className="text-3xl" />
                                         {t('examineFeature')}
                                     </button>
                                 </div>
@@ -160,30 +162,30 @@ export default function HomeContent() {
                 </div>
             </section>
 
-            {/* Services - Compact Titles */}
-            <section className="py-24 bg-slate-50">
+            {/* Services - Bolder Titles */}
+            <section className="py-32 bg-slate-50">
                 <div className="container mx-auto px-4">
-                    <div className="text-center mb-16">
-                        <div className="inline-flex items-center px-6 py-2 bg-blue-600/10 text-blue-600 rounded-full text-sm font-black mb-4 uppercase tracking-widest">
+                    <div className="text-center mb-20 text-center">
+                        <div className="inline-flex items-center px-8 py-3 bg-blue-600/10 text-blue-600 rounded-full text-lg font-black mb-8 uppercase tracking-widest">
                             {t('premiumServices')}
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-black mb-6">{t('ourServices')}</h2>
+                        <h2 className="text-5xl md:text-7xl font-black mb-8 tracking-tighter">{t('ourServices')}</h2>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
                         {[
-                            { icon: FaQrcode, title: t('qrMenuSystem'), color: "orange", bg: "bg-orange-500", border: "border-orange-100" },
-                            { icon: FaShoppingCart, title: t('orderManagement'), color: "blue", bg: "bg-blue-500", border: "border-blue-100" },
-                            { icon: FaBrain, title: t('aiTitle'), color: "purple", bg: "bg-purple-500", border: "border-purple-100" },
-                            { icon: FaChartLine, title: t('detailedReporting'), color: "green", bg: "bg-green-500", border: "border-green-100" },
-                            { icon: FaGlobe, title: t('multiPlatform'), color: "indigo", bg: "bg-indigo-500", border: "border-indigo-100" },
-                            { icon: FaHeart, title: t('support247'), color: "red", bg: "bg-red-500", border: "border-red-100" }
+                            { icon: FaQrcode, title: t('qrMenuSystem'), bg: "bg-orange-500", border: "border-orange-100" },
+                            { icon: FaShoppingCart, title: t('orderManagement'), bg: "bg-blue-500", border: "border-blue-100" },
+                            { icon: FaBrain, title: t('aiTitle'), bg: "bg-purple-500", border: "border-purple-100" },
+                            { icon: FaChartLine, title: t('detailedReporting'), bg: "bg-green-500", border: "border-green-100" },
+                            { icon: FaGlobe, title: t('multiPlatform'), bg: "bg-indigo-500", border: "border-indigo-100" },
+                            { icon: FaHeart, title: t('support247'), bg: "bg-red-500", border: "border-red-100" }
                         ].map((s, i) => (
                             <div key={i} className="h-full">
-                                <div className={`h-full bg-white p-12 rounded-[2.5rem] shadow-xl border-2 ${s.border} hover:border-transparent hover:shadow-2xl transition-all duration-300 group flex flex-col items-center text-center`}>
-                                    <div className={`${s.bg} w-16 h-16 rounded-2xl flex items-center justify-center mb-8 text-white text-3xl group-hover:rotate-6 transition-transform shadow-lg`}>
+                                <div className={`h-full bg-white p-14 rounded-[3rem] shadow-xl border-2 ${s.border} hover:border-transparent hover:shadow-2xl transition-all duration-500 group flex flex-col items-center text-center`}>
+                                    <div className={`${s.bg} w-20 h-20 rounded-[1.5rem] flex items-center justify-center mb-10 text-white text-4xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-xl`}>
                                         <s.icon />
                                     </div>
-                                    <h3 className="text-xl md:text-2xl font-black group-hover:text-blue-600 transition-colors uppercase tracking-tight">{s.title}</h3>
+                                    <h3 className="text-2xl md:text-3xl font-black group-hover:text-blue-600 transition-colors uppercase tracking-tight leading-tight">{s.title}</h3>
                                 </div>
                             </div>
                         ))}
