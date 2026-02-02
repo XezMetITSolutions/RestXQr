@@ -255,20 +255,35 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Demo Talep Et',
       de: 'Demo anfordern',
     },
+    statLabelGrowth: {
+      en: 'GROWTH',
+      tr: 'BÜYÜME',
+      de: 'WACHSTUM',
+    },
+    statLabelSmart: {
+      en: 'SMART',
+      tr: 'ZEKA',
+      de: 'INTELLIGENZ',
+    },
+    statLabelTrust: {
+      en: 'TRUST',
+      tr: 'GÜVEN',
+      de: 'VERTRAUEN',
+    },
     statSales: {
-      en: 'Sales Increase',
-      tr: 'Satış Artışı',
-      de: 'Umsatzsteigerung',
+      en: 'Growth',
+      tr: 'Büyüme',
+      de: 'Wachstum',
     },
     statAI: {
-      en: 'Photo Optimization',
-      tr: 'Fotoğraf Optimizasyonu',
-      de: 'Foto-Optimierung',
+      en: 'Intelligence',
+      tr: 'Zeka',
+      de: 'Intelligenz',
     },
     statSupport: {
-      en: 'Support',
-      tr: 'Destek',
-      de: 'Support',
+      en: 'Trust',
+      tr: 'Güven',
+      de: 'Vertrauen',
     },
 
     // Landing Page - AI Section
@@ -283,9 +298,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Perfekte Bilder dank KI',
     },
     aiDesc: {
-      en: 'Professionalize your product photos with Artificial Intelligence! Elevate your brand\'s visual identity without the need for expensive photographers and captivate your customers with stunning details.',
-      tr: 'Yapay Zeka ile ürün fotoğraflarınızı profesyonelleştirin! Pahalı fotoğrafçılara ihtiyaç duymadan markanızın görsel kimliğini yükseltin ve müşterilerinizi etkileyici detaylarla büyüleyin.',
-      de: 'Verwandeln Sie Ihre Produktfotos mit Künstlicher Intelligenz in professionelle Aufnahmen! Steigern Sie die visuelle Identität Ihrer Marke und begeistern Sie Ihre Gäste mit beeindruckenden Details.',
+      en: 'Professionalize your menu photos instantly with AI. Elevate your brand without expensive photographers.',
+      tr: 'Yapay Zeka ile ürün fotoğraflarınızı anında profesyonelleştirin ve markanızın görsel gücünü artırın.',
+      de: 'Professionalisieren Sie Ihre Speisekarte sofort mit KI. Werten Sie Ihre Marke ohne teure Fotografen auf.',
     },
     before: {
       en: 'BEFORE',
@@ -323,9 +338,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Mehr Umsatz',
     },
     salesIncreaseDesc: {
-      en: 'Increase customer interest and sales with professional, appetizing images that highlight the best of your menu.',
-      tr: 'Menünüzün en iyi özelliklerini vurgulayan profesyonel ve iştah açıcı görsellerle müşteri ilgisini ve satışlarınızı artırın.',
-      de: 'Steigern Sie das Kundeninteresse und den Umsatz mit professionellen, appetitlichen Bildern, die Ihre Speisekarte perfekt in Szene setzen.',
+      en: 'Accelerate table turnover with faster service and detailed product info (calories, allergens). Eliminate ordering hesitation and drive sales with smart marketing.',
+      tr: 'Hızlı sipariş, detaylı ürün bilgileri (kalori, alerjen) ve akıllı pazarlama araçlarıyla masa sirkülasyonunu hızlandırın. Kararsızlığı bitirin, satışlarınızı kalıcı olarak artırın.',
+      de: 'Beschleunigen Sie die Tischbelegung durch schnelleren Service und detaillierte Infos. Vermeiden Sie Bestell-Zögern und steigern Sie den Umsatz smart.',
     },
     fastResult: {
       en: 'Fast Result',

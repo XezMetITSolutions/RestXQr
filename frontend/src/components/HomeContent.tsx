@@ -134,15 +134,15 @@ export default function HomeContent() {
                     {/* Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto mb-12">
                         <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 transform hover:scale-105 transition-all duration-300">
-                            <div className="text-4xl md:text-5xl font-black text-green-400 mb-3">ROI</div>
+                            <div className="text-4xl md:text-5xl font-black text-green-400 mb-3">{t('statLabelGrowth')}</div>
                             <div className="text-lg md:text-xl text-gray-200 font-bold">{t('statSales')}</div>
                         </div>
                         <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 transform hover:scale-105 transition-all duration-300">
-                            <div className="text-4xl md:text-5xl font-black text-blue-400 mb-3">AI</div>
+                            <div className="text-4xl md:text-5xl font-black text-blue-400 mb-3">{t('statLabelSmart')}</div>
                             <div className="text-lg md:text-xl text-gray-200 font-bold">{t('statAI')}</div>
                         </div>
                         <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 transform hover:scale-105 transition-all duration-300">
-                            <div className="text-4xl md:text-5xl font-black text-purple-400 mb-3">24/7</div>
+                            <div className="text-4xl md:text-5xl font-black text-purple-400 mb-3">{t('statLabelTrust')}</div>
                             <div className="text-lg md:text-xl text-gray-200 font-bold">{t('statSupport')}</div>
                         </div>
                     </div>
