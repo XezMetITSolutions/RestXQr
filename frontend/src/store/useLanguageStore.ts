@@ -285,6 +285,21 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Güven',
       de: 'Vertrauen',
     },
+    statSalesDesc: {
+      en: 'Significant boost in table turnover and revenue.',
+      tr: 'Masa sirkülasyonu ve gelirde belirgin artış.',
+      de: 'Deutliche Steigerung von Tischbelegung und Umsatz.',
+    },
+    statAIDesc: {
+      en: 'Smart visual optimization for your menu items.',
+      tr: 'Menü öğeleriniz için akıllı görsel optimizasyon.',
+      de: 'Smarte visuelle Optimierung für Ihre Menüpunkte.',
+    },
+    statSupportDesc: {
+      en: 'Always here to help your peak business hours.',
+      tr: 'En yoğun saatlerinizde her zaman yanınızdayız.',
+      de: 'Immer da, um Stoßzeiten zu unterstützen.',
+    },
 
     // Landing Page - AI Section
     aiBadge: {
@@ -342,6 +357,52 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Hızlı sipariş, detaylı ürün bilgileri (kalori, alerjen) ve akıllı pazarlama araçlarıyla masa sirkülasyonunu hızlandırın. Kararsızlığı bitirin, satışlarınızı kalıcı olarak artırın.',
       de: 'Beschleunigen Sie die Tischbelegung durch schnelleren Service und detaillierte Infos. Vermeiden Sie Bestell-Zögern und steigern Sie den Umsatz smart.',
     },
+    footerSlogan: {
+      en: 'Empowering restaurants with cutting-edge digital solutions for seamless ordering and management.',
+      tr: 'Kesintisiz sipariş ve yönetim için restoranları en ileri dijital çözümlerle güçlendiriyoruz.',
+      de: 'Restaurants mit modernsten digitalen Lösungen für nahtlose Bestellungen empowern.',
+    },
+    contactUs: {
+      en: 'CONTACT US',
+      tr: 'BİZE ULAŞIN',
+      de: 'KONTAKTIEREN SIE UNS',
+    },
+    callUs: {
+      en: 'Call Now',
+      tr: 'Hemen Arayın',
+      de: 'Jetzt Anrufen',
+    },
+    legalLinkSection: {
+      en: 'LEGAL',
+      tr: 'YASAL',
+      de: 'RECHTLICHES',
+    },
+    cookiesPolicy: {
+      en: 'Cookie Policy',
+      tr: 'Çerez Politikası',
+      de: 'Cookie-Richtlinie',
+    },
+    privacyPolicy: {
+      en: 'Privacy Policy',
+      tr: 'Gizlilik Politikası',
+      de: 'Datenschutzerklärung',
+    },
+    termsOfService: {
+      en: 'Terms of Service',
+      tr: 'Kullanım Koşulları',
+      de: 'Nutzungsbedingungen',
+    },
+    legalInfo: {
+      en: 'Legal Information',
+      tr: 'Yasal Bilgiler',
+      de: 'Impressum',
+    },
+    allRightsReserved: {
+      en: 'All rights reserved.',
+      tr: 'Tüm hakları saklıdır.',
+      de: 'Alle Rechte vorbehalten.',
+    },
+
     fastResult: {
       en: 'Fast Result',
       tr: 'Hızlı Sonuç',

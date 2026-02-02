@@ -131,19 +131,31 @@ export default function HomeContent() {
                         </button>
                     </div>
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto mb-12">
-                        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 transform hover:scale-105 transition-all duration-300">
-                            <div className="text-4xl md:text-5xl font-black text-green-400 mb-3">{t('statLabelGrowth')}</div>
-                            <div className="text-lg md:text-xl text-gray-200 font-bold">{t('statSales')}</div>
+                    {/* Stats Metrics */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 max-w-6xl mx-auto mb-12">
+                        <div className="relative group">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                            <div className="relative bg-black/40 backdrop-blur-3xl rounded-2xl p-8 border border-white/10 hover:border-green-500/50 transition-all duration-300">
+                                <div className="text-sm font-black tracking-[0.2em] text-green-400 mb-4 uppercase">{t('statLabelGrowth')}</div>
+                                <div className="text-4xl md:text-5xl font-black text-white mb-2">ROI</div>
+                                <div className="text-gray-400 font-medium">{t('statSalesDesc')}</div>
+                            </div>
                         </div>
-                        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 transform hover:scale-105 transition-all duration-300">
-                            <div className="text-4xl md:text-5xl font-black text-blue-400 mb-3">{t('statLabelSmart')}</div>
-                            <div className="text-lg md:text-xl text-gray-200 font-bold">{t('statAI')}</div>
+                        <div className="relative group">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                            <div className="relative bg-black/40 backdrop-blur-3xl rounded-2xl p-8 border border-white/10 hover:border-blue-500/50 transition-all duration-300">
+                                <div className="text-sm font-black tracking-[0.2em] text-blue-400 mb-4 uppercase">{t('statLabelSmart')}</div>
+                                <div className="text-4xl md:text-5xl font-black text-white mb-2">AI</div>
+                                <div className="text-gray-400 font-medium">{t('statAIDesc')}</div>
+                            </div>
                         </div>
-                        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 transform hover:scale-105 transition-all duration-300">
-                            <div className="text-4xl md:text-5xl font-black text-purple-400 mb-3">{t('statLabelTrust')}</div>
-                            <div className="text-lg md:text-xl text-gray-200 font-bold">{t('statSupport')}</div>
+                        <div className="relative group">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                            <div className="relative bg-black/40 backdrop-blur-3xl rounded-2xl p-8 border border-white/10 hover:border-purple-500/50 transition-all duration-300">
+                                <div className="text-sm font-black tracking-[0.2em] text-purple-400 mb-4 uppercase">{t('statLabelTrust')}</div>
+                                <div className="text-4xl md:text-5xl font-black text-white mb-2">24/7</div>
+                                <div className="text-gray-400 font-medium">{t('statSupportDesc')}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -564,82 +576,94 @@ export default function HomeContent() {
                                 <span>{t('contactNow')}</span>
                             </button>
                         </div>
-
-                        {/* Contact Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                                <a href={`tel:+436608682201`} className="block hover:scale-105 transition-transform">
-                                    <FaPhone className="text-3xl text-green-400 mb-4 mx-auto" />
-                                    <div className="text-xl font-bold text-white mb-2">{t('phone')}</div>
-                                    <div className="text-gray-300">{t('phoneNumber')}</div>
-                                </a>
-                            </div>
-                            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                                <a href={`https://wa.me/436608682201`} target="_blank" rel="noopener noreferrer" className="block hover:scale-105 transition-transform">
-                                    <FaWhatsapp className="text-3xl text-green-400 mb-4 mx-auto" />
-                                    <div className="text-xl font-bold text-white mb-2">WhatsApp</div>
-                                    <div className="text-gray-300">+43 660 868 22 01</div>
-                                </a>
-                            </div>
-                            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                                <FaGlobe className="text-3xl text-blue-400 mb-4 mx-auto" />
-                                <div className="text-xl font-bold text-white mb-2">{t('website')}</div>
-                                <div className="text-gray-300">www.restxqr.com</div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="bg-gray-900 text-white py-12 px-4">
-                <div className="container mx-auto max-w-6xl">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                        <div>
-                            <h3 className="text-xl font-bold mb-4">restXqr</h3>
-                            <p className="text-gray-400">
-                                {language === 'de'
-                                    ? 'Moderne QR-Menü-Lösung für Restaurants'
-                                    : language === 'en'
-                                        ? 'Modern QR menu solution for restaurants'
-                                        : 'Restoranlar için modern QR menü çözümü'}
+            {/* Premium Footer */}
+            <footer className="bg-slate-950 text-white pt-24 pb-12 border-t border-white/5">
+                <div className="container mx-auto px-4 max-w-7xl">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 mb-20">
+                        {/* Brand Section */}
+                        <div className="lg:col-span-12 xl:col-span-5">
+                            <div className="text-4xl font-black tracking-tighter mb-8 bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                                RestXQr
+                            </div>
+                            <p className="text-xl text-gray-400 leading-relaxed font-medium max-w-md">
+                                {t('footerSlogan')}
                             </p>
                         </div>
-                        <div>
-                            <h3 className="text-xl font-bold mb-4">
-                                {language === 'de' ? 'Kontakt' : language === 'en' ? 'Contact' : 'İletişim'}
-                            </h3>
-                            <div className="space-y-2 text-gray-400">
-                                <p>
-                                    <a href="tel:+436608682201" className="hover:text-white transition-colors">+43 660 868 22 01</a>
-                                </p>
-                                <p>
-                                    <a href="https://wa.me/436608682201" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">WhatsApp</a>
-                                </p>
-                                <p>
-                                    <a href="mailto:info@restxqr.com" className="hover:text-white transition-colors">info@restxqr.com</a>
-                                </p>
+
+                        {/* Contact Buttons Section */}
+                        <div className="lg:col-span-6 xl:col-span-4">
+                            <h4 className="text-sm font-black tracking-[0.2em] text-gray-500 mb-8 uppercase">
+                                {t('contactUs')}
+                            </h4>
+                            <div className="flex flex-col gap-4">
+                                <a
+                                    href={`tel:+436608682201`}
+                                    className="group flex items-center justify-between bg-white/5 hover:bg-green-500/10 border border-white/10 hover:border-green-500/50 p-5 rounded-2xl transition-all duration-300"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="bg-green-500/20 p-3 rounded-xl group-hover:bg-green-500 group-hover:text-white transition-all">
+                                            <FaPhone className="text-xl" />
+                                        </div>
+                                        <span className="text-lg font-bold">{t('callUs')}</span>
+                                    </div>
+                                    <div className="text-gray-500 group-hover:text-green-500 transition-all">
+                                        <FaChevronDown className="-rotate-90" />
+                                    </div>
+                                </a>
+
+                                <a
+                                    href={`https://wa.me/436608682201`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="group flex items-center justify-between bg-white/5 hover:bg-emerald-500/10 border border-white/10 hover:border-emerald-500/50 p-5 rounded-2xl transition-all duration-300"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="bg-emerald-500/20 p-3 rounded-xl group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                                            <FaWhatsapp className="text-2xl" />
+                                        </div>
+                                        <span className="text-lg font-bold">WhatsApp</span>
+                                    </div>
+                                    <div className="text-gray-500 group-hover:text-emerald-500 transition-all">
+                                        <FaChevronDown className="-rotate-90" />
+                                    </div>
+                                </a>
                             </div>
                         </div>
-                        <div>
-                            <h3 className="text-xl font-bold mb-4">
-                                {language === 'de' ? 'Rechtliches' : language === 'en' ? 'Legal' : 'Yasal'}
-                            </h3>
-                            <div className="space-y-2">
-                                <Link href="/cookies" className="block text-gray-400 hover:text-white transition-colors">
-                                    {language === 'de' ? 'Cookie-Richtlinie' : language === 'en' ? 'Cookie Policy' : 'Çerez Politikası'}
+
+                        {/* Legal Links Section */}
+                        <div className="lg:col-span-6 xl:col-span-3">
+                            <h4 className="text-sm font-black tracking-[0.2em] text-gray-500 mb-8 uppercase">
+                                {t('legalLinkSection')}
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                                <Link href="/cookies" className="block text-lg text-gray-400 hover:text-white font-medium transition-colors">
+                                    {t('cookiesPolicy')}
                                 </Link>
-                                <Link href="/datenschutz" className="block text-gray-400 hover:text-white transition-colors">
-                                    {language === 'de' ? 'Datenschutzerklärung' : language === 'en' ? 'Privacy Policy' : 'Gizlilik Politikası'}
+                                <Link href="/privacy" className="block text-lg text-gray-400 hover:text-white font-medium transition-colors">
+                                    {t('privacyPolicy')}
                                 </Link>
-                                <Link href="/impressum" className="block text-gray-400 hover:text-white transition-colors">
-                                    {language === 'de' ? 'Impressum' : language === 'en' ? 'Legal Information' : 'Yasal Bilgiler'}
+                                <Link href="/terms" className="block text-lg text-gray-400 hover:text-white font-medium transition-colors">
+                                    {t('termsOfService')}
+                                </Link>
+                                <Link href="/legal" className="block text-lg text-gray-400 hover:text-white font-medium transition-colors">
+                                    {t('legalInfo')}
                                 </Link>
                             </div>
                         </div>
                     </div>
-                    <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-                        <p>&copy; {new Date().getFullYear()} restXqr. {language === 'de' ? 'Alle Rechte vorbehalten.' : language === 'en' ? 'All rights reserved.' : 'Tüm hakları saklıdır.'}</p>
+
+                    <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div className="text-gray-500 font-medium">
+                            &copy; {new Date().getFullYear()} RestXQr. {t('allRightsReserved')}
+                        </div>
+                        <div className="flex gap-6">
+                            <span className="text-gray-500 hover:text-gray-300 transition-colors text-sm font-bold tracking-widest cursor-pointer uppercase">Instagram</span>
+                            <span className="text-gray-500 hover:text-gray-300 transition-colors text-sm font-bold tracking-widest cursor-pointer uppercase">Linkedin</span>
+                        </div>
                     </div>
                 </div>
             </footer>
