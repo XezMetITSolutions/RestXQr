@@ -339,76 +339,72 @@ export default function HomeContent() {
             </section>
 
             {/* Modern Benefits Section */}
-            <section className="py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
-                <div className="absolute inset-0">
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
-                    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse"></div>
-                    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
-                </div>
+            <section className="py-24 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-pink-600/5"></div>
 
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="text-center mb-20">
-                        <div className="inline-flex items-center px-6 py-3 bg-white/10 text-white rounded-full text-lg font-bold mb-6 backdrop-blur-xl border border-white/20">
+                        <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-700 to-indigo-700 text-white rounded-full text-lg font-bold mb-6 shadow-xl">
                             <FaFire className="mr-3 text-orange-400" />
                             {t('benefits')}
                         </div>
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-8">
-                            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-gray-900 mb-8 leading-tight">
+                            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                                 {t('whyRestXQr')}
                             </span>
                         </h2>
-                        <p className="text-2xl text-gray-300 max-w-4xl mx-auto font-medium leading-relaxed">
+                        <p className="text-2xl md:text-3xl text-gray-700 max-w-5xl mx-auto font-medium leading-relaxed">
                             {t('whyRestXQrDesc')}
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <div className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 group">
+                        <div className="bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group border border-gray-100">
                             <div className="bg-gradient-to-r from-green-500 to-emerald-500 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:animate-bounce">
                                 <FaChartLine className="text-white text-2xl" />
                             </div>
-                            <h3 className="text-2xl font-black text-white mb-4">{t('statSales')}</h3>
-                            <p className="text-gray-300 text-lg leading-relaxed">{t('salesIncreaseDesc')}</p>
+                            <h3 className="text-2xl font-black text-gray-900 mb-4">{t('statSales')}</h3>
+                            <p className="text-gray-600 text-lg leading-relaxed">{t('salesIncreaseDesc')}</p>
                         </div>
 
-                        <div className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 group">
+                        <div className="bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group border border-gray-100">
                             <div className="bg-gradient-to-r from-blue-500 to-cyan-500 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:animate-bounce">
                                 <FaClock className="text-white text-2xl" />
                             </div>
-                            <h3 className="text-2xl font-black text-white mb-4">{t('timeSaving')}</h3>
-                            <p className="text-gray-300 text-lg leading-relaxed">{t('timeSavingDesc')}</p>
+                            <h3 className="text-2xl font-black text-gray-900 mb-4">{t('timeSaving')}</h3>
+                            <p className="text-gray-600 text-lg leading-relaxed">{t('timeSavingDesc')}</p>
                         </div>
 
-                        <div className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 group">
+                        <div className="bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group border border-gray-100">
                             <div className="bg-gradient-to-r from-purple-500 to-pink-500 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:animate-bounce">
                                 <FaShieldAlt className="text-white text-2xl" />
                             </div>
-                            <h3 className="text-2xl font-black text-white mb-4">{t('secure100')}</h3>
-                            <p className="text-gray-300 text-lg leading-relaxed">{t('secure100Desc')}</p>
+                            <h3 className="text-2xl font-black text-gray-900 mb-4">{t('secure100')}</h3>
+                            <p className="text-gray-600 text-lg leading-relaxed">{t('secure100Desc')}</p>
                         </div>
 
-                        <div className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 group">
+                        <div className="bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group border border-gray-100">
                             <div className="bg-gradient-to-r from-orange-500 to-red-500 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:animate-bounce">
                                 <FaUsers className="text-white text-2xl" />
                             </div>
-                            <h3 className="text-2xl font-black text-white mb-4">{t('integrateMenu')}</h3>
-                            <p className="text-gray-300 text-lg leading-relaxed">{t('integrateMenuDesc')}</p>
+                            <h3 className="text-2xl font-black text-gray-900 mb-4">{t('integrateMenu')}</h3>
+                            <p className="text-gray-600 text-lg leading-relaxed">{t('integrateMenuDesc')}</p>
                         </div>
 
-                        <div className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 group">
+                        <div className="bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group border border-gray-100">
                             <div className="bg-gradient-to-r from-indigo-500 to-purple-500 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:animate-bounce">
                                 <FaRocket className="text-white text-2xl" />
                             </div>
-                            <h3 className="text-2xl font-black text-white mb-4">{t('fastSetup')}</h3>
-                            <p className="text-gray-300 text-lg leading-relaxed">{t('fastSetupDesc')}</p>
+                            <h3 className="text-2xl font-black text-gray-900 mb-4">{t('fastSetup')}</h3>
+                            <p className="text-gray-600 text-lg leading-relaxed">{t('fastSetupDesc')}</p>
                         </div>
 
-                        <div className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 group">
+                        <div className="bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group border border-gray-100">
                             <div className="bg-gradient-to-r from-green-500 to-blue-500 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:animate-bounce">
                                 <FaHeart className="text-white text-2xl" />
                             </div>
-                            <h3 className="text-2xl font-black text-white mb-4">{t('support247')}</h3>
-                            <p className="text-gray-300 text-lg leading-relaxed">{t('support247Desc')}</p>
+                            <h3 className="text-2xl font-black text-gray-900 mb-4">{t('support247')}</h3>
+                            <p className="text-gray-600 text-lg leading-relaxed">{t('support247Desc')}</p>
                         </div>
                     </div>
                 </div>

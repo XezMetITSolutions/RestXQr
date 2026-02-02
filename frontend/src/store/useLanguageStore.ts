@@ -388,9 +388,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Maximale Effizienz mit Service-Ruf',
     },
     waiterCallEfficiencyDesc: {
-      en: 'Not just for orders, but seamless communication for every need. Customers can reach their waiter with one click for any request, reducing wait times, human error, and friction in the service process.',
-      tr: 'Sadece sipariş değil, her türlü ihtiyaç için kesintisiz iletişim. Garson çağırma özelliği ile müşterileriniz tüm taleplerini anında iletir, hizmet süreci hızlanır. İnsan hatasından kaynaklı aksaklıklar ve bekleme süresi azalırken, misafir memnuniyetiniz üst seviyeye çıkar.',
-      de: 'Nicht nur für Bestellungen, sondern für eine nahtlose Kommunikation bei jedem Bedarf. Kunden können ihren Kellner mit einem Klick für jede Anfrage erreichen, was Wartezeiten und menschliche Fehler reduziert.',
+      en: 'Seamless communication for every need. One click to reach the waiter, speed up service, and eliminate errors.',
+      tr: 'Her talep için kusursuz iletişim. Tek tıkla garsona ulaşın, servisi hızlandırın ve hataları sıfırlayın.',
+      de: 'Nahtlose Kommunikation für jeden Bedarf. Ein Klick, um den Service zu erreichen und Fehler zu vermeiden.',
     },
     efficiencyBadge: {
       en: 'Efficiency & Satisfaction',
@@ -527,8 +527,8 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Ihre Vorteile',
     },
     whyRestXQr: {
-      en: 'Why restXQr?',
-      tr: 'Neden restXQr?',
+      en: 'Why RestXQr?',
+      tr: 'Neden RestXQr?',
       de: 'Warum RestXQr?',
     },
     whyRestXQrDesc: {
@@ -599,8 +599,8 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Was ist RestXQr?',
     },
     faq1A: {
-      en: 'restXqr is a comprehensive restaurant operating system that manages the entire operation from menu to order, staff to accounting on a single platform. It uses AI to optimize your visuals, streamline your operations, and increase customer satisfaction; integrating seamlessly with your management systems.',
-      tr: 'restXqr, menüden siparişe, personelden muhasebeye kadar tüm operasyonu tek platformda yöneten kapsamlı bir restoran işletim sistemidir. AI ile görsellerinizi optimize eder, operasyonlarınızı kolaylaştırır ve misafir memnuniyetini artırır; mevcut sistemlerinizle sorunsuz entegre olur.',
+      en: 'RestXQr is a comprehensive restaurant operating system that manages the entire operation from menu to order, staff to accounting on a single platform. It uses AI to optimize your visuals, streamline your operations, and increase customer satisfaction; integrating seamlessly with your management systems.',
+      tr: 'RestXQr, menüden siparişe, personelden muhasebeye kadar tüm operasyonu tek platformda yöneten kapsamlı bir restoran işletim sistemidir. AI ile görsellerinizi optimize eder, operasyonlarınızı kolaylaştırır ve misafir memnuniyetini artırır; mevcut sistemlerinizle sorunsuz entegre olur.',
       de: 'RestXQr ist das umfassende Betriebssystem für Ihre Gastronomie. Es vereint Speisekarte, Bestellsystem, Personalverwaltung und Abrechnung auf einer Plattform. Optimieren Sie Ihre Bilder mit KI und verbessern Sie die Gästezufriedenheit.',
     },
     faq2Q: {
