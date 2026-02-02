@@ -979,6 +979,7 @@ export default function KasaPanel() {
               tableNumber: (data.order?.tableNumber || data.data?.tableNumber || '?').toString(),
               items: result.stationItems,
               header: 'KROREN MUTFAK',
+              orderNote: data.order?.notes || data.data?.notes,
               type: 'KITCHEN'
             });
 

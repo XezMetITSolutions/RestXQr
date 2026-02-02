@@ -36,6 +36,7 @@ export interface ReceiptData {
         amount: number;
         net: number;
     };
+    orderNote?: string;
 }
 
 export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanvasElement> => {
@@ -64,6 +65,38 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         ctx.stroke();
         ctx.setLineDash([]);
     };
+
+    const wrapText = (text: string, x: number, startY: number, maxWidth: number, lineHeight: number): number => {
+        const chars = Array.from(text);
+        let line = '';
+        let currentY = startY;
+
+        for (let i = 0; i < chars.length; i++) {
+            const char = chars[i];
+            const nextLine = line + char;
+            const width = ctx.measureText(nextLine).width;
+
+            if (width > maxWidth) {
+                if (char === ' ' && line === '') continue;
+                const lastSpaceIndex = line.lastIndexOf(' ');
+                if (lastSpaceIndex > 0) {
+                    const wrapLine = line.substring(0, lastSpaceIndex);
+                    ctx.fillText(wrapLine.trim(), x, currentY);
+                    line = line.substring(lastSpaceIndex + 1) + char;
+                    currentY += lineHeight;
+                } else {
+                    ctx.fillText(line.trim(), x, currentY);
+                    line = char;
+                    currentY += lineHeight;
+                }
+            } else {
+                line = nextLine;
+            }
+        }
+        ctx.fillText(line.trim(), x, currentY);
+        return currentY + lineHeight;
+    };
+
 
     // 1. Logo (Large & Centered)
     if (data.logo) {
@@ -137,41 +170,22 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         y += 30;
     }
 
-    const wrapText = (text: string, x: number, startY: number, maxWidth: number, lineHeight: number): number => {
-        const chars = Array.from(text);
-        let line = '';
-        let currentY = startY;
+    // 4b. General Order Note (If present)
+    if (data.orderNote) {
+        ctx.textAlign = 'left';
+        ctx.font = 'bold 28px sans-serif';
+        const noteTitle = "--- SİPARİŞ NOTU (GENEL) ---";
+        ctx.fillText(noteTitle, 15, y);
+        y += 35;
 
-        for (let i = 0; i < chars.length; i++) {
-            const char = chars[i];
-            const nextLine = line + char;
-            const width = ctx.measureText(nextLine).width;
+        ctx.font = 'bold 26px sans-serif';
+        y = wrapText(data.orderNote, 15, y, width - 30, 32);
 
-            if (width > maxWidth) {
-                // If it's a space at the start of a new line, skip it
-                if (char === ' ' && line === '') continue;
+        y += 10;
+        drawDashedLine(y);
+        y += 25;
+    }
 
-                // Try to find the last space in 'line' to wrap at word boundary
-                const lastSpaceIndex = line.lastIndexOf(' ');
-                // Only wrap at space if it's not the only way (avoid infinite loop if word > maxWidth)
-                if (lastSpaceIndex > 0) {
-                    const wrapLine = line.substring(0, lastSpaceIndex);
-                    ctx.fillText(wrapLine.trim(), x, currentY);
-                    line = line.substring(lastSpaceIndex + 1) + char;
-                    currentY += lineHeight;
-                } else {
-                    // No suitable space found, wrap at character
-                    ctx.fillText(line.trim(), x, currentY);
-                    line = char;
-                    currentY += lineHeight;
-                }
-            } else {
-                line = nextLine;
-            }
-        }
-        ctx.fillText(line.trim(), x, currentY);
-        return currentY + lineHeight;
-    };
 
     // 5. Items
     ctx.textAlign = 'left';
