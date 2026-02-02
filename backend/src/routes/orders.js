@@ -166,8 +166,8 @@ router.post('/bulk-delete-by-date', async (req, res) => {
 // GET /api/orders?restaurantId=...&status=...
 router.get('/', async (req, res) => {
   try {
-    const { restaurantId, status, tableNumber, approved } = req.query;
-    console.log('🔍 GET /api/orders request:', { restaurantId, status, tableNumber, approved });
+    const { restaurantId, status, tableNumber, approved, startDate, endDate } = req.query;
+    console.log('🔍 GET /api/orders request:', { restaurantId, status, tableNumber, approved, startDate, endDate });
 
     if (!restaurantId) {
       return res.status(400).json({ success: false, message: 'restaurantId is required' });
@@ -221,11 +221,23 @@ router.get('/', async (req, res) => {
 
     // Kasa ve Debug panelleri için performans ve güncel veri odağı
     if (req.query.from === 'cashier' || req.query.from === 'debug') {
-      // Günlük ciro ve aktif siparişler için son 24 saati getir (performans için)
-      if (!status || status === 'all') {
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        where.created_at = { [Op.gte]: twentyFourHoursAgo };
+      // Özel tarih aralığı varsa 24 saat kısıtlamasını yok say
+      if (startDate && endDate) {
+        where.created_at = {
+          [Op.between]: [new Date(startDate), new Date(endDate)]
+        };
+      } else {
+        // Günlük ciro ve aktif siparişler için son 24 saati getir (performans için)
+        if (!status || status === 'all') {
+          const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+          where.created_at = { [Op.gte]: twentyFourHoursAgo };
+        }
       }
+    } else if (startDate && endDate) {
+      // Genel kullanım için date range desteği
+      where.created_at = {
+        [Op.between]: [new Date(startDate), new Date(endDate)]
+      };
     }
 
     console.log(`🎯 GET /api/orders construction:`, {
