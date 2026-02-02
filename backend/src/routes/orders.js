@@ -1425,6 +1425,133 @@ router.post('/:id/print-info', async (req, res) => {
   }
 });
 
+// POST /api/orders/:id/print-item (Print specific item to its station)
+router.post('/:id/print-item', async (req, res) => {
+  const steps = [];
+  const log = (msg, type = 'info') => {
+    steps.push({ timestamp: new Date().toISOString(), message: msg, type });
+    console.log(`[PRINT-ITEM] ${msg}`);
+  };
+
+  try {
+    const { id } = req.params;
+    const { itemId, quantity, menuItemId, name, price, notes, variations } = req.body;
+
+    log(`Ürün yazdırma isteği: Sipariş ${id}, Item: ${name || itemId}, Adet: ${quantity}`);
+
+    let order = null;
+    let restaurant = null;
+
+    if (id.startsWith('table-') && id.endsWith('-grouped')) {
+      // Grouped order logic would be complex here, lets assume we are passed a real sub-order ID or we handle it by finding one.
+      // For simplicity: If grouped, find the *first* order that contains this item? 
+      // OR, frontend should pass the real order ID if possible.
+      // But wait, the frontend has `_sourceOrderId` in items now! (added in Step 20:282).
+      // If frontend passes the Correct ID, we are good.
+      // If frontend passes grouped ID, we fail or need logic. 
+      // Let's assume frontend passes correct ID or we handle grouped ID by checking valid orders.
+
+      // Fallback: If grouped ID is passed, try to resolve via table number
+      const tableN = id.replace('table-', '').replace('-grouped', '');
+      // We need restaurantId to proceed.
+      const resId = req.query.restaurantId || req.body.restaurantId;
+      if (resId) {
+        order = await Order.findOne({ where: { restaurantId: resId, tableNumber: tableN, status: { [Op.notIn]: ['completed', 'cancelled'] } } });
+      }
+    } else {
+      order = await Order.findByPk(id);
+    }
+
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found', steps });
+
+    restaurant = await Restaurant.findByPk(order.restaurantId);
+    if (!restaurant) return res.status(404).json({ success: false, message: 'Restaurant not found', steps });
+
+    if (!restaurant.printerConfig) {
+      return res.status(400).json({ success: false, message: 'No printer config', steps });
+    }
+
+    let targetStation = 'default';
+    let itemDetails = {
+      name: name || 'Ürün',
+      quantity: Number(quantity) || 1,
+      notes: notes || '',
+      variations: variations || []
+    };
+
+    let mItem = null;
+    if (menuItemId) {
+      mItem = await MenuItem.findByPk(menuItemId, { include: ['category'] });
+    } else if (itemId) {
+      // It might be OrderItem id
+      const orderItem = await OrderItem.findByPk(itemId, { include: [{ model: MenuItem, as: 'menuItem', include: ['category'] }] });
+      if (orderItem && orderItem.menuItem) mItem = orderItem.menuItem;
+    }
+
+    if (mItem) {
+      // Use resolve logic
+      const drinkStation = resolveDrinkStationForTable(
+        restaurant,
+        order.tableNumber,
+        mItem.categoryId,
+        mItem.kitchenStation,
+        mItem.category?.name,
+        mItem.name
+      );
+      targetStation = drinkStation || mItem.kitchenStation || mItem.category?.kitchenStation || 'default';
+
+      if (!name) itemDetails.name = mItem.name;
+      itemDetails.translations = mItem.translations;
+    }
+
+    const printerConfig = restaurant.printerConfig[targetStation];
+    log(`Hedef İstasyon: ${targetStation}`);
+
+    if (printerConfig && printerConfig.enabled && printerConfig.ip) {
+      const printerService = require('../services/printerService');
+
+      log(`Yazıcıya gönderiliyor: ${printerConfig.ip}`);
+
+      const printResult = await printerService.printOrderWithConfig({
+        name: targetStation,
+        ip: printerConfig.ip,
+        port: printerConfig.port || 9100,
+        enabled: true,
+        type: require('node-thermal-printer').PrinterTypes.EPSON,
+        characterSet: require('node-thermal-printer').CharacterSet.PC857_TURKISH,
+        codePage: 'CP857',
+        language: printerConfig.language || (targetStation === 'kitchen' ? 'zh' : 'tr')
+      }, {
+        orderNumber: order.id.substring(0, 8),
+        tableNumber: order.tableNumber || 'Paket',
+        items: [itemDetails]
+      });
+
+      if (printResult.success) {
+        log('Yazdirma basarili', 'success');
+        res.json({ success: true, message: 'Yazdırıldı', steps });
+      } else {
+        log(`Yazdirma hatasi: ${printResult.error}`, 'error');
+        res.json({
+          success: false,
+          error: printResult.error,
+          isLocalIP: printResult.isLocalIP,
+          ip: printerConfig.ip,
+          stationItems: [itemDetails], // For failover
+          steps
+        });
+      }
+    } else {
+      log('Bu istasyon için yazıcı yapılandırılmamış', 'warning');
+      res.status(400).json({ success: false, message: 'Station printer not configured', steps });
+    }
+
+  } catch (e) {
+    log(`Hata: ${e.message}`, 'error');
+    res.status(500).json({ success: false, error: e.message, steps });
+  }
+});
+
 module.exports = router;
 
 

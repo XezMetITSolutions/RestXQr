@@ -1085,6 +1085,62 @@ export default function KasaPanel() {
     }
   };
 
+  const handleItemPrint = async (item: any) => {
+    // Find the real source order ID
+    let sourceOrderId = selectedOrder?.id || '';
+    if (item.originalIndexes && item.originalIndexes.length > 0) {
+      const firstIdx = item.originalIndexes[0];
+      const sourceItem = selectedOrder?.items[firstIdx];
+      if (sourceItem && sourceItem._sourceOrderId) {
+        sourceOrderId = sourceItem._sourceOrderId;
+      }
+    }
+
+    const qtyStr = prompt(`${item.name} için kaç adet yazdırılsın?`, item.quantity.toString());
+    if (!qtyStr) return;
+    const qty = parseInt(qtyStr);
+    if (isNaN(qty) || qty <= 0) return alert('Geçersiz adet');
+
+    try {
+      addLog(`Item printing: ${item.name} x${qty}`, 'network');
+      const response = await fetch(`${API_URL}/orders/${sourceOrderId}/print-item`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId: item.id, // Might be undefined if new item, but usually present
+          menuItemId: item.menuItemId || item.id,
+          name: item.name,
+          quantity: qty,
+          notes: item.notes,
+          variations: item.variations,
+          restaurantId: restaurantId // Helper for grouped resolution fallback
+        })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        addLog('Item successfully sent to printer', 'success');
+        alert('Yazıcıya gönderildi');
+      } else {
+        // Failover handling
+        if (data.isLocalIP) {
+          addLog('Cloud failed, trying local bridge...', 'warning');
+          // Wrap in structure expected by handlePrintFailover
+          const fakeData = {
+            success: false,
+            results: [data] // The data itself contains isLocalIP, ip, stationItems
+          };
+          await handlePrintFailover(fakeData, sourceOrderId, true);
+        } else {
+          alert('Yazdırma hatası: ' + data.message || data.error);
+        }
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert('Hata: ' + e.message);
+    }
+  };
+
 
   const handleMergeTables = async () => {
     if (!mergeSource || !mergeTarget) return alert('Lütfen iki masa seçiniz');
@@ -1441,6 +1497,10 @@ export default function KasaPanel() {
             </button>
           </div>
         )}
+
+        <div id="print-item-logic" className="hidden">
+          {/* Helper for item print logic */}
+        </div>
 
         {loading && orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
@@ -1927,6 +1987,9 @@ export default function KasaPanel() {
                           </div>
 
                           <div className="flex gap-1">
+                            {/* PRINT BUTTON */}
+                            <button onClick={(e) => { e.stopPropagation(); handleItemPrint(item); }} className="p-1.5 bg-purple-100 text-purple-600 rounded hover:bg-purple-200"><FaPrint size={12} /></button>
+
                             {paymentTab === 'full' && hasPermission('cashier_apply_discount') &&
                               <button onClick={(e) => { e.stopPropagation(); applyTreat(item.originalIndexes[0]); }} className="p-1.5 bg-orange-100 text-orange-600 rounded hover:bg-orange-200"><FaUtensils size={12} /></button>
                             }
