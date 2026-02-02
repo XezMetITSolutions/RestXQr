@@ -402,6 +402,56 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Ek Akıllı Özellikler',
       de: 'Zusätzliche Funktionen',
     },
+    tryNowTitle: {
+      en: 'Try Now!',
+      tr: 'Hemen Deneyin!',
+      de: 'Jetzt ausprobieren!',
+    },
+    examineFeature: {
+      en: 'Examine Feature',
+      tr: 'Özelliği İncele',
+      de: 'Funktion prüfen',
+    },
+    multiBranchTitle: {
+      en: 'Multi-Branch Management',
+      tr: 'Çoklu Şube Yönetimi',
+      de: 'Multi-Filial-Verwaltung',
+    },
+    multiBranchDesc: {
+      en: 'Control all your branches with Super Admin. Real-time monitoring, branch-specific ads, and bulk product updates.',
+      tr: 'Süper yönetici özelliğiyle tüm şubelerinize hakim olun. Anlık kontrol, şubeye özel reklamlar ve toplu ürün yönetimi.',
+      de: 'Steuern Sie alle Filialen mit dem Super-Admin. Echtzeit-Überwachung und Filial-Werbung.',
+    },
+    aiBannerTitle: {
+      en: 'AI Image Optimization',
+      tr: 'AI Görsel Optimizasyonu',
+      de: 'KI-Bildoptimierung',
+    },
+    aiBannerDesc: {
+      en: 'Professionalize your product photos in seconds. Reduce costs and captivate your customers.',
+      tr: 'Ürün fotoğraflarınızı saniyeler içinde profesyonelleştirin. Maliyetleri düşürün ve müşterilerinizi büyüleyin.',
+      de: 'Professionalisieren Sie Ihre Produktfotos in Sekunden. Senken Sie Kosten.',
+    },
+    multiLangTitle: {
+      en: '9 Language Support',
+      tr: '9 Dil Desteği',
+      de: '9 Sprachen Unterstützung',
+    },
+    multiLangDesc: {
+      en: 'Go global! Serve your customers from all over the world in their own language with 9 different options.',
+      tr: 'Globalleşin! Dünyanın her yerinden gelen müşterilerinize 9 farklı dil seçeneğiyle kendi dillerinde hizmet verin.',
+      de: 'Werden Sie global! Bedienen Sie Kunden weltweit in 9 verschiedenen Sprachen.',
+    },
+    allInOneTitle: {
+      en: 'All-in-One Management',
+      tr: 'Tek Çatıda Tam Kontrol',
+      de: 'All-in-One Management',
+    },
+    allInOneDesc: {
+      en: 'Stock tracking, staff management, advanced reporting, and fully customizable designs in one place.',
+      tr: 'Stok takibi, personel yönetimi, gelişmiş raporlama ve tamamen özelleştirilebilir tasarımlar tek noktada.',
+      de: 'Lagerverwaltung, Personalmanagement, Berichte und anpassbare Designs an einem Ort.',
+    },
 
     // Landing Page - Services
     premiumServices: {

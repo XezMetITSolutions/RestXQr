@@ -202,45 +202,32 @@ export default function HomeContent() {
                             </p>
                         </div>
                     </div>
+                </div>
+            </section>
 
-                    {/* Smaller AI Section - Move to "Additional Features" */}
-                    <div className="mt-32 pt-20 border-t border-gray-200">
-                        <div className="text-center mb-16">
-                            <h3 className="text-3xl md:text-4xl font-black text-gray-800 mb-4">{t('additionalFeatures')}</h3>
-                        </div>
-                        <div className="max-w-5xl mx-auto">
-                            <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 p-1 rounded-[4rem] shadow-2xl">
-                                <div className="bg-white rounded-[3.8rem] p-10 md:p-16 flex flex-col lg:flex-row items-center gap-12">
-                                    <div className="lg:w-1/2">
-                                        <div className="inline-flex items-center px-6 py-3 bg-purple-100 text-purple-700 rounded-full text-lg font-bold mb-6">
-                                            <FaBrain className="mr-3 animate-pulse" />
-                                            {t('aiBadge')}
-                                        </div>
-                                        <h3 className="text-3xl md:text-4xl font-black text-gray-900 mb-6">{t('aiTitle')}</h3>
-                                        <p className="text-xl text-gray-600 leading-relaxed mb-10 font-medium">
-                                            {t('aiDesc')}
-                                        </p>
-                                        <Link href="/panels" className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-10 py-5 rounded-2xl text-xl font-black hover:opacity-90 transition-all shadow-xl inline-flex items-center gap-4 hover:scale-105">
-                                            <FaMagic />
-                                            {t('reviewAI')}
-                                        </Link>
-                                    </div>
-                                    <div className="lg:w-1/2 grid grid-cols-2 gap-4">
-                                        <div className="bg-gray-50 p-6 rounded-3xl border-2 border-purple-100 text-center">
-                                            <div className="text-3xl font-black text-purple-600 mb-2">%300</div>
-                                            <div className="text-sm font-bold text-gray-500 uppercase tracking-wider">{t('statSales')}</div>
-                                        </div>
-                                        <div className="bg-gray-50 p-6 rounded-3xl border-2 border-blue-100 text-center">
-                                            <FaCamera className="text-3xl text-blue-600 mx-auto mb-2" />
-                                            <div className="text-sm font-bold text-gray-500 uppercase tracking-wider">{t('statAI')}</div>
-                                        </div>
-                                        <div className="bg-gray-50 p-6 rounded-3xl border-2 border-pink-100 text-center col-span-2">
-                                            <FaMagic className="text-3xl text-pink-600 mx-auto mb-2" />
-                                            <div className="text-sm font-bold text-gray-500 uppercase tracking-wider">{t('costSavings')}</div>
-                                        </div>
-                                    </div>
-                                </div>
+            {/* Feature Banner 1: Multi-Branch */}
+            <section className="py-12 bg-white flex justify-center px-4">
+                <div className="max-w-6xl w-full bg-gradient-to-r from-blue-600 to-indigo-700 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="text-center md:text-left md:w-2/3">
+                            <div className="inline-flex items-center gap-2 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold mb-6 backdrop-blur-md">
+                                <FaRocket className="animate-bounce" />
+                                {t('tryNowTitle')}
                             </div>
+                            <h3 className="text-3xl md:text-4xl font-black text-white mb-4">{t('multiBranchTitle')}</h3>
+                            <p className="text-xl text-blue-50/80 font-medium leading-relaxed">
+                                {t('multiBranchDesc')}
+                            </p>
+                        </div>
+                        <div className="md:w-1/3 flex justify-center">
+                            <button
+                                onClick={() => setShowDemoModal(true)}
+                                className="bg-white text-blue-700 px-10 py-5 rounded-2xl text-xl font-black hover:bg-blue-50 transition-all shadow-xl flex items-center gap-3 hover:scale-105 active:scale-95 border-b-4 border-blue-100"
+                            >
+                                <FaMagic className="text-blue-500" />
+                                {t('examineFeature')}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -323,6 +310,34 @@ export default function HomeContent() {
                 </div>
             </section>
 
+            {/* Feature Banner 2: AI Optimization */}
+            <section className="py-12 bg-white flex justify-center px-4">
+                <div className="max-w-6xl w-full bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mb-32 blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="text-center md:text-left md:w-2/3">
+                            <div className="inline-flex items-center gap-2 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold mb-6 backdrop-blur-md">
+                                <FaBrain className="animate-pulse" />
+                                {t('tryNowTitle')}
+                            </div>
+                            <h3 className="text-3xl md:text-4xl font-black text-white mb-4">{t('aiBannerTitle')}</h3>
+                            <p className="text-xl text-purple-50/80 font-medium leading-relaxed">
+                                {t('aiBannerDesc')}
+                            </p>
+                        </div>
+                        <div className="md:w-1/3 flex justify-center">
+                            <button
+                                onClick={() => setShowDemoModal(true)}
+                                className="bg-white text-purple-700 px-10 py-5 rounded-2xl text-xl font-black hover:bg-purple-50 transition-all shadow-xl flex items-center gap-3 hover:scale-105 active:scale-95 border-b-4 border-purple-100"
+                            >
+                                <FaCamera className="text-purple-500" />
+                                {t('examineFeature')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* Modern Benefits Section */}
             <section className="py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
                 <div className="absolute inset-0">
@@ -394,6 +409,62 @@ export default function HomeContent() {
                             </div>
                             <h3 className="text-2xl font-black text-white mb-4">{t('support247')}</h3>
                             <p className="text-gray-300 text-lg leading-relaxed">{t('support247Desc')}</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Feature Banner 3: 9 Languages */}
+            <section className="py-12 bg-white flex justify-center px-4">
+                <div className="max-w-6xl w-full bg-gradient-to-r from-green-600 to-teal-700 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -ml-32 -mt-32 blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="text-center md:text-left md:w-2/3">
+                            <div className="inline-flex items-center gap-2 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold mb-6 backdrop-blur-md">
+                                <FaGlobe className="animate-spin-slow" />
+                                {t('tryNowTitle')}
+                            </div>
+                            <h3 className="text-3xl md:text-4xl font-black text-white mb-4">{t('multiLangTitle')}</h3>
+                            <p className="text-xl text-green-50/80 font-medium leading-relaxed">
+                                {t('multiLangDesc')}
+                            </p>
+                        </div>
+                        <div className="md:w-1/3 flex justify-center">
+                            <button
+                                onClick={() => setShowDemoModal(true)}
+                                className="bg-white text-green-700 px-10 py-5 rounded-2xl text-xl font-black hover:bg-green-50 transition-all shadow-xl flex items-center gap-3 hover:scale-105 active:scale-95 border-b-4 border-green-100"
+                            >
+                                <FaGlobe className="text-green-500" />
+                                {t('examineFeature')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Feature Banner 4: All-in-One platform */}
+            <section className="py-12 bg-white flex justify-center px-4">
+                <div className="max-w-6xl w-full bg-gradient-to-r from-orange-600 to-red-600 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mb-32 blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="text-center md:text-left md:w-2/3">
+                            <div className="inline-flex items-center gap-2 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold mb-6 backdrop-blur-md">
+                                <FaChartLine className="animate-pulse" />
+                                {t('tryNowTitle')}
+                            </div>
+                            <h3 className="text-3xl md:text-4xl font-black text-white mb-4">{t('allInOneTitle')}</h3>
+                            <p className="text-xl text-orange-50/80 font-medium leading-relaxed">
+                                {t('allInOneDesc')}
+                            </p>
+                        </div>
+                        <div className="md:w-1/3 flex justify-center">
+                            <button
+                                onClick={() => setShowDemoModal(true)}
+                                className="bg-white text-orange-700 px-10 py-5 rounded-2xl text-xl font-black hover:bg-orange-50 transition-all shadow-xl flex items-center gap-3 hover:scale-105 active:scale-95 border-b-4 border-orange-100"
+                            >
+                                <FaDesktop className="text-orange-500" />
+                                {t('examineFeature')}
+                            </button>
                         </div>
                     </div>
                 </div>
