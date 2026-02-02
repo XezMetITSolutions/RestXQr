@@ -33,10 +33,9 @@ interface Order {
   created_at: string;
   createdAt?: string;
   updated_at: string;
-  items: OrderItem[];
-  approved?: boolean;
-  originalOrders?: Order[];
-  isTest?: boolean;
+  items: OrderItem[]
+  approved?: boolean
+  originalOrders?: Order[]
 }
 
 interface WaiterCall {
@@ -1386,7 +1385,6 @@ export default function KasaPanel() {
                 {allOrders
                   .filter(o => {
                     if (o.status === 'cancelled') return false;
-                    if (o.isTest) return false;
                     const date = new Date(o.created_at || o.createdAt || '');
                     const today = new Date();
                     return date.getDate() === today.getDate() &&
@@ -1673,7 +1671,6 @@ export default function KasaPanel() {
                                   order.notes?.toLowerCase().includes('yemeksepeti') ? 'YEMEKSEPETİ' :
                                     order.notes?.toLowerCase().includes('trendyol') ? 'TRENDYOL YEMEK' : 'DIŞ SİPARİŞ'
                               ))}
-                            {order.isTest && <span className="text-[10px] bg-yellow-400 text-yellow-900 px-1 rounded ml-1 font-bold">TEST</span>}
                           </div>
                           <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
                         </div>

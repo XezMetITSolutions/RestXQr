@@ -416,19 +416,9 @@ router.post('/', async (req, res) => {
     } catch (error) {
       console.error('İçecek kontrolü hatası:', error);
     }
-
     // Sadece içecek varsa otomatik onaylansın
     const autoApprove = hasDrinks && !hasFood;
     console.log(`📋 Sipariş analizi: hasDrinks=${hasDrinks}, hasFood=${hasFood}, autoApprove=${autoApprove}`);
-
-    // Fetch restaurant for settings (if not already fetched)
-    let restaurantForSettings = null;
-    if (typeof restaurantId === 'string' && !isUuid) {
-      restaurantForSettings = await Restaurant.findOne({ where: { username: restaurantId } });
-    }
-    if (!restaurantForSettings) {
-      restaurantForSettings = await Restaurant.findByPk(actualRestaurantId);
-    }
 
     // Total amount hesapla ve verileri temizle
     let totalAmount = 0;
@@ -470,8 +460,7 @@ router.post('/', async (req, res) => {
       notes: notes || null,
       orderType: finalOrderType,
       orderType: finalOrderType,
-      approved: autoApprove,
-      isTest: restaurantForSettings?.settings?.testMode === true || false
+      approved: autoApprove
     });
 
     for (const it of sanitizedItems) {

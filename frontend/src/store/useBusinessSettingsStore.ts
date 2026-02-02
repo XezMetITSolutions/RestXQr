@@ -191,8 +191,7 @@ const defaultSettings: BusinessSettings = {
     paperWidth: '80mm',
     copies: 1,
     testIpAddress: ''
-  },
-  testMode: false
+  }
 };
 
 const defaultAccountInfo: AccountInfo = {
