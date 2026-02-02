@@ -172,18 +172,31 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
 
     // 4b. General Order Note (If present)
     if (data.orderNote) {
-        ctx.textAlign = 'left';
-        ctx.font = 'bold 28px sans-serif';
-        const noteTitle = "--- SİPARİŞ NOTU (GENEL) ---";
-        ctx.fillText(noteTitle, 15, y);
-        y += 35;
+        let cleanNote = data.orderNote;
 
-        ctx.font = 'bold 26px sans-serif';
-        y = wrapText(data.orderNote, 15, y, width - 30, 32);
+        // Remove "Ödeme: ...", "Bahşiş: ...", "Bağış: ..." info as it's not needed for kitchen
+        cleanNote = cleanNote.replace(/Ödeme:\s*[^|,\n]*/gi, '');
+        cleanNote = cleanNote.replace(/Bahşiş:\s*[^|,\n]*/gi, '');
+        cleanNote = cleanNote.replace(/Bağış:\s*[^|,\n]*/gi, '');
 
-        y += 10;
-        drawDashedLine(y);
-        y += 25;
+        // Clean up symbols and extra spaces left over
+        cleanNote = cleanNote.replace(/[|]/g, ' ');
+        cleanNote = cleanNote.trim().replace(/^[,.\s]+|[,.\s]+$/g, '');
+
+        if (cleanNote) {
+            ctx.textAlign = 'left';
+            ctx.font = 'bold 28px sans-serif';
+            const noteTitle = "--- SİPARİŞ NOTU ---";
+            ctx.fillText(noteTitle, 15, y);
+            y += 35;
+
+            ctx.font = 'bold 26px sans-serif';
+            y = wrapText(cleanNote, 15, y, width - 30, 32);
+
+            y += 10;
+            drawDashedLine(y);
+            y += 25;
+        }
     }
 
 
