@@ -6,7 +6,7 @@ const { InventoryItem } = require('../models');
 router.get('/', async (req, res) => {
   try {
     const { restaurantId } = req.query;
-    
+
     if (!restaurantId) {
       return res.status(400).json({
         success: false,
@@ -16,9 +16,9 @@ router.get('/', async (req, res) => {
 
     const inventoryItems = await InventoryItem.findAll({
       where: { restaurantId },
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
-    
+
     res.json({
       success: true,
       data: inventoryItems
@@ -36,16 +36,16 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const inventoryItem = await InventoryItem.findByPk(id);
-    
+
     if (!inventoryItem) {
       return res.status(404).json({
         success: false,
         message: 'Inventory item not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: inventoryItem
@@ -63,9 +63,9 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const inventoryData = req.body;
-    
+
     const inventoryItem = await InventoryItem.create(inventoryData);
-    
+
     res.status(201).json({
       success: true,
       data: inventoryItem
@@ -84,18 +84,18 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    
+
     const inventoryItem = await InventoryItem.findByPk(id);
-    
+
     if (!inventoryItem) {
       return res.status(404).json({
         success: false,
         message: 'Inventory item not found'
       });
     }
-    
+
     await inventoryItem.update(updateData);
-    
+
     res.json({
       success: true,
       data: inventoryItem
@@ -113,18 +113,18 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const inventoryItem = await InventoryItem.findByPk(id);
-    
+
     if (!inventoryItem) {
       return res.status(404).json({
         success: false,
         message: 'Inventory item not found'
       });
     }
-    
+
     await inventoryItem.destroy();
-    
+
     res.json({
       success: true,
       message: 'Inventory item deleted successfully'

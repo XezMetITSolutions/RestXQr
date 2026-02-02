@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaSync, FaTrash, FaCheckCircle, FaTimesCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { FaSync, FaTrash, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaStore } from 'react-icons/fa';
 
 interface MenuItem {
     id: string;
@@ -75,6 +75,9 @@ export default function LeventKrorenDebugPage() {
     useEffect(() => {
         if (menuItems.length > 0 || inventoryItems.length > 0) {
             compareData();
+        } else if (menuItems.length > 0 && inventoryItems.length === 0) {
+            // Inventory boş olsa bile menü yüklendiyse karşılaştırma yap (Sadece Menüde gösterebilmek için)
+            compareData();
         }
     }, [menuItems, inventoryItems]);
 
@@ -91,7 +94,10 @@ export default function LeventKrorenDebugPage() {
             addLog('Token bulundu, istekler yetkilendirilmiş olarak gönderilecek.', 'success');
         }
 
-        await Promise.all([fetchMenuItems(token), fetchInventoryItems(token)]);
+        // Paralel yerine sıralı yapalım ki hata ayrışsın
+        await fetchMenuItems(token);
+        await fetchInventoryItems(token);
+
         setLoading(false);
     };
 
@@ -214,6 +220,8 @@ export default function LeventKrorenDebugPage() {
         } catch (error: any) {
             addLog(`Stok yükleme hatası: ${error.message}`, 'error');
             console.error('Stok yükleme hatası:', error);
+            // Hata olsa bile inventoryItems'ı boş set edelim ki comparison çalışsın
+            setInventoryItems([]);
         }
     };
 
@@ -269,7 +277,7 @@ export default function LeventKrorenDebugPage() {
         const item = inventoryItems.find(i => i.id === inventoryId);
         if (!item) return;
 
-        if (!confirm(`"${item.name}" ürününü stoktan silmek istediğinize emin misiniz?`)) return;
+        if (!confirm(`STOKTAN SİL: "${item.name}" ürününü stok veritabanından silmek istediğinize emin misiniz?`)) return;
 
         try {
             setLoading(true);
@@ -285,14 +293,52 @@ export default function LeventKrorenDebugPage() {
 
             if (data.success) {
                 addLog(`✅ "${item.name}" stoktan silindi`, 'success');
-                // Listeyi güncelle - kısa bir bekleme ile
                 setTimeout(() => fetchData(), 500);
             } else {
-                addLog(`Silme başarısız: ${data.message}`, 'error');
+                addLog(`Stok Silme başarısız: ${data.message}`, 'error');
                 setLoading(false);
             }
         } catch (error: any) {
-            addLog(`Silme hatası: ${error.message}`, 'error');
+            addLog(`Stok Silme hatası: ${error.message}`, 'error');
+            setLoading(false);
+        }
+    };
+
+    const deleteMenuItem = async (menuItemId: string, name: string) => {
+        if (!menuItemId) return;
+
+        if (!confirm(`MENÜDEN SİL: "${name}" ürününü MENÜDEN tamamen silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`)) return;
+
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('staff_token');
+            // DELETE /api/restaurants/:restaurantId/menu/items/:itemId
+            const url = `${API_URL}/restaurants/${restaurantId}/menu/items/${menuItemId}`;
+
+            addLog(`Menüden silme isteği: ${url}`, 'info');
+
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: getHeaders(token)
+            });
+
+            // API bazen 204 dönebilir, body olmayabilir
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (e) {
+                // ignore
+            }
+
+            if (response.ok) {
+                addLog(`✅ "${name}" menüden silindi`, 'success');
+                setTimeout(() => fetchData(), 500);
+            } else {
+                addLog(`Menü Silme başarısız: ${response.status}`, 'error', data);
+                setLoading(false);
+            }
+        } catch (error: any) {
+            addLog(`Menü Silme hatası: ${error.message}`, 'error');
             setLoading(false);
         }
     };
@@ -313,7 +359,7 @@ export default function LeventKrorenDebugPage() {
             case 'menu_only':
                 return (
                     <span className="flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                        <FaCheckCircle /> Sadece Menüde
+                        <FaStore /> Sadece Menüde
                     </span>
                 );
             case 'inventory_only':
@@ -325,7 +371,7 @@ export default function LeventKrorenDebugPage() {
             case 'deleted_but_in_inventory':
                 return (
                     <span className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-                        <FaTimesCircle /> Menüden Silinmiş Ama Stokta Var!
+                        <FaTimesCircle /> Menüden Silinmiş Ama Stokta!
                     </span>
                 );
         }
@@ -360,10 +406,10 @@ export default function LeventKrorenDebugPage() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                                🍜 Levent Kroren - Debug & Fix Sayfası
+                                🍜 Levent Kroren - Onarım Paneli
                             </h1>
                             <p className="text-gray-600">
-                                Menü ve Stok karşılaştrıması - Özellikle "Test" veya silinmiş ürünleri stoktan temizlemek için kullanın.
+                                Hem Menü hem Stok temizliği yapabilirsiniz.
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -373,7 +419,7 @@ export default function LeventKrorenDebugPage() {
                                     type="text"
                                     value={restaurantId}
                                     onChange={(e) => setRestaurantId(e.target.value)}
-                                    className="border border-gray-300 rounded px-3 py-1 w-20 text-center"
+                                    className="border border-gray-300 rounded px-3 py-1 w-20 text-center text-xs"
                                 />
                             </div>
                             <button
@@ -568,7 +614,7 @@ export default function LeventKrorenDebugPage() {
                                                     <span className="text-gray-400">-</span>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 text-xs text-gray-500">
+                                            <td className="px-6 py-4 text-xs text-xs text-gray-500">
                                                 {item.menuItem && (
                                                     <div>Menu: {item.menuItem.id}</div>
                                                 )}
@@ -577,17 +623,30 @@ export default function LeventKrorenDebugPage() {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                {item.inventoryItem && (
-                                                    <button
-                                                        onClick={() => deleteInventoryItem(item.inventoryItem!.id)}
-                                                        className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded border border-red-200 transition-colors"
-                                                        title="Stoktan Tamamen Sil"
-                                                    >
-                                                        <span className="flex items-center gap-1">
-                                                            <FaTrash /> Sil
-                                                        </span>
-                                                    </button>
-                                                )}
+                                                <div className="flex justify-end gap-2">
+
+                                                    {/* STOK SİLME BUTONU (Sadece stokta varsa veya her ikisinde varsa) */}
+                                                    {item.inventoryItem && (
+                                                        <button
+                                                            onClick={() => deleteInventoryItem(item.inventoryItem!.id)}
+                                                            className="text-white bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded shadow-sm text-xs"
+                                                            title="Sadece Stoktan Sil"
+                                                        >
+                                                            Stok Sil
+                                                        </button>
+                                                    )}
+
+                                                    {/* MENÜ SİLME BUTONU (Sadece menüde varsa veya her ikisinde varsa) */}
+                                                    {item.menuItem && (
+                                                        <button
+                                                            onClick={() => deleteMenuItem(item.menuItem!.id, item.menuItem!.name)}
+                                                            className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded shadow-sm text-xs"
+                                                            title="Menüden Kalıcı Olarak Sil"
+                                                        >
+                                                            Menü Sil
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
