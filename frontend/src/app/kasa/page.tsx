@@ -982,7 +982,28 @@ export default function KasaPanel() {
 
           addLog('Additional items added successfully', 'success');
 
-          if (data.data?.printResults) {
+          // Trigger printing for new order
+          if (data.data?.id) {
+            addLog('Triggering kitchen/station print for new items...', 'info');
+            try {
+              const printResponse = await fetch(`${API_URL}/orders/${data.data.id}/print`, {
+                method: 'POST'
+              });
+              const printData = await printResponse.json();
+
+              if (printData.success && (printData.data?.printResults || printData.results)) {
+                await handlePrintFailover(printData, data.data.id, false);
+                addLog('Print request sent to kitchen/stations', 'success');
+              } else {
+                addLog('No print results returned or print failed', 'warning');
+              }
+            } catch (printErr) {
+              console.error('Print request failed:', printErr);
+              addLog('Print request error (order still saved)', 'error');
+              // Continue even if printing fails - order is already saved
+            }
+          } else if (data.data?.printResults) {
+            // Fallback: If backend already sent print results with POST response
             await handlePrintFailover(data, data.data.id, false);
           }
         }
