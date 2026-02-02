@@ -134,7 +134,7 @@ export default function HomeContent() {
                     {/* Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto mb-12">
                         <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 transform hover:scale-105 transition-all duration-300">
-                            <div className="text-4xl md:text-5xl font-black text-green-400 mb-3">%300</div>
+                            <div className="text-4xl md:text-5xl font-black text-green-400 mb-3">ROI</div>
                             <div className="text-lg md:text-xl text-gray-200 font-bold">{t('statSales')}</div>
                         </div>
                         <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 transform hover:scale-105 transition-all duration-300">
@@ -367,7 +367,7 @@ export default function HomeContent() {
                             <div className="bg-gradient-to-r from-green-500 to-emerald-500 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:animate-bounce">
                                 <FaChartLine className="text-white text-2xl" />
                             </div>
-                            <h3 className="text-2xl font-black text-white mb-4">%300 {t('statSales')}</h3>
+                            <h3 className="text-2xl font-black text-white mb-4">{t('statSales')}</h3>
                             <p className="text-gray-300 text-lg leading-relaxed">{t('salesIncreaseDesc')}</p>
                         </div>
 

@@ -231,9 +231,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'digitale Zukunft?',
     },
     heroSubtitle1: {
-      en: 'Increase your sales by 300% with Turkey\'s most advanced QR menu and order management system!',
-      tr: 'Türkiye\'nin en gelişmiş QR menü ve sipariş yönetim sistemi ile satışlarınızı %300 artırın!',
-      de: 'Steigern Sie Ihren Umsatz um 300% mit dem fortschrittlichsten QR-Bestellsystem Österreichs!',
+      en: 'Maximize your restaurant\'s potential with the most advanced QR menu and order management system!',
+      tr: 'En gelişmiş QR menü ve sipariş yönetim sistemi ile restoranınızın potansiyelini en üst düzeye çıkarın!',
+      de: 'Maximieren Sie das Potenzial Ihres Restaurants mit dem fortschrittlichsten QR-Bestellsystem!',
     },
     heroSubtitle2: {
       en: 'Leave your competitors behind.',
@@ -283,9 +283,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Perfekte Bilder dank KI',
     },
     aiDesc: {
-      en: 'Professionalize your product photos with Artificial Intelligence! No need to spend thousands on photographers! Increase your sales by 300% and fascinate your customers.',
-      tr: 'Yapay Zeka ile ürün fotoğraflarınızı profesyonelleştirin! Fotoğrafçılara binlerce lira harcamanıza gerek yok! Satışlarınızı %300 artırın ve müşterilerinizi büyüleyin.',
-      de: 'Verwandeln Sie Ihre Produktfotos mit Künstlicher Intelligenz in Meisterwerke! Sparen Sie sich teure Fotoshootings. Begeistern Sie Ihre Gäste und steigern Sie den Umsatz um 300%.',
+      en: 'Professionalize your product photos with Artificial Intelligence! Elevate your brand\'s visual identity without the need for expensive photographers and captivate your customers with stunning details.',
+      tr: 'Yapay Zeka ile ürün fotoğraflarınızı profesyonelleştirin! Pahalı fotoğrafçılara ihtiyaç duymadan markanızın görsel kimliğini yükseltin ve müşterilerinizi etkileyici detaylarla büyüleyin.',
+      de: 'Verwandeln Sie Ihre Produktfotos mit Künstlicher Intelligenz in professionelle Aufnahmen! Steigern Sie die visuelle Identität Ihrer Marke und begeistern Sie Ihre Gäste mit beeindruckenden Details.',
     },
     before: {
       en: 'BEFORE',
@@ -313,9 +313,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Kosten sparen',
     },
     costSavingsDesc: {
-      en: 'No need to spend thousands on photographers! Professional results with AI.',
-      tr: 'Fotoğrafçılara binlerce lira harcamanıza gerek yok! AI ile profesyonel sonuçlar.',
-      de: 'Sparen Sie tausende Euro für Fotografen! Professionelle Ergebnisse dank KI.',
+      en: 'Professional imagery at your fingertips. High-quality results with AI, integrated into your workflow.',
+      tr: 'Profesyonel görseller parmaklarınızın ucunda. İş akışınıza entegre AI ile yüksek kaliteli sonuçlar.',
+      de: 'Professionelle Bilder auf Knopfdruck. Hochwertige Ergebnisse dank KI, direkt in Ihren Workflow integriert.',
     },
     salesIncrease: {
       en: 'Sales Increase',
@@ -323,9 +323,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Mehr Umsatz',
     },
     salesIncreaseDesc: {
-      en: 'Increase customer interest with professional visuals and grow your sales by 300%.',
-      tr: 'Profesyonel görseller ile müşteri ilgisini artırın ve satışlarınızı %300 büyütün.',
-      de: 'Wecken Sie den Appetit Ihrer Gäste mit professionellen Bildern und steigern Sie Ihren Umsatz um 300%.',
+      en: 'Increase customer interest and sales with professional, appetizing images that highlight the best of your menu.',
+      tr: 'Menünüzün en iyi özelliklerini vurgulayan profesyonel ve iştah açıcı görsellerle müşteri ilgisini ve satışlarınızı artırın.',
+      de: 'Steigern Sie das Kundeninteresse und den Umsatz mit professionellen, appetitlichen Bildern, die Ihre Speisekarte perfekt in Szene setzen.',
     },
     fastResult: {
       en: 'Fast Result',
@@ -343,9 +343,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Jetzt testen!',
     },
     tryNowDesc: {
-      en: 'No need to spend thousands on photographers with AI visual optimization! Professionalize your product photos and increase your sales.',
-      tr: 'AI görsel optimizasyonu ile fotoğrafçılara binlerce lira harcamanıza gerek yok! Ürün fotoğraflarınızı profesyonelleştirin ve satışlarınızı artırın.',
-      de: 'Dank KI-Bildoptimierung nie wieder teure Fotografen bezahlen! Werten Sie Ihre Speisekarte auf und steigern Sie Ihren Umsatz.',
+      en: 'Experience the power of AI visual optimization. Elevate your menu items and capture customer interest instantly.',
+      tr: 'AI görsel optimizasyonunun gücünü deneyimleyin. Menü öğelerinizi yükseltin ve müşteri ilgisini anında çekin.',
+      de: 'Erleben Sie die Kraft der KI-Bildoptimierung. Werten Sie Ihre Speisekarte auf und wecken Sie sofortiges Interesse.',
     },
     reviewAI: {
       en: 'Review AI Optimization',
@@ -388,9 +388,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Maximale Effizienz mit Service-Ruf',
     },
     waiterCallEfficiencyDesc: {
-      en: 'Increase satisfaction and save time. Customers can call a waiter or request the bill with one click, reducing staffing needs during peak hours.',
-      tr: 'Müşteri memnuniyetini artırın ve zamandan tasarruf edin. Tek tuşla garson çağırma veya hesap isteme özelliği, yoğun saatlerde personel ihtiyacını optimize eder.',
-      de: 'Steigern Sie die Zufriedenheit und sparen Sie Zeit. Kunden können den Service per Klick rufen oder die Rechnung anfordern.',
+      en: 'Not just for orders, but seamless communication for every need. Customers can reach their waiter with one click for any request, reducing wait times, human error, and friction in the service process.',
+      tr: 'Sadece sipariş değil, her türlü ihtiyaç için kesintisiz iletişim. Garson çağırma özelliği ile müşterileriniz tüm taleplerini anında iletir, hizmet süreci hızlanır. İnsan hatasından kaynaklı aksaklıklar ve bekleme süresi azalırken, misafir memnuniyetiniz üst seviyeye çıkar.',
+      de: 'Nicht nur für Bestellungen, sondern für eine nahtlose Kommunikation bei jedem Bedarf. Kunden können ihren Kellner mit einem Klick für jede Anfrage erreichen, was Wartezeiten und menschliche Fehler reduziert.',
     },
     efficiencyBadge: {
       en: 'Efficiency & Satisfaction',
@@ -532,14 +532,14 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Warum RestXQr?',
     },
     whyRestXQrDesc: {
-      en: 'Grow your business with Turkey\'s most advanced restaurant management system',
-      tr: 'Türkiye\'nin en gelişmiş restoran yönetim sistemi ile işinizi büyütün',
-      de: 'Wachsen Sie mit dem fortschrittlichsten Gastronomie-System.',
+      en: 'Elevate your business operations with a leading digital restaurant management partner.',
+      tr: 'Lider bir dijital restoran yönetim ortağı ile işletme operasyonlarınızı bir üst seviyeye taşıyın.',
+      de: 'Optimieren Sie Ihren Betrieb mit einem führenden digitalen Management-Partner.',
     },
     timeSaving: {
-      en: '50% Time Saving',
-      tr: '%50 Zaman Tasarrufu',
-      de: '50% Zeitersparnis',
+      en: 'High Efficiency Gain',
+      tr: 'Yüksek Verimlilik Kazanımı',
+      de: 'Hoher Effizienzgewinn',
     },
     timeSavingDesc: {
       en: 'Increase staff efficiency and speed up operations with automatic order system.',
@@ -599,9 +599,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Was ist RestXQr?',
     },
     faq1A: {
-      en: 'restXqr is a restaurant operating system that manages the entire operation from menu to order, staff to accounting on a single platform. It professionalizes your visuals with AI, optimizes the menu, increases sales; integrates seamlessly with your POS and accounting systems.',
-      tr: 'restXqr, menüden siparişe, personelden muhasebeye kadar tüm operasyonu tek platformda yöneten restoran işletim sistemidir. AI ile görsellerinizi profesyonelleştirir, menüyü optimize eder ve satışları artırır; POS ve muhasebe sistemlerinizle sorunsuz entegre olur.',
-      de: 'RestXQr ist das Betriebssystem für Ihre Gastronomie. Es vereint Speisekarte, Bestellsystem, Personalverwaltung und Abrechnung auf einer Plattform. Veredeln Sie Ihre Bilder mit KI und steigern Sie Ihren Umsatz.',
+      en: 'restXqr is a comprehensive restaurant operating system that manages the entire operation from menu to order, staff to accounting on a single platform. It uses AI to optimize your visuals, streamline your operations, and increase customer satisfaction; integrating seamlessly with your management systems.',
+      tr: 'restXqr, menüden siparişe, personelden muhasebeye kadar tüm operasyonu tek platformda yöneten kapsamlı bir restoran işletim sistemidir. AI ile görsellerinizi optimize eder, operasyonlarınızı kolaylaştırır ve misafir memnuniyetini artırır; mevcut sistemlerinizle sorunsuz entegre olur.',
+      de: 'RestXQr ist das umfassende Betriebssystem für Ihre Gastronomie. Es vereint Speisekarte, Bestellsystem, Personalverwaltung und Abrechnung auf einer Plattform. Optimieren Sie Ihre Bilder mit KI und verbessern Sie die Gästezufriedenheit.',
     },
     faq2Q: {
       en: 'How does the setup process work?',
@@ -821,11 +821,6 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Otomatik bildirimler',
       de: 'Automatische Benachrichtigungen',
     },
-    cashierPanel: {
-      en: 'Cashier Panel',
-      tr: 'Kasa Paneli',
-      de: 'Kassen-Panel',
-    },
     cashierPanelDesc: {
       en: 'Take payments and manage cashier operations',
       tr: 'Ödemeleri al ve kasa işlemlerini yönet',
@@ -1040,21 +1035,6 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
 
 
     // Demo Panels
-    waiterPanel: {
-      en: 'Waiter Panel',
-      tr: 'Garson Paneli',
-      de: 'Kellner Panel',
-    },
-    kitchenPanel: {
-      en: 'Kitchen Panel',
-      tr: 'Mutfak Paneli',
-      de: 'Küchen Panel',
-    },
-    cashierPanel: {
-      en: 'Cashier Panel',
-      tr: 'Kasa Paneli',
-      de: 'Kassen Panel',
-    },
     demoWaiterDesc: {
       en: 'Manage tables and orders',
       tr: 'Masaları ve siparişleri yönetin',
@@ -1278,11 +1258,6 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       en: 'Manage room service orders and menu items',
       tr: 'Oda servisi siparişlerini ve menü ürünlerini yönetin',
       de: 'Zimmerservice-Bestellungen und Menüpunkte verwalten',
-    },
-    menuManagement: {
-      en: 'Menu Management',
-      tr: 'Menü Yönetimi',
-      de: 'Menüverwaltung',
     },
     searchPlaceholder: {
       en: 'Search table number or item...',
