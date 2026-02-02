@@ -5,11 +5,17 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { FaCalendar, FaTrash, FaClock, FaSearch, FaExclamationTriangle } from 'react-icons/fa';
 
 export default function DailyOrdersPage() {
-    const { authenticatedRestaurant } = useAuthStore();
+    const { authenticatedRestaurant, initializeAuth } = useAuthStore();
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [authInitialized, setAuthInitialized] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+
+    useEffect(() => {
+        initializeAuth();
+        setAuthInitialized(true);
+    }, [initializeAuth]);
 
     const fetchOrders = async () => {
         if (!authenticatedRestaurant?.id) return;
@@ -40,10 +46,10 @@ export default function DailyOrdersPage() {
     };
 
     useEffect(() => {
-        if (authenticatedRestaurant?.id) {
+        if (authInitialized && authenticatedRestaurant?.id) {
             fetchOrders();
         }
-    }, [selectedDate, authenticatedRestaurant]);
+    }, [selectedDate, authenticatedRestaurant, authInitialized]);
 
     const handleDelete = async (orderId: string) => {
         if (!confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')) return;
@@ -123,10 +129,17 @@ export default function DailyOrdersPage() {
             </div>
 
             <div className="bg-yellow-50 p-4 mb-4 rounded text-xs font-mono text-gray-700">
-                <p>Restoran ID: {authenticatedRestaurant?.id || 'YOK'}</p>
+                <p>Restoran ID: {authenticatedRestaurant?.id || 'YOK (Oturum Açılmadı)'}</p>
                 <p>Tarih: {selectedDate}</p>
                 <p>Sorgu Başı: {new Date(selectedDate).setHours(0, 0, 0, 0) ? new Date(new Date(selectedDate).setHours(0, 0, 0, 0)).toISOString() : 'Hata'}</p>
                 <p>Sorgu Sonu: {new Date(selectedDate).setHours(23, 59, 59, 999) ? new Date(new Date(selectedDate).setHours(23, 59, 59, 999)).toISOString() : 'Hata'}</p>
+                {!authenticatedRestaurant?.id && (
+                    <div className="mt-2 p-2 bg-red-100 text-red-700 rounded font-bold">
+                        Lütfen Business paneline giriş yapın veya sayfayı yenileyin.
+                        <br />
+                        <a href="/login" className="underline">Giriş Yap</a>
+                    </div>
+                )}
             </div>
 
             {loading ? (
