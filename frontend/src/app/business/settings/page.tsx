@@ -1318,6 +1318,38 @@ function SettingsPageContent() {
                           <TranslatedText>Pasif durumda menü görüntülenmeyecektir.</TranslatedText>
                         </p>
                       </div>
+
+                      {/* Test Modu */}
+                      <div className="bg-yellow-50 p-4 rounded-lg mt-4 border border-yellow-200">
+                        <label className="block text-sm font-medium text-yellow-800 mb-2">
+                          <TranslatedText>Geliştirici / Test Modu</TranslatedText>
+                        </label>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="testModeConfig"
+                              checked={settings?.testMode === true}
+                              onChange={(e) => {
+                                const newVal = e.target.checked;
+                                updateSettings({ testMode: newVal });
+                                // State update is sync in Zustand usually, but let's queue save
+                                setTimeout(() => saveSettings(), 50);
+                              }}
+                              className="rounded border-yellow-300 text-yellow-600 focus:ring-yellow-500"
+                            />
+                            <label htmlFor="testModeConfig" className="text-sm font-medium text-gray-700 select-none cursor-pointer">
+                              <TranslatedText>Test Modunu Aktifleştir</TranslatedText>
+                            </label>
+                          </div>
+                        </div>
+                        <p className="text-sm text-yellow-700 mt-2">
+                          <TranslatedText>
+                            Test modu açıkken oluşturulan siparişler ciro hesaplamasına dahil edilmez.
+                            Siparişler veritabanında "Test Siparişi" olarak işaretlenir.
+                          </TranslatedText>
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>

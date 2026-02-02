@@ -58,6 +58,12 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0,
       field: 'discount_amount'
     },
+    isTest: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'is_test',
+      comment: 'Test siparisi mi?'
+    },
     discountReason: {
       type: DataTypes.STRING(255),
       allowNull: true,

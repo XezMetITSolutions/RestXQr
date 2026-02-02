@@ -389,6 +389,9 @@ export interface BusinessSettings {
     copies: number;
     testIpAddress?: string;
   };
+
+  // Gelistirici
+  testMode?: boolean;
 }
 
 // Hesap Bilgileri
