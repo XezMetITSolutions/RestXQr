@@ -1153,11 +1153,6 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Çıkış',
       de: 'Abmelden',
     },
-    all: {
-      en: 'All',
-      tr: 'Tümü',
-      de: 'Alle',
-    },
     active: {
       en: 'Active',
       tr: 'Aktif',
@@ -1197,11 +1192,6 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       en: 'New orders will appear here',
       tr: 'Yeni siparişler burada görünecek',
       de: 'Neue Bestellungen erscheinen hier',
-    },
-    table: {
-      en: 'Table',
-      tr: 'Masa',
-      de: 'Tisch',
     },
     time: {
       en: 'Time',
@@ -1287,11 +1277,6 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       en: 'Status',
       tr: 'Durum',
       de: 'Status',
-    },
-    total: {
-      en: 'Total',
-      tr: 'Toplam',
-      de: 'Gesamt',
     },
     orderItems: {
       en: 'Order Items',
