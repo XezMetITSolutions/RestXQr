@@ -1386,10 +1386,9 @@ export default function KasaPanel() {
                   .filter(o => {
                     if (o.status === 'cancelled') return false;
                     const date = new Date(o.created_at || o.createdAt || '');
-                    const today = new Date();
-                    return date.getDate() === today.getDate() &&
-                      date.getMonth() === today.getMonth() &&
-                      date.getFullYear() === today.getFullYear();
+                    const todayStart = new Date();
+                    todayStart.setHours(0, 0, 0, 0);
+                    return date >= todayStart;
                   })
                   .reduce((s, o) => s + (Number(o.totalAmount) || 0), 0)
                   .toFixed(2)}₺
