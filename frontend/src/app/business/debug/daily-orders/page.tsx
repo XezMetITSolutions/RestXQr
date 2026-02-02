@@ -122,6 +122,13 @@ export default function DailyOrdersPage() {
                 </div>
             </div>
 
+            <div className="bg-yellow-50 p-4 mb-4 rounded text-xs font-mono text-gray-700">
+                <p>Restoran ID: {authenticatedRestaurant?.id || 'YOK'}</p>
+                <p>Tarih: {selectedDate}</p>
+                <p>Sorgu Başı: {new Date(selectedDate).setHours(0, 0, 0, 0) ? new Date(new Date(selectedDate).setHours(0, 0, 0, 0)).toISOString() : 'Hata'}</p>
+                <p>Sorgu Sonu: {new Date(selectedDate).setHours(23, 59, 59, 999) ? new Date(new Date(selectedDate).setHours(23, 59, 59, 999)).toISOString() : 'Hata'}</p>
+            </div>
+
             {loading ? (
                 <div className="flex justify-center p-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -159,8 +166,8 @@ export default function DailyOrdersPage() {
                                         </td>
                                         <td className="p-4">
                                             <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${order.status === 'completed' ? 'bg-green-100 text-green-700' :
-                                                    order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                                        'bg-blue-100 text-blue-700'
+                                                order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                    'bg-blue-100 text-blue-700'
                                                 }`}>
                                                 {order.status === 'pending' ? 'Beklemede' :
                                                     order.status === 'preparing' ? 'Hazırlanıyor' :
