@@ -29,18 +29,47 @@ interface ComparisonResult {
     status: 'matched' | 'menu_only' | 'inventory_only' | 'deleted_but_in_inventory';
 }
 
+interface LogItem {
+    time: string;
+    type: 'info' | 'error' | 'success';
+    message: string;
+    data?: any;
+}
+
 export default function LeventKrorenDebugPage() {
-    const RESTAURANT_ID = '5'; // levent-kroren restaurant ID
+    const [restaurantId, setRestaurantId] = useState('5'); // Default 5
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
 
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
     const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [comparison, setComparison] = useState<ComparisonResult[]>([]);
     const [filterStatus, setFilterStatus] = useState<string>('all');
+    const [logs, setLogs] = useState<LogItem[]>([]);
+
+    const addLog = (message: string, type: 'info' | 'error' | 'success' = 'info', data?: any) => {
+        setLogs(prev => [{
+            time: new Date().toLocaleTimeString(),
+            type,
+            message,
+            data
+        }, ...prev]);
+    };
 
     useEffect(() => {
-        fetchData();
+        // Attempt to auto-detect ID from localStorage if possible
+        const storedUser = localStorage.getItem('staff_user');
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                if (user.restaurantId) {
+                    addLog(`Restoran ID localStorage'dan algılandı: ${user.restaurantId}`, 'success');
+                    setRestaurantId(user.restaurantId);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
     }, []);
 
     useEffect(() => {
@@ -51,19 +80,51 @@ export default function LeventKrorenDebugPage() {
 
     const fetchData = async () => {
         setLoading(true);
-        await Promise.all([fetchMenuItems(), fetchInventoryItems()]);
+        setLogs([]); // Clear logs on new fetch
+        addLog('Veri çekme işlemi başlatıldı...', 'info');
+
+        // Auth Token Kontrolü
+        const token = localStorage.getItem('staff_token');
+        if (!token) {
+            addLog('UYARI: Token bulunamadı. Staff girişi yapmamış olabilirsiniz. Bazı endpointler çalışmayabilir.', 'error');
+        } else {
+            addLog('Token bulundu, istekler yetkilendirilmiş olarak gönderilecek.', 'success');
+        }
+
+        await Promise.all([fetchMenuItems(token), fetchInventoryItems(token)]);
         setLoading(false);
     };
 
-    const fetchMenuItems = async () => {
+    const getHeaders = (token: string | null) => {
+        const headers: HeadersInit = {
+            'Content-Type': 'application/json'
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        return headers;
+    };
+
+    const fetchMenuItems = async (token: string | null) => {
         try {
-            const response = await fetch(`${API_URL}/restaurants/${RESTAURANT_ID}/menu`);
+            const url = `${API_URL}/restaurants/${restaurantId}/menu`;
+            addLog(`Menü isteği gönderiliyor: ${url}`, 'info');
+
+            const response = await fetch(url, {
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP Hata: ${response.status} ${response.statusText}`);
+            }
+
             const data = await response.json();
 
             if (data.success) {
                 const items: MenuItem[] = [];
-                const categories = data.data?.categories || [];
 
+                // 1. Check categorized structure
+                const categories = data.data?.categories || [];
                 categories.forEach((cat: any) => {
                     if (cat.items && Array.isArray(cat.items)) {
                         cat.items.forEach((item: any) => {
@@ -81,7 +142,7 @@ export default function LeventKrorenDebugPage() {
                     }
                 });
 
-                // Also check items array at root level
+                // 2. Check flat items array (some APIs return data.data.items directly)
                 if (data.data?.items && Array.isArray(data.data.items)) {
                     data.data.items.forEach((item: any) => {
                         if (!items.find(i => i.id === item.id)) {
@@ -99,24 +160,59 @@ export default function LeventKrorenDebugPage() {
                     });
                 }
 
-                console.log(`📋 Menüden ${items.length} ürün yüklendi`);
+                // 3. Check menuItems array (another possible structure)
+                if (data.data?.menuItems && Array.isArray(data.data.menuItems)) {
+                    data.data.menuItems.forEach((item: any) => {
+                        if (!items.find(i => i.id === item.id)) {
+                            items.push({
+                                id: item.id,
+                                name: item.name,
+                                categoryId: item.categoryId,
+                                categoryName: item.category?.name,
+                                price: Number(item.price) || 0,
+                                isAvailable: item.isAvailable !== false,
+                                isDeleted: item.isDeleted || false,
+                                deletedAt: item.deletedAt
+                            });
+                        }
+                    });
+                }
+
+                addLog(`📋 Menüden ${items.length} ürün başarıyla yüklendi`, 'success');
                 setMenuItems(items);
+            } else {
+                addLog(`Menü API başarısız: ${data.message}`, 'error', data);
             }
-        } catch (error) {
+        } catch (error: any) {
+            addLog(`Menü yükleme hatası: ${error.message}`, 'error');
             console.error('Menü yükleme hatası:', error);
         }
     };
 
-    const fetchInventoryItems = async () => {
+    const fetchInventoryItems = async (token: string | null) => {
         try {
-            const response = await fetch(`${API_URL}/inventory?restaurantId=${RESTAURANT_ID}`);
+            const url = `${API_URL}/inventory?restaurantId=${restaurantId}`;
+            addLog(`Stok isteği gönderiliyor: ${url}`, 'info');
+
+            const response = await fetch(url, {
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP Hata: ${response.status} ${response.statusText}`);
+            }
+
             const data = await response.json();
 
             if (data.success && Array.isArray(data.data)) {
-                console.log(`📦 Stoktan ${data.data.length} ürün yüklendi`);
+                addLog(`📦 Stoktan ${data.data.length} ürün başarıyla yüklendi`, 'success');
                 setInventoryItems(data.data);
+            } else {
+                addLog(`Stok API başarısız veya veri yok`, 'error', data);
+                setInventoryItems([]);
             }
-        } catch (error) {
+        } catch (error: any) {
+            addLog(`Stok yükleme hatası: ${error.message}`, 'error');
             console.error('Stok yükleme hatası:', error);
         }
     };
@@ -125,7 +221,6 @@ export default function LeventKrorenDebugPage() {
         const results: ComparisonResult[] = [];
         const processedInventoryIds = new Set<string>();
 
-        // Check all menu items
         menuItems.forEach(menuItem => {
             const matchedInventory = inventoryItems.find(
                 inv =>
@@ -154,7 +249,6 @@ export default function LeventKrorenDebugPage() {
             });
         });
 
-        // Check inventory items that don't match any menu item
         inventoryItems.forEach(invItem => {
             if (!processedInventoryIds.has(invItem.id)) {
                 results.push({
@@ -165,15 +259,42 @@ export default function LeventKrorenDebugPage() {
             }
         });
 
-        console.log('🔍 Karşılaştırma tamamlandı:', {
-            total: results.length,
-            matched: results.filter(r => r.status === 'matched').length,
-            menuOnly: results.filter(r => r.status === 'menu_only').length,
-            inventoryOnly: results.filter(r => r.status === 'inventory_only').length,
-            deletedButInInventory: results.filter(r => r.status === 'deleted_but_in_inventory').length
-        });
-
+        addLog(`Karşılaştırma tamamlandı. Toplam: ${results.length} sonuç`, 'success');
         setComparison(results);
+    };
+
+    const deleteInventoryItem = async (inventoryId: string) => {
+        if (!inventoryId) return;
+
+        const item = inventoryItems.find(i => i.id === inventoryId);
+        if (!item) return;
+
+        if (!confirm(`"${item.name}" ürününü stoktan silmek istediğinize emin misiniz?`)) return;
+
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('staff_token');
+            const url = `${API_URL}/inventory/${inventoryId}`;
+
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: getHeaders(token)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                addLog(`✅ "${item.name}" stoktan silindi`, 'success');
+                // Listeyi güncelle - kısa bir bekleme ile
+                setTimeout(() => fetchData(), 500);
+            } else {
+                addLog(`Silme başarısız: ${data.message}`, 'error');
+                setLoading(false);
+            }
+        } catch (error: any) {
+            addLog(`Silme hatası: ${error.message}`, 'error');
+            setLoading(false);
+        }
     };
 
     const filteredComparison = comparison.filter(item => {
@@ -236,25 +357,48 @@ export default function LeventKrorenDebugPage() {
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                                🍜 Levent Kroren - Debug Sayfası
+                                🍜 Levent Kroren - Debug & Fix Sayfası
                             </h1>
                             <p className="text-gray-600">
-                                Menü ve Stok karşılaştırması - Menüden silinen ürünlerin stokta görünme sorununu tespit edin
+                                Menü ve Stok karşılaştrıması - Özellikle "Test" veya silinmiş ürünleri stoktan temizlemek için kullanın.
                             </p>
                         </div>
-                        <button
-                            onClick={fetchData}
-                            disabled={loading}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                        >
-                            <FaSync className={loading ? 'animate-spin' : ''} />
-                            Yenile
-                        </button>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-gray-700">Restoran ID:</label>
+                                <input
+                                    type="text"
+                                    value={restaurantId}
+                                    onChange={(e) => setRestaurantId(e.target.value)}
+                                    className="border border-gray-300 rounded px-3 py-1 w-20 text-center"
+                                />
+                            </div>
+                            <button
+                                onClick={fetchData}
+                                disabled={loading}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                            >
+                                <FaSync className={loading ? 'animate-spin' : ''} />
+                                Yenile
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                {/* Console Logs Display */}
+                {logs.length > 0 && (
+                    <div className="bg-gray-800 rounded-lg shadow p-4 mb-6 text-white font-mono text-xs max-h-40 overflow-y-auto">
+                        <div className="font-bold border-b border-gray-600 pb-1 mb-2 sticky top-0 bg-gray-800">📋 İşlem Günlüğü (Logs)</div>
+                        {logs.map((log, i) => (
+                            <div key={i} className={`mb-1 ${log.type === 'error' ? 'text-red-400' : log.type === 'success' ? 'text-green-400' : 'text-gray-300'}`}>
+                                <span className="opacity-50">[{log.time}]</span> {log.message} {log.data ? JSON.stringify(log.data) : ''}
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
@@ -335,39 +479,6 @@ export default function LeventKrorenDebugPage() {
                     </div>
                 </div>
 
-                {/* Problem Explanation */}
-                {stats.deletedButInInventory > 0 && (
-                    <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6 mb-6">
-                        <div className="flex items-start gap-3">
-                            <FaExclamationTriangle className="text-red-600 text-xl mt-1" />
-                            <div>
-                                <h3 className="text-lg font-bold text-red-900 mb-2">
-                                    ⚠️ SORUN TESPİT EDİLDİ!
-                                </h3>
-                                <p className="text-red-800 mb-2">
-                                    <strong>{stats.deletedButInInventory} ürün</strong> menüden silinmiş veya devre dışı bırakılmış olmasına rağmen
-                                    hala stok sisteminde görünüyor.
-                                </p>
-                                <div className="bg-white rounded p-4 mt-3">
-                                    <p className="text-sm text-gray-700 mb-2"><strong>Olası Sebepler:</strong></p>
-                                    <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                                        <li>Stok sistemi ve menü sistemi arasında senkronizasyon eksikliği</li>
-                                        <li>Menü öğesi silindiğinde stok sisteminden otomatik temizleme yapılmıyor</li>
-                                        <li>Kasa panelinde menü API'si yerine stok API'si kullanılıyor olabilir</li>
-                                        <li>Soft delete (yumuşak silme) kullanılıyor ancak stok sorgularında filtreleme yok</li>
-                                    </ul>
-                                    <p className="text-sm text-gray-700 mt-3"><strong>Önerilen Çözüm:</strong></p>
-                                    <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                                        <li>Kasa panelinde stok yerine direkt menü API'sini kullanın</li>
-                                        <li>Veya stok sorgularına <code className="bg-gray-100 px-1 py-0.5 rounded">isDeleted: false</code> ve <code className="bg-gray-100 px-1 py-0.5 rounded">isAvailable: true</code> filtreleri ekleyin</li>
-                                        <li>Menü öğesi silindiğinde ilgili stok kayıtlarını da silin/devre dışı bırakın</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 {/* Results Table */}
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="overflow-x-auto">
@@ -395,12 +506,15 @@ export default function LeventKrorenDebugPage() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         IDs
                                     </th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        İşlem
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-12 text-center">
+                                        <td colSpan={8} className="px-6 py-12 text-center">
                                             <div className="flex items-center justify-center gap-2">
                                                 <FaSync className="animate-spin text-blue-600" />
                                                 <span className="text-gray-600">Yükleniyor...</span>
@@ -409,7 +523,7 @@ export default function LeventKrorenDebugPage() {
                                     </tr>
                                 ) : filteredComparison.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                                             Bu filtre için sonuç bulunamadı.
                                         </td>
                                     </tr>
@@ -460,6 +574,19 @@ export default function LeventKrorenDebugPage() {
                                                 )}
                                                 {item.inventoryItem && (
                                                     <div>Inv: {item.inventoryItem.id}</div>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                {item.inventoryItem && (
+                                                    <button
+                                                        onClick={() => deleteInventoryItem(item.inventoryItem!.id)}
+                                                        className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded border border-red-200 transition-colors"
+                                                        title="Stoktan Tamamen Sil"
+                                                    >
+                                                        <span className="flex items-center gap-1">
+                                                            <FaTrash /> Sil
+                                                        </span>
+                                                    </button>
                                                 )}
                                             </td>
                                         </tr>
