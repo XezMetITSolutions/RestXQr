@@ -977,7 +977,10 @@ export default function KasaPanel() {
             const success = await printReceiptViaBridge(BRIDGE_URL, result.ip, {
               orderNumber: orderId,
               tableNumber: (data.order?.tableNumber || data.data?.tableNumber || '?').toString(),
-              items: result.stationItems
+              items: result.stationItems,
+              header: 'KROREN MUTFAK',
+              orderNote: data.order?.notes || data.data?.notes,
+              type: 'KITCHEN'
             });
 
             if (success) {
@@ -1475,9 +1478,9 @@ export default function KasaPanel() {
                     <div className="p-6">
                       <div className="space-y-3 mb-6 max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
                         {(order.items || []).map((it, i) => (
-                          <div key={i} className="flex justify-between text-sm font-bold text-gray-600">
-                            <span>{it.quantity}x {it.name}</span>
-                            <span>{(Number(it.price || 0) * Number(it.quantity || 1)).toFixed(2)}₺</span>
+                          <div key={i} className="flex justify-between text-sm font-bold text-gray-600 gap-4">
+                            <span className="break-words min-w-0">{it.quantity}x {it.name}</span>
+                            <span className="shrink-0">{(Number(it.price || 0) * Number(it.quantity || 1)).toFixed(2)}₺</span>
                           </div>
                         ))}
                       </div>
@@ -1687,9 +1690,9 @@ export default function KasaPanel() {
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex flex-col w-3/4">
-                            <span className="font-bold text-gray-800 text-sm line-clamp-2">{item.name}</span>
+                            <span className="font-bold text-gray-800 text-sm line-clamp-2 break-words overflow-wrap-anywhere">{item.name}</span>
                             {item.variations && item.variations.length > 0 && (
-                              <span className="text-[10px] text-blue-600 font-bold">
+                              <span className="text-[10px] text-blue-600 font-bold break-words overflow-wrap-anywhere">
                                 {item.variations.map((v: any) => typeof v === 'string' ? v : (v.name || v.value)).join(', ')}
                               </span>
                             )}

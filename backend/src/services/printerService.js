@@ -131,12 +131,11 @@ class PrinterService {
             printer.alignCenter();
             printer.bold(true);
 
-            // Sadece tek yükseklik - daha küçük font
-            printer.setTextDoubleHeight();
+            // Normal boyut - küçük font
             const tableHeader = language === 'zh' ? `桌号: ${orderData.tableNumber}` : `MASA: ${orderData.tableNumber}`;
             printer.println(this.encodeText(tableHeader, codePage));
 
-            printer.setTextNormal();
+            printer.bold(false);
             const stationName = this.encodeText(`[ ${(printerConfig.name || 'MUTFAK').toUpperCase()} ]`, codePage);
             printer.println(stationName);
 
@@ -161,8 +160,12 @@ class PrinterService {
             printer.bold(false);
             printer.newLine();
 
+            // Increase font size just in case backend printing is active
+            printer.setTextDoubleHeight();
+            printer.setTextDoubleWidth();
+
             for (const item of orderData.items) {
-                // Ürün adı - normal boyut, bold
+                // Ürün adı - normal boyut
                 let itemName = item.name;
                 if (language === 'zh' && item.translations?.zh?.name) {
                     itemName = item.translations.zh.name;
@@ -171,9 +174,7 @@ class PrinterService {
                 }
 
                 const itemNameEncoded = this.encodeText(itemName, codePage);
-                printer.bold(true);
                 printer.println(`${item.quantity}x ${itemNameEncoded}`);
-                printer.bold(false);
 
                 // Varyasyonları yazdır (Seçenekler: Az acılı, Büyük porsiyon vb.)
                 if (item.variations && Array.isArray(item.variations) && item.variations.length > 0) {
@@ -293,19 +294,19 @@ class PrinterService {
                         await printer.printImage(logoPath);
                         if (logoPath.includes('/temp/logo_')) fs.unlinkSync(logoPath).catch(() => { });
                     } else {
-                        printer.bold(true); printer.setTextDoubleHeight();
+                        printer.bold(true);
                         printer.println(this.encodeText(restaurantName));
-                        printer.setTextNormal(); printer.bold(false);
+                        printer.bold(false);
                     }
                 } catch (e) {
-                    printer.bold(true); printer.setTextDoubleHeight();
+                    printer.bold(true);
                     printer.println(this.encodeText(restaurantName));
-                    printer.setTextNormal(); printer.bold(false);
+                    printer.bold(false);
                 }
             } else {
-                printer.bold(true); printer.setTextDoubleHeight();
+                printer.bold(true);
                 printer.println(this.encodeText(restaurantName));
-                printer.setTextNormal(); printer.bold(false);
+                printer.bold(false);
             }
 
             printer.newLine();
@@ -359,12 +360,10 @@ class PrinterService {
             ]);
 
             printer.bold(true);
-            printer.setTextDoubleHeight();
             printer.tableCustom([
                 { text: 'TOPLAM', align: 'LEFT', width: 0.5 },
                 { text: `${subtotal.toFixed(2)} TL`, align: 'RIGHT', width: 0.5 }
             ]);
-            printer.setTextNormal();
             printer.bold(false);
             printer.drawLine();
 

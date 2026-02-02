@@ -36,6 +36,7 @@ export interface ReceiptData {
         amount: number;
         net: number;
     };
+    orderNote?: string;
 }
 
 export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanvasElement> => {
@@ -65,6 +66,38 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         ctx.setLineDash([]);
     };
 
+    const wrapText = (text: string, x: number, startY: number, maxWidth: number, lineHeight: number): number => {
+        const chars = Array.from(text);
+        let line = '';
+        let currentY = startY;
+
+        for (let i = 0; i < chars.length; i++) {
+            const char = chars[i];
+            const nextLine = line + char;
+            const width = ctx.measureText(nextLine).width;
+
+            if (width > maxWidth) {
+                if (char === ' ' && line === '') continue;
+                const lastSpaceIndex = line.lastIndexOf(' ');
+                if (lastSpaceIndex > 0) {
+                    const wrapLine = line.substring(0, lastSpaceIndex);
+                    ctx.fillText(wrapLine.trim(), x, currentY);
+                    line = line.substring(lastSpaceIndex + 1) + char;
+                    currentY += lineHeight;
+                } else {
+                    ctx.fillText(line.trim(), x, currentY);
+                    line = char;
+                    currentY += lineHeight;
+                }
+            } else {
+                line = nextLine;
+            }
+        }
+        ctx.fillText(line.trim(), x, currentY);
+        return currentY + lineHeight;
+    };
+
+
     // 1. Logo (Large & Centered)
     if (data.logo) {
         try {
@@ -86,10 +119,10 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
 
     // 2. Restaurant Name
     if (data.header) {
-        ctx.font = 'bold 36px sans-serif';
+        ctx.font = 'bold 28px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(data.header.toUpperCase(), width / 2, y);
-        y += 45;
+        y += 38;
     }
 
     // Separator
@@ -99,20 +132,20 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
     // 3. Check & Table (Large Bold)
     if (data.type === 'BILL') {
         ctx.textAlign = 'left';
-        ctx.font = 'bold 44px sans-serif';
+        ctx.font = 'bold 26px sans-serif';
         ctx.fillText(`Cek : ${data.checkNumber || data.orderNumber.slice(-3)}`, 15, y);
-        y += 55;
+        y += 34;
         ctx.fillText(`Masa : MASA - ${data.tableNumber}`, 15, y);
-        y += 70;
+        y += 44;
 
         // 4. Info Grid
-        ctx.font = '28px sans-serif';
+        ctx.font = '20px sans-serif';
         const drawGridRow = (left: string, right: string) => {
             ctx.textAlign = 'left';
             ctx.fillText(left, 15, y);
             ctx.textAlign = 'right';
             ctx.fillText(right, width - 15, y);
-            y += 35;
+            y += 28;
         };
 
         const now = new Date();
@@ -124,42 +157,78 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         drawDashedLine(y);
         y += 25;
     } else {
-        // Kitchen basic header
-        ctx.font = 'bold 72px sans-serif';
+        // Kitchen very large header
+        ctx.font = 'bold 44px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(`MASA ${data.tableNumber}`, width / 2, y);
-        y += 90;
+        y += 55;
 
         ctx.font = 'bold 32px sans-serif';
         ctx.fillText(new Date().toLocaleString('tr-TR'), width / 2, y);
-        y += 60;
+        y += 45;
         drawDashedLine(y);
-        y += 35;
+        y += 30;
     }
+
+    // 4b. General Order Note (If present)
+    if (data.orderNote) {
+        let cleanNote = data.orderNote;
+
+        // Remove "Ödeme: ...", "Bahşiş: ...", "Bağış: ..." info as it's not needed for kitchen
+        cleanNote = cleanNote.replace(/Ödeme:\s*[^|,\n]*/gi, '');
+        cleanNote = cleanNote.replace(/Bahşiş:\s*[^|,\n]*/gi, '');
+        cleanNote = cleanNote.replace(/Bağış:\s*[^|,\n]*/gi, '');
+
+        // Clean up symbols and extra spaces left over
+        cleanNote = cleanNote.replace(/[|]/g, ' ');
+        cleanNote = cleanNote.trim().replace(/^[,.\s]+|[,.\s]+$/g, '');
+
+        if (cleanNote) {
+            ctx.textAlign = 'left';
+            ctx.font = 'bold 28px sans-serif';
+            const noteTitle = "--- SİPARİŞ NOTU ---";
+            ctx.fillText(noteTitle, 15, y);
+            y += 35;
+
+            ctx.font = 'bold 26px sans-serif';
+            y = wrapText(cleanNote, 15, y, width - 30, 32);
+
+            y += 10;
+            drawDashedLine(y);
+            y += 25;
+        }
+    }
+
 
     // 5. Items
     ctx.textAlign = 'left';
     data.items.forEach((item) => {
-        ctx.font = 'bold 44px sans-serif';
+        ctx.font = 'bold 32px sans-serif';
         const qtyText = `${item.quantity} x `;
         const nameText = item.name;
 
-        ctx.fillText(qtyText + nameText, 15, y);
+        // Draw QTY
+        ctx.fillText(qtyText, 15, y);
+        const qtyWidth = ctx.measureText(qtyText).width;
+
+        // Wrap Item Name
+        const nameMaxWidth = data.type === 'BILL' && item.price !== undefined ? width - 15 - 120 - (15 + qtyWidth) : width - 15 - (15 + qtyWidth);
+        const nextY = wrapText(nameText, 15 + qtyWidth, y, nameMaxWidth, 38);
 
         if (data.type === 'BILL' && item.price !== undefined) {
             ctx.textAlign = 'right';
+            ctx.font = 'bold 28px sans-serif';
             ctx.fillText(`${(item.price * item.quantity).toFixed(2)} TL`, width - 15, y);
             ctx.textAlign = 'left';
         }
 
-        y += 55;
+        y = nextY;
 
         // Chinese Translation Support
         const chineseName = item.translations?.zh?.name;
         if (chineseName && chineseName !== nameText) {
-            ctx.font = '32px sans-serif'; // Slightly smaller for Chinese
-            ctx.fillText(`   ${chineseName}`, 15, y);
-            y += 45;
+            ctx.font = '24px sans-serif'; // Larger Chinese
+            y = wrapText(`   ${chineseName}`, 15, y, width - 30, 32);
         }
 
         // Variation Rendering (New)
@@ -167,68 +236,75 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
         const varList = Array.isArray(variations) ? variations : [variations];
 
         if (varList.length > 0) {
-            ctx.font = 'bold 36px sans-serif';
+            ctx.font = '26px sans-serif';
             ctx.fillStyle = '#333'; // Slightly gray/lighter bold for variation
             const varText = `   * ${varList.map(v => typeof v === 'string' ? v : (v.name || v.value)).join(', ')} *`;
-            ctx.fillText(varText.toUpperCase(), 15, y);
-            y += 45;
+            y = wrapText(varText, 15, y, width - 30, 34);
             ctx.fillStyle = 'black'; // Reset
         }
 
-        const itemNote = item.notes || (item as any).note;
+        let itemNote = item.notes || (item as any).note;
+        if (itemNote) {
+            // Remove "Seçim:" parts as they are already shown in variations
+            itemNote = itemNote.replace(/Seçim:\s*[^,]+(,\s*)?/gi, '').trim();
+            // Clean up any leading/trailing punctuation left over
+            itemNote = itemNote.replace(/^[,.\s]+|[,.\s]+$/g, '');
+        }
+
         if (itemNote) {
             // "Not kalın harflerle olsun altı çizgili olsun"
-            ctx.font = 'bold 34px sans-serif';
+            ctx.font = 'bold 24px sans-serif';
             const noteText = `   NOT: ${itemNote}`;
-            ctx.fillText(noteText, 15, y);
+
+            // Draw text and get next y
+            const noteYBefore = y;
+            y = wrapText(noteText, 15, y, width - 30, 30);
 
             // Draw underline for the note
-            const textWidth = ctx.measureText(noteText).width;
+            const textWidth = Math.min(ctx.measureText(noteText).width, width - 30);
             ctx.beginPath();
-            ctx.moveTo(15, y + 36);
-            ctx.lineTo(15 + textWidth, y + 36);
-            ctx.lineWidth = 3;
+            ctx.moveTo(15, y - 4); // Position underline just below the last line of the note
+            ctx.lineTo(15 + textWidth, y - 4);
+            ctx.lineWidth = 2;
             ctx.stroke();
-
-            y += 45;
         }
         y += 15;
     });
 
     // 6. Summary Section
     if (data.type === 'BILL') {
-        y += 20;
+        y += 24;
         // Ara Toplam
-        ctx.font = 'bold 34px sans-serif';
+        ctx.font = 'bold 24px sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText("ARA TOPLAM", 15, y);
         ctx.textAlign = 'right';
         ctx.fillText(`${(data.subtotal || data.total || 0).toFixed(2)} TL`, width - 15, y);
-        y += 55;
+        y += 30;
 
         drawDashedLine(y);
-        y += 20;
+        y += 24;
 
         // Tax Breakdown
         if (data.taxDetails) {
-            ctx.font = '28px sans-serif';
+            ctx.font = '20px sans-serif';
             ctx.textAlign = 'left';
             ctx.fillText(`${data.taxDetails.name} (${data.taxDetails.rate}%)`, 15, y);
-            y += 35;
+            y += 26;
 
             ctx.fillText(`${(data.subtotal || data.total || 0).toFixed(2)} TL`, 15, y);
             ctx.textAlign = 'right';
             ctx.fillText(`${data.taxDetails.amount.toFixed(2)} KDV ${data.taxDetails.net.toFixed(2)} NET`, width - 15, y);
-            y += 45;
+            y += 30;
         }
 
         // Toplam
-        ctx.font = 'bold 48px sans-serif';
+        ctx.font = 'bold 32px sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText("TOPLAM", 15, y);
         ctx.textAlign = 'right';
         ctx.fillText(`${(data.total || 0).toFixed(2)} TL`, width - 15, y);
-        y += 65;
+        y += 40;
 
         drawDashedLine(y);
     }
@@ -236,12 +312,12 @@ export const renderReceiptToCanvas = async (data: ReceiptData): Promise<HTMLCanv
     // Footer
     if (data.footer) {
         y += 40;
-        ctx.font = '26px sans-serif';
+        ctx.font = '20px sans-serif';
         ctx.textAlign = 'center';
         const lines = data.footer.split('\n');
         lines.forEach(line => {
             ctx.fillText(line, width / 2, y);
-            y += 32;
+            y += 28;
         });
     }
 
