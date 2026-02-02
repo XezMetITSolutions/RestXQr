@@ -128,7 +128,6 @@ class PrinterService {
             if (!isConnected) throw new Error('Printer not connected');
 
             printer.setCharacterSet(characterSet);
-            printer.setTypeFontB(); // Use smaller font
             printer.alignCenter();
             printer.bold(true);
 
@@ -160,6 +159,10 @@ class PrinterService {
             printer.println(this.encodeText(detailLabel, codePage));
             printer.bold(false);
             printer.newLine();
+
+            // Increase font size just in case backend printing is active
+            printer.setTextDoubleHeight();
+            printer.setTextDoubleWidth();
 
             for (const item of orderData.items) {
                 // Ürün adı - normal boyut
