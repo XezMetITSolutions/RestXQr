@@ -117,27 +117,31 @@ export default function HomeContent() {
                 </div>
             </section>
 
-            {/* Consolidated Features */}
-            <section className="py-24 bg-white space-y-10 px-4">
+            {/* Consolidated Features - Compact & Premium */}
+            <section className="py-12 md:py-20 bg-white space-y-6 px-4">
                 {[
                     { title: t('multiBranchTitle'), desc: t('multiBranchDesc'), gradient: "from-[#1e40af] to-[#2563eb]", icon: FaRocket, btnColor: "text-[#1e40af]" },
                     { title: t('aiBannerTitle'), desc: t('aiBannerDesc'), gradient: "from-[#6d28d9] to-[#4f46e5]", icon: FaBrain, btnColor: "text-[#6d28d9]" },
                     { title: t('multiLangTitle'), desc: t('multiLangDesc'), gradient: "from-[#008f5d] to-[#006b45]", icon: FaGlobe, btnColor: "text-[#008f5d]" },
-                    { title: t('allInOneTitle'), desc: t('allInOneDesc'), gradient: "from-[#e63900] to-[#b32d00]", icon: FaChartLine, btnColor: "text-[#e63900]" }
+                    { title: t('allInOneTitle'), desc: t('allInOneDesc'), gradient: "from-[#e63900] to-[#b32d00]", icon: FaDesktop, btnColor: "text-[#e63900]" }
                 ].map((feature, i) => (
-                    <div key={i} className={`max-w-6xl mx-auto w-full bg-gradient-to-r ${feature.gradient} rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden group`}>
-                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                            <div className="text-center md:text-left md:w-2/3">
-                                <div className="inline-flex items-center gap-2 bg-white/20 text-white px-5 py-2 rounded-full text-xs font-bold mb-6 backdrop-blur-md uppercase tracking-widest">
+                    <div key={i} className={`max-w-5xl mx-auto w-full bg-gradient-to-r ${feature.gradient} rounded-2xl p-5 md:p-8 shadow-xl relative overflow-hidden group border border-white/5`}>
+                        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl transition-transform duration-700 group-hover:scale-110"></div>
+                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="text-center md:text-left md:w-3/4">
+                                <div className="inline-flex items-center gap-2 bg-white/20 text-white px-3 py-1 rounded-full text-[9px] font-black mb-3 backdrop-blur-md uppercase tracking-wider">
                                     <feature.icon className="text-white/80" />
                                     {t('tryNow')}
                                 </div>
-                                <h3 className="text-3xl md:text-4xl font-black text-white mb-4 uppercase">{feature.title}</h3>
-                                <p className="text-lg md:text-xl text-white/90 font-medium">{feature.desc}</p>
+                                <h3 className="text-xl md:text-2xl font-black text-white mb-2 uppercase tracking-tight leading-tight">{feature.title}</h3>
+                                <p className="text-sm md:text-base text-white/90 font-medium leading-relaxed max-w-2xl">{feature.desc}</p>
                             </div>
-                            <div className="md:w-1/3 flex justify-center">
-                                <button onClick={() => setShowDemoModal(true)} className={`bg-white ${feature.btnColor} px-10 py-5 rounded-2xl text-lg font-black hover:scale-105 transition-all shadow-xl flex items-center gap-3`}>
-                                    <feature.icon />
+                            <div className="md:w-1/4 flex justify-center md:justify-end">
+                                <button
+                                    onClick={() => setShowDemoModal(true)}
+                                    className={`bg-white ${feature.btnColor} px-6 py-3 rounded-xl text-[14px] font-black hover:shadow-2xl transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:scale-95`}
+                                >
+                                    <feature.icon className="text-lg" />
                                     {t('examineFeature')}
                                 </button>
                             </div>

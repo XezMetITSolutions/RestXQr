@@ -500,7 +500,7 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
     },
     aiBannerTitle: {
       en: 'AI Image Optimization',
-      tr: 'AI Görsel Optimizasyonu',
+      tr: 'AI GÖRSEL OPTİMİZASYONU',
       de: 'KI-Bildoptimierung',
     },
     aiBannerDesc: {
