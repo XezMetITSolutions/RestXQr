@@ -117,6 +117,52 @@ router.post('/debug/delete-active-orders', async (req, res) => {
   }
 });
 
+// DEBUG ROUTE: Delete orders by date
+router.post('/bulk-delete-by-date', async (req, res) => {
+  const { username, date } = req.body;
+  console.log(`🗑️ Bulk delete request for ${username} on ${date}`);
+
+  try {
+    if (!username || !date) {
+      return res.status(400).json({ success: false, message: 'username and date are required' });
+    }
+
+    const restaurant = await Restaurant.findOne({ where: { username } });
+    if (!restaurant) {
+      return res.status(404).json({ success: false, message: 'Restaurant not found' });
+    }
+
+    const start = new Date(`${date}T00:00:00.000Z`);
+    const end = new Date(`${date}T23:59:59.999Z`);
+
+    const orders = await Order.findAll({
+      where: {
+        restaurantId: restaurant.id,
+        created_at: { [Op.between]: [start, end] }
+      }
+    });
+
+    const orderIds = orders.map(o => o.id);
+
+    if (orderIds.length === 0) {
+      return res.json({ success: true, message: 'No orders found for this date', deletedCount: 0 });
+    }
+
+    // Delete items first due to FK constraints
+    await OrderItem.destroy({ where: { orderId: { [Op.in]: orderIds } } });
+    const deletedCount = await Order.destroy({ where: { id: { [Op.in]: orderIds } } });
+
+    res.json({
+      success: true,
+      message: `${deletedCount} orders deleted successfully`,
+      deletedCount
+    });
+  } catch (error) {
+    console.error('❌ Bulk Delete Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // GET /api/orders?restaurantId=...&status=...
 router.get('/', async (req, res) => {
   try {
