@@ -312,11 +312,9 @@ export default function KasaPanel() {
             // Keep active orders
             if (['pending', 'preparing', 'ready'].includes(order.status)) return true;
 
-            // Keep recently completed orders (for 60 seconds) so they don't vanish instantly
-            if (order.status === 'completed' || order.status === 'cancelled') {
-              const updatedAt = new Date(order.updated_at || order.created_at).getTime();
-              if (now - updatedAt < 60000) return true;
-            }
+            // Do not show completed or cancelled orders on the table grid
+            if (order.status === 'completed' || order.status === 'cancelled') return false;
+
             return false;
           });
 
