@@ -161,14 +161,7 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
 
         {/* Hero Image Section */}
         <div
-          className="relative h-64 sm:h-72 w-full cursor-pointer overflow-hidden group"
-          onClick={() => {
-            const finalImage = item.imageUrl || item.image;
-            if (finalImage) {
-              const url = finalImage.startsWith('http') ? finalImage : `${(process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace('/api', '')}${finalImage}`;
-              window.open(url, '_blank');
-            }
-          }}
+          className="relative h-64 sm:h-72 w-full overflow-hidden group"
         >
           {(() => {
             const finalImage = item.imageUrl || item.image;
@@ -204,11 +197,7 @@ export default function MenuItemModal({ item, isOpen, onClose, imageCacheVersion
             </div>
           )}
 
-          <div className="absolute bottom-4 right-4 bg-black/30 backdrop-blur-md text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-            </svg>
-          </div>
+
         </div>
 
         {/* Content Area */}
