@@ -563,7 +563,7 @@ export default function MenuManagement() {
       portion: '',
       isAvailable: true,
       isPopular: false,
-      kitchenStation: '',
+      kitchenStation: [],
       translations: {},
       variations: [],
       options: [],
@@ -600,7 +600,7 @@ export default function MenuManagement() {
       portion: item.portion || '',
       isAvailable: item.isAvailable !== false,
       isPopular: item.isPopular || false,
-      kitchenStation: item.kitchenStation || '',
+      kitchenStation: Array.isArray(item.kitchenStation) ? item.kitchenStation : (item.kitchenStation ? [item.kitchenStation] : []),
       translations: item.translations || {},
       variations: item.variations || [],
       options: item.options || [],
@@ -661,7 +661,7 @@ export default function MenuManagement() {
       description: item.description || '',
       price: item.price.toString(),
       category: item.categoryId || '',
-      kitchenStation: item.kitchenStation || ''
+      kitchenStation: Array.isArray(item.kitchenStation) ? item.kitchenStation : (item.kitchenStation ? [item.kitchenStation] : [])
     });
   };
 
@@ -3014,24 +3014,46 @@ export default function MenuManagement() {
                       </div>
 
                       {/* Mutfak İstasyonu */}
+                      {/* Mutfak İstasyonu (Multi-Select) */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          <TranslatedText>Mutfak İstasyonu</TranslatedText>
+                          <TranslatedText>Mutfak İstasyonları</TranslatedText>
                         </label>
-                        <select
-                          value={formData.kitchenStation}
-                          onChange={(e) => setFormData({ ...formData, kitchenStation: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        >
-                          <option value="">{t('İstasyon Seçin')}</option>
+                        <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-white">
+                          {stations.length === 0 && (
+                            <p className="text-xs text-gray-400 italic"><TranslatedText>Henüz istasyon oluşturulmamış.</TranslatedText></p>
+                          )}
                           {stations.sort((a, b) => a.order - b.order).map(station => (
-                            <option key={station.id} value={station.id}>
-                              {station.emoji} {station.name}
-                            </option>
+                            <label key={station.id} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded transition-colors select-none">
+                              <input
+                                type="checkbox"
+                                value={station.id}
+                                checked={Array.isArray(formData.kitchenStation) && formData.kitchenStation.includes(station.id)}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  const stationId = station.id;
+                                  setFormData(prev => {
+                                    const currentStations = Array.isArray(prev.kitchenStation) ? prev.kitchenStation : [];
+                                    let newStations;
+                                    if (checked) {
+                                      newStations = [...currentStations, stationId];
+                                    } else {
+                                      newStations = currentStations.filter((id: string) => id !== stationId);
+                                    }
+                                    return { ...prev, kitchenStation: newStations };
+                                  });
+                                }}
+                                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                              />
+                              <span className="text-sm text-gray-700 flex items-center gap-2">
+                                <span className="text-lg">{station.emoji}</span>
+                                {station.name}
+                              </span>
+                            </label>
                           ))}
-                        </select>
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          {t('Ürün hangi mutfak istasyonunda hazırlanacak?')}
+                          {t('Ürünün hazırlanacağı tüm istasyonları seçiniz (Çoklu seçim yapılabilir)')}
                         </p>
                       </div>
                     </div>

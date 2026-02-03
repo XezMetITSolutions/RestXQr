@@ -107,9 +107,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     kitchenStation: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.JSONB,
       allowNull: true,
-      field: 'kitchen_station'
+      defaultValue: [],
+      field: 'kitchen_station' // Store array of strings e.g. ["kitchen", "bar"]
     },
     variations: {
       type: DataTypes.JSONB,

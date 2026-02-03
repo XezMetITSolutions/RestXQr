@@ -181,6 +181,41 @@ const connectDB = async () => {
       console.error('❌ Failed to ensure display_order columns:', migrationError);
     }
 
+    // Ensure kitchen_station is JSONB
+    try {
+      console.log('⚙️ Checking kitchen_station column type...');
+      const [stationResults] = await sequelize.query(`
+        SELECT data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'menu_items' AND column_name = 'kitchen_station';
+      `);
+
+      if (stationResults && stationResults.length > 0) {
+        const currentType = stationResults[0].data_type;
+        if (currentType !== 'jsonb') {
+          console.log(`⚙️ Converting kitchen_station from ${currentType} to JSONB...`);
+          // Safely convert existing string values to JSON array
+          await sequelize.query(`
+            ALTER TABLE menu_items 
+            ALTER COLUMN kitchen_station TYPE JSONB 
+            USING CASE 
+              WHEN kitchen_station IS NULL OR kitchen_station = '' THEN '[]'::jsonb
+              WHEN kitchen_station LIKE '[%]' THEN kitchen_station::jsonb
+              ELSE jsonb_build_array(kitchen_station)
+            END;
+          `);
+          // Set default value to empty array
+          await sequelize.query(`
+            ALTER TABLE menu_items 
+            ALTER COLUMN kitchen_station SET DEFAULT '[]'::jsonb;
+          `);
+          console.log('✅ kitchen_station converted to JSONB');
+        }
+      }
+    } catch (migError) {
+      console.error('❌ Failed to migrate kitchen_station:', migError);
+    }
+
     // QR Token Migration - Ensure columns are snake_case
     try {
       console.log('⚙️ Ensuring qr_tokens structure...');
