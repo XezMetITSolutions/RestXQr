@@ -34,11 +34,11 @@ router.get('/:restaurantId/menu', async (req, res) => {
 
     // Get all items separately for easier access
     const items = await MenuItem.findAll({
+      where: { restaurantId }, // Filter directly on MenuItem
       include: [
         {
           model: MenuCategory,
           as: 'category',
-          where: { restaurantId },
           attributes: ['id', 'name']
         }
       ],
