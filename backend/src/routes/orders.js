@@ -1571,12 +1571,30 @@ router.post('/:id/print-item', async (req, res) => {
     };
 
     let mItem = null;
-    if (menuItemId) {
+
+    // Check if IDs are temporary (not saved to DB yet)
+    const isTemporaryId = (id) => id && (String(id).startsWith('temp-') || !(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))));
+
+    if (menuItemId && !isTemporaryId(menuItemId)) {
       mItem = await MenuItem.findByPk(menuItemId, { include: ['category'] });
-    } else if (itemId) {
+    } else if (itemId && !isTemporaryId(itemId)) {
       // It might be OrderItem id
       const orderItem = await OrderItem.findByPk(itemId, { include: [{ model: MenuItem, as: 'menuItem', include: ['category'] }] });
       if (orderItem && orderItem.menuItem) mItem = orderItem.menuItem;
+    }
+
+    // Fallback: If no menu item found by ID, try to find by name
+    if (!mItem && name && order.restaurantId) {
+      mItem = await MenuItem.findOne({
+        where: {
+          restaurantId: order.restaurantId,
+          name: { [Op.iLike]: name.replace(/^\[.*?\]\s*/, '') } // Remove variation prefix like "[Büyük] "
+        },
+        include: ['category']
+      });
+      if (mItem) {
+        log(`MenuItem found by name lookup: ${mItem.name} -> station: ${mItem.kitchenStation}`);
+      }
     }
 
     if (mItem) {
