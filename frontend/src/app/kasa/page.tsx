@@ -124,6 +124,13 @@ export default function KasaPanel() {
   const [menuSearchTerm, setMenuSearchTerm] = useState('');
   const [selectedMenuCategory, setSelectedMenuCategory] = useState<string>('all');
 
+  // Payment Confirmation State
+  const [paymentConfirmation, setPaymentConfirmation] = useState<{
+    show: boolean;
+    type: 'cash' | 'card' | 'hybrid';
+    amount: number;
+  } | null>(null);
+
   const addLog = (message: string, type: string = 'info') => {
     const log = {
       timestamp: new Date().toLocaleTimeString(),
@@ -155,39 +162,139 @@ export default function KasaPanel() {
     return permission ? permission.enabled : false;
   };
 
-  const openCashPad = () => {
+  const getPaymentAmount = () => {
+    if (paymentTab === 'partial') {
+      const manualNum = parseFloat(manualAmount);
+      if (!isNaN(manualNum) && manualNum > 0) return manualNum;
+      if (Object.keys(selectedPartialItems).length > 0) {
+        return Object.entries(selectedPartialItems).reduce((sum, [idx, qty]) => {
+          const item = selectedOrder?.items[Number(idx)];
+          return sum + (Number(item?.price || 0) * qty);
+        }, 0);
+      }
+      return 0;
+    } else if (paymentTab === 'hybrid') {
+      return (Number(cashAmount) || 0) + (Number(cardAmount) || 0);
+    } else {
+      return parseFloat((Number(selectedOrder?.totalAmount || 0) - Number(selectedOrder?.paidAmount || 0) - Number(selectedOrder?.discountAmount || 0)).toFixed(2));
+    }
+  };
+
+  const executeCardPayment = async (amount: number) => {
+    if (!selectedOrder) return;
+    const prevPaidValue = parseFloat(String(selectedOrder.paidAmount || 0));
+    const newPaidTotalValue = parseFloat((prevPaidValue + amount).toFixed(2));
+
+    let updatedOrderData: any = {
+      ...selectedOrder,
+      paidAmount: newPaidTotalValue,
+      cashierNote: (selectedOrder.cashierNote || '') + ' [KART]'
+    };
+
+    // If paying for specific items, remove them from the order
+    let isPayingForSpecificItems = false;
+    if (paymentTab === 'partial' && Object.keys(selectedPartialItems).length > 0 && (!manualAmount || Number(manualAmount) <= 0)) {
+      isPayingForSpecificItems = true;
+    }
+
+    if (isPayingForSpecificItems) {
+      const remainingItems = selectedOrder.items.map((item, idx) => {
+        const selectedQty = selectedPartialItems[idx] || 0;
+        if (selectedQty > 0) {
+          const newQty = item.quantity - selectedQty;
+          if (newQty <= 0) return null;
+          return { ...item, quantity: newQty };
+        }
+        return item;
+      }).filter(Boolean);
+
+      const newTotal = remainingItems.reduce((sum: number, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
+      updatedOrderData = {
+        ...updatedOrderData,
+        items: remainingItems,
+        totalAmount: newTotal,
+        paidAmount: 0  // Reset paid amount since we removed the paid items
+      };
+    }
+
+    // Calculate if this is truly a partial payment
+    const currentTotal = parseFloat(String(updatedOrderData.totalAmount || 0));
+    const currentPaid = parseFloat(String(updatedOrderData.paidAmount || 0));
+    const currentDiscount = parseFloat(String(updatedOrderData.discountAmount || 0));
+    const remaining = parseFloat((currentTotal - currentPaid - currentDiscount).toFixed(2));
+
+    const isTrulyPartial = remaining > 0.05;
+    await handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
+  };
+
+  const executeHybridPayment = async () => {
+    if (!selectedOrder) return;
+    const cash = parseFloat(cashAmount) || 0;
+    const card = parseFloat(cardAmount) || 0;
+    const total = parseFloat((cash + card).toFixed(2));
+
+    let note = selectedOrder.cashierNote || '';
+    if (cash > 0) note += ` [NAKİT: ${cash.toFixed(2)}₺]`;
+    if (card > 0) note += ` [KART: ${card.toFixed(2)}₺]`;
+
+    const prevPaidValue = parseFloat(String(selectedOrder.paidAmount || 0));
+    const newPaidTotalValue = parseFloat((prevPaidValue + total).toFixed(2));
+
+    const updatedOrderData = {
+      ...selectedOrder,
+      paidAmount: newPaidTotalValue,
+      cashierNote: note
+    };
+
+    const currentTotal = parseFloat(String(updatedOrderData.totalAmount || 0));
+    const currentPaidFinal = parseFloat(String(updatedOrderData.paidAmount || 0));
+    const currentDiscountFinal = parseFloat(String(updatedOrderData.discountAmount || 0));
+    const remaining = parseFloat((currentTotal - currentPaidFinal - currentDiscountFinal).toFixed(2));
+
+    const isTrulyPartial = remaining > 0.05;
+
+    await handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
+    setCashAmount(''); setCardAmount('');
+  };
+
+  const handlePaymentClick = (type: 'cash' | 'card' | 'hybrid') => {
     if (!hasPermission('cashier_process_payment')) {
       alert('Ödeme alma yetkiniz yok!');
       return;
     }
     if (!selectedOrder) return;
-    let amount = 0;
-    if (paymentTab === 'partial') {
-      // Priority: 1. Manual Entry, 2. Selected Items
-      const manualNum = parseFloat(manualAmount);
-      if (!isNaN(manualNum) && manualNum > 0) {
-        amount = manualNum;
-      } else if (Object.keys(selectedPartialItems).length > 0) {
-        amount = Object.entries(selectedPartialItems).reduce((sum, [idx, qty]) => {
-          const item = selectedOrder.items[Number(idx)];
-          return sum + (Number(item?.price || 0) * qty);
-        }, 0);
-      } else {
-        alert('Lütfen ürün seçin veya tutar girin.');
+
+    const amount = getPaymentAmount();
+    if (amount <= 0) {
+      alert('Lütfen geçerli bir tutar belirleyin veya ürün seçin.');
+      return;
+    }
+    if (type === 'hybrid') {
+      const cash = parseFloat(cashAmount) || 0;
+      const card = parseFloat(cardAmount) || 0;
+      if (cash < 0 || card < 0) {
+        alert('Negatif tutar girilemez!');
         return;
       }
-    } else {
-      const tot = parseFloat(String(selectedOrder.totalAmount || 0));
-      const paid = parseFloat(String(selectedOrder.paidAmount || 0));
-      const disc = parseFloat(String(selectedOrder.discountAmount || 0));
-      amount = parseFloat((tot - paid - disc).toFixed(2));
     }
 
-    if (amount <= 0) return alert("Tutarda ödenecek bakiye görünmüyor.");
+    setPaymentConfirmation({ show: true, type, amount });
+  };
 
-    setTargetPaymentAmount(parseFloat(amount.toFixed(2)));
-    setCashReceived('');
-    setShowCashPad(true);
+  const onConfirmPayment = async () => {
+    if (!paymentConfirmation) return;
+    const { type, amount } = paymentConfirmation;
+    setPaymentConfirmation(null);
+
+    if (type === 'cash') {
+      setTargetPaymentAmount(parseFloat(amount.toFixed(2)));
+      setCashReceived('');
+      setShowCashPad(true);
+    } else if (type === 'card') {
+      await executeCardPayment(amount);
+    } else if (type === 'hybrid') {
+      await executeHybridPayment();
+    }
   };
 
   useEffect(() => {
@@ -1544,6 +1651,11 @@ export default function KasaPanel() {
                     }
                   }
 
+                  // Check for unapproved orders or newly added items (pending status)
+                  const hasUnapprovedOrders = hasOrder && tableOrder.originalOrders
+                    ? tableOrder.originalOrders.some((o: Order) => o.status === 'pending')
+                    : (hasOrder && tableOrder.status === 'pending');
+
                   return (
                     <button
                       key={tableNum}
@@ -1579,7 +1691,9 @@ export default function KasaPanel() {
                         }
                       }}
                       className={`aspect-square rounded-2xl font-black text-xl flex flex-col items-center justify-center gap-1 transition-all shadow-md relative ${hasOrder
-                        ? 'bg-gradient-to-br from-green-500 to-green-600 text-white hover:scale-105 hover:shadow-xl cursor-pointer'
+                        ? hasUnapprovedOrders
+                          ? 'bg-gradient-to-br from-red-500 to-red-600 text-white hover:scale-105 hover:shadow-xl cursor-pointer animate-pulse'
+                          : 'bg-gradient-to-br from-green-500 to-green-600 text-white hover:scale-105 hover:shadow-xl cursor-pointer'
                         : 'bg-white text-gray-400 hover:bg-gray-50 hover:text-green-500 hover:border-green-200 border-2 border-transparent cursor-pointer'
                         }`}
                     >
@@ -1587,7 +1701,7 @@ export default function KasaPanel() {
                       {hasOrder && (
                         <>
                           {orderCount > 1 && (
-                            <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                            <span className="absolute top-1 right-1 bg-white text-black text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-sm">
                               {orderCount}
                             </span>
                           )}
@@ -2301,111 +2415,16 @@ export default function KasaPanel() {
                     <div className="mt-6 pt-6 border-t border-gray-100">
                       <div className="flex flex-col gap-3">
                         {paymentTab === 'hybrid' ? (
-                          <button onClick={() => {
-                            const cash = parseFloat(cashAmount) || 0;
-                            const card = parseFloat(cardAmount) || 0;
-                            const total = parseFloat((cash + card).toFixed(2));
-                            if (total <= 0) return alert('Lütfen tutar giriniz!');
-                            if (cash < 0 || card < 0) return alert('Negatif tutar girilemez!');
-
-                            let note = selectedOrder.cashierNote || '';
-                            if (cash > 0) note += ` [NAKİT: ${cash.toFixed(2)}₺]`;
-                            if (card > 0) note += ` [KART: ${card.toFixed(2)}₺]`;
-
-                            const prevPaidValue = parseFloat(String(selectedOrder.paidAmount || 0));
-                            const newPaidTotalValue = parseFloat((prevPaidValue + total).toFixed(2));
-
-                            const updatedOrderData = {
-                              ...selectedOrder,
-                              paidAmount: newPaidTotalValue,
-                              cashierNote: note
-                            };
-
-                            // Calculate if this is truly a partial payment (has remaining balance)
-                            const currentTotal = parseFloat(String(updatedOrderData.totalAmount || 0));
-                            const currentPaidFinal = parseFloat(String(updatedOrderData.paidAmount || 0));
-                            const currentDiscountFinal = parseFloat(String(updatedOrderData.discountAmount || 0));
-                            const remaining = parseFloat((currentTotal - currentPaidFinal - currentDiscountFinal).toFixed(2));
-
-                            const isTrulyPartial = remaining > 0.05;
-
-                            if (card > 0) {
-                              alert(`Lütfen POS cihazından ${card.toFixed(2)}₺ tutarında ödemeyi manuel olarak tamamlayınız.`);
-                            }
-
-                            handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
-                            setCashAmount(''); setCardAmount('');
-                          }} className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-black transition-colors flex justify-center items-center gap-2 shadow-xl">
+                          <button onClick={() => handlePaymentClick('hybrid')} className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-black transition-colors flex justify-center items-center gap-2 shadow-xl">
                             <FaCheckCircle /> HİBRİT TAHSİL ET
                           </button>
                         ) : (
                           <div className="flex gap-3">
-                            <button onClick={openCashPad} className="flex-1 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
+                            <button onClick={() => handlePaymentClick('cash')} className="flex-1 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
                               <FaMoneyBillWave /> NAKİT
                             </button>
 
-                            <button onClick={() => {
-                              let val = 0;
-                              let isPayingForSpecificItems = false;
-
-                              if (paymentTab === 'partial') {
-                                // Priority: 1. Manual Entry, 2. Selected Items
-                                if (manualAmount && Number(manualAmount) > 0) {
-                                  val = Number(manualAmount);
-                                } else if (Object.keys(selectedPartialItems).length > 0) {
-                                  val = Object.entries(selectedPartialItems).reduce((s, [idx, qty]) => s + (Number(selectedOrder.items[Number(idx)].price || 0) * qty), 0);
-                                  isPayingForSpecificItems = true;
-                                } else {
-                                  return alert('Lütfen ürün seçin veya tutar girin.');
-                                }
-                              } else {
-                                val = (Number(selectedOrder.totalAmount || 0) - Number(selectedOrder.paidAmount || 0) - Number(selectedOrder.discountAmount || 0));
-                              }
-
-                              if (val <= 0) return alert('Geçersiz Tutar');
-
-                              const prevPaidValue = parseFloat(String(selectedOrder.paidAmount || 0));
-                              const newPaidTotalValue = parseFloat((prevPaidValue + val).toFixed(2));
-
-                              let updatedOrderData = {
-                                ...selectedOrder,
-                                paidAmount: newPaidTotalValue,
-                                cashierNote: (selectedOrder.cashierNote || '') + ' [KART]'
-                              };
-
-                              // If paying for specific items, remove them from the order
-                              if (isPayingForSpecificItems) {
-                                const remainingItems = selectedOrder.items.map((item, idx) => {
-                                  const selectedQty = selectedPartialItems[idx] || 0;
-                                  if (selectedQty > 0) {
-                                    const newQty = item.quantity - selectedQty;
-                                    if (newQty <= 0) return null; // Remove item if fully paid
-                                    return { ...item, quantity: newQty };
-                                  }
-                                  return item;
-                                }).filter(Boolean);
-
-                                const newTotal = remainingItems.reduce((sum, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
-                                updatedOrderData = {
-                                  ...updatedOrderData,
-                                  items: remainingItems,
-                                  totalAmount: newTotal,
-                                  paidAmount: 0  // Reset paid amount since we removed the paid items
-                                };
-                              }
-
-                              // Calculate if this is truly a partial payment (has remaining balance)
-                              const currentTotal = parseFloat(String(updatedOrderData.totalAmount || 0));
-                              const currentPaid = parseFloat(String(updatedOrderData.paidAmount || 0));
-                              const currentDiscount = parseFloat(String(updatedOrderData.discountAmount || 0));
-                              const remaining = parseFloat((currentTotal - currentPaid - currentDiscount).toFixed(2));
-
-                              const isTrulyPartial = remaining > 0.05;
-
-                              alert(`Lütfen POS cihazından ${val.toFixed(2)}₺ tutarında ödemeyi manuel olarak tamamlayınız.`);
-
-                              handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
-                            }} className="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
+                            <button onClick={() => handlePaymentClick('card')} className="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors flex justify-center items-center gap-2 shadow-xl">
                               <FaCreditCard /> KART
                             </button>
                           </div>
@@ -2633,6 +2652,52 @@ export default function KasaPanel() {
                   Ürün bulunamadı veya yükleniyor...
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PAYMENT CONFIRMATION MODAL */}
+      {paymentConfirmation && (
+        <div className="fixed inset-0 bg-black/50 z-[250] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-xl border border-gray-100 transform scale-100 transition-all">
+            <div className="p-8 text-center flex flex-col items-center">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 
+                ${paymentConfirmation.type === 'cash' ? 'bg-green-100 text-green-600' :
+                  paymentConfirmation.type === 'card' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-800'}`}>
+                {paymentConfirmation.type === 'cash' && <FaMoneyBillWave size={30} />}
+                {paymentConfirmation.type === 'card' && <FaCreditCard size={30} />}
+                {paymentConfirmation.type === 'hybrid' && <FaCheckCircle size={30} />}
+              </div>
+              <h3 className="text-xl font-black text-gray-800 mb-2">
+                {paymentConfirmation.type === 'cash' && 'NAKİT ÖDEME ONAYI'}
+                {paymentConfirmation.type === 'card' && 'KART İLE ÖDEME ONAYI'}
+                {paymentConfirmation.type === 'hybrid' && 'HİBRİT ÖDEME ONAYI'}
+              </h3>
+              <p className="text-gray-500 font-medium text-lg mb-8">
+                <span className="font-black text-gray-900">{paymentConfirmation.amount.toFixed(2)}₺</span> tutarındaki ödeme
+                {paymentConfirmation.type === 'cash' && ' nakit olarak '}
+                {paymentConfirmation.type === 'card' && ' kart ile '}
+                {paymentConfirmation.type === 'hybrid' && ' hibrit olarak '}
+                alınsın mı?
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 w-full">
+                <button
+                  onClick={() => setPaymentConfirmation(null)}
+                  className="py-4 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-colors"
+                >
+                  HAYIR
+                </button>
+                <button
+                  onClick={onConfirmPayment}
+                  className={`py-4 rounded-xl text-white font-bold transition-colors shadow-lg
+                    ${paymentConfirmation.type === 'cash' ? 'bg-green-600 hover:bg-green-700' :
+                      paymentConfirmation.type === 'card' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 hover:bg-gray-900'}`}
+                >
+                  EVET
+                </button>
+              </div>
             </div>
           </div>
         </div>
