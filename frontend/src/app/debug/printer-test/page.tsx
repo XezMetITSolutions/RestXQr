@@ -36,18 +36,28 @@ export default function PrinterTestPage() {
         }
 
         setLoading(true);
+        addLog(`Fetching menu for Restaurant ID: ${restaurantId}`, 'info');
+
         try {
             const response = await fetch(`${API_URL}/restaurants/${restaurantId}/menu`);
+            addLog(`Response Status: ${response.status}`, response.ok ? 'success' : 'error');
+
             const data = await response.json();
 
             if (data.success) {
-                setMenuItems(data.data.items || []);
-                addLog(`${data.data.items?.length || 0} ürün yüklendi`, 'success');
+                if (data.data?.items) {
+                    setMenuItems(data.data.items);
+                    addLog(`${data.data.items.length} ürün yüklendi`, 'success');
+                } else {
+                    addLog('Data yapısı beklenmedik: data.data.items bulunamadı', 'error');
+                    console.log('API Response:', data);
+                }
             } else {
-                addLog('Ürünler yüklenemedi', 'error');
+                addLog(`Ürünler yüklenemedi: ${data.message || 'Bilinmeyen hata'}`, 'error');
             }
-        } catch (error) {
-            addLog(`Hata: ${error}`, 'error');
+        } catch (error: any) {
+            addLog(`Fetch Hatası: ${error.message || error}`, 'error');
+            console.error(error);
         } finally {
             setLoading(false);
         }
