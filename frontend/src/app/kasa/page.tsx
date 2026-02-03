@@ -1614,32 +1614,34 @@ export default function KasaPanel() {
           </button>
         </div>
 
-        {/* Floor Tabs */}
-        {activeSource === 'restoran' && floors.length > 0 && restaurantId !== '7' && (
-          <div className="flex gap-2 mb-8 bg-white/30 p-1.5 rounded-2xl border border-gray-100/50 overflow-x-auto no-scrollbar">
-            <button
-              onClick={() => setActiveFloor('all')}
-              className={`px-6 py-2 rounded-xl font-bold transition-all text-sm ${activeFloor === 'all'
-                ? 'bg-white text-gray-900 shadow-md transform scale-105'
-                : 'text-gray-500 hover:bg-white/50'
-                }`}
-            >
-              TÜM KATLAR
-            </button>
-            {floors.map((floor, idx) => (
+        {/* Floor Tabs - Hidden for Kroren Merkez specific ID */}
+        {activeSource === 'restoran' && floors.length > 0 &&
+          restaurantId !== '7' &&
+          restaurantId !== '37b0322a-e11f-4ef1-b108-83be310aaf4d' && (
+            <div className="flex gap-2 mb-8 bg-white/30 p-1.5 rounded-2xl border border-gray-100/50 overflow-x-auto no-scrollbar">
               <button
-                key={idx}
-                onClick={() => setActiveFloor(floor.name)}
-                className={`px-6 py-2 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${activeFloor === floor.name
+                onClick={() => setActiveFloor('all')}
+                className={`px-6 py-2 rounded-xl font-bold transition-all text-sm ${activeFloor === 'all'
                   ? 'bg-white text-gray-900 shadow-md transform scale-105'
                   : 'text-gray-500 hover:bg-white/50'
                   }`}
               >
-                {floor.name.toUpperCase()}
+                TÜM KATLAR
               </button>
-            ))}
-          </div>
-        )}
+              {floors.map((floor, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveFloor(floor.name)}
+                  className={`px-6 py-2 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${activeFloor === floor.name
+                    ? 'bg-white text-gray-900 shadow-md transform scale-105'
+                    : 'text-gray-500 hover:bg-white/50'
+                    }`}
+                >
+                  {floor.name.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          )}
 
         {/* View Mode Toggle - Only for RESTORAN */}
         {activeSource === 'restoran' && (
