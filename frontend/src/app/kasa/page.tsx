@@ -1595,7 +1595,7 @@ export default function KasaPanel() {
         </div>
 
         {/* Floor Tabs */}
-        {activeSource === 'restoran' && floors.length > 0 && (
+        {activeSource === 'restoran' && floors.length > 0 && restaurantId !== '7' && (
           <div className="flex gap-2 mb-8 bg-white/30 p-1.5 rounded-2xl border border-gray-100/50 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setActiveFloor('all')}
