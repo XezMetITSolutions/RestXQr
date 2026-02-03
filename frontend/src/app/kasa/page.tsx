@@ -653,7 +653,10 @@ export default function KasaPanel() {
         const pResp = await fetch(printInfoUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cashierName: 'Kasa Paneli' })
+          body: JSON.stringify({
+            cashierName: 'Kasa Paneli',
+            restaurantId: restaurantId // Add restaurantId for grouped orders
+          })
         });
         const pData = await pResp.json();
         addLog(`Print result: ${pData.success ? 'Success' : 'Failed'}`, pData.success ? 'success' : 'error');
