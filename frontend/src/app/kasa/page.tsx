@@ -236,6 +236,52 @@ export default function KasaPanel() {
     await handlePayment(selectedOrder.id, updatedOrderData, isTrulyPartial);
   };
 
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmation) return;
+
+    const { orderId, isGrouped, type } = deleteConfirmation;
+    setDeleteConfirmation(null);
+
+    try {
+      if (type === 'delete') {
+        const url = isGrouped
+          ? `${API_URL}/orders/${orderId}?restaurantId=${restaurantId}`
+          : `${API_URL}/orders/${orderId}`;
+
+        const response = await fetch(url, {
+          method: 'DELETE',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (response.ok) {
+          fetchOrders();
+          if (selectedOrder?.id === orderId) {
+            setSelectedOrder(null);
+            setShowPaymentModal(false);
+          }
+        } else {
+          alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
+        }
+      } else if (type === 'cancel') {
+        const response = await fetch(`${API_URL}/orders/${orderId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'cancelled' })
+        });
+        if ((await response.json()).success) {
+          setShowPaymentModal(false);
+          setSelectedOrder(null);
+          fetchOrders();
+        }
+      }
+    } catch (error) {
+      console.error('Sipariş silme hatası:', error);
+      alert('Sipariş silinirken teknik bir hata oluştu.');
+    } finally {
+      fetchOrders();
+    }
+  };
+
   const executeHybridPayment = async () => {
     if (!selectedOrder) return;
     const cash = parseFloat(cashAmount) || 0;
@@ -243,38 +289,7 @@ export default function KasaPanel() {
     const total = parseFloat((cash + card).toFixed(2));
 
     let note = selectedOrder.cashierNote || '';
-    const handleConfirmDelete = async () => {
-      if (!deleteConfirmation) return;
 
-      const { orderId, isGrouped, type } = deleteConfirmation;
-      setDeleteConfirmation(null);
-
-      try {
-        if (type === 'delete') {
-          const response = await fetch(`${API_URL}/orders/${orderId}`, {
-            method: 'DELETE',
-            headers: { 'Accept': 'application/json' }
-          });
-
-          if (response.ok) {
-            alert('Sipariş başarıyla silindi');
-            fetchOrders();
-            if (selectedOrder?.id === orderId) {
-              setSelectedOrder(null);
-              setShowPaymentModal(false);
-            }
-          } else {
-            alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
-          }
-        }
-        // Add logic for 'cancel' if needed later, currently we only replace 'delete'
-      } catch (error) {
-        console.error('Sipariş silme hatası:', error);
-        alert('Sipariş silinirken teknik bir hata oluştu.');
-      } finally {
-        fetchOrders();
-      }
-    };
     if (card > 0) note += ` [KART: ${card.toFixed(2)}₺]`;
 
     const prevPaidValue = parseFloat(String(selectedOrder.paidAmount || 0));
@@ -822,19 +837,12 @@ export default function KasaPanel() {
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    if (!confirm('Bu siparişi iptal etmek istediğinize emin misiniz?')) return;
-    try {
-      const response = await fetch(`${API_URL}/orders/${orderId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'cancelled' })
-      });
-      if ((await response.json()).success) {
-        setShowPaymentModal(false);
-        setSelectedOrder(null);
-        fetchOrders();
-      }
-    } catch (error) { console.error(error); }
+    setDeleteConfirmation({
+      show: true,
+      orderId,
+      isGrouped: orderId.includes('grouped'),
+      type: 'cancel'
+    });
   };
 
   const applyTreat = (index: number) => {
@@ -1990,55 +1998,12 @@ export default function KasaPanel() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm('Bu siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
-                                if (order.id.includes('grouped')) {
-                                  // Simplified deletion logic
-                                  const tableOrders = order.originalOrders || [];
-                                  const tableNumber = order.tableNumber;
-                                  if (tableOrders.length === 0) {
-                                    alert('Alt siparişler bulunamadı');
-                                    return;
-                                  }
-
-                                  Promise.all(tableOrders.map(async (tableOrder) => {
-                                    try {
-                                      const response = await fetch(`${API_URL}/orders/${tableOrder.id}`, {
-                                        method: 'DELETE',
-                                        headers: { 'Accept': 'application/json' }
-                                      });
-                                      return response.ok;
-                                    } catch (error) {
-                                      console.error(`Sipariş silme hatası: ${tableOrder.id}`, error);
-                                      return false;
-                                    }
-                                  })).then(results => {
-                                    const allSuccessful = results.every(result => result === true);
-                                    if (allSuccessful) {
-                                      alert(`Masa ${tableNumber} için tüm siparişler başarıyla silindi`);
-                                    } else {
-                                      alert(`Masa ${tableNumber} için bazı siparişler silinemedi. Lütfen sayfayı yenileyip tekrar deneyin.`);
-                                    }
-                                    fetchOrders();
-                                  });
-                                } else {
-                                  fetch(`${API_URL}/orders/${order.id}`, {
-                                    method: 'DELETE',
-                                    headers: { 'Accept': 'application/json' }
-                                  }).then(response => {
-                                    if (response.ok) {
-                                      alert('Sipariş başarıyla silindi');
-                                      fetchOrders();
-                                    } else {
-                                      alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
-                                      fetchOrders();
-                                    }
-                                  }).catch(error => {
-                                    console.error('Sipariş silme hatası:', error);
-                                    alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
-                                    fetchOrders();
-                                  });
-                                }
-                              }
+                              setDeleteConfirmation({
+                                show: true,
+                                orderId: order.id,
+                                isGrouped: order.id.includes('grouped'),
+                                type: 'delete'
+                              });
                             }}
                             className="py-4 px-3 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all shadow-lg active:scale-95"
                           >
