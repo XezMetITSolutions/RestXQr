@@ -141,6 +141,13 @@ export default function KasaPanel() {
     type: 'cancel' | 'delete'; // cancel is for 'cancel order', delete is for 'delete order'
   } | null>(null);
 
+  // Item Delete Confirmation State
+  const [itemDeleteConfirmation, setItemDeleteConfirmation] = useState<{
+    show: boolean;
+    index: number;
+    item: any;
+  } | null>(null);
+
   // Print Quantity Modal State
   const [printQuantityModal, setPrintQuantityModal] = useState<{
     show: boolean;
@@ -873,9 +880,7 @@ export default function KasaPanel() {
   const updateItemQuantity = (index: number, newQty: number) => {
     if (!selectedOrder) return;
     if (newQty < 1) {
-      if (confirm('Bu ürünü silmek istediğinize emin misiniz?')) {
-        removeItem(index);
-      }
+      removeItem(index);
       return;
     }
     saveToUndo(selectedOrder);
@@ -883,6 +888,19 @@ export default function KasaPanel() {
     updatedItems[index] = { ...updatedItems[index], quantity: newQty };
     const newTotal = updatedItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
     setSelectedOrder({ ...selectedOrder, items: updatedItems, totalAmount: newTotal });
+  };
+
+  const handleConfirmDeleteItem = () => {
+    if (!selectedOrder || !itemDeleteConfirmation) return;
+    const { index } = itemDeleteConfirmation;
+
+    saveToUndo(selectedOrder);
+    const updatedItems = selectedOrder.items.filter((_, i) => i !== index);
+    const newTotal = updatedItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
+    setSelectedOrder({ ...selectedOrder, items: updatedItems, totalAmount: newTotal });
+
+    setItemDeleteConfirmation(null);
+    addLog(`Item at index ${index} removed`, 'info');
   };
 
   const removeItem = (index: number) => {
@@ -894,12 +912,12 @@ export default function KasaPanel() {
       return;
     }
 
-    // Direct deletion without confirmation modal
-    saveToUndo(selectedOrder);
-    const updatedItems = selectedOrder.items.filter((_, i) => i !== index);
-    const newTotal = updatedItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
-    setSelectedOrder({ ...selectedOrder, items: updatedItems, totalAmount: newTotal });
-    addLog(`Item at index ${index} removed locally`, 'info');
+    const item = selectedOrder.items[index];
+    setItemDeleteConfirmation({
+      show: true,
+      index,
+      item
+    });
   };
 
   const addItemToOrder = (item: any, delta: number = 1) => {
@@ -2900,6 +2918,35 @@ export default function KasaPanel() {
                   YAZDIR
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRM MODAL */}
+      {itemDeleteConfirmation && (
+        <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-gray-100 transform scale-100 transition-all p-6 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FaTrash className="text-3xl text-red-500" />
+            </div>
+            <h3 className="text-xl font-black text-gray-800 mb-2">ÜRÜNÜ SİL</h3>
+            <p className="text-gray-500 font-bold text-sm mb-6">
+              <span className="text-gray-800">"{itemDeleteConfirmation.item.name}"</span> adlı ürünü silmek istediğinize emin misiniz?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setItemDeleteConfirmation(null)}
+                className="flex-1 py-3 bg-gray-100 text-gray-600 font-black rounded-xl hover:bg-gray-200 transition-colors uppercase text-sm"
+              >
+                İPTAL
+              </button>
+              <button
+                onClick={handleConfirmDeleteItem}
+                className="flex-1 py-3 bg-red-500 text-white font-black rounded-xl hover:bg-red-600 transition-colors uppercase text-sm shadow-lg shadow-red-200"
+              >
+                SİL
+              </button>
             </div>
           </div>
         </div>
