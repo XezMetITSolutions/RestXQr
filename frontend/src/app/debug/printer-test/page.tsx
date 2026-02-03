@@ -37,12 +37,12 @@ export default function PrinterTestPage() {
 
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/restaurants/${restaurantId}/menu/items`);
+            const response = await fetch(`${API_URL}/restaurants/${restaurantId}/menu`);
             const data = await response.json();
 
             if (data.success) {
-                setMenuItems(data.data);
-                addLog(`${data.data.length} ürün yüklendi`, 'success');
+                setMenuItems(data.data.items || []);
+                addLog(`${data.data.items?.length || 0} ürün yüklendi`, 'success');
             } else {
                 addLog('Ürünler yüklenemedi', 'error');
             }
@@ -190,8 +190,8 @@ export default function PrinterTestPage() {
                                     key={item.id}
                                     onClick={() => setSelectedItem(item)}
                                     className={`p-4 rounded-xl border-2 text-left transition-all ${selectedItem?.id === item.id
-                                            ? 'border-purple-500 bg-purple-50'
-                                            : 'border-gray-200 hover:border-purple-300'
+                                        ? 'border-purple-500 bg-purple-50'
+                                        : 'border-gray-200 hover:border-purple-300'
                                         }`}
                                 >
                                     <div className="font-bold text-gray-900">{item.name}</div>
@@ -252,8 +252,8 @@ export default function PrinterTestPage() {
                                 <div
                                     key={idx}
                                     className={`mb-1 ${log.type === 'error' ? 'text-red-400' :
-                                            log.type === 'success' ? 'text-green-400' :
-                                                'text-gray-300'
+                                        log.type === 'success' ? 'text-green-400' :
+                                            'text-gray-300'
                                         }`}
                                 >
                                     <span className="text-gray-500">[{log.time}]</span> {log.message}
