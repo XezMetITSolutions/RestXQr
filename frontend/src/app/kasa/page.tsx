@@ -1693,8 +1693,8 @@ export default function KasaPanel() {
 
                   // Check for unapproved orders or newly added items (pending status)
                   const hasUnapprovedOrders = hasOrder && tableOrder.originalOrders
-                    ? tableOrder.originalOrders.some((o: Order) => o.status === 'pending')
-                    : (hasOrder && tableOrder.status === 'pending');
+                    ? tableOrder.originalOrders.some((o: Order) => o.status === 'pending' && o.approved !== true)
+                    : (hasOrder && tableOrder.status === 'pending' && tableOrder.approved !== true);
 
                   return (
                     <button
