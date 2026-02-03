@@ -168,7 +168,32 @@ router.post('/bulk-delete-by-date', async (req, res) => {
   }
 });
 
-// GET /api/orders?restaurantId=...&status=...
+// DEBUG ROUTE: Test Routing for Kroren
+router.post('/debug/test-routing', async (req, res) => {
+  const { restaurantId, tableNumber, menuItemId, kitchenStation } = req.body;
+  try {
+    const restaurant = await Restaurant.findByPk(restaurantId || '37b0322a-e11f-4ef1-b108-83be310aaf4d');
+    const resolvedStation = resolveDrinkStationForTable(
+      restaurant,
+      tableNumber,
+      null, // menuItemCategoryId not needed for special logic
+      kitchenStation
+    );
+
+    res.json({
+      success: true,
+      resolvedStation,
+      debug: {
+        tableNumber,
+        inputStation: kitchenStation,
+        restaurantFound: !!restaurant,
+        restaurantName: restaurant?.name
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 router.get('/', async (req, res) => {
   try {
     const { restaurantId, status, tableNumber, approved, startDate, endDate } = req.query;
