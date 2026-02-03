@@ -955,8 +955,12 @@ export default function KasaPanel() {
           });
 
           const printData = await printResponse.json();
-          if (printData.success) {
-            addLog('Order sent to printers successfully', 'success');
+
+          // Use common failover logic
+          await handlePrintFailover(printData, data.data.id, false);
+
+          if (printData.success || (printData.results && printData.results.some((r: any) => r.isLocalIP))) {
+            addLog('Order printing initiated', 'success');
             playNotificationSound();
           } else {
             addLog(`Printer error: ${printData.message}`, 'error');
@@ -1165,9 +1169,9 @@ export default function KasaPanel() {
               });
               const printData = await printResponse.json();
 
-              if (printData.success && (printData.data?.printResults || printData.results)) {
+              if (printData.results || printData.data?.printResults || printData.success) {
                 await handlePrintFailover(printData, data.data.id, false);
-                addLog('Print request sent to kitchen/stations', 'success');
+                addLog('Print request initiated', 'success');
               } else {
                 addLog('No print results returned or print failed', 'warning');
               }
@@ -1292,19 +1296,11 @@ export default function KasaPanel() {
       if (data.success) {
         addLog('Item successfully sent to printer', 'success');
         alert('Yazıcıya gönderildi');
+      } else if (data.results && data.results.some((r: any) => r.isLocalIP)) {
+        addLog('Cloud failed, trying local bridge for item...', 'warning');
+        await handlePrintFailover(data, sourceOrderId, true);
       } else {
-        // Failover handling
-        if (data.isLocalIP) {
-          addLog('Cloud failed, trying local bridge...', 'warning');
-          // Wrap in structure expected by handlePrintFailover
-          const fakeData = {
-            success: false,
-            results: [data] // The data itself contains isLocalIP, ip, stationItems
-          };
-          await handlePrintFailover(fakeData, sourceOrderId, true);
-        } else {
-          alert('Yazdırma hatası: ' + data.message || data.error);
-        }
+        alert('Yazdırma hatası: ' + (data.message || data.error || 'Bilinmeyen hata'));
       }
     } catch (e: any) {
       console.error(e);
@@ -1879,7 +1875,18 @@ export default function KasaPanel() {
                     </div>
                     <div className="p-6">
                       <div className="space-y-3 mb-6 max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
-                        {(order.items || []).map((it, i) => (
+                        {(() => {
+                          const merged = new Map<string, any>();
+                          (order.items || []).forEach(it => {
+                            const key = `${it.name.trim()}|${Number(it.price)}|${JSON.stringify(it.variations || [])}`;
+                            if (merged.has(key)) {
+                              merged.get(key).quantity += Number(it.quantity || 1);
+                            } else {
+                              merged.set(key, { ...it, quantity: Number(it.quantity || 1) });
+                            }
+                          });
+                          return Array.from(merged.values());
+                        })().map((it, i) => (
                           <div key={i} className="flex justify-between text-sm font-bold text-gray-600 gap-4">
                             <span className="break-words min-w-0">{it.quantity}x {it.name}</span>
                             <span className="shrink-0">{(Number(it.price || 0) * Number(it.quantity || 1)).toFixed(2)}₺</span>
@@ -2077,13 +2084,13 @@ export default function KasaPanel() {
                     // Merge duplicate items (same name, price, variations)
                     const mergedMap = new Map<string, any>();
                     selectedOrder.items.forEach((item, originalIdx) => {
-                      const key = `${item.name}|${item.price}|${JSON.stringify(item.variations || [])}`;
+                      const key = `${item.name.trim()}|${Number(item.price)}|${JSON.stringify(item.variations || [])}`;
                       if (mergedMap.has(key)) {
                         const existing = mergedMap.get(key);
-                        existing.quantity += item.quantity;
+                        existing.quantity += Number(item.quantity || 1);
                         existing.originalIndexes.push(originalIdx);
                       } else {
-                        mergedMap.set(key, { ...item, originalIndexes: [originalIdx] });
+                        mergedMap.set(key, { ...item, quantity: Number(item.quantity || 1), originalIndexes: [originalIdx] });
                       }
                     });
                     return Array.from(mergedMap.values());

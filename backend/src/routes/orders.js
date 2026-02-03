@@ -12,10 +12,17 @@ const resolveDrinkStationForTable = (restaurant, tableNumber, menuItemCategoryId
       restaurant?.username === 'kroren-levent' ||
       restaurant?.name?.includes('Kroren')
     ) {
-      const lowerStation = itemKitchenStation ? itemKitchenStation.toLowerCase().trim() : '';
+      // Handle kitchenStation as either string or array
+      let rawStation = '';
+      if (Array.isArray(itemKitchenStation)) {
+        rawStation = itemKitchenStation.length > 0 ? itemKitchenStation[0] : '';
+      } else {
+        rawStation = String(itemKitchenStation || '');
+      }
+
+      const lowerStation = rawStation.toLowerCase().trim();
 
       // 1. İçecekler - Eğer istasyon 'icecek' ise masa numarasına göre böl
-      // 'icecek1' ve 'icecek2' de gelse aynı mantığı koruyalım ki hata payı kalmasın
       if (lowerStation.includes('icecek') || lowerStation.includes('bar') || lowerStation.includes('drink')) {
         const t = Number(tableNumber);
         if (Number.isFinite(t)) {
@@ -26,7 +33,6 @@ const resolveDrinkStationForTable = (restaurant, tableNumber, menuItemCategoryId
       }
 
       // 2. Diğerleri - Kullanıcının panelden yaptığı eşleştirmeyi (kitchenStation) doğrudan kullan
-      // Ör: 'kavurma', 'ramen', 'manti', 'kebap'
       if (lowerStation) {
         return lowerStation;
       }
@@ -1160,146 +1166,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// POST /api/orders/:id/print (Manual printing for debug/retry)
-router.post('/:id/print', async (req, res) => {
-  const steps = [];
-  const log = (msg, type = 'info') => {
-    const entry = { timestamp: new Date().toISOString(), message: msg, type };
-    steps.push(entry);
-    console.log(`[PRINT-DEBUG] ${msg}`);
-  };
-
-  try {
-    const { id } = req.params;
-    log(`Baskı isteği alındı. Sipariş ID: ${id}`);
-
-    const order = await Order.findByPk(id);
-    if (!order) {
-      log('Sipariş veritabanında bulunamadı', 'error');
-      return res.status(404).json({ success: false, message: 'Order not found', steps });
-    }
-
-    log(`Sipariş bulundu. Masa: ${order.tableNumber || 'Paket'}`);
-
-    const restaurant = await Restaurant.findByPk(order.restaurantId);
-    if (!restaurant) {
-      log('Restoran bulunamadı', 'error');
-      return res.status(404).json({ success: false, message: 'Restaurant not found', steps });
-    }
-
-    if (!restaurant.printerConfig) {
-      log('Restoranda yazıcı yapılandırması (printerConfig) bulunamadı', 'error');
-      return res.status(400).json({ success: false, message: 'No printer config', steps });
-    }
-
-    log('Yazıcı yapılandırması kontrol ediliyor...');
-
-    // Sipariş itemlarını al
-    const orderItems = await OrderItem.findAll({
-      where: { orderId: order.id },
-      include: [{
-        model: MenuItem,
-        as: 'menuItem',
-        attributes: ['name', 'kitchenStation', 'categoryId'],
-        include: [{ model: MenuCategory, as: 'category', attributes: ['name'] }]
-      }]
-    });
-
-    log(`${orderItems.length} adet sipariş kalemi bulundu.`);
-
-    // İstasyonlara göre grupla
-    const itemsByStation = {};
-    for (const item of orderItems) {
-      const drinkStation = resolveDrinkStationForTable(
-        restaurant,
-        order.tableNumber,
-        item.menuItem?.categoryId,
-        item.menuItem?.kitchenStation,
-        item.menuItem?.category?.name,
-        item.menuItem?.name
-      );
-      const station = drinkStation || item.menuItem?.kitchenStation || 'default';
-      if (!itemsByStation[station]) {
-        itemsByStation[station] = [];
-      }
-      itemsByStation[station].push({
-        name: item.menuItem?.name || 'Ürün',
-        quantity: item.quantity,
-        notes: item.notes || ''
-      });
-    }
-
-    const stationsToPrint = Object.keys(itemsByStation);
-    log(`Yazdırılacak istasyonlar: ${stationsToPrint.join(', ')}`);
-
-    const printerService = require('../services/printerService');
-    const results = [];
-
-    for (const stationId of stationsToPrint) {
-      const stationItems = itemsByStation[stationId];
-      const printerConfig = restaurant.printerConfig[stationId];
-
-      log(`--- [${stationId}] İstasyonu İşleniyor ---`);
-
-      if (printerConfig && printerConfig.enabled && printerConfig.ip) {
-        log(`Sistem Yapılandırması: ${stationId} istasyonu için hedef IP: ${printerConfig.ip}, Port: ${printerConfig.port || 9100}`);
-        log(`Yapılandırma durumu: ${printerConfig.enabled ? 'AKTİF' : 'PASİF'}`);
-
-        // PrinterService'e istasyon ekle/güncelle
-        printerService.addOrUpdateStation(stationId, {
-          name: stationId,
-          ip: printerConfig.ip,
-          port: printerConfig.port || 9100,
-          enabled: true,
-          type: require('node-thermal-printer').PrinterTypes.EPSON,
-          characterSet: require('node-thermal-printer').CharacterSet.PC857_TURKISH,
-          codePage: 'CP857'
-        });
-
-        log(`${stationId} yazıcısına bağlanılıyor (Hızlı kontrol)...`);
-
-        // Yazdır - isPrinterConnected hanging durumuna karşı timeout ekleyebiliriz ama 
-        // printerService içindeki timeout'a güvenebiliriz. Bir adım daha log ekleyelim.
-        log(`İşlem başlatıldı: ${stationId} (${printerConfig.ip}:${printerConfig.port || 9100})`);
-        const printResult = await printerService.printOrderAdvanced(stationId, {
-          orderNumber: order.id.substring(0, 8),
-          tableNumber: order.tableNumber || 'Paket',
-          items: stationItems
-        });
-
-        if (printResult.success) {
-          log(`${stationId} yazıcısına başarıyla gönderildi (${printerConfig.ip})`, 'success');
-          results.push({ stationId, success: true });
-        } else {
-          log(`${stationId} (${printerConfig.ip}) yazdırma hatası: ${printResult.error}`, 'error');
-          results.push({
-            stationId,
-            success: false,
-            error: printResult.error,
-            isLocalIP: printResult.isLocalIP,
-            ip: printerConfig.ip,
-            stationItems
-          });
-        }
-      } else {
-        log(`${stationId} istasyonu için aktif yazıcı bulunamadı (enabled: ${printerConfig?.enabled}, ip: ${printerConfig?.ip})`, 'warning');
-        results.push({ stationId, success: false, error: 'Printer not configured or disabled' });
-      }
-    }
-
-    const overallSuccess = results.some(r => r.success);
-    res.json({
-      success: overallSuccess,
-      message: overallSuccess ? 'Baskı işlemi tamamlandı' : 'Hiçbir yazıcıya gönderilemedi',
-      results,
-      steps
-    });
-
-  } catch (error) {
-    log(`Sistem hatası: ${error.message}`, 'error');
-    res.status(500).json({ success: false, message: 'Internal server error', steps });
-  }
-});
 
 // POST /api/orders/:id/print (Same as print-kitchen - sends to all kitchen stations)
 router.post('/:id/print', async (req, res) => {
@@ -1366,6 +1232,8 @@ router.post('/:id/print', async (req, res) => {
       } else if (item.menuItem?.kitchenStation) {
         const ks = item.menuItem.kitchenStation;
         stations = Array.isArray(ks) ? ks : [ks];
+        // If it's an empty array, fallback to default
+        if (stations.length === 0) stations = ['default'];
       } else {
         stations = ['default'];
       }
@@ -1377,12 +1245,27 @@ router.post('/:id/print', async (req, res) => {
         }
         itemsByStation[station].push({
           name: item.menuItem?.name || 'Ürün',
-          quantity: item.quantity,
+          quantity: Number(item.quantity),
           notes: item.notes || '',
           variations: item.variations || [],
           translations: item.menuItem?.translations
         });
       }
+    }
+
+    // Consolidate identical items within each station
+    for (const station in itemsByStation) {
+      const stationMap = new Map();
+      for (const it of itemsByStation[station]) {
+        // Consolidated signature: name + variations + notes
+        const signature = `${it.name}|${JSON.stringify(it.variations || [])}|${it.notes}`;
+        if (stationMap.has(signature)) {
+          stationMap.get(signature).quantity += it.quantity;
+        } else {
+          stationMap.set(signature, { ...it });
+        }
+      }
+      itemsByStation[station] = Array.from(stationMap.values());
     }
 
     const stationsToPrint = Object.keys(itemsByStation);
@@ -1443,10 +1326,13 @@ router.post('/:id/print', async (req, res) => {
     }
 
     const overallSuccess = results.some(r => r.success);
-    res.json({
+    const hasLocalTasks = results.some(r => r.isLocalIP);
+
+    res.status((overallSuccess || hasLocalTasks) ? 200 : 400).json({
       success: overallSuccess,
-      message: overallSuccess ? 'Baskı işlemi tamamlandı' : 'Hiçbir yazıcıya gönderilemedi',
+      message: overallSuccess ? 'Baskı işlemi tamamlandı' : (hasLocalTasks ? 'Yerel printer köprüsü gerekiyor' : 'Hiçbir yazıcıya gönderilemedi'),
       results,
+      data: order,
       steps
     });
 
@@ -1665,52 +1551,109 @@ router.post('/:id/print-item', async (req, res) => {
         mItem.category?.name,
         mItem.name
       );
-      targetStation = drinkStation || mItem.kitchenStation || mItem.category?.kitchenStation || 'default';
 
-      if (!name) itemDetails.name = mItem.name;
-      itemDetails.translations = mItem.translations;
-    }
+      let stations = [];
+      if (drinkStation) {
+        stations = [drinkStation];
+      } else if (mItem.kitchenStation) {
+        const ks = mItem.kitchenStation;
+        stations = Array.isArray(ks) ? ks : [ks];
+      } else {
+        stations = ['default'];
+      }
 
-    const printerConfig = restaurant.printerConfig[targetStation];
-    log(`Hedef İstasyon: ${targetStation}`);
+      targetStation = stations[0]; // For logging
 
-    if (printerConfig && printerConfig.enabled && printerConfig.ip) {
+      const results = [];
       const printerService = require('../services/printerService');
 
-      log(`Yazıcıya gönderiliyor: ${printerConfig.ip}`);
+      for (const stationId of stations) {
+        const printerConfig = restaurant.printerConfig[stationId];
+        log(`İstasyon İşleniyor: ${stationId}`);
 
-      const printResult = await printerService.printOrderWithConfig({
-        name: targetStation,
-        ip: printerConfig.ip,
-        port: printerConfig.port || 9100,
-        enabled: true,
-        type: require('node-thermal-printer').PrinterTypes.EPSON,
-        characterSet: require('node-thermal-printer').CharacterSet.PC857_TURKISH,
-        codePage: 'CP857',
-        language: printerConfig.language || (targetStation === 'kitchen' ? 'zh' : 'tr')
-      }, {
-        orderNumber: order.id.substring(0, 8),
-        tableNumber: order.tableNumber || 'Paket',
-        items: [itemDetails]
-      });
+        if (printerConfig && printerConfig.enabled && printerConfig.ip) {
+          log(`Yazıcıya gönderiliyor: ${printerConfig.ip} (${stationId})`);
 
-      if (printResult.success) {
-        log('Yazdirma basarili', 'success');
-        res.json({ success: true, message: 'Yazdırıldı', steps });
+          const printResult = await printerService.printOrderWithConfig({
+            name: stationId,
+            ip: printerConfig.ip,
+            port: printerConfig.port || 9100,
+            enabled: true,
+            type: require('node-thermal-printer').PrinterTypes.EPSON,
+            characterSet: require('node-thermal-printer').CharacterSet.PC857_TURKISH,
+            codePage: 'CP857',
+            language: printerConfig.language || (stationId === 'kitchen' ? 'zh' : 'tr')
+          }, {
+            orderNumber: order.id.substring(0, 8),
+            tableNumber: order.tableNumber || 'Paket',
+            items: [itemDetails]
+          });
+
+          results.push({
+            stationId,
+            success: printResult.success,
+            error: printResult.error,
+            isLocalIP: printResult.isLocalIP,
+            ip: printerConfig.ip,
+            stationItems: [itemDetails]
+          });
+        } else {
+          log(`İstasyon (${stationId}) için yazıcı yapılandırılmamış`, 'warning');
+          results.push({
+            stationId,
+            success: false,
+            error: 'Station printer not configured',
+            stationItems: [itemDetails]
+          });
+        }
+      }
+
+      const overallSuccess = results.some(r => r.success);
+      const hasLocalTasks = results.some(r => r.isLocalIP);
+
+      if (overallSuccess || hasLocalTasks) {
+        return res.json({ success: overallSuccess, message: overallSuccess ? 'Yazdırıldı' : 'Köprü gerekiyor', results, data: order, steps });
       } else {
-        log(`Yazdirma hatasi: ${printResult.error}`, 'error');
-        res.json({
-          success: false,
+        return res.status(400).json({ success: false, message: 'Yazdırılamadı', results, data: order, steps });
+      }
+    } else {
+      // No menu item found, try default station
+      const printerConfig = restaurant.printerConfig['default'];
+      if (printerConfig && printerConfig.enabled && printerConfig.ip) {
+        const printerService = require('../services/printerService');
+        const printResult = await printerService.printOrderWithConfig({
+          name: 'default',
+          ip: printerConfig.ip,
+          port: printerConfig.port || 9100,
+          enabled: true,
+          type: require('node-thermal-printer').PrinterTypes.EPSON,
+          characterSet: require('node-thermal-printer').CharacterSet.PC857_TURKISH,
+          codePage: 'CP857',
+          language: printerConfig.language || 'tr'
+        }, {
+          orderNumber: order.id.substring(0, 8),
+          tableNumber: order.tableNumber || 'Paket',
+          items: [itemDetails]
+        });
+
+        const results = [{
+          stationId: 'default',
+          success: printResult.success,
           error: printResult.error,
           isLocalIP: printResult.isLocalIP,
           ip: printerConfig.ip,
-          stationItems: [itemDetails], // For failover
+          stationItems: [itemDetails]
+        }];
+
+        return res.json({
+          success: printResult.success,
+          message: printResult.success ? 'Yazdırıldı' : (printResult.isLocalIP ? 'Köprü gerekiyor' : printResult.error),
+          results,
+          data: order,
           steps
         });
       }
-    } else {
-      log('Bu istasyon için yazıcı yapılandırılmamış', 'warning');
-      res.status(400).json({ success: false, message: 'Station printer not configured', steps });
+      return res.status(400).json({ success: false, message: 'Station printer not configured', data: order, steps });
     }
 
   } catch (e) {
