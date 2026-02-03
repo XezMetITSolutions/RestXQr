@@ -497,6 +497,32 @@ export default function ReportsPage() {
     });
   }
 
+  // Calculate filtered daily trend based on dateRange
+  const filteredDailyTrend: { date: string; revenue: number; orders: number }[] = [];
+  if (dateRange.start && dateRange.end) {
+    const start = new Date(dateRange.start);
+    const end = new Date(dateRange.end);
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+      const dayOrders = filteredOrders.filter(order => {
+        const orderDate = new Date(order.createdAt || order.created_at);
+        return orderDate.toISOString().split('T')[0] === dateStr;
+      });
+      filteredDailyTrend.push({
+        date: dateStr,
+        revenue: dayOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0),
+        orders: dayOrders.length
+      });
+    }
+  }
+
+  // Determine which trend to show based on active tab
+  const displayDailyTrend = activeTab === 'revenue' ? filteredDailyTrend : dailyTrend;
+  const maxDisplayRevenue = Math.max(...displayDailyTrend.map(d => d.revenue), 1);
+  const displayTotalRevenue = filteredReportStats.totalSales;
+  const displayTotalOrders = filteredReportStats.totalOrders;
+  const displayAvgOrder = filteredReportStats.averageOrderValue;
+
   // En çok satan ürünler (based on filteredOrders if not overview, but overview doesn't show top products list usually? 
   // Actually the code uses 'orders' for topProducts which is shown in 'products' tab. 
   // We should switches to filteredOrders for 'products' tab.
@@ -1015,18 +1041,15 @@ export default function ReportsPage() {
           {/* Ciro Analizi */}
           {!loading && activeTab === 'revenue' && (
             <div className="space-y-6">
-              {/* Ana Ciro Metrikleri */}
+              {/* Ana Ciro Metrikleri (Filtreli) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-green-500">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Günlük Ciro</TranslatedText></p>
+                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Toplam Ciro (Seçilen Tarih)</TranslatedText></p>
                       <p className="text-2xl font-bold text-green-600">
-                        {formatCurrency(revenueData.daily.today)}
+                        {formatCurrency(displayTotalRevenue)}
                       </p>
-                      <div className="flex items-center mt-1">
-                        <span className="text-xs text-green-600">📈 +{revenueData.daily.change}% {t('dün')}</span>
-                      </div>
                     </div>
                     <span className="text-green-600 text-2xl">💰</span>
                   </div>
@@ -1035,13 +1058,10 @@ export default function ReportsPage() {
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-blue-500">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Haftalık Ciro</TranslatedText></p>
+                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Toplam Sipariş</TranslatedText></p>
                       <p className="text-2xl font-bold text-blue-600">
-                        {formatCurrency(revenueData.weekly.thisWeek)}
+                        {displayTotalOrders}
                       </p>
-                      <div className="flex items-center mt-1">
-                        <span className="text-xs text-green-600">📈 +{revenueData.weekly.change}% {t('geçen hafta')}</span>
-                      </div>
                     </div>
                     <span className="text-blue-600 text-2xl">📊</span>
                   </div>
@@ -1050,30 +1070,28 @@ export default function ReportsPage() {
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-purple-500">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Aylık Ciro</TranslatedText></p>
+                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Ortalama Sipariş</TranslatedText></p>
                       <p className="text-2xl font-bold text-purple-600">
-                        {formatCurrency(revenueData.monthly.thisMonth)}
+                        {formatCurrency(displayAvgOrder)}
                       </p>
-                      <div className="flex items-center mt-1">
-                        <span className="text-xs text-green-600">📈 +{revenueData.monthly.change}% {t('geçen ay')}</span>
-                      </div>
                     </div>
                     <span className="text-purple-600 text-2xl">📈</span>
                   </div>
                 </div>
               </div>
 
-              {/* Günlük Ciro Trendi */}
+              {/* Günlük Ciro Trendi (Filtered) */}
               <div className="bg-white rounded-lg shadow-sm border">
                 <div className="p-6 border-b">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                    📈 <TranslatedText>Günlük Ciro Trendi (Son 7 Gün)</TranslatedText>
+                    📈 <TranslatedText>Ciro Trendi (Seçilen Tarih Aralığı)</TranslatedText>
                   </h3>
                 </div>
                 <div className="p-6">
                   {/* Mobil: dikey şema (satır bazlı barlar) */}
                   <div className="sm:hidden space-y-3">
-                    {dailyTrend.map((day, index) => (
+
+                    {displayDailyTrend.map((day, index) => (
                       <div key={index} className="flex items-center gap-3">
                         <div className="w-12 shrink-0 text-xs font-medium text-gray-600 text-right">
                           {new Date(day.date).toLocaleDateString('tr-TR', { weekday: 'short' })}
@@ -1082,7 +1100,7 @@ export default function ReportsPage() {
                           <div className="h-6 bg-gray-100 rounded-full overflow-hidden">
                             <div
                               className="h-full bg-green-500/80"
-                              style={{ width: `${maxDailyRevenue > 0 ? Math.max(8, Math.round((day.revenue / maxDailyRevenue) * 100)) : 8}%` }}
+                              style={{ width: `${maxDisplayRevenue > 0 ? Math.max(8, Math.round((day.revenue / maxDisplayRevenue) * 100)) : 8}%` }}
                             />
                           </div>
                           <div className="mt-1 flex justify-between text-[11px] text-gray-600">
@@ -1096,7 +1114,7 @@ export default function ReportsPage() {
 
                   {/* Tablet/Masaüstü: responsive ızgara */}
                   <div className="hidden sm:grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 lg:gap-4">
-                    {dailyTrend.map((day, index) => (
+                    {displayDailyTrend.map((day, index) => (
                       <div key={index} className="text-center">
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <div className="text-sm font-medium text-gray-600 mb-2">
