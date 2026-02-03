@@ -25,10 +25,9 @@ const resolveDrinkStationForTable = (restaurant, tableNumber, menuItemCategoryId
       // 1. İçecekler - Eğer istasyon 'icecek' ise masa numarasına göre böl
       if (lowerStation.includes('icecek') || lowerStation.includes('bar') || lowerStation.includes('drink')) {
         const t = Number(tableNumber);
-        if (Number.isFinite(t)) {
-          if (t >= 1 && t <= 18) return 'icecek1';
-          if (t >= 19 && t <= 42) return 'icecek2';
-          return 'icecek1'; // Default
+        if (Number.isFinite(t) && t > 0) {
+          if (t <= 18) return 'icecek1';
+          return 'icecek2'; // 19 ve üzeri masalar için içecek 2
         }
       }
 
