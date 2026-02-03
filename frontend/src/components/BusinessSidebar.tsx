@@ -26,7 +26,8 @@ import {
   FaCode,
   FaPrint,
   FaDatabase,
-  FaBug
+  FaBug,
+  FaEye
 } from 'react-icons/fa';
 import { useFeature } from '@/hooks/useFeature';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -154,6 +155,13 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
       label: <TranslatedText>Personel</TranslatedText>,
       active: pathname === `${basePath}/staff`,
       visible: true
+    },
+    {
+      href: `${basePath}/menu/preview`,
+      icon: FaEye,
+      label: <TranslatedText>Menü Önizleme</TranslatedText>,
+      active: pathname === `${basePath}/menu/preview`,
+      visible: isDemo ? true : hasQrMenu
     },
     {
       href: `${basePath}/qr-codes`,

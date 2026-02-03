@@ -1596,6 +1596,14 @@ export default function MenuManagement() {
             <div className="flex gap-4 mt-6 flex-wrap">
               {/* Yeni Ürün Ekle */}
               <button
+                onClick={() => router.push('/business/menu/preview')}
+                className="px-6 py-3 bg-white text-purple-600 border-2 border-purple-600/20 hover:bg-purple-50 hover:border-purple-600 hover:shadow-lg hover:-translate-y-1 rounded-xl text-md font-bold transition-all duration-300 flex items-center gap-2 backdrop-blur-sm shadow-md"
+              >
+                <FaEye />
+                <TranslatedText>Menü Önizleme</TranslatedText>
+              </button>
+
+              <button
                 onClick={handleAddItem}
                 className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl hover:from-purple-600 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-bold"
               >

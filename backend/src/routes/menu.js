@@ -689,4 +689,70 @@ router.delete('/:restaurantId/menu/items/:itemId', async (req, res) => {
   }
 });
 
+// POST /api/restaurants/:restaurantId/menu/reorder - Reorder categories and items
+router.post('/:restaurantId/menu/reorder', async (req, res) => {
+  const t = await require('../models').sequelize.transaction();
+
+  try {
+    const { restaurantId } = req.params;
+    const { categories, items } = req.body;
+
+    // Validate restaurant exists
+    const restaurant = await Restaurant.findByPk(restaurantId);
+    if (!restaurant) {
+      await t.rollback();
+      return res.status(404).json({
+        success: false,
+        message: 'Restaurant not found'
+      });
+    }
+
+    // Update Category Orders
+    if (categories && Array.isArray(categories)) {
+      for (const cat of categories) {
+        if (cat.id && typeof cat.displayOrder === 'number') {
+          await MenuCategory.update(
+            { displayOrder: cat.displayOrder },
+            {
+              where: { id: cat.id, restaurantId },
+              transaction: t
+            }
+          );
+        }
+      }
+    }
+
+    // Update Item Orders
+    if (items && Array.isArray(items)) {
+      for (const item of items) {
+        if (item.id && typeof item.displayOrder === 'number') {
+          await MenuItem.update(
+            { displayOrder: item.displayOrder },
+            {
+              where: { id: item.id, restaurantId },
+              transaction: t
+            }
+          );
+        }
+      }
+    }
+
+    await t.commit();
+
+    res.json({
+      success: true,
+      message: 'Menu order updated successfully'
+    });
+
+  } catch (error) {
+    await t.rollback();
+    console.error('Reorder menu error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
