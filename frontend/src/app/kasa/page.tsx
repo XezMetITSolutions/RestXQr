@@ -131,6 +131,15 @@ export default function KasaPanel() {
     amount: number;
   } | null>(null);
 
+  // Delete/Cancel Confirmation State
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    show: boolean;
+    orderId: string;
+    isGrouped: boolean;
+    tableNumber?: number | null;
+    type: 'cancel' | 'delete'; // cancel is for 'cancel order', delete is for 'delete order'
+  } | null>(null);
+
   const addLog = (message: string, type: string = 'info') => {
     const log = {
       timestamp: new Date().toLocaleTimeString(),
@@ -234,7 +243,38 @@ export default function KasaPanel() {
     const total = parseFloat((cash + card).toFixed(2));
 
     let note = selectedOrder.cashierNote || '';
-    if (cash > 0) note += ` [NAKİT: ${cash.toFixed(2)}₺]`;
+    const handleConfirmDelete = async () => {
+      if (!deleteConfirmation) return;
+
+      const { orderId, isGrouped, type } = deleteConfirmation;
+      setDeleteConfirmation(null);
+
+      try {
+        if (type === 'delete') {
+          const response = await fetch(`${API_URL}/orders/${orderId}`, {
+            method: 'DELETE',
+            headers: { 'Accept': 'application/json' }
+          });
+
+          if (response.ok) {
+            alert('Sipariş başarıyla silindi');
+            fetchOrders();
+            if (selectedOrder?.id === orderId) {
+              setSelectedOrder(null);
+              setShowPaymentModal(false);
+            }
+          } else {
+            alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
+          }
+        }
+        // Add logic for 'cancel' if needed later, currently we only replace 'delete'
+      } catch (error) {
+        console.error('Sipariş silme hatası:', error);
+        alert('Sipariş silinirken teknik bir hata oluştu.');
+      } finally {
+        fetchOrders();
+      }
+    };
     if (card > 0) note += ` [KART: ${card.toFixed(2)}₺]`;
 
     const prevPaidValue = parseFloat(String(selectedOrder.paidAmount || 0));
@@ -1841,24 +1881,13 @@ export default function KasaPanel() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm('Bu masasız siparişi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
-                                fetch(`${API_URL}/orders/${order.id}`, {
-                                  method: 'DELETE',
-                                  headers: { 'Accept': 'application/json' }
-                                }).then(response => {
-                                  if (response.ok) {
-                                    alert('Masasız sipariş başarıyla silindi');
-                                    fetchOrders();
-                                  } else {
-                                    alert(`Sipariş silinemedi! (Hata Kodu: ${response.status})`);
-                                    fetchOrders();
-                                  }
-                                }).catch(error => {
-                                  console.error('Sipariş silme hatası:', error);
-                                  alert('Sipariş silinirken teknik bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
-                                  fetchOrders();
-                                });
-                              }
+                              setDeleteConfirmation({
+                                show: true,
+                                orderId: order.id,
+                                isGrouped: false,
+                                tableNumber: order.tableNumber,
+                                type: 'delete'
+                              });
                             }}
                             className="w-full mt-3 py-2 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
                           >
@@ -2696,6 +2725,41 @@ export default function KasaPanel() {
                       paymentConfirmation.type === 'card' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 hover:bg-gray-900'}`}
                 >
                   EVET
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteConfirmation && (
+        <div className="fixed inset-0 bg-black/50 z-[300] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-xl border border-gray-100 transform scale-100 transition-all">
+            <div className="p-8 text-center flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-6 bg-red-100 text-red-600">
+                <FaTrash size={30} />
+              </div>
+              <h3 className="text-xl font-black text-gray-800 mb-2">
+                SİPARİŞİ SİLME ONAYI
+              </h3>
+              <p className="text-gray-500 font-medium text-lg mb-8">
+                Bu siparişi silmek istediğinize emin misiniz? <br />
+                <span className="text-xs text-red-500 font-bold block mt-2">Bu işlem geri alınamaz!</span>
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 w-full">
+                <button
+                  onClick={() => setDeleteConfirmation(null)}
+                  className="py-4 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-colors"
+                >
+                  VAZGEÇ
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="py-4 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+                >
+                  SİL
                 </button>
               </div>
             </div>
