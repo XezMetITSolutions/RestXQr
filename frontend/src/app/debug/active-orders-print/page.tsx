@@ -252,7 +252,7 @@ export default function ActiveOrdersPrintPage() {
                                     </div>
                                     <div className="px-5 py-3 border-t border-gray-50 flex justify-between items-center">
                                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Toplam Tutar</span>
-                                        <span className="font-black text-gray-900">{(order.totalAmount || 0).toFixed(2)}₺</span>
+                                        <span className="font-black text-gray-900">{Number(order.totalAmount || 0).toFixed(2)}₺</span>
                                     </div>
                                 </div>
                             ))}
