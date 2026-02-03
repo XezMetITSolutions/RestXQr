@@ -1227,16 +1227,29 @@ router.post('/:id/print', async (req, res) => {
 
       // Multi-station support: kitchenStation can be an array
       let stations = [];
-      if (drinkStation) {
-        stations = [drinkStation];
-      } else if (item.menuItem?.kitchenStation) {
-        const ks = item.menuItem.kitchenStation;
-        stations = Array.isArray(ks) ? ks : [ks];
-        // If it's an empty array, fallback to default
-        if (stations.length === 0) stations = ['default'];
-      } else {
-        stations = ['default'];
+      const ks = item.menuItem?.kitchenStation || ['default'];
+      const rawStations = Array.isArray(ks) ? ks : [ks];
+
+      for (const rs of rawStations) {
+        const resolved = resolveDrinkStationForTable(
+          restaurant,
+          order.tableNumber,
+          item.menuItem?.categoryId,
+          rs,
+          item.menuItem?.category?.name,
+          item.menuItem?.name
+        );
+        if (resolved) {
+          stations.push(resolved);
+        } else if (rs) {
+          stations.push(rs);
+        }
       }
+
+      // Deduplicate if needed
+      stations = [...new Set(stations)];
+
+      if (stations.length === 0) stations = ['default'];
 
       // Add item to each station
       for (const station of stations) {
@@ -1553,14 +1566,28 @@ router.post('/:id/print-item', async (req, res) => {
       );
 
       let stations = [];
-      if (drinkStation) {
-        stations = [drinkStation];
-      } else if (mItem.kitchenStation) {
-        const ks = mItem.kitchenStation;
-        stations = Array.isArray(ks) ? ks : [ks];
-      } else {
-        stations = ['default'];
+      const ks = mItem.kitchenStation || ['default'];
+      const rawStations = Array.isArray(ks) ? ks : [ks];
+
+      for (const rs of rawStations) {
+        const resolved = resolveDrinkStationForTable(
+          restaurant,
+          order.tableNumber,
+          mItem.categoryId,
+          rs,
+          mItem.category?.name,
+          mItem.name
+        );
+        if (resolved) {
+          stations.push(resolved);
+        } else if (rs) {
+          stations.push(rs);
+        }
       }
+
+      // Deduplicate
+      stations = [...new Set(stations)];
+      if (stations.length === 0) stations = ['default'];
 
       targetStation = stations[0]; // For logging
 
