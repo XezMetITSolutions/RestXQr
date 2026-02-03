@@ -2755,32 +2755,44 @@ export default function KasaPanel() {
 
       {/* DELETE CONFIRMATION MODAL */}
       {deleteConfirmation && (
-        <div className="fixed inset-0 bg-black/50 z-[300] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-xl border border-gray-100 transform scale-100 transition-all">
+        <div className="fixed inset-0 bg-black/60 z-[300] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-gradient-to-br from-white to-gray-50 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-gray-200 transform scale-100 transition-all animate-in zoom-in duration-300">
             <div className="p-8 text-center flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-6 bg-red-100 text-red-600">
-                <FaTrash size={30} />
+              {/* Icon with animated background */}
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-red-500 rounded-full blur-xl opacity-20 animate-pulse"></div>
+                <div className="relative w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg shadow-red-500/50">
+                  <FaTrash size={32} />
+                </div>
               </div>
-              <h3 className="text-xl font-black text-gray-800 mb-2">
-                SİPARİŞİ SİLME ONAYI
-              </h3>
-              <p className="text-gray-500 font-medium text-lg mb-8">
-                Bu siparişi silmek istediğinize emin misiniz? <br />
-                <span className="text-xs text-red-500 font-bold block mt-2">Bu işlem geri alınamaz!</span>
-              </p>
 
-              <div className="grid grid-cols-2 gap-4 w-full">
+              {/* Title */}
+              <h3 className="text-2xl font-black text-gray-900 mb-3 tracking-tight">
+                SİPARİŞİ SİL
+              </h3>
+
+              {/* Description */}
+              <p className="text-gray-600 font-medium text-base mb-2 leading-relaxed">
+                Bu siparişi silmek istediğinize emin misiniz?
+              </p>
+              <div className="flex items-center gap-2 mb-8 px-4 py-2 bg-red-50 border border-red-100 rounded-xl">
+                <FaExclamationTriangle className="text-red-500 flex-shrink-0" />
+                <span className="text-sm text-red-700 font-bold">Bu işlem geri alınamaz!</span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-3 w-full">
                 <button
                   onClick={() => setDeleteConfirmation(null)}
-                  className="py-4 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-colors"
+                  className="py-4 px-6 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   VAZGEÇ
                 </button>
                 <button
                   onClick={handleConfirmDelete}
-                  className="py-4 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+                  className="py-4 px-6 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 hover:scale-105"
                 >
-                  SİL
+                  SİLİ ONAYLA
                 </button>
               </div>
             </div>
