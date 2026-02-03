@@ -533,8 +533,15 @@ export default function ReportsPage() {
   sourceOrders.forEach(order => {
     if (order.items && Array.isArray(order.items)) {
       order.items.forEach((item: any) => {
-        const productName = item.name || item.menuItem?.name || 'Bilinmeyen Ürün';
-        const productId = item.menuItemId || item.id || productName;
+        const baseName = item.name || item.menuItem?.name || 'Bilinmeyen Ürün';
+        const variations = item.variations || [];
+        const variationString = variations.length > 0
+          ? ` (${variations.map((v: any) => typeof v === 'string' ? v : (v.name || v.value)).join(', ')})`
+          : '';
+        const productName = `${baseName}${variationString}`;
+
+        // Group by both ID and variations to separate different types of the same base product
+        const productId = `${item.menuItemId || item.id || baseName}-${JSON.stringify(variations)}`;
         const quantity = item.quantity || 1;
         const price = item.unitPrice || item.price || 0;
         const revenue = quantity * price;
@@ -558,7 +565,7 @@ export default function ReportsPage() {
 
   const topProducts = Array.from(productMap.values())
     .sort((a, b) => b.totalRevenue - a.totalRevenue)
-    .slice(0, 10);
+    .slice(0, 15); // Increased to 15 to show more variety after split
 
   // Saatlik satışlar (8:00 - 20:00)
   const hourlySales: number[] = Array(12).fill(0);
@@ -1017,7 +1024,7 @@ export default function ReportsPage() {
                               {index + 1}
                             </div>
                             <div>
-                              <h4 className="font-medium text-gray-800">{product.productName}</h4>
+                              <h4 className="font-bold text-gray-800 text-lg">{product.productName}</h4>
                               <p className="text-sm text-gray-600">
                                 {product.totalQuantity} <TranslatedText>adet</TranslatedText> • {product.orderCount} <TranslatedText>sipariş</TranslatedText>
                               </p>
