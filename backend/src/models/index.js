@@ -145,6 +145,42 @@ const connectDB = async () => {
       console.error('❌ Failed to ensure menu_items.translations column:', migrationError);
     }
 
+    // Ensure display_order column exists on menu_categories and menu_items
+    try {
+      // Menu Categories
+      const [catResults] = await sequelize.query(`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name='menu_categories' AND column_name='display_order';
+      `);
+      if (!catResults || catResults.length === 0) {
+        console.log('⚙️ Adding display_order to menu_categories...');
+        await sequelize.query(`
+          ALTER TABLE menu_categories
+          ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
+        `);
+        console.log('✅ display_order added to menu_categories');
+      }
+
+      // Menu Items
+      const [itemResults] = await sequelize.query(`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name='menu_items' AND column_name='display_order';
+      `);
+      if (!itemResults || itemResults.length === 0) {
+        console.log('⚙️ Adding display_order to menu_items...');
+        await sequelize.query(`
+            ALTER TABLE menu_items
+            ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
+        `);
+        console.log('✅ display_order added to menu_items');
+      }
+
+    } catch (migrationError) {
+      console.error('❌ Failed to ensure display_order columns:', migrationError);
+    }
+
     // QR Token Migration - Ensure columns are snake_case
     try {
       console.log('⚙️ Ensuring qr_tokens structure...');
