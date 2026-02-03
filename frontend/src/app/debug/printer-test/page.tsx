@@ -24,7 +24,7 @@ export default function PrinterTestPage() {
         const subdomain = hostname.split('.')[0];
 
         if (subdomain === 'kroren' || subdomain === 'kroren-levent') {
-            setRestaurantId(subdomain === 'kroren' ? '7' : '42c8d249-d7c3-4330-9b34-8c8230b7692c');
+            setRestaurantId(subdomain === 'kroren' ? 'kroren' : 'kroren-levent');
             addLog(`Restaurant detected: ${subdomain}`, 'info');
         }
     }, []);

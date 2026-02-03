@@ -23,12 +23,12 @@ export default function ActiveOrdersPrintPage() {
         const subdomain = hostname.split('.')[0];
 
         if (subdomain === 'kroren' || subdomain === 'kroren-levent') {
-            setRestaurantId(subdomain === 'kroren' ? '7' : '42c8d249-d7c3-4330-9b34-8c8230b7692c');
+            setRestaurantId(subdomain === 'kroren' ? 'kroren' : 'kroren-levent');
             addLog(`Restoran algılandı: ${subdomain}`, 'info');
         } else {
-            // Default to Kroren ID for debugging if no subdomain
-            setRestaurantId('7');
-            addLog(`Varsayılan Restoran ID: 7 (Kroren)`, 'info');
+            // Default to Kroren username for debugging if no subdomain
+            setRestaurantId('kroren');
+            addLog(`Varsayılan Restoran: kroren`, 'info');
         }
     }, []);
 
@@ -42,7 +42,7 @@ export default function ActiveOrdersPrintPage() {
         addLog(`Aktif siparişler getiriliyor (Restoran ID: ${restaurantId})...`, 'info');
 
         try {
-            const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}&status=pending,preparing,ready`);
+            const response = await fetch(`${API_URL}/orders?restaurantId=${restaurantId}&status=pending,preparing,ready&from=debug`);
             const data = await response.json();
 
             if (data.success) {
@@ -216,8 +216,8 @@ export default function ActiveOrdersPrintPage() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-600' :
-                                                    order.status === 'preparing' ? 'bg-blue-100 text-blue-600' :
-                                                        'bg-green-100 text-green-600'
+                                                order.status === 'preparing' ? 'bg-blue-100 text-blue-600' :
+                                                    'bg-green-100 text-green-600'
                                                 }`}>
                                                 {order.status}
                                             </span>
@@ -269,9 +269,9 @@ export default function ActiveOrdersPrintPage() {
                             <div className="flex-1 overflow-y-auto space-y-2 font-mono text-[10px] custom-scrollbar pr-2">
                                 {logs.map((log, idx) => (
                                     <div key={idx} className={`p-2 rounded-xl transition-all ${log.type === 'error' ? 'text-red-400 bg-red-400/5 border border-red-400/20' :
-                                            log.type === 'success' ? 'text-green-400 bg-green-400/5 border border-green-400/20' :
-                                                log.type === 'warning' ? 'text-yellow-400 bg-yellow-400/5 border border-yellow-400/20' :
-                                                    'text-gray-400 bg-white/5 border border-white/5'
+                                        log.type === 'success' ? 'text-green-400 bg-green-400/5 border border-green-400/20' :
+                                            log.type === 'warning' ? 'text-yellow-400 bg-yellow-400/5 border border-yellow-400/20' :
+                                                'text-gray-400 bg-white/5 border border-white/5'
                                         }`}>
                                         <span className="text-gray-600 font-bold block mb-1">[{log.time}]</span>
                                         <span className="leading-relaxed">{log.message}</span>
