@@ -35,6 +35,7 @@ import useBusinessSettingsStore from '@/store/useBusinessSettingsStore';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import TranslatedText, { staticDictionary } from '@/components/TranslatedText';
 import BusinessSidebar from '@/components/BusinessSidebar';
+import apiService from '@/services/api';
 
 function BusinessDashboardContent() {
   const router = useRouter();
@@ -81,6 +82,13 @@ function BusinessDashboardContent() {
       fetchRestaurantMenu(authenticatedRestaurant.id);
       fetchOrders(authenticatedRestaurant.id);
       fetchCurrentRestaurant(authenticatedRestaurant.id);
+
+      // Fetch actual QR codes count
+      apiService.getRestaurantQRTokens(authenticatedRestaurant.id).then(res => {
+        if (res.success && Array.isArray(res.data)) {
+          setTotalTableCount(res.data.length);
+        }
+      }).catch(err => console.error('Error fetching tables:', err));
     }
   }, [authenticatedRestaurant?.id, fetchRestaurantMenu, fetchOrders, fetchCurrentRestaurant]);
 
@@ -102,6 +110,7 @@ function BusinessDashboardContent() {
   const [activeSource, setActiveSource] = useState<'restoran' | 'online'>('restoran');
   const hasDeliveryIntegration = useFeature('delivery_integration');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [totalTableCount, setTotalTableCount] = useState(0);
 
   // Restoranlar sayfasından alınan planlar ve fiyatlar
   const plans = {
@@ -462,7 +471,7 @@ function BusinessDashboardContent() {
                   </div>
                 </div>
                 <h3 className="text-4xl font-black bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent mb-2">
-                  {currentRestaurant?.tableCount || authenticatedRestaurant?.tableCount || 0}
+                  {totalTableCount}
                 </h3>
                 <p className="text-gray-600 text-lg font-bold"><TranslatedText>Toplam Masa</TranslatedText></p>
                 <div className="mt-4 flex items-center text-sm text-orange-600 font-bold">
