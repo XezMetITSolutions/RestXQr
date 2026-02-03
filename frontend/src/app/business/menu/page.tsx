@@ -162,6 +162,9 @@ export default function MenuManagement() {
   const [campaignStartDate, setCampaignStartDate] = useState<string>('');
   const [campaignEndDate, setCampaignEndDate] = useState<string>('');
 
+  // Station Mapping Edit State
+  const [editingMappingItemId, setEditingMappingItemId] = useState<string | null>(null);
+
 
 
   // Campaign Banner States
@@ -2798,45 +2801,83 @@ export default function MenuManagement() {
                             </span>
                           </td>
                           <td className="px-8 py-5">
-                            <div className="flex flex-col gap-1">
-                              <select
-                                value={item.kitchenStation || ''}
-                                onChange={async (e) => {
-                                  const newStationId = e.target.value;
-                                  try {
-                                    if (currentRestaurantId) {
-                                      // Tüm item verisini spread ederek gönder, aksi takdirde store'daki backendData üretimi bazı alanları null yapabilir
-                                      await updateMenuItem(currentRestaurantId, item.id, {
-                                        ...item,
-                                        kitchenStation: newStationId
-                                      });
-                                      // No re-fetch needed, updateMenuItem updates the store state locally
-                                    }
-                                  } catch (error) {
-                                    console.error('İstasyon güncellenirken hata:', error);
-                                  }
-                                }}
-                                className={`w-full max-w-[240px] px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all outline-none border-2 ${item.kitchenStation
-                                  ? 'bg-amber-50 border-amber-200 text-amber-900 focus:border-amber-400'
-                                  : 'bg-gray-50 border-gray-100 text-gray-500 focus:border-purple-300'
+                            <div className="flex flex-col gap-1 relative">
+                              <button
+                                onClick={() => setEditingMappingItemId(item.id === editingMappingItemId ? null : item.id)}
+                                className={`w-full max-w-[240px] px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all outline-none border-2 text-left flex justify-between items-center ${(Array.isArray(item.kitchenStation) ? item.kitchenStation.length > 0 : item.kitchenStation)
+                                    ? 'bg-amber-50 border-amber-200 text-amber-900 hover:border-amber-400'
+                                    : 'bg-gray-50 border-gray-100 text-gray-500 hover:border-purple-300'
                                   }`}
                               >
-                                <option value="">⚠️ {t('İstasyon Seçin')}</option>
-                                {stations.map(station => (
-                                  <option key={station.id} value={station.id}>
-                                    {station.emoji} {station.name}
-                                  </option>
-                                ))}
-                              </select>
-                              {item.kitchenStation && (
+                                <span className="truncate block">
+                                  {(() => {
+                                    const stationIds = Array.isArray(item.kitchenStation) ? item.kitchenStation : (item.kitchenStation ? [item.kitchenStation] : []);
+                                    if (stationIds.length === 0) return `⚠️ ${t('İstasyon Seçin')}`;
+
+                                    const names = stationIds.map((id: string) => {
+                                      const s = stations.find(s => s.id === id);
+                                      return s ? `${s.emoji || ''} ${s.name}` : id;
+                                    });
+                                    return names.join(', ');
+                                  })()}
+                                </span>
+                                <FaEdit className="ml-2 flex-shrink-0 opacity-50" />
+                              </button>
+
+                              {editingMappingItemId === item.id && (
+                                <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 p-2 max-h-60 overflow-y-auto">
+                                  {stations.length === 0 && <div className="p-2 text-sm text-gray-400 italic">İstasyon yok</div>}
+                                  {stations.sort((a, b) => a.order - b.order).map(station => {
+                                    const stationIds = Array.isArray(item.kitchenStation) ? item.kitchenStation : (item.kitchenStation ? [item.kitchenStation] : []);
+                                    const isSelected = stationIds.includes(station.id);
+                                    return (
+                                      <label key={station.id} className="flex items-center p-2 hover:bg-gray-50 rounded-lg cursor-pointer select-none">
+                                        <input
+                                          type="checkbox"
+                                          checked={isSelected}
+                                          onChange={async (e) => {
+                                            const checked = e.target.checked;
+                                            let newIds = [...stationIds];
+                                            if (checked) newIds.push(station.id);
+                                            else newIds = newIds.filter((id: string) => id !== station.id);
+
+                                            try {
+                                              if (currentRestaurantId) {
+                                                await updateMenuItem(currentRestaurantId, item.id, {
+                                                  ...item,
+                                                  kitchenStation: newIds
+                                                });
+                                              }
+                                            } catch (err) {
+                                              console.error(err);
+                                            }
+                                          }}
+                                          className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                                        />
+                                        <span className="ml-2 text-sm text-gray-700">{station.emoji} {station.name}</span>
+                                      </label>
+                                    )
+                                  })}
+                                  <div className="border-t mt-2 pt-2 sticky bottom-0 bg-white">
+                                    <button
+                                      onClick={() => setEditingMappingItemId(null)}
+                                      className="w-full py-1 text-xs text-center text-purple-600 font-bold hover:underline"
+                                    >
+                                      Kapat
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {(Array.isArray(item.kitchenStation) ? item.kitchenStation.length > 0 : item.kitchenStation) && (
                                 <p className="text-[10px] text-amber-600 font-bold ml-1">
                                   {t('Siparişler buraya gönderilecek')}
                                 </p>
                               )}
                             </div>
                           </td>
-                          <td className="px-8 py-5 text-center">
-                            {item.kitchenStation ? (
+                          <td className="px-8 py-5 text-center relative pointer-events-none">
+                            {(Array.isArray(item.kitchenStation) ? item.kitchenStation.length > 0 : item.kitchenStation) ? (
                               <div className="flex items-center justify-center">
                                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-inner">
                                   <FaCheck />
