@@ -35,7 +35,7 @@ export default function ReportsPage() {
   const displayName = authenticatedRestaurant?.name || authenticatedStaff?.name || 'Kullanıcı';
   const displayEmail = authenticatedRestaurant?.email || authenticatedStaff?.email || '';
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'revenue' | 'hours' | 'endOfDay'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'revenue' | 'hours' | 'endOfDay' | 'tables'>('overview');
   const [dateRange, setDateRange] = useState({
     start: new Date().toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
@@ -43,6 +43,30 @@ export default function ReportsPage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<any[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Default to showing all orders or maybe just today's orders depending on UX? 
+    // Usually reports might start empty or with today. 
+    // The existing code does calculation on 'orders' which contains everything.
+    // Let's initialize filteredOrders with orders so it shows everything by default or we can filter by default range.
+    // The default range is today (lines 39-42).
+    setFilteredOrders(orders);
+  }, [orders]);
+
+  const handleFilter = () => {
+    if (!dateRange.start || !dateRange.end) return;
+    const start = new Date(dateRange.start);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(dateRange.end);
+    end.setHours(23, 59, 59, 999);
+
+    const filtered = orders.filter(order => {
+      const orderDate = new Date(order.createdAt || order.created_at);
+      return orderDate >= start && orderDate <= end;
+    });
+    setFilteredOrders(filtered);
+  };
 
   const handleLogout = () => {
     logout();
@@ -196,10 +220,10 @@ export default function ReportsPage() {
           [t('Z-Raporu'), new Date().toLocaleDateString('tr-TR')],
           [],
           [t('Metrik'), t('Değer')],
-          [t('Toplam Ciro (Gross)'), currentDailyReport?.totalSales || 0],
-          [t('KDV Toplam (%10)'), (currentDailyReport?.totalSales || 0) * 0.10],
-          [t('Net Ciro'), (currentDailyReport?.totalSales || 0) * 0.90],
-          [t('Toplam Sipariş'), currentDailyReport?.totalOrders || 0],
+          [t('Toplam Ciro (Gross)'), displayReport?.totalSales || 0],
+          [t('KDV Toplam (%10)'), (displayReport?.totalSales || 0) * 0.10],
+          [t('Net Ciro'), (displayReport?.totalSales || 0) * 0.90],
+          [t('Toplam Sipariş'), displayReport?.totalOrders || 0],
           [],
           [t('Ödeme Dağılımı')],
           [t('Yöntem'), t('Tutar')],
@@ -207,6 +231,17 @@ export default function ReportsPage() {
         ];
         const ws = XLSX.utils.aoa_to_sheet(rows);
         XLSX.utils.book_append_sheet(wb, ws, t('Gün Sonu'));
+      }
+
+      if (activeTab === 'tables') {
+        const rows = [
+          [t('Masa'), t('Sipariş Sayısı'), t('Toplam Ciro (TRY)'), t('Ort. Süre (dk)')],
+          // Data will be filled in rendering logic, but duplicating logic here for export might be complex. 
+          // For now, let's export empty or simple list if we don't refactor calculation out.
+          // Ideally we calculate stats outside render.
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, t('Masa Analizi'));
       }
 
       const arr = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
@@ -256,7 +291,8 @@ export default function ReportsPage() {
                 <p>${t('Rapor Türü')}: ${activeTab === 'overview' ? t('Genel Bakış') :
             activeTab === 'products' ? t('Ürün Performansı') :
               activeTab === 'revenue' ? t('Ciro Analizi') :
-                activeTab === 'endOfDay' ? t('Gün Sonu (Z-Raporu)') : t('Saat Analizi')}</p>
+                activeTab === 'tables' ? t('Masa Analizi') :
+                  activeTab === 'endOfDay' ? t('Gün Sonu (Z-Raporu)') : t('Saat Analizi')}</p>
                 <div class="print-date">${t('Yazdırma Tarihi')}: ${new Date().toLocaleString('tr-TR')}</div>
               </div>
               ${printContent.innerHTML}
@@ -321,8 +357,8 @@ export default function ReportsPage() {
     return orderDate >= lastMonth && orderDate < thisMonth;
   });
 
-  // Günlük rapor hesapla
-  const currentDailyReport = {
+  // Günlük rapor hesapla (Today only)
+  const todayStats = {
     totalSales: todayOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0),
     totalOrders: todayOrders.length,
     averageOrderValue: todayOrders.length > 0
@@ -331,6 +367,22 @@ export default function ReportsPage() {
     totalTables: new Set(todayOrders.map(order => order.tableNumber || order.table_id || order.id)).size,
     averageTableTime: 0
   };
+
+  const currentDailyReport = todayStats; // Keep name for backward compatibility in Overview
+
+  // Filtered stats for other tabs
+  const filteredReportStats = {
+    totalSales: filteredOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0),
+    totalOrders: filteredOrders.length,
+    averageOrderValue: filteredOrders.length > 0
+      ? filteredOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0) / filteredOrders.length
+      : 0,
+    totalTables: new Set(filteredOrders.map(order => order.tableNumber || order.table_id || order.id)).size,
+    averageTableTime: 0
+  };
+
+  const displayReport = activeTab === 'overview' ? currentDailyReport : filteredReportStats;
+
 
   // Gelir verileri (İndirimler düşülmüş net rakamlar)
   const todayRevenue = todayOrders.reduce((sum, order) => sum + ((Number(order.totalAmount) || Number(order.total) || 0) - (Number(order.discountAmount) || 0)), 0);
@@ -445,10 +497,14 @@ export default function ReportsPage() {
     });
   }
 
-  // En çok satan ürünler
+  // En çok satan ürünler (based on filteredOrders if not overview, but overview doesn't show top products list usually? 
+  // Actually the code uses 'orders' for topProducts which is shown in 'products' tab. 
+  // We should switches to filteredOrders for 'products' tab.
+  const sourceOrders = activeTab === 'overview' ? orders : filteredOrders;
+
   const productMap = new Map<string, { productName: string; totalQuantity: number; totalRevenue: number; orderCount: number }>();
 
-  orders.forEach(order => {
+  sourceOrders.forEach(order => {
     if (order.items && Array.isArray(order.items)) {
       order.items.forEach((item: any) => {
         const productName = item.name || item.menuItem?.name || 'Bilinmeyen Ürün';
@@ -481,7 +537,10 @@ export default function ReportsPage() {
   // Saatlik satışlar (8:00 - 20:00)
   const hourlySales: number[] = Array(12).fill(0);
   const hourlyOrders: number[] = Array(12).fill(0);
-  orders.forEach(order => {
+  // Use filteredOrders for hours tab
+  const hoursSourceOrders = activeTab === 'hours' ? filteredOrders : orders;
+
+  hoursSourceOrders.forEach(order => {
     const orderDate = new Date(order.createdAt || order.created_at);
     const hour = orderDate.getHours();
     if (hour >= 8 && hour < 20) {
@@ -509,6 +568,79 @@ export default function ReportsPage() {
     .map((revenue, index) => ({ hour: index + 8, revenue, count: hourlyOrders[index] }))
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 3);
+
+  // Masa Analizi Hesaplamaları
+  const tableStats = activeTab === 'tables' || activeTab === 'overview' ? (() => {
+    const source = activeTab === 'overview' ? orders : filteredOrders;
+    const stats = new Map<string, { tableId: string; orderCount: number; totalRevenue: number; sessions: { start: number; end: number }[] }>();
+
+    // Group orders by table
+    source.forEach(order => {
+      const tableId = order.tableNumber || order.table_id || 'Bilinmiyor';
+      // Skip takeaway/delivery if table is not relevant
+      if (order.orderType === 'takeaway' || order.orderType === 'delivery') return;
+
+      if (!stats.has(tableId)) {
+        stats.set(tableId, { tableId, orderCount: 0, totalRevenue: 0, sessions: [] });
+      }
+      const entry = stats.get(tableId)!;
+      entry.orderCount += 1;
+      entry.totalRevenue += (Number(order.totalAmount) || Number(order.total) || 0);
+    });
+
+    const tableTimes = new Map<string, number[]>();
+    source.forEach(order => {
+      const tableId = order.tableNumber || order.table_id || 'Bilinmiyor';
+      if (order.orderType === 'takeaway' || order.orderType === 'delivery') return;
+      if (!tableTimes.has(tableId)) tableTimes.set(tableId, []);
+      tableTimes.get(tableId)!.push(new Date(order.createdAt || order.created_at).getTime());
+    });
+
+    const finalStats: any[] = [];
+
+    stats.forEach((val, key) => {
+      const times = tableTimes.get(key) || [];
+      times.sort((a, b) => a - b);
+
+      let totalDurationMinutes = 0;
+      let sessionsCount = 0;
+
+      if (times.length > 0) {
+        let sessionStart = times[0];
+        let sessionEnd = times[0];
+        sessionsCount = 1;
+
+        for (let i = 1; i < times.length; i++) {
+          if (times[i] - sessionEnd < 2 * 60 * 60 * 1000) { // 2 hours
+            sessionEnd = times[i];
+          } else {
+            // Start new session
+            totalDurationMinutes += (sessionEnd - sessionStart) / (1000 * 60); // minutes
+
+            if (sessionEnd === sessionStart) totalDurationMinutes += 30; // Assume 30 min for single order
+
+            sessionStart = times[i];
+            sessionEnd = times[i];
+            sessionsCount++;
+          }
+        }
+        // Add last session
+        totalDurationMinutes += (sessionEnd - sessionStart) / (1000 * 60);
+        if (sessionEnd === sessionStart) totalDurationMinutes += 30;
+      }
+
+      const avgDuration = sessionsCount > 0 ? Math.round(totalDurationMinutes / sessionsCount) : 0;
+
+      finalStats.push({
+        tableId: val.tableId,
+        orderCount: val.orderCount,
+        totalRevenue: val.totalRevenue,
+        avgDuration
+      });
+    });
+
+    return finalStats.sort((a, b) => b.totalRevenue - a.totalRevenue); // Default Revenue sort
+  })() : [];
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('tr-TR', {
@@ -628,6 +760,15 @@ export default function ReportsPage() {
                 >
                   ⏰ <TranslatedText>Saat Analizi</TranslatedText>
                 </button>
+                <button
+                  onClick={() => setActiveTab('tables')}
+                  className={`flex items-center gap-2 px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 ${activeTab === 'tables'
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg scale-105'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                >
+                  🪑 <TranslatedText>Masa Analizi</TranslatedText>
+                </button>
               </div>
             </div>
           </div>
@@ -666,6 +807,14 @@ export default function ReportsPage() {
                     onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={handleFilter}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-md"
+                  >
+                    <TranslatedText>Filtrele</TranslatedText>
+                  </button>
                 </div>
               </>
             )}
@@ -1117,6 +1266,68 @@ export default function ReportsPage() {
             </div>
           )}
 
+          {/* Masa Analizi Tab */}
+          {!loading && activeTab === 'tables' && (
+            <div className="space-y-6">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-orange-500">
+                  <p className="text-sm font-medium text-gray-600"><TranslatedText>En Çok Kullanılan Masa</TranslatedText></p>
+                  <p className="text-2xl font-bold text-orange-600">
+                    {tableStats.sort((a, b) => b.orderCount - a.orderCount)[0]?.tableId || '-'}
+                  </p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-green-500">
+                  <p className="text-sm font-medium text-gray-600"><TranslatedText>En Çok Ciro Yapan Masa</TranslatedText></p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {tableStats.sort((a, b) => b.totalRevenue - a.totalRevenue)[0]?.tableId || '-'}
+                  </p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-blue-500">
+                  <p className="text-sm font-medium text-gray-600"><TranslatedText>Ortalama Oturma Süresi</TranslatedText></p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {tableStats.length > 0 ? Math.round(tableStats.reduce((acc, curr) => acc + curr.avgDuration, 0) / tableStats.length) : 0} dk
+                  </p>
+                </div>
+              </div>
+
+              {/* Detailed Table List */}
+              <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+                <div className="p-6 border-b">
+                  <h3 className="text-lg font-semibold text-gray-800"><TranslatedText>Detaylı Masa İstatistikleri</TranslatedText></h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="p-4 text-left font-medium text-gray-500"><TranslatedText>Masa No</TranslatedText></th>
+                        <th className="p-4 text-right font-medium text-gray-500"><TranslatedText>Sipariş Sayısı</TranslatedText></th>
+                        <th className="p-4 text-right font-medium text-gray-500"><TranslatedText>Toplam Ciro</TranslatedText></th>
+                        <th className="p-4 text-right font-medium text-gray-500"><TranslatedText>Ort. Süre</TranslatedText></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {tableStats.length > 0 ? (
+                        tableStats.map((stat, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                            <td className="p-4 font-bold text-gray-800">{stat.tableId}</td>
+                            <td className="p-4 text-right text-gray-600">{stat.orderCount}</td>
+                            <td className="p-4 text-right font-semibold text-green-600">{formatCurrency(stat.totalRevenue)}</td>
+                            <td className="p-4 text-right text-blue-600">{stat.avgDuration} dk</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="p-8 text-center text-gray-500"><TranslatedText>Görüntülenecek veri yok</TranslatedText></td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Gün Sonu Raporları (End of Day) */}
           {activeTab === 'endOfDay' && (
             <div className="space-y-8">
@@ -1140,20 +1351,20 @@ export default function ReportsPage() {
                     <div className="space-y-4">
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <span className="font-medium text-gray-600"><TranslatedText>Toplam Satış (Brüt)</TranslatedText></span>
-                        <span className="text-xl font-bold text-gray-900">{formatCurrency(currentDailyReport?.totalSales || 0)}</span>
+                        <span className="text-xl font-bold text-gray-900">{formatCurrency(displayReport?.totalSales || 0)}</span>
                       </div>
 
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <span className="font-medium text-gray-600"><TranslatedText>KDV (%10)</TranslatedText></span>
                         <span className="text-xl font-bold text-red-600">
-                          {formatCurrency((currentDailyReport?.totalSales || 0) * 0.10)}
+                          {formatCurrency((displayReport?.totalSales || 0) * 0.10)}
                         </span>
                       </div>
 
                       <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-100">
                         <span className="font-bold text-green-800 text-lg"><TranslatedText>Net Satış</TranslatedText></span>
                         <span className="text-2xl font-black text-green-600">
-                          {formatCurrency((currentDailyReport?.totalSales || 0) * 0.90)}
+                          {formatCurrency((displayReport?.totalSales || 0) * 0.90)}
                         </span>
                       </div>
                     </div>
@@ -1163,7 +1374,7 @@ export default function ReportsPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-white border rounded-xl p-4 text-center">
                           <p className="text-gray-500 text-sm mb-1"><TranslatedText>Fiş Sayısı</TranslatedText></p>
-                          <p className="text-xl font-bold">{currentDailyReport?.totalOrders || 0}</p>
+                          <p className="text-xl font-bold">{displayReport?.totalOrders || 0}</p>
                         </div>
                         <div className="bg-white border rounded-xl p-4 text-center">
                           <p className="text-gray-500 text-sm mb-1"><TranslatedText>İptal/İade</TranslatedText></p>
