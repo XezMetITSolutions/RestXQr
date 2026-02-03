@@ -970,7 +970,6 @@ export default function KasaPanel() {
           addLog('Failed to send to printers', 'error');
         }
 
-        alert('Yeni sipariş başarıyla oluşturuldu ve yazıcıya gönderildi.');
         setShowPaymentModal(false);
         setIsNewOrder(false);
         fetchOrders();
@@ -1191,7 +1190,7 @@ export default function KasaPanel() {
         if (itemsToAdd.length > 0) successMsg.push(`${itemsToAdd.length} yeni ürün eklendi`);
         if (hasReductions) successMsg.push(`${orderUpdates.size} sipariş güncellendi`);
 
-        alert(successMsg.join(', ') + '.');
+        // alert(successMsg.join(', ') + '.');
         fetchOrders();
         return;
       }
@@ -1214,14 +1213,15 @@ export default function KasaPanel() {
           totalAmount: calculatedTotal.toFixed(2),
           cashierNote: selectedOrder.cashierNote,
           discountAmount: selectedOrder.discountAmount,
-          discountReason: selectedOrder.discountReason
+          discountReason: selectedOrder.discountReason,
+          approved: true
         })
       });
 
       const data = await response.json();
       if (data.success) {
         addLog('Order saved successfully', 'success');
-        alert('Sipariş başarıyla güncellendi.');
+        // alert('Sipariş başarıyla güncellendi.');
         // Update printing if needed? For now just save.
         if (data.data?.printResults) {
           await handlePrintFailover(data, selectedOrder.id, false);
@@ -1327,7 +1327,7 @@ export default function KasaPanel() {
       });
       const data = await response.json();
       if (data.success) {
-        alert('Masalar başarıyla birleştirildi!');
+        // alert('Masalar başarıyla birleştirildi!');
         setIsMergeModalOpen(false);
         setMergeSource('');
         setMergeTarget('');
@@ -1471,7 +1471,7 @@ export default function KasaPanel() {
 
       const allSuccess = results.every(r => r.success);
       if (allSuccess) {
-        alert('Masa numarası başarıyla güncellendi.');
+        // alert('Masa numarası başarıyla güncellendi.');
         setShowTableModal(false);
         setTableEditOrder(null);
         setNewTableNumber('');

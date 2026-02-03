@@ -434,8 +434,8 @@ router.post('/', async (req, res) => {
     } catch (error) {
       console.error('İçecek kontrolü hatası:', error);
     }
-    // Sadece içecek varsa otomatik onaylansın
-    const autoApprove = hasDrinks && !hasFood;
+    // Sadece içecek varsa VEYA istekte onay belirtilmişse otomatik onaylansın
+    const autoApprove = (hasDrinks && !hasFood) || req.body.approved === true;
     console.log(`📋 Sipariş analizi: hasDrinks=${hasDrinks}, hasFood=${hasFood}, autoApprove=${autoApprove}`);
 
     // Total amount hesapla ve verileri temizle
