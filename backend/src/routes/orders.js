@@ -322,7 +322,8 @@ router.get('/', async (req, res) => {
       const itemStation = drinkStation || it.menuItem?.kitchenStation || 'default';
 
       list.push({
-        id: it.menuItemId || it.id,
+        id: it.id, // OrderItem ID
+        menuItemId: it.menuItemId, // Actual MenuItem ID for printer routing
         name: it.menuItem?.name || 'Ürün',
         quantity: Number(it.quantity || 1),
         price: Number(it.unitPrice || 0),

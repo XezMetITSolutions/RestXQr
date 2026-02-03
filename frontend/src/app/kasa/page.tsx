@@ -9,6 +9,7 @@ import { playNotificationSound } from '@/utils/audio';
 
 interface OrderItem {
   id: string;
+  menuItemId?: string;  // Actual MenuItem ID for printer routing
   name: string;
   quantity: number;
   price: number;
