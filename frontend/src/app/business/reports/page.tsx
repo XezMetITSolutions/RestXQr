@@ -78,14 +78,15 @@ export default function ReportsPage() {
   // API'den siparişleri çek
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!authenticatedRestaurant?.id) {
+      const rId = authenticatedRestaurant?.id || authenticatedStaff?.restaurantId;
+      if (!rId) {
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        const response = await apiService.getOrders(authenticatedRestaurant.id);
+        const response = await apiService.getOrders(rId);
 
         if (response.success && response.data) {
           const normalized = (response.data || []).map((o: any) => ({
@@ -103,7 +104,7 @@ export default function ReportsPage() {
     };
 
     fetchOrders();
-  }, [authenticatedRestaurant?.id]);
+  }, [authenticatedRestaurant?.id, authenticatedStaff?.restaurantId]);
 
   if (!hasFeatureAccess) {
     return (
@@ -308,7 +309,7 @@ export default function ReportsPage() {
 
   // Bugünkü siparişleri filtrele
   const todayOrders = orders.filter(order => {
-    const orderDate = new Date(order.createdAt || order.created_at);
+    const orderDate = new Date(order.created_at || order.createdAt);
     const today = new Date();
     return orderDate.toDateString() === today.toDateString();
   });
