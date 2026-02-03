@@ -942,7 +942,28 @@ export default function KasaPanel() {
       const data = await response.json();
       if (data.success) {
         addLog('Order created successfully', 'success');
-        alert('Yeni sipariş başarıyla oluşturuldu.');
+
+        // Kasadan oluşturulan sipariş direkt yazıcıya gönderilsin
+        try {
+          addLog('Sending order to printers...', 'network');
+          const printResponse = await fetch(`${API_URL}/orders/${data.data.id}/print`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const printData = await printResponse.json();
+          if (printData.success) {
+            addLog('Order sent to printers successfully', 'success');
+            playNotificationSound();
+          } else {
+            addLog(`Printer error: ${printData.message}`, 'error');
+          }
+        } catch (printError) {
+          console.error('Print error:', printError);
+          addLog('Failed to send to printers', 'error');
+        }
+
+        alert('Yeni sipariş başarıyla oluşturuldu ve yazıcıya gönderildi.');
         setShowPaymentModal(false);
         setIsNewOrder(false);
         fetchOrders();

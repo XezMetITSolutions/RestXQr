@@ -1301,6 +1301,161 @@ router.post('/:id/print', async (req, res) => {
   }
 });
 
+// POST /api/orders/:id/print (Same as print-kitchen - sends to all kitchen stations)
+router.post('/:id/print', async (req, res) => {
+  const steps = [];
+  const log = (msg, type = 'info') => {
+    steps.push({ timestamp: new Date().toISOString(), message: msg, type });
+    console.log(`[PRINT] ${msg}`);
+  };
+
+  try {
+    const { id } = req.params;
+    log(`Baskı isteği alındı. Sipariş ID: ${id}`);
+
+    const order = await Order.findByPk(id);
+    if (!order) {
+      log('Sipariş veritabanında bulunamadı', 'error');
+      return res.status(404).json({ success: false, message: 'Order not found', steps });
+    }
+
+    log(`Sipariş bulundu. Masa: ${order.tableNumber || 'Paket'}`);
+
+    const restaurant = await Restaurant.findByPk(order.restaurantId);
+    if (!restaurant) {
+      log('Restoran bulunamadı', 'error');
+      return res.status(404).json({ success: false, message: 'Restaurant not found', steps });
+    }
+
+    if (!restaurant.printerConfig) {
+      log('Restoranda yazıcı yapılandırması (printerConfig) bulunamadı', 'error');
+      return res.status(400).json({ success: false, message: 'No printer config', steps });
+    }
+
+    log('Yazıcı yapılandırması kontrol ediliyor...');
+
+    // Sipariş itemlarını al
+    const orderItems = await OrderItem.findAll({
+      where: { orderId: order.id },
+      include: [{
+        model: MenuItem,
+        as: 'menuItem',
+        attributes: ['name', 'kitchenStation', 'categoryId', 'translations'],
+        include: [{ model: MenuCategory, as: 'category', attributes: ['name'] }]
+      }]
+    });
+
+    log(`${orderItems.length} adet sipariş kalemi bulundu.`);
+
+    // İstasyonlara göre grupla
+    const itemsByStation = {};
+    for (const item of orderItems) {
+      const drinkStation = resolveDrinkStationForTable(
+        restaurant,
+        order.tableNumber,
+        item.menuItem?.categoryId,
+        item.menuItem?.kitchenStation,
+        item.menuItem?.category?.name,
+        item.menuItem?.name
+      );
+
+      // Multi-station support: kitchenStation can be an array
+      let stations = [];
+      if (drinkStation) {
+        stations = [drinkStation];
+      } else if (item.menuItem?.kitchenStation) {
+        const ks = item.menuItem.kitchenStation;
+        stations = Array.isArray(ks) ? ks : [ks];
+      } else {
+        stations = ['default'];
+      }
+
+      // Add item to each station
+      for (const station of stations) {
+        if (!itemsByStation[station]) {
+          itemsByStation[station] = [];
+        }
+        itemsByStation[station].push({
+          name: item.menuItem?.name || 'Ürün',
+          quantity: item.quantity,
+          notes: item.notes || '',
+          variations: item.variations || [],
+          translations: item.menuItem?.translations
+        });
+      }
+    }
+
+    const stationsToPrint = Object.keys(itemsByStation);
+    log(`Yazdırılacak istasyonlar: ${stationsToPrint.join(', ')}`);
+
+    const printerService = require('../services/printerService');
+    const results = [];
+
+    for (const stationId of stationsToPrint) {
+      const stationItems = itemsByStation[stationId];
+      const printerConfig = restaurant.printerConfig[stationId];
+
+      log(`--- [${stationId}] İstasyonu İşleniyor ---`);
+
+      if (printerConfig && printerConfig.enabled && printerConfig.ip) {
+        log(`Sistem Yapılandırması: ${stationId} istasyonu için hedef IP: ${printerConfig.ip}, Port: ${printerConfig.port || 9100}`);
+        log(`Yapılandırma durumu: ${printerConfig.enabled ? 'AKTİF' : 'PASİF'}`);
+
+        // PrinterService'e istasyon ekle/güncelle
+        printerService.addOrUpdateStation(stationId, {
+          name: stationId,
+          ip: printerConfig.ip,
+          port: printerConfig.port || 9100,
+          enabled: true,
+          type: require('node-thermal-printer').PrinterTypes.EPSON,
+          characterSet: require('node-thermal-printer').CharacterSet.PC857_TURKISH,
+          codePage: 'CP857',
+          language: printerConfig.language || 'tr'
+        });
+
+        log(`${stationId} yazıcısına bağlanılıyor (Hızlı kontrol)...`);
+        log(`İşlem başlatıldı: ${stationId} (${printerConfig.ip}:${printerConfig.port || 9100})`);
+
+        const printResult = await printerService.printOrderAdvanced(stationId, {
+          orderNumber: order.id.substring(0, 8),
+          tableNumber: order.tableNumber || 'Paket',
+          items: stationItems
+        });
+
+        if (printResult.success) {
+          log(`${stationId} yazıcısına başarıyla gönderildi (${printerConfig.ip})`, 'success');
+          results.push({ stationId, success: true });
+        } else {
+          log(`${stationId} (${printerConfig.ip}) yazdırma hatası: ${printResult.error}`, 'error');
+          results.push({
+            stationId,
+            success: false,
+            error: printResult.error,
+            isLocalIP: printResult.isLocalIP,
+            ip: printerConfig.ip,
+            stationItems
+          });
+        }
+      } else {
+        log(`${stationId} istasyonu için aktif yazıcı bulunamadı (enabled: ${printerConfig?.enabled}, ip: ${printerConfig?.ip})`, 'warning');
+        results.push({ stationId, success: false, error: 'Printer not configured or disabled' });
+      }
+    }
+
+    const overallSuccess = results.some(r => r.success);
+    res.json({
+      success: overallSuccess,
+      message: overallSuccess ? 'Baskı işlemi tamamlandı' : 'Hiçbir yazıcıya gönderilemedi',
+      results,
+      steps
+    });
+
+  } catch (error) {
+    log(`Sistem hatası: ${error.message}`, 'error');
+    res.status(500).json({ success: false, message: 'Internal server error', steps });
+  }
+});
+
 // POST /api/orders/:id/print-info (Information receipt for cashier)
 router.post('/:id/print-info', async (req, res) => {
   const steps = [];
