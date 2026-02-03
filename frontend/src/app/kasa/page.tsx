@@ -871,7 +871,13 @@ export default function KasaPanel() {
   };
 
   const updateItemQuantity = (index: number, newQty: number) => {
-    if (!selectedOrder || newQty < 1) return;
+    if (!selectedOrder) return;
+    if (newQty < 1) {
+      if (confirm('Bu ürünü silmek istediğinize emin misiniz?')) {
+        removeItem(index);
+      }
+      return;
+    }
     saveToUndo(selectedOrder);
     const updatedItems = [...selectedOrder.items];
     updatedItems[index] = { ...updatedItems[index], quantity: newQty };
@@ -2146,9 +2152,9 @@ export default function KasaPanel() {
 
                         <div className="flex justify-between items-center mt-1">
                           <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                            <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(item.originalIndexes[0], item.quantity - 1); }} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded"><FaMinus size={10} /></button>
+                            <button onClick={(e) => { e.stopPropagation(); const currentQty = selectedOrder?.items[item.originalIndexes[0]]?.quantity || 1; updateItemQuantity(item.originalIndexes[0], currentQty - 1); }} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded"><FaMinus size={10} /></button>
                             <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
-                            <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(item.originalIndexes[0], item.quantity + 1); }} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded"><FaPlus size={10} /></button>
+                            <button onClick={(e) => { e.stopPropagation(); const currentQty = selectedOrder?.items[item.originalIndexes[0]]?.quantity || 1; updateItemQuantity(item.originalIndexes[0], currentQty + 1); }} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded"><FaPlus size={10} /></button>
                           </div>
 
                           <div className="flex gap-1">
@@ -2293,7 +2299,7 @@ export default function KasaPanel() {
                               return { ...item, quantity: newQty };
                             }
                             return item;
-                          }).filter(Boolean);
+                          }).filter((item): item is OrderItem => item !== null);
 
                           const newTotal = remainingItems.reduce((sum, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
                           updatedOrderData = {
@@ -2837,8 +2843,8 @@ export default function KasaPanel() {
                     key={n}
                     onClick={() => setPrintQuantityModal({ ...printQuantityModal, quantity: n })}
                     className={`py-3 rounded-xl font-bold text-lg transition-all ${printQuantityModal.quantity === n
-                        ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
-                        : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300'
+                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
+                      : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300'
                       }`}
                   >
                     {n}
