@@ -17,6 +17,20 @@ import {
   FaBars,
   FaTimes
 } from 'react-icons/fa';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  ComposedChart,
+  Line,
+  Legend
+} from 'recharts';
 import { useAuthStore } from '@/store/useAuthStore';
 import BusinessSidebar from '@/components/BusinessSidebar';
 import { useFeature } from '@/hooks/useFeature';
@@ -415,7 +429,7 @@ export default function ReportsPage() {
   const getStartDate = () => {
     if (orders.length === 0) {
       // Eğer sipariş yoksa, restoran oluşturulma tarihini kullan
-      const restaurantCreatedAt = authenticatedRestaurant?.createdAt || authenticatedRestaurant?.created_at;
+      const restaurantCreatedAt = authenticatedRestaurant?.createdAt;
       if (restaurantCreatedAt) {
         return new Date(restaurantCreatedAt);
       }
@@ -866,136 +880,251 @@ export default function ReportsPage() {
             <div className="space-y-6">
               {/* Ana Metrikler */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-green-500">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Bugünkü Ciro</TranslatedText></p>
-                      <p className="text-2xl font-bold text-green-600">
+                      <p className="text-sm font-medium text-gray-500 mb-1"><TranslatedText>Bugünkü Ciro</TranslatedText></p>
+                      <p className="text-3xl font-black text-gray-900 tracking-tight">
                         {formatCurrency(currentDailyReport?.totalSales || 0)}
                       </p>
                       {revenueData.daily.change !== 0 && (
-                        <div className="flex items-center mt-1">
-                          <span className={`text-xs ${revenueData.daily.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {revenueData.daily.change > 0 ? '📈' : '📉'} {revenueData.daily.change > 0 ? '+' : ''}{revenueData.daily.change.toFixed(1)}% {t('dün')}
+                        <div className="flex items-center mt-2 bg-green-50 px-2 py-1 rounded-lg w-fit">
+                          <span className={`text-xs font-bold ${revenueData.daily.change > 0 ? 'text-green-700' : 'text-red-700'}`}>
+                            {revenueData.daily.change > 0 ? '📈' : '📉'} {revenueData.daily.change > 0 ? '+' : ''}{revenueData.daily.change.toFixed(1)}%
                           </span>
                         </div>
                       )}
                     </div>
-                    <span className="text-green-600 text-2xl">💰</span>
+                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                      <FaChartLine className="text-green-600 text-xl" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-blue-500">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Toplam Sipariş</TranslatedText></p>
-                      <p className="text-2xl font-bold text-blue-600">
+                      <p className="text-sm font-medium text-gray-500 mb-1"><TranslatedText>Toplam Sipariş</TranslatedText></p>
+                      <p className="text-3xl font-black text-gray-900 tracking-tight">
                         {currentDailyReport?.totalOrders || 0}
                       </p>
                       {yesterdayOrders.length > 0 && (
-                        <div className="flex items-center mt-1">
+                        <div className="flex items-center mt-2 bg-blue-50 px-2 py-1 rounded-lg w-fit">
                           {(() => {
                             const orderChange = yesterdayOrders.length > 0
                               ? ((todayOrders.length - yesterdayOrders.length) / yesterdayOrders.length) * 100
                               : 0;
                             return (
-                              <span className={`text-xs ${orderChange > 0 ? 'text-green-600' : orderChange < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                                {orderChange > 0 ? '📈' : orderChange < 0 ? '📉' : '➡️'} {orderChange > 0 ? '+' : ''}{orderChange.toFixed(1)}% {t('dün')}
+                              <span className={`text-xs font-bold ${orderChange > 0 ? 'text-green-700' : orderChange < 0 ? 'text-red-700' : 'text-gray-600'}`}>
+                                {orderChange > 0 ? '📈' : orderChange < 0 ? '📉' : '➡️'} {orderChange > 0 ? '+' : ''}{orderChange.toFixed(1)}%
                               </span>
                             );
                           })()}
                         </div>
                       )}
                     </div>
-                    <span className="text-blue-600 text-2xl">🛒</span>
+                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <FaShoppingCart className="text-blue-600 text-xl" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-purple-500">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-l-4 border-l-purple-500 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Ortalama Sipariş</TranslatedText></p>
-                      <p className="text-2xl font-bold text-purple-600">
+                      <p className="text-sm font-medium text-gray-500 mb-1"><TranslatedText>Ortalama Sepet</TranslatedText></p>
+                      <p className="text-3xl font-black text-gray-900 tracking-tight">
                         {formatCurrency(currentDailyReport?.averageOrderValue || 0)}
                       </p>
-                      {yesterdayOrders.length > 0 && todayOrders.length > 0 && (
-                        <div className="flex items-center mt-1">
-                          {(() => {
-                            const yesterdayAvg = yesterdayOrders.length > 0
-                              ? yesterdayOrders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0) / yesterdayOrders.length
-                              : 0;
-                            const todayAvg = currentDailyReport.averageOrderValue;
-                            const avgChange = yesterdayAvg > 0 ? ((todayAvg - yesterdayAvg) / yesterdayAvg) * 100 : 0;
-                            return (
-                              <span className={`text-xs ${avgChange > 0 ? 'text-green-600' : avgChange < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                                {avgChange > 0 ? '📈' : avgChange < 0 ? '📉' : '➡️'} {avgChange > 0 ? '+' : ''}{avgChange.toFixed(1)}% {t('dün')}
-                              </span>
-                            );
-                          })()}
-                        </div>
-                      )}
+                      <div className="mt-2 text-xs text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded-lg w-fit">
+                        Sipariş Başına
+                      </div>
                     </div>
-                    <span className="text-purple-600 text-2xl">📊</span>
+                    <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <FaUtensils className="text-purple-600 text-xl" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-orange-500">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Aktif Masa</TranslatedText></p>
-                      <p className="text-2xl font-bold text-orange-600">
+                      <p className="text-sm font-medium text-gray-500 mb-1"><TranslatedText>Aktif Masa</TranslatedText></p>
+                      <p className="text-3xl font-black text-gray-900 tracking-tight">
                         {currentDailyReport?.totalTables || 0}
                       </p>
-                      <div className="flex items-center mt-1">
-                        <span className="text-xs text-gray-600">👁️ <TranslatedText>Şu anda</TranslatedText></span>
+                      <div className="mt-2 text-xs text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded-lg w-fit">
+                        Anlık Durum
                       </div>
                     </div>
-                    <span className="text-orange-600 text-2xl">🪑</span>
+                    <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                      <FaUsers className="text-orange-600 text-xl" />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Hızlı İstatistikler */}
+              {/* Grafikler Bölümü */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Günlük Ciro Grafiği (Area Chart) */}
+                <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                      <FaChartLine />
+                    </div>
+                    <TranslatedText>Günlük Ciro Trendi</TranslatedText>
+                  </h3>
+                  <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={dailyTrend.slice(0, 7).reverse()}>
+                        <defs>
+                          <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                        <XAxis
+                          dataKey="date"
+                          tickFormatter={(str) => new Date(str).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#6B7280', fontSize: 12 }}
+                          dy={10}
+                        />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#6B7280', fontSize: 12 }}
+                          tickFormatter={(val) => `₺${val}`}
+                        />
+                        <Tooltip
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                          formatter={(val: any) => [`₺${Number(val).toFixed(2)}`, 'Ciro']}
+                          labelFormatter={(label) => new Date(label).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="#4F46E5"
+                          strokeWidth={3}
+                          fillOpacity={1}
+                          fill="url(#colorRevenue)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Masa Performansı Grafiği (Bar Chart) */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
+                      <FaUsers />
+                    </div>
+                    <TranslatedText>Masa Performansı</TranslatedText>
+                  </h3>
+                  <div className="h-[300px] w-full">
+                    {tableStats.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          layout="vertical"
+                          data={tableStats.slice(0, 5)}
+                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E5E7EB" />
+                          <XAxis type="number" hide />
+                          <YAxis
+                            dataKey="tableId"
+                            type="category"
+                            axisLine={false}
+                            tickLine={false}
+                            width={80}
+                            tick={{ fill: '#374151', fontSize: 14, fontWeight: 500 }}
+                            tickFormatter={(val) => val === 'null' ? 'Paket' : `Masa ${val}`}
+                          />
+                          <Tooltip
+                            cursor={{ fill: '#F3F4F6' }}
+                            contentStyle={{ borderRadius: '8px' }}
+                            formatter={(val: any) => [`₺${Number(val).toFixed(2)}`, 'Ciro']}
+                          />
+                          <Bar dataKey="totalRevenue" fill="#F97316" radius={[0, 4, 4, 0]} barSize={32} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                        <FaUsers className="text-4xl mb-2 opacity-20" />
+                        <p>Veri yok</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Hızlı İstatistikler Alt */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* En Çok Satan Ürünler */}
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    🏆 <TranslatedText>En Çok Satan Ürünler</TranslatedText>
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center">
+                      <FaStore />
+                    </div>
+                    <TranslatedText>En Çok Satan Ürünler</TranslatedText>
                   </h3>
-                  <div className="space-y-3">
-                    {topProducts.slice(0, 3).map((product, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="space-y-4">
+                    {topProducts.slice(0, 5).map((product, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700 ring-4 ring-yellow-50' :
+                            index === 1 ? 'bg-gray-200 text-gray-700' :
+                              index === 2 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-500'
+                            }`}>
                             {index + 1}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-800">{product.productName}</p>
-                            <p className="text-xs text-gray-600">{product.totalQuantity} <TranslatedText>adet</TranslatedText></p>
+                            <p className="font-bold text-gray-800">{product.productName}</p>
+                            <p className="text-xs font-medium text-gray-500">{product.totalQuantity} <TranslatedText>adet satıldı</TranslatedText></p>
                           </div>
                         </div>
-                        <span className="text-sm font-bold text-green-600">
-                          {formatCurrency(product.totalRevenue)}
-                        </span>
+                        <div className="text-right">
+                          <span className="block font-bold text-gray-900 text-lg">
+                            {formatCurrency(product.totalRevenue)}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Masa Performansı */}
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    ⏰ Masa Performansı
-                  </h3>
-                  <div className="text-center py-4">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">
-                      {formatTime(currentDailyReport?.averageTableTime || 0)}
+                {/* Masa Süreleri & Detaylar */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                      <FaQrcode />
                     </div>
-                    <p className="text-gray-600 text-sm"><TranslatedText>Ortalama Masa Süresi</TranslatedText></p>
-                    {todayOrders.length === 0 && (
-                      <div className="mt-4 text-sm text-gray-500">
-                        <TranslatedText>Bugün henüz sipariş bulunmamaktadır.</TranslatedText>
+                    Masa Detayları (Ort. Süre)
+                  </h3>
+                  <div className="space-y-4">
+                    {tableStats.slice(0, 5).map((table, i) => (
+                      <div key={i} className="flex items-center justify-between p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm text-blue-600 font-bold">
+                            {table.tableId === 'null' ? 'P' : table.tableId}
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-800">{table.tableId === 'null' ? 'Paket Servis' : `Masa ${table.tableId}`}</p>
+                            <p className="text-xs text-blue-600 font-medium">{table.orderCount} Sipariş</p>
+                          </div>
+                        </div>
+                        <div className="px-3 py-1 bg-white rounded-lg border border-blue-100 shadow-sm">
+                          <span className="text-sm font-bold text-gray-700">
+                            {formatTime(table.avgDuration)}
+                          </span>
+                        </div>
                       </div>
+                    ))}
+                    {tableStats.length === 0 && (
+                      <p className="text-center text-gray-400 py-8">Veri bulunamadı</p>
                     )}
                   </div>
                 </div>
@@ -1047,147 +1176,177 @@ export default function ReportsPage() {
           )}
 
           {/* Ciro Analizi */}
+          {/* Ciro Analizi */}
           {!loading && activeTab === 'revenue' && (
             <div className="space-y-6">
               {/* Ana Ciro Metrikleri (Filtreli) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-green-500">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Toplam Ciro (Seçilen Tarih)</TranslatedText></p>
-                      <p className="text-2xl font-bold text-green-600">
+                      <p className="text-sm font-medium text-gray-500 mb-1"><TranslatedText>Toplam Ciro (Seçilen Tarih)</TranslatedText></p>
+                      <p className="text-3xl font-black text-gray-900 tracking-tight">
                         {formatCurrency(displayTotalRevenue)}
                       </p>
                     </div>
-                    <span className="text-green-600 text-2xl">💰</span>
+                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                      <FaChartLine className="text-green-600 text-xl" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-blue-500">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Toplam Sipariş</TranslatedText></p>
-                      <p className="text-2xl font-bold text-blue-600">
+                      <p className="text-sm font-medium text-gray-500 mb-1"><TranslatedText>Toplam Sipariş</TranslatedText></p>
+                      <p className="text-3xl font-black text-gray-900 tracking-tight">
                         {displayTotalOrders}
                       </p>
                     </div>
-                    <span className="text-blue-600 text-2xl">📊</span>
+                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <FaShoppingCart className="text-blue-600 text-xl" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-l-4 border-l-purple-500">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-l-4 border-l-purple-500 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600"><TranslatedText>Ortalama Sipariş</TranslatedText></p>
-                      <p className="text-2xl font-bold text-purple-600">
+                      <p className="text-sm font-medium text-gray-500 mb-1"><TranslatedText>Ortalama Sipariş</TranslatedText></p>
+                      <p className="text-3xl font-black text-gray-900 tracking-tight">
                         {formatCurrency(displayAvgOrder)}
                       </p>
                     </div>
-                    <span className="text-purple-600 text-2xl">📈</span>
+                    <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <FaChartBar className="text-purple-600 text-xl" />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Günlük Ciro Trendi (Filtered) */}
-              <div className="bg-white rounded-lg shadow-sm border">
-                <div className="p-6 border-b">
-                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                    📈 <TranslatedText>Ciro Trendi (Seçilen Tarih Aralığı)</TranslatedText>
+              {/* Günlük Ciro Trendi Grafiği */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div className="mb-6 flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                      <FaChartLine />
+                    </div>
+                    <TranslatedText>Ciro Trendi (Seçilen Tarih Aralığı)</TranslatedText>
                   </h3>
                 </div>
-                <div className="p-6">
-                  {/* Mobil: dikey şema (satır bazlı barlar) */}
-                  <div className="sm:hidden space-y-3">
-
-                    {displayDailyTrend.map((day, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className="w-12 shrink-0 text-xs font-medium text-gray-600 text-right">
-                          {new Date(day.date).toLocaleDateString('tr-TR', { weekday: 'short' })}
-                        </div>
-                        <div className="flex-1">
-                          <div className="h-6 bg-gray-100 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-green-500/80"
-                              style={{ width: `${maxDisplayRevenue > 0 ? Math.max(8, Math.round((day.revenue / maxDisplayRevenue) * 100)) : 8}%` }}
-                            />
-                          </div>
-                          <div className="mt-1 flex justify-between text-[11px] text-gray-600">
-                            <span className="font-semibold text-green-600">{formatCurrency(day.revenue)}</span>
-                            <span>{day.orders} <TranslatedText>sipariş</TranslatedText></span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Tablet/Masaüstü: responsive ızgara */}
-                  <div className="hidden sm:grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 lg:gap-4">
-                    {displayDailyTrend.map((day, index) => (
-                      <div key={index} className="text-center">
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <div className="text-sm font-medium text-gray-600 mb-2">
-                            {new Date(day.date).toLocaleDateString('tr-TR', { weekday: 'short' })}
-                          </div>
-                          <div className="text-lg font-bold text-green-600 mb-1">
-                            {formatCurrency(day.revenue)}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {day.orders} <TranslatedText>sipariş</TranslatedText>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                <div className="h-[400px] w-full">
+                  {displayDailyTrend.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={displayDailyTrend}>
+                        <defs>
+                          <linearGradient id="colorRevenueFiltered" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                        <XAxis
+                          dataKey="date"
+                          tickFormatter={(str) => new Date(str).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#6B7280', fontSize: 12 }}
+                          dy={10}
+                        />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#6B7280', fontSize: 12 }}
+                          tickFormatter={(val) => `₺${val}`}
+                        />
+                        <Tooltip
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                          formatter={(val: any) => [`₺${Number(val).toFixed(2)}`, 'Ciro']}
+                          labelFormatter={(label) => new Date(label).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        />
+                        <Legend verticalAlign="top" height={36} />
+                        <Area
+                          name="Günlük Ciro"
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="#10B981"
+                          strokeWidth={3}
+                          fillOpacity={1}
+                          fill="url(#colorRevenueFiltered)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                      <p><TranslatedText>Görüntülenecek veri yok</TranslatedText></p>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Haftalık ve Aylık Karşılaştırma */}
+              {/* Haftalık ve Aylık Karşılaştırma Grafikleri */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Haftalık Trend */}
-                <div className="bg-white rounded-lg shadow-sm border">
-                  <div className="p-6 border-b">
-                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                      📊 <TranslatedText>Haftalık Ciro Karşılaştırması</TranslatedText>
-                    </h3>
-                  </div>
-                  <div className="p-6">
-                    <div className="space-y-4">
-                      {weeklyTrend.map((week, index) => (
-                        <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                          <div>
-                            <p className="font-medium text-gray-800">{week.week}</p>
-                            <p className="text-sm text-gray-600">{week.orders} <TranslatedText>sipariş</TranslatedText></p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-green-600">{formatCurrency(week.revenue)}</p>
-                          </div>
-                        </div>
-                      ))}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                      <FaChartBar />
                     </div>
+                    <TranslatedText>Haftalık Ciro</TranslatedText>
+                  </h3>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={weeklyTrend.slice(0, 8).reverse()}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                        <XAxis
+                          dataKey="week"
+                          tickFormatter={(val) => val.split('-')[0]} // Show start date only to save space
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#6B7280', fontSize: 11 }}
+                          dy={10}
+                        />
+                        <YAxis hide />
+                        <Tooltip
+                          cursor={{ fill: '#F3F4F6' }}
+                          contentStyle={{ borderRadius: '8px' }}
+                          formatter={(val: any) => [`₺${Number(val).toFixed(2)}`, 'Ciro']}
+                        />
+                        <Bar name="Haftalık Ciro" dataKey="revenue" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
 
                 {/* Aylık Trend */}
-                <div className="bg-white rounded-lg shadow-sm border">
-                  <div className="p-6 border-b">
-                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                      📈 <TranslatedText>Aylık Ciro Karşılaştırması</TranslatedText>
-                    </h3>
-                  </div>
-                  <div className="p-6">
-                    <div className="space-y-4">
-                      {monthlyTrend.map((month, index) => (
-                        <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                          <div>
-                            <p className="font-medium text-gray-800">{month.month}</p>
-                            <p className="text-sm text-gray-600">{month.orders} <TranslatedText>sipariş</TranslatedText></p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-green-600">{formatCurrency(month.revenue)}</p>
-                          </div>
-                        </div>
-                      ))}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                      <FaChartBar />
                     </div>
+                    <TranslatedText>Aylık Ciro</TranslatedText>
+                  </h3>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={monthlyTrend.slice(0, 12).reverse()}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                        <XAxis
+                          dataKey="month"
+                          tickFormatter={(val) => val.split(' ')[0]} // Show month name only
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#6B7280', fontSize: 11 }}
+                          dy={10}
+                        />
+                        <YAxis hide />
+                        <Tooltip
+                          cursor={{ fill: '#F3F4F6' }}
+                          contentStyle={{ borderRadius: '8px' }}
+                          formatter={(val: any) => [`₺${Number(val).toFixed(2)}`, 'Ciro']}
+                        />
+                        <Bar name="Aylık Ciro" dataKey="revenue" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </div>
@@ -1197,95 +1356,83 @@ export default function ReportsPage() {
           {/* Saat Analizi */}
           {!loading && activeTab === 'hours' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-sm border">
-                <div className="p-6 border-b">
-                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                    ⏰ <TranslatedText>Saatlik Performans Analizi</TranslatedText>
-                  </h3>
-                </div>
-                <div className="p-6">
-                  {/* Özet analiz kartları */}
-                  {orders.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <h4 className="font-semibold text-blue-800 mb-3"><TranslatedText>En Yoğun Saatler</TranslatedText></h4>
-                        <div className="space-y-2">
-                          {topHoursByOrders.length > 0 ? (
-                            topHoursByOrders.map((item, idx) => (
-                              <div key={idx} className="flex justify-between items-center">
-                                <span className="text-sm">{item.hour}:00 - {item.hour + 1}:00</span>
-                                <span className="text-sm font-bold text-blue-600">{item.count} <TranslatedText>sipariş</TranslatedText></span>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-gray-500"><TranslatedText>Veri bulunamadı</TranslatedText></p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <h4 className="font-semibold text-green-800 mb-3"><TranslatedText>En Karlı Saatler</TranslatedText></h4>
-                        <div className="space-y-2">
-                          {topHoursByRevenue.length > 0 ? (
-                            topHoursByRevenue.map((item, idx) => (
-                              <div key={idx} className="flex justify-between items-center">
-                                <span className="text-sm">{item.hour}:00 - {item.hour + 1}:00</span>
-                                <span className="text-sm font-bold text-green-600">{formatCurrency(item.revenue)}</span>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-gray-500"><TranslatedText>Veri bulunamadı</TranslatedText></p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="bg-purple-50 p-4 rounded-lg">
-                        <h4 className="font-semibold text-purple-800 mb-3"><TranslatedText>Saatlik Özet</TranslatedText></h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm"><TranslatedText>Toplam Sipariş</TranslatedText></span>
-                            <span className="text-sm font-bold text-purple-600">{orders.length}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm"><TranslatedText>Toplam Ciro</TranslatedText></span>
-                            <span className="text-sm font-bold text-purple-600">{formatCurrency(orders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0))}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm"><TranslatedText>Ortalama Sipariş</TranslatedText></span>
-                            <span className="text-sm font-bold text-purple-600">{formatCurrency(orders.length > 0 ? orders.reduce((sum, order) => sum + (Number(order.totalAmount) || Number(order.total) || 0), 0) / orders.length : 0)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 mb-6">
-                      <TranslatedText>Henüz sipariş verisi bulunmamaktadır.</TranslatedText>
-                    </div>
-                  )}
-
-                  {/* Tek bir grafik: saatlik yoğunluk + kârlı saat vurgusu */}
-                  <div className="bg-gray-50 p-4 rounded-lg overflow-x-auto">
-                    <div className="flex items-end gap-2 h-56 min-w-[640px] sm:min-w-0">
-                      {(hourlySales || []).map((val, idx) => {
-                        const pct = maxHourly > 0 ? Math.round((val / maxHourly) * 100) : 0;
-                        const height = val === 0 ? 2 : Math.max(12, pct);
-                        const hour = idx + 8;
-                        const isProfit = profitableHours?.has(hour) || false;
-                        return (
-                          <div key={idx} className="flex flex-col items-center w-10 sm:w-12 h-full">
-                            <div
-                              className={`w-full rounded-t ${isProfit ? 'bg-green-500' : 'bg-blue-500'} hover:opacity-90 transition-opacity`}
-                              style={{ height: `${height}%` }}
-                              title={`${hourLabels[idx]} - ${val} sipariş`}
-                            />
-                            <span className="mt-2 text-[10px] sm:text-xs text-gray-700 select-none">{hourLabels[idx]}</span>
-                            {isProfit && <span className="text-[10px] sm:text-xs text-green-600 font-semibold"><TranslatedText>kârlı</TranslatedText></span>}
-                          </div>
-                        );
-                      })}
-                    </div>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center">
+                    <FaChartLine />
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-4 text-xs text-gray-600">
-                    <div className="flex items-center gap-2"><span className="inline-block w-3 h-3 bg-blue-500 rounded-sm"></span> <TranslatedText>Sipariş yoğunluğu</TranslatedText></div>
-                    <div className="flex items-center gap-2"><span className="inline-block w-3 h-3 bg-green-500 rounded-sm"></span> <TranslatedText>En kârlı saatler</TranslatedText></div>
+                  <TranslatedText>Saatlik Yoğunluk Analizi</TranslatedText>
+                </h3>
+                <div className="h-[400px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={hourlySales.map((sales, i) => ({
+                      hour: `${i + 8}:00`,
+                      sales: sales,
+                      orders: hourlyOrders[i]
+                    }))}>
+                      <CartesianGrid stroke="#f5f5f5" vertical={false} />
+                      <XAxis dataKey="hour" scale="band" axisLine={false} tickLine={false} dy={10} tick={{ fill: '#6B7280' }} />
+                      <YAxis yAxisId="left" orientation="left" stroke="#8884d8" hide />
+                      <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" hide />
+                      <Tooltip
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                        formatter={(val: any, name: any) => [
+                          name === 'Ciro (₺)' ? `₺${val.toFixed(2)}` : val,
+                          name
+                        ]}
+                      />
+                      <Legend verticalAlign="top" height={36} />
+                      <Bar yAxisId="left" name="Ciro (₺)" dataKey="sales" barSize={30} fill="#4F46E5" radius={[4, 4, 0, 0]} opacity={0.8} />
+                      <Line yAxisId="right" name="Sipariş Sayısı" type="monotone" dataKey="orders" stroke="#F59E0B" strokeWidth={3} dot={{ r: 4 }} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm">
+                      🏆
+                    </div>
+                    En Yoğun Saatler (Sipariş)
+                  </h3>
+                  <div className="space-y-3">
+                    {topHoursByOrders.map((h, i) => (
+                      <div key={i} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold text-sm">
+                            {i + 1}
+                          </div>
+                          <span className="font-bold text-gray-700">{h.hour}:00 - {h.hour + 1}:00</span>
+                        </div>
+                        <span className="font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">{h.count} Sipariş</span>
+                      </div>
+                    ))}
+                    {topHoursByOrders.length === 0 && <p className="text-gray-400 text-center py-4">Veri yok</p>}
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center text-sm">
+                      💰
+                    </div>
+                    En Karlı Saatler (Ciro)
+                  </h3>
+                  <div className="space-y-3">
+                    {topHoursByRevenue.map((h, i) => (
+                      <div key={i} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center font-bold text-sm">
+                            {i + 1}
+                          </div>
+                          <span className="font-bold text-gray-700">{h.hour}:00 - {h.hour + 1}:00</span>
+                        </div>
+                        <span className="font-bold text-green-600 bg-green-50 px-3 py-1 rounded-lg">{formatCurrency(h.revenue)}</span>
+                      </div>
+                    ))}
+                    {topHoursByRevenue.length === 0 && <p className="text-gray-400 text-center py-4">Veri yok</p>}
                   </div>
                 </div>
               </div>
