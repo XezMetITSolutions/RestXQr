@@ -141,6 +141,14 @@ export default function KasaPanel() {
     type: 'cancel' | 'delete'; // cancel is for 'cancel order', delete is for 'delete order'
   } | null>(null);
 
+  // Print Quantity Modal State
+  const [printQuantityModal, setPrintQuantityModal] = useState<{
+    show: boolean;
+    item: any;
+    sourceOrderId: string;
+    quantity: number;
+  } | null>(null);
+
   const addLog = (message: string, type: string = 'info') => {
     const log = {
       timestamp: new Date().toLocaleTimeString(),
@@ -1280,31 +1288,46 @@ export default function KasaPanel() {
       }
     }
 
-    const qtyStr = prompt(`${item.name} için kaç adet yazdırılsın?`, item.quantity.toString());
-    if (!qtyStr) return;
-    const qty = parseInt(qtyStr);
-    if (isNaN(qty) || qty <= 0) return alert('Geçersiz adet');
+    // Open modal instead of prompt
+    setPrintQuantityModal({
+      show: true,
+      item,
+      sourceOrderId,
+      quantity: item.quantity
+    });
+  };
+
+  const executePrintItem = async () => {
+    if (!printQuantityModal) return;
+
+    const { item, sourceOrderId, quantity } = printQuantityModal;
+    setPrintQuantityModal(null);
+
+    if (quantity <= 0) {
+      alert('Geçersiz adet');
+      return;
+    }
 
     try {
-      addLog(`Item printing: ${item.name} x${qty}`, 'network');
+      addLog(`Item printing: ${item.name} x${quantity}`, 'network');
       const response = await fetch(`${API_URL}/orders/${sourceOrderId}/print-item`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          itemId: item.id, // Might be undefined if new item, but usually present
+          itemId: item.id,
           menuItemId: item.menuItemId || item.id,
           name: item.name,
-          quantity: qty,
+          quantity: quantity,
           notes: item.notes,
           variations: item.variations,
-          restaurantId: restaurantId // Helper for grouped resolution fallback
+          restaurantId: restaurantId
         })
       });
       const data = await response.json();
 
       if (data.success) {
         addLog('Item successfully sent to printer', 'success');
-        alert('Yazıcıya gönderildi');
+        // Show success with a nicer toast-style feedback instead of alert
       } else if (data.results && data.results.some((r: any) => r.isLocalIP)) {
         addLog('Cloud failed, trying local bridge for item...', 'warning');
         await handlePrintFailover(data, sourceOrderId, true);
@@ -2771,6 +2794,104 @@ export default function KasaPanel() {
                   className="py-4 px-6 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 hover:scale-105"
                 >
                   SİLİ ONAYLA
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PRINT QUANTITY MODAL */}
+      {printQuantityModal && (
+        <div className="fixed inset-0 bg-black/60 z-[300] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-gradient-to-br from-white to-purple-50 w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-purple-100 transform scale-100 transition-all animate-in zoom-in duration-300">
+            <div className="p-6 text-center flex flex-col items-center">
+              {/* Icon with animated background */}
+              <div className="relative mb-4">
+                <div className="absolute inset-0 bg-purple-500 rounded-full blur-xl opacity-20 animate-pulse"></div>
+                <div className="relative w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/50">
+                  <FaPrint size={24} />
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-black text-gray-900 mb-1 tracking-tight">
+                YAZDIR
+              </h3>
+
+              {/* Product Name */}
+              <p className="text-purple-600 font-bold text-sm mb-4 px-4 py-1 bg-purple-100 rounded-full">
+                {printQuantityModal.item.name}
+              </p>
+
+              {/* Quantity Display */}
+              <div className="text-5xl font-black text-gray-900 mb-4">
+                {printQuantityModal.quantity}
+                <span className="text-lg text-gray-400 font-bold ml-2">adet</span>
+              </div>
+
+              {/* Quick Quantity Buttons */}
+              <div className="grid grid-cols-4 gap-2 mb-4 w-full">
+                {[1, 2, 3, 4].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setPrintQuantityModal({ ...printQuantityModal, quantity: n })}
+                    className={`py-3 rounded-xl font-bold text-lg transition-all ${printQuantityModal.quantity === n
+                        ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
+                        : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300'
+                      }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+
+              {/* +/- Controls */}
+              <div className="flex items-center gap-4 mb-6">
+                <button
+                  onClick={() => setPrintQuantityModal({
+                    ...printQuantityModal,
+                    quantity: Math.max(1, printQuantityModal.quantity - 1)
+                  })}
+                  className="w-12 h-12 rounded-xl bg-gray-100 text-gray-600 font-bold text-2xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  value={printQuantityModal.quantity}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 1;
+                    setPrintQuantityModal({ ...printQuantityModal, quantity: Math.max(1, val) });
+                  }}
+                  className="w-20 h-12 text-center text-2xl font-black border-2 border-gray-200 rounded-xl focus:border-purple-500 outline-none"
+                  min={1}
+                />
+                <button
+                  onClick={() => setPrintQuantityModal({
+                    ...printQuantityModal,
+                    quantity: printQuantityModal.quantity + 1
+                  })}
+                  className="w-12 h-12 rounded-xl bg-gray-100 text-gray-600 font-bold text-2xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-3 w-full">
+                <button
+                  onClick={() => setPrintQuantityModal(null)}
+                  className="py-4 px-6 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
+                >
+                  VAZGEÇ
+                </button>
+                <button
+                  onClick={executePrintItem}
+                  className="py-4 px-6 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 hover:scale-105 flex items-center justify-center gap-2"
+                >
+                  <FaPrint size={16} />
+                  YAZDIR
                 </button>
               </div>
             </div>
