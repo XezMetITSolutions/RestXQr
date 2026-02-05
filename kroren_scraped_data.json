@@ -1,0 +1,634 @@
+{
+  "categories": [
+    {
+      "name": "Kampanya",
+      "items": [
+        {
+          "externalId": "1914",
+          "name": "Tavuklu Rojamo",
+          "description": "",
+          "price": 178,
+          "imageUrl": "https://qoropos.com/uploads/27/697e44ddaa096_1769882845.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Kroren Soğuk Çayları",
+      "items": [
+        {
+          "externalId": "1070",
+          "name": "Milk tea",
+          "description": "",
+          "price": 168,
+          "imageUrl": "https://qoropos.com/uploads/da36953c-20a6-459d-6a68-14768de04400.jpg"
+        },
+        {
+          "externalId": "1072",
+          "name": "Mango Sago",
+          "description": "",
+          "price": 208,
+          "imageUrl": "https://qoropos.com/uploads/195a09b3-0f47-4252-6966-c7030cdc8400.jpg"
+        },
+        {
+          "externalId": "1069",
+          "name": "Barbi limonata",
+          "description": "",
+          "price": 198,
+          "imageUrl": "https://qoropos.com/uploads/e2eba324-90fb-4b06-7c66-2040d76fad00.jpg"
+        },
+        {
+          "externalId": "1195",
+          "name": "Mango Juice",
+          "description": "",
+          "price": 208,
+          "imageUrl": "https://qoropos.com/uploads/809edb03-ba77-4f40-5037-7f8747473000.jpg"
+        },
+        {
+          "externalId": "1071",
+          "name": "Harbi Limonlu Çay",
+          "description": "",
+          "price": 198,
+          "imageUrl": "https://qoropos.com/uploads/83de2c97-5c79-4727-20c5-e0d53ce03800.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Makarnalar",
+      "items": [
+        {
+          "externalId": "1077",
+          "name": "Dilimlenmiş makarna",
+          "description": "",
+          "price": 248,
+          "imageUrl": "https://qoropos.com/uploads/1f110066-cc58-4fd8-b1af-12bd2ec51600.jpg"
+        },
+        {
+          "externalId": "1074",
+          "name": "Dana etli ramen Küçük boy",
+          "description": "",
+          "price": 228,
+          "imageUrl": "https://qoropos.com/uploads/ddb0ed82-5f1a-44e6-f34b-3c1703299a00.jpg"
+        },
+        {
+          "externalId": "1075",
+          "name": "Dana etli ramen Normal",
+          "description": "",
+          "price": 248,
+          "imageUrl": "https://qoropos.com/uploads/b7572d52-9003-4a29-116b-2dffceff3000.jpg"
+        },
+        {
+          "externalId": "1076",
+          "name": "Kızarmış dana döş",
+          "description": "",
+          "price": 328,
+          "imageUrl": "https://qoropos.com/uploads/d895f37c-8961-477d-67e1-c162d9c26800.jpg"
+        },
+        {
+          "externalId": "1081",
+          "name": "Dana noodle",
+          "description": "",
+          "price": 368,
+          "imageUrl": "https://qoropos.com/uploads/894bec74-4ecf-42b7-7466-d2018829e100.jpg"
+        },
+        {
+          "externalId": "1080",
+          "name": "Tavuk noodle",
+          "description": "",
+          "price": 328,
+          "imageUrl": "https://qoropos.com/uploads/f52a85d6-7c65-47f8-b775-860b90099a00.jpg"
+        },
+        {
+          "externalId": "1078",
+          "name": "Guyro lagmen",
+          "description": "",
+          "price": 428,
+          "imageUrl": "https://qoropos.com/uploads/eeaaf0e8-e74e-453c-fe78-56d5be53c700.jpg"
+        },
+        {
+          "externalId": "1082",
+          "name": "Sebzeli noodle",
+          "description": "",
+          "price": 298,
+          "imageUrl": "https://qoropos.com/uploads/6a97faf9-b4e1-484e-b97e-fa8891adb600.jpg"
+        },
+        {
+          "externalId": "1079",
+          "name": "Ganbian makarnası",
+          "description": "",
+          "price": 398,
+          "imageUrl": "https://qoropos.com/uploads/aab6ec49-1ca2-4d96-a899-6a74c413f500.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Kebap",
+      "items": [
+        {
+          "externalId": "1086",
+          "name": "Kebap ekmek",
+          "description": "",
+          "price": 96,
+          "imageUrl": "https://qoropos.com/uploads/72b6f3be-772a-415c-33c1-ac555e8efd00.jpg"
+        },
+        {
+          "externalId": "1087",
+          "name": "Kebap ekmek Yarım",
+          "description": "",
+          "price": 48,
+          "imageUrl": "https://qoropos.com/uploads/bb05a36e-a7fe-4ad6-7951-3c03c446db00.jpg"
+        },
+        {
+          "externalId": "1083",
+          "name": "Menjin kebap",
+          "description": "1şiş/1串",
+          "price": 128,
+          "imageUrl": "https://qoropos.com/uploads/0146cf56-8b7c-4e04-99d1-99117af21a00.jpg"
+        },
+        {
+          "externalId": "1088",
+          "name": "Pirinç keki",
+          "description": "",
+          "price": 158,
+          "imageUrl": "https://qoropos.com/uploads/7767e9db-c87f-4582-d3bc-846f9dde9b00.jpg"
+        },
+        {
+          "externalId": "1084",
+          "name": "Kuzu şiş kebap",
+          "description": "1şiş/1串",
+          "price": 168,
+          "imageUrl": "https://qoropos.com/uploads/f1103f16-287c-42e0-d9df-cad983a41400.jpg"
+        },
+        {
+          "externalId": "1085",
+          "name": "İşkembe kebap",
+          "description": "1şiş/1串",
+          "price": 118,
+          "imageUrl": "https://qoropos.com/uploads/e73a9338-3158-41a2-504c-dc0c2a276400.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Başlangıç",
+      "items": [
+        {
+          "externalId": "1091",
+          "name": "Dana etli rojamo",
+          "description": "",
+          "price": 298,
+          "imageUrl": "https://qoropos.com/uploads/8876887b-d9ed-4647-bd84-782f86c76400.jpg"
+        },
+        {
+          "externalId": "1196",
+          "name": "Buharda tatlı mantı (2 adet)",
+          "description": "",
+          "price": 188,
+          "imageUrl": "https://qoropos.com/uploads/0a112a7d-4235-4064-5bfb-00fc6d608600.jpg"
+        },
+        {
+          "externalId": "1093",
+          "name": "Sade ekmek",
+          "description": "",
+          "price": 48,
+          "imageUrl": "https://qoropos.com/uploads/fa5d0115-7bad-499a-7aee-3ad0ace8b500.jpg"
+        },
+        {
+          "externalId": "1614",
+          "name": "Haşlanmış mantı",
+          "description": "",
+          "price": 368,
+          "imageUrl": "https://qoropos.com/uploads/27/692c9f855d3d8_1764532101.png"
+        },
+        {
+          "externalId": "1089",
+          "name": "Lanzhu çüçüresi",
+          "description": "",
+          "price": 358,
+          "imageUrl": "https://qoropos.com/uploads/c885eeac-bd8f-442b-1362-6191da4f3300.jpg"
+        },
+        {
+          "externalId": "1096",
+          "name": "Çay yumurtası",
+          "description": "",
+          "price": 38,
+          "imageUrl": "https://qoropos.com/uploads/7da25fb4-6979-4c48-2314-ba45385fa800.jpg"
+        },
+        {
+          "externalId": "1094",
+          "name": "Beyaz pilav",
+          "description": "",
+          "price": 128,
+          "imageUrl": "https://qoropos.com/uploads/7e4579b2-6bb2-4f5c-fd3f-44f38102e200.jpg"
+        },
+        {
+          "externalId": "1090",
+          "name": "Buharda mantı",
+          "description": "",
+          "price": 398,
+          "imageUrl": "https://qoropos.com/uploads/86fe77e4-f3c0-4476-9b2c-a8d330a16d00.jpg"
+        },
+        {
+          "externalId": "1097",
+          "name": "Uygur mantı",
+          "description": "",
+          "price": 428,
+          "imageUrl": "https://qoropos.com/uploads/6b67f92b-bf4f-4f18-80c7-317cb7441e00.jpg"
+        },
+        {
+          "externalId": "1098",
+          "name": "Çin böreği",
+          "description": "",
+          "price": 198,
+          "imageUrl": "https://qoropos.com/uploads/bb1a5083-3b5f-4820-da6c-6df9c6a1b500.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Kimbap",
+      "items": [
+        {
+          "externalId": "1100",
+          "name": "Sebze kimbap",
+          "description": "",
+          "price": 298,
+          "imageUrl": "https://qoropos.com/uploads/8b1d588c-6442-4aa7-2725-c55850d78a00.jpg"
+        },
+        {
+          "externalId": "1099",
+          "name": "Balık kimbap",
+          "description": "",
+          "price": 378,
+          "imageUrl": "https://qoropos.com/uploads/69e65ef5-04b5-4c0f-a66e-1fbe41705a00.jpg"
+        },
+        {
+          "externalId": "1101",
+          "name": "Dana etli kimbap",
+          "description": "",
+          "price": 378,
+          "imageUrl": "https://qoropos.com/uploads/16eea5b3-4e81-4f02-ae35-b1941d012400.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Salatalar",
+      "items": [
+        {
+          "externalId": "1102",
+          "name": "Sığır eti salatası",
+          "description": "",
+          "price": 858,
+          "imageUrl": "https://qoropos.com/uploads/c97023c4-ba27-453a-7ba5-b95ce62ba100.jpg"
+        },
+        {
+          "externalId": "1103",
+          "name": "Erişte salatası",
+          "description": "",
+          "price": 178,
+          "imageUrl": "https://qoropos.com/uploads/fb19953d-e1af-4946-5f79-8449acff6900.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Etli yemekler",
+      "items": [
+        {
+          "externalId": "1108",
+          "name": "Özel soslu dana",
+          "description": "",
+          "price": 728,
+          "imageUrl": "https://qoropos.com/uploads/bfd53191-5d88-44ed-efbc-7c1901f86400.jpg"
+        },
+        {
+          "externalId": "1109",
+          "name": "50 gram dana eti",
+          "description": "",
+          "price": 198,
+          "imageUrl": "https://qoropos.com/uploads/0c368bb1-0f1f-4980-69b4-edb90f164900.jpg"
+        },
+        {
+          "externalId": "1110",
+          "name": "Soğan et kavurması",
+          "description": "",
+          "price": 728,
+          "imageUrl": "https://qoropos.com/uploads/18d3e210-fdfd-4ba5-5a94-e06eba4be000.jpg"
+        },
+        {
+          "externalId": "1107",
+          "name": "Guyro",
+          "description": "",
+          "price": 728,
+          "imageUrl": "https://qoropos.com/uploads/65df5c7d-e00f-4bcc-19e1-4c0750d99500.jpg"
+        },
+        {
+          "externalId": "1111",
+          "name": "Kimyonlu dana kavurması",
+          "description": "",
+          "price": 728,
+          "imageUrl": "https://qoropos.com/uploads/097c3732-ec55-49e8-e2f3-050f6db39100.jpg"
+        },
+        {
+          "externalId": "1105",
+          "name": "Acılı haşlanmış dana",
+          "description": "",
+          "price": 1328,
+          "imageUrl": "https://qoropos.com/uploads/9efcf52e-da19-4cbb-c00e-57a9b20dee00.jpg"
+        },
+        {
+          "externalId": "1106",
+          "name": "Pırasalı dana",
+          "description": "",
+          "price": 728,
+          "imageUrl": "https://qoropos.com/uploads/747c985d-6ddf-448a-a21b-421b2a095800.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Tavuklu Yemekler",
+      "items": [
+        {
+          "externalId": "1115",
+          "name": "Portakallı  tavuk",
+          "description": "",
+          "price": 428,
+          "imageUrl": "https://qoropos.com/uploads/4c3915ca-14db-4c31-9020-8927ce008500.jpg"
+        },
+        {
+          "externalId": "1116",
+          "name": "Manzhou usulu tavuk",
+          "description": "",
+          "price": 428,
+          "imageUrl": "https://qoropos.com/uploads/ba4c414c-4f1d-4ffb-f2da-73607205cf00.jpg"
+        },
+        {
+          "externalId": "1117",
+          "name": "Tatlı ekşi tavuk",
+          "description": "",
+          "price": 428,
+          "imageUrl": "https://qoropos.com/uploads/d9b29531-4c4d-42bd-2c76-eb0ccb034700.jpg"
+        },
+        {
+          "externalId": "1112",
+          "name": "Dapanji",
+          "description": "",
+          "price": 588,
+          "imageUrl": "https://qoropos.com/uploads/06ee9d5c-c4ab-4d3b-9bca-c1f1c6faf400.jpg"
+        },
+        {
+          "externalId": "1114",
+          "name": "Tavuk noodle",
+          "description": "",
+          "price": 328,
+          "imageUrl": "https://qoropos.com/uploads/94b01d95-a748-4c81-d58d-496bfc6fd700.jpg"
+        },
+        {
+          "externalId": "1113",
+          "name": "Acılı lokum tavuk",
+          "description": "",
+          "price": 388,
+          "imageUrl": "https://qoropos.com/uploads/6aa69659-1f46-44a0-b6e1-d79d2c2b0900.jpg"
+        },
+        {
+          "externalId": "1278",
+          "name": "Kemiksiz dapanji pilav",
+          "description": "",
+          "price": 368,
+          "imageUrl": "https://qoropos.com/uploads/b2edf694-ec23-4eb3-1e3e-efa6c8d87000.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Tofular",
+      "items": [
+        {
+          "externalId": "1119",
+          "name": "Kızartma tofu",
+          "description": "",
+          "price": 388,
+          "imageUrl": "https://qoropos.com/uploads/70be5056-c4f5-4255-e904-a44f4506c700.jpg"
+        },
+        {
+          "externalId": "1118",
+          "name": "Özel soslu tofu",
+          "description": "",
+          "price": 388,
+          "imageUrl": "https://qoropos.com/uploads/3d2c9178-e8b8-48b6-c98a-10ba8c757800.jpg"
+        },
+        {
+          "externalId": "1120",
+          "name": "Acılı tofu",
+          "description": "",
+          "price": 388,
+          "imageUrl": "https://qoropos.com/uploads/d04cac9e-108d-4497-97f8-fde2197bf000.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Sebzeli yemekler",
+      "items": [
+        {
+          "externalId": "1124",
+          "name": "Sarımsaklı kıvırcık",
+          "description": "",
+          "price": 388,
+          "imageUrl": "https://qoropos.com/uploads/40f70389-2f0c-4b67-9999-459dd43c2d00.jpg"
+        },
+        {
+          "externalId": "1125",
+          "name": "Brokoli kavurması",
+          "description": "",
+          "price": 398,
+          "imageUrl": "https://qoropos.com/uploads/24f52c91-c5b8-4318-397a-948249a54200.jpg"
+        },
+        {
+          "externalId": "1126",
+          "name": "Domatesli yumurta kavurması",
+          "description": "",
+          "price": 428,
+          "imageUrl": "https://qoropos.com/uploads/dc9bbe5d-e837-410b-a992-7526bd283200.jpg"
+        },
+        {
+          "externalId": "1122",
+          "name": "Patates kavurması",
+          "description": "",
+          "price": 388,
+          "imageUrl": "https://qoropos.com/uploads/53cfe7d6-3d9a-4c46-117a-550742a0e900.jpg"
+        },
+        {
+          "externalId": "1127",
+          "name": "Acılı kızarmış patates",
+          "description": "",
+          "price": 458,
+          "imageUrl": "https://qoropos.com/uploads/30523681-6ed3-4cef-4f51-c2d5c2304d00.jpg"
+        },
+        {
+          "externalId": "1123",
+          "name": "İstiridye soslu kıvırcık",
+          "description": "",
+          "price": 398,
+          "imageUrl": "https://qoropos.com/uploads/63bd77a3-a135-4bb9-3ac6-473cea1b9900.jpg"
+        },
+        {
+          "externalId": "1128",
+          "name": "Sarımsaklı ıspanak",
+          "description": "",
+          "price": 388,
+          "imageUrl": "https://qoropos.com/uploads/10f344fe-8202-4358-0464-19140f0e5000.jpg"
+        },
+        {
+          "externalId": "1121",
+          "name": "Sebzeli noodle",
+          "description": "",
+          "price": 298,
+          "imageUrl": "https://qoropos.com/uploads/f4c552bc-8d94-4da8-b1a4-49a4b254cd00.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Pilavlar",
+      "items": [
+        {
+          "externalId": "1132",
+          "name": "Dana pirinç",
+          "description": "",
+          "price": 498,
+          "imageUrl": "https://qoropos.com/uploads/cf183d84-b0f3-4bfa-9c8d-53249132c200.jpg"
+        },
+        {
+          "externalId": "1129",
+          "name": "Tavuk pilav",
+          "description": "",
+          "price": 458,
+          "imageUrl": "https://qoropos.com/uploads/11685919-1043-4864-bcf9-e7264392e600.jpg"
+        },
+        {
+          "externalId": "1131",
+          "name": "Yumurtalı pilav",
+          "description": "",
+          "price": 358,
+          "imageUrl": "https://qoropos.com/uploads/18d64a16-514d-4f88-e263-6bfa195b9300.jpg"
+        },
+        {
+          "externalId": "1130",
+          "name": "Dana etli köri pilav kavurması",
+          "description": "",
+          "price": 498,
+          "imageUrl": "https://qoropos.com/uploads/8e69c774-b76c-4f0a-4a6c-5e3a26f36f00.jpg"
+        }
+      ]
+    },
+    {
+      "name": "İçecekler",
+      "items": [
+        {
+          "externalId": "1136",
+          "name": "Didi bergamot",
+          "description": "",
+          "price": 75,
+          "imageUrl": "https://qoropos.com/uploads/aadab2a2-25e5-4125-3b15-0b4ec139fb00.jpg"
+        },
+        {
+          "externalId": "1137",
+          "name": "Niğde gazozu",
+          "description": "",
+          "price": 65,
+          "imageUrl": "https://qoropos.com/uploads/e6342bb8-cfe6-481f-f6cc-868fb67da700.jpg"
+        },
+        {
+          "externalId": "1138",
+          "name": "Didi limon",
+          "description": "",
+          "price": 75,
+          "imageUrl": "https://qoropos.com/uploads/b0657cbc-35d8-4a49-98e5-343f4dbe3f00.jpg"
+        },
+        {
+          "externalId": "1615",
+          "name": "Limon fresh mango",
+          "description": "",
+          "price": 75,
+          "imageUrl": "https://qoropos.com/uploads/27/692ca140524c5_1764532544.png"
+        },
+        {
+          "externalId": "1140",
+          "name": "Limonlu soda",
+          "description": "",
+          "price": 40,
+          "imageUrl": "https://qoropos.com/uploads/be9e820a-21d8-44e5-662a-857f91a37f00.jpg"
+        },
+        {
+          "externalId": "1135",
+          "name": "Didi şeftali",
+          "description": "",
+          "price": 75,
+          "imageUrl": "https://qoropos.com/uploads/8a1d9463-4886-4a34-fa2b-eef8176ab500.jpg"
+        },
+        {
+          "externalId": "1139",
+          "name": "Sade soda",
+          "description": "",
+          "price": 40,
+          "imageUrl": "https://qoropos.com/uploads/0a6abf8f-4cf1-4539-d5a2-a7f5b967e700.jpg"
+        },
+        {
+          "externalId": "1134",
+          "name": "Cola turka",
+          "description": "",
+          "price": 65,
+          "imageUrl": "https://qoropos.com/uploads/46ab99c3-bca1-452b-c400-e16a296e6e00.jpg"
+        },
+        {
+          "externalId": "1616",
+          "name": "Limon fresh çilek",
+          "description": "",
+          "price": 75,
+          "imageUrl": "https://qoropos.com/uploads/27/692ca196f1cbf_1764532630.png"
+        },
+        {
+          "externalId": "1133",
+          "name": "Su",
+          "description": "",
+          "price": 30,
+          "imageUrl": "https://qoropos.com/uploads/25e65913-5004-4e9e-c759-c1e2ab945300.jpg"
+        },
+        {
+          "externalId": "1493",
+          "name": "Elmalı soda",
+          "description": "",
+          "price": 40,
+          "imageUrl": "https://qoropos.com/uploads/b51632f9-e563-4daf-f73c-3834cf388a00.jpg"
+        },
+        {
+          "externalId": "1141",
+          "name": "Limon fresh nane limon",
+          "description": "",
+          "price": 75,
+          "imageUrl": "https://qoropos.com/uploads/5e68dd20-0b6a-4db9-660c-98786f454a00.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Çorbalar",
+      "items": [
+        {
+          "externalId": "1142",
+          "name": "Domatesli yumurta çorba",
+          "description": "",
+          "price": 278,
+          "imageUrl": "https://qoropos.com/uploads/aeb53a32-72d6-419e-623b-d92ddfc2e700.jpg"
+        },
+        {
+          "externalId": "1143",
+          "name": "Yumurtalı yosun çorbası",
+          "description": "",
+          "price": 288,
+          "imageUrl": "https://qoropos.com/uploads/351b4b3d-8022-414a-6ff1-7a44b7f35700.jpg"
+        },
+        {
+          "externalId": "1097",
+          "name": "Uygur mantı",
+          "description": "",
+          "price": 428,
+          "imageUrl": "https://qoropos.com/uploads/6b67f92b-bf4f-4f18-80c7-317cb7441e00.jpg"
+        }
+      ]
+    }
+  ]
+}
