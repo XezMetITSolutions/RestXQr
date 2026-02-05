@@ -113,7 +113,7 @@ export default function KasaPanel() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historySearchTerm, setHistorySearchTerm] = useState('');
-  const [historyTableFilter, setHistoryTableFilter] = useState<string>('all');
+  const [tableFilter, setTableFilter] = useState<string>('all');
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
@@ -1552,9 +1552,42 @@ export default function KasaPanel() {
     return { mins: diffMins, color };
   };
 
-  const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  const getPaymentBreakdown = (order: Order) => {
+    if (order.status !== 'completed' && order.status !== 'delivered') return null;
 
-  // Ödeme yöntemi, bahşiş ve bağış bilgilerini notlardan temizle
+    if (order.paymentMethod === 'online') {
+      return { type: 'online', card: 0, cash: 0 };
+    }
+
+    const total = Number(order.totalAmount);
+    const note = order.cashierNote || '';
+
+    // Kart tutarlarını topla
+    const cardRegex = /\[KART:\s*([\d.]+)/g;
+    let totalCard = 0;
+    let match;
+    while ((match = cardRegex.exec(note)) !== null) {
+      totalCard += parseFloat(match[1]);
+    }
+
+    if (totalCard === 0 && note.includes('[KART]')) {
+      totalCard = total;
+    }
+
+    if (totalCard === 0 && order.paymentMethod === 'card') {
+      totalCard = total;
+    }
+
+    const totalCash = Math.max(0, total - totalCard);
+
+    if (totalCard > 0 && totalCash > 0) {
+      return { type: 'hybrid', card: totalCard, cash: totalCash };
+    } else if (totalCard > 0) {
+      return { type: 'card', card: totalCard, cash: 0 };
+    } else {
+      return { type: 'cash', card: 0, cash: total };
+    }
+  };
   const cleanNotes = (notes: string | undefined): string | undefined => {
     if (!notes) return notes;
 
@@ -3011,7 +3044,7 @@ export default function KasaPanel() {
               </div>
 
               <div className="flex-1 flex gap-3 mx-4">
-                <div className="flex-1 relative group">
+                <div className="relative group flex-1 max-w-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FaSearch className="text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   </div>
@@ -3023,16 +3056,16 @@ export default function KasaPanel() {
                     className="w-full bg-white border border-gray-200 focus:border-blue-500 rounded-xl py-2 pl-10 pr-4 text-xs font-bold transition-all shadow-sm outline-none"
                   />
                 </div>
+
                 <select
-                  value={historyTableFilter}
-                  onChange={(e) => setHistoryTableFilter(e.target.value)}
-                  className="bg-white border border-gray-200 focus:border-blue-500 rounded-xl py-2 px-3 text-xs font-bold transition-all shadow-sm outline-none min-w-[100px]"
+                  value={tableFilter}
+                  onChange={(e) => setTableFilter(e.target.value)}
+                  className="bg-white border border-gray-200 focus:border-blue-500 rounded-xl px-3 py-2 text-xs font-bold shadow-sm outline-none"
                 >
                   <option value="all">TÜM MASALAR</option>
-                  {Array.from(new Set(allOrders.map(o => o.tableNumber).filter(t => t != null))).sort((a, b) => a! - b!).map(tn => (
-                    <option key={tn} value={tn!.toString()}>MASA {tn}</option>
+                  {Array.from({ length: totalTables }, (_, i) => i + 1).map(num => (
+                    <option key={num} value={num.toString()}>MASA {num}</option>
                   ))}
-                  <option value="null">MASASIZ</option>
                 </select>
               </div>
 
@@ -3056,9 +3089,8 @@ export default function KasaPanel() {
                     return orderDate >= startOfToday;
                   })
                   .filter(o => {
-                    if (historyTableFilter === 'all') return true;
-                    if (historyTableFilter === 'null') return o.tableNumber == null;
-                    return o.tableNumber?.toString() === historyTableFilter;
+                    if (tableFilter === 'all') return true;
+                    return o.tableNumber?.toString() === tableFilter;
                   })
                   .filter(o => {
                     if (!historySearchTerm) return true;
@@ -3072,64 +3104,59 @@ export default function KasaPanel() {
                   return (
                     <div className="flex flex-col items-center justify-center py-20 text-gray-400">
                       <FaReceipt size={48} className="mb-4 opacity-20" />
-                      <p className="font-black uppercase tracking-widest text-sm">SİPARİŞ BULUNAMADI</p>
+                      <p className="font-black uppercase tracking-widest text-sm">GEÇMİŞ SİPARİŞ BULUNAMADI</p>
                     </div>
                   );
                 }
 
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {filteredHistory.map(order => {
-                      const breakdown = getPaymentBreakdown(order);
-                      return (
-                        <div
-                          key={order.id}
-                          className={`p-4 rounded-2xl border-2 border-gray-100 hover:border-green-500 transition-all cursor-pointer group ${order.status === 'cancelled' ? 'bg-red-50/50' : 'bg-white'}`}
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setShowPaymentModal(true);
-                            setPaymentTab('full');
-                          }}
-                        >
-                          <div className="flex justify-between items-center mb-3">
-                            <div className="flex items-center gap-2">
-                              <div className={`px-3 py-1 rounded-lg text-xs font-black ${order.tableNumber != null ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
-                                {order.tableNumber != null ? `MASA ${order.tableNumber}` : (order.orderType === 'dine_in' ? '?' : 'WEB')}
-                              </div>
-                              <span className="text-[10px] font-bold text-gray-400">{new Date(order.created_at || order.createdAt || '').toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                    {filteredHistory.map(order => (
+                      <div
+                        key={order.id}
+                        className={`p-4 rounded-2xl border-2 border-gray-100 hover:border-green-500 transition-all cursor-pointer group ${order.status === 'cancelled' ? 'bg-red-50/50' : 'bg-white'}`}
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setShowPaymentModal(true);
+                          setPaymentTab('full');
+                        }}
+                      >
+                        <div className="flex justify-between items-center mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className={`px-3 py-1 rounded-lg text-xs font-black ${order.tableNumber != null ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
+                              {order.tableNumber != null ? `MASA ${order.tableNumber}` : (order.orderType === 'dine_in' ? '?' : 'WEB')}
                             </div>
-                            <div className="flex items-center gap-2">
-                              {order.status === 'completed' && breakdown && (
-                                <div className={`px-2 py-0.5 rounded text-[10px] font-black ${breakdown.type === 'hybrid' ? 'bg-orange-100 text-orange-700' :
-                                    breakdown.type === 'card' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-                                  }`}>
-                                  {breakdown.type === 'hybrid' ? 'PARÇALI' : breakdown.type === 'card' ? 'KART' : 'NAKİT'}
-                                </div>
-                              )}
-                              <div className={`px-3 py-1 rounded-lg text-[10px] font-black ${order.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                {order.status === 'completed' ? 'TAMAMLANDI' : 'İPTAL'}
-                              </div>
-                            </div>
+                            <span className="text-[10px] font-bold text-gray-400">{new Date(order.created_at || order.createdAt || '').toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
-                          <div className="text-sm font-bold text-gray-600 mb-2 truncate group-hover:text-green-600 transition-colors">
-                            {order.items.slice(0, 3).map(it => `${it.quantity}x ${it.name}`).join(', ')}
-                            {order.items.length > 3 && '...'}
-                          </div>
-                          <div className="flex justify-between items-center pt-3 border-t border-gray-50">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-gray-400 uppercase">TUTAR</span>
-                              <span className="font-black text-gray-800">{(Number(order.totalAmount || 0)).toFixed(2)}₺</span>
-                            </div>
-                            {breakdown && breakdown.type === 'hybrid' && (
-                              <div className="text-[10px] text-right text-gray-500 font-bold">
-                                <div>N: {breakdown.cash.toFixed(2)}₺</div>
-                                <div>K: {breakdown.card.toFixed(2)}₺</div>
-                              </div>
-                            )}
+                          <div className={`px-3 py-1 rounded-lg text-[10px] font-black ${order.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {order.status === 'completed' ? 'TAMAMLANDI' : 'İPTAL'}
                           </div>
                         </div>
-                      );
-                    })}
+                        <div className="text-sm font-bold text-gray-600 mb-2 truncate group-hover:text-green-600 transition-colors">
+                          {order.items.slice(0, 2).map(it => `${it.quantity}x ${it.name}`).join(', ')}
+                          {order.items.length > 2 && '...'}
+                        </div>
+                        <div className="flex justify-between items-center pt-3 border-t border-gray-50">
+                          <div className="flex flex-col">
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">ÖDEME YÖNTEMİ</span>
+                            <span className="text-[10px] font-black text-blue-600">
+                              {(() => {
+                                const b = getPaymentBreakdown(order);
+                                if (!b) return '-';
+                                if (b.type === 'hybrid') return `NAKİT: ${b.cash.toFixed(0)}₺ + KART: ${b.card.toFixed(0)}₺`;
+                                if (b.type === 'card') return 'KREDİ KARTI';
+                                if (b.type === 'online') return 'ONLINE / WEB';
+                                return 'NAKİT';
+                              })()}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-tighter">TOPLAM</span>
+                            <span className="font-black text-gray-800">{(Number(order.totalAmount || 0)).toFixed(2)}₺</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 );
               })()}

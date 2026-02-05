@@ -31,6 +31,7 @@ function CartPageContent() {
   const { restaurants, fetchRestaurants } = useRestaurantStore();
   const { settings: localSettings } = useBusinessSettingsStore();
   const [isClient, setIsClient] = useState(false);
+  const [isPacket, setIsPacket] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash' | 'donation' | 'tip'>('card');
   const [tipAmount, setTipAmount] = useState(0);
   const [donationAmount, setDonationAmount] = useState(0);
@@ -76,6 +77,11 @@ function CartPageContent() {
       const urlParams = new URLSearchParams(window.location.search);
       // Check both 'token' and 't'
       const urlToken = urlParams.get('token') || urlParams.get('t');
+      const packetParam = urlParams.get('packet');
+
+      if (packetParam) {
+        setIsPacket(true);
+      }
 
       if (urlToken) {
         setToken(urlToken);
@@ -388,7 +394,7 @@ function CartPageContent() {
         // Sepetten sonra kullanıcıyı menüye yönlendir (sepet boş görünmesin)
         if (typeof window !== 'undefined') {
           setTimeout(() => {
-            window.location.href = `/menu?token=${token}&table=${tableNumber}`;
+            window.location.href = `/menu?token=${token}&table=${tableNumber}${isPacket ? '&packet=1' : ''}`;
           }, 4000); // 4 saniye sonra yönlendir (başarı mesajını görsün)
         }
 
@@ -445,7 +451,7 @@ function CartPageContent() {
           </p>
           <div className="space-y-4 w-full max-w-xs">
             <button
-              onClick={() => window.location.href = `/menu?token=${token}&table=${tableNumber}`}
+              onClick={() => window.location.href = `/menu?token=${token}&table=${tableNumber}${isPacket ? '&packet=1' : ''}`}
               className="w-full py-4 rounded-xl font-bold text-white shadow-lg transition-transform active:scale-95"
               style={{ backgroundColor: primary }}
             >
@@ -468,7 +474,7 @@ function CartPageContent() {
         <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-20">
           <div className="container mx-auto px-3 py-3 flex justify-between items-center">
             <div className="flex items-center">
-              <Link href={`/menu?token=${token}&table=${tableNumber}`} className="mr-2">
+              <Link href={`/menu?token=${token}&table=${tableNumber}${isPacket ? '&packet=1' : ''}`} className="mr-2">
                 <FaArrowLeft size={16} />
               </Link>
               <h1 className="text-dynamic-lg font-bold text-primary">
@@ -476,7 +482,7 @@ function CartPageContent() {
               </h1>
               <div className="ml-2 flex items-center gap-2">
                 <div className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
-                  <TranslatedText>{`Masa #${tableNumber}`}</TranslatedText>
+                  <TranslatedText>{isPacket ? `Paket #${tableNumber}` : `Masa #${tableNumber}`}</TranslatedText>
                 </div>
                 {activeUsersCount > 1 && (
                   <div className="px-2 py-1 rounded-lg text-xs bg-blue-100 text-blue-700 flex items-center gap-1">
@@ -496,7 +502,7 @@ function CartPageContent() {
           {pendingOrderId && (
             <div className="mb-6">
               <Link
-                href={`/menu?token=${token}&table=${tableNumber}`}
+                href={`/menu?token=${token}&table=${tableNumber}${isPacket ? '&packet=1' : ''}`}
                 className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95"
                 style={{ backgroundColor: primary }}
               >
@@ -663,7 +669,7 @@ function CartPageContent() {
                 <TranslatedText>Menüden ürün ekleyerek başlayın</TranslatedText>
               </p>
               <Link
-                href={`/menu?token=${token}&table=${tableNumber}`}
+                href={`/menu?token=${token}&table=${tableNumber}${isPacket ? '&packet=1' : ''}`}
                 className="inline-block px-6 py-3 rounded-lg font-bold text-white shadow-lg transition-transform active:scale-95"
                 style={{ backgroundColor: primary }}
               >
