@@ -48,6 +48,7 @@ interface Order {
   createdAt: any; // Firebase timestamp
   paymentMethod?: 'cash' | 'card' | 'online';
   note?: string;
+  cashierNote?: string;
   waiterCalls?: ('waiter' | 'bill' | 'water' | 'cleanup')[];
 }
 
@@ -115,6 +116,7 @@ export default function OrdersPage() {
             createdAt: order.createdAt || order.created_at || new Date(),
             paymentMethod: order.paymentMethod || order.payment_method,
             note: order.note || order.notes,
+            cashierNote: order.cashierNote || order.cashier_note,
             waiterCalls: order.waiterCalls || order.service_calls || []
           }));
 
@@ -160,6 +162,47 @@ export default function OrdersPage() {
       case 'cancelled': return getStatic('İptal Edildi');
       default: return status;
     }
+  };
+
+  const getPaymentBreakdown = (order: Order) => {
+    if (order.status !== 'completed' && order.status !== 'delivered') return null;
+
+    if (order.paymentMethod === 'online') {
+      return { type: 'online', card: 0, cash: 0 };
+    }
+
+    const total = order.totalAmount;
+    const note = order.cashierNote || '';
+
+    // Kart tutarlarını topla (multiple payments support)
+    const cardRegex = /\[KART:\s*([\d.]+)/g;
+    let totalCard = 0;
+    let match;
+    while ((match = cardRegex.exec(note)) !== null) {
+      totalCard += parseFloat(match[1]);
+    }
+
+    // [KART] (tutar belirtilmemişse tam kart kabul et)
+    if (totalCard === 0 && note.includes('[KART]')) {
+      totalCard = total;
+    }
+
+    // paymentMethod set edilmişse (online sipariş sonrası kasada ödeme gibi durumlar)
+    if (totalCard === 0 && order.paymentMethod === 'card') {
+      totalCard = total;
+    }
+
+    const totalCash = Math.max(0, total - totalCard);
+
+    if (totalCard > 0 && totalCash > 0) {
+      return { type: 'hybrid', card: totalCard, cash: totalCash };
+    } else if (totalCard > 0) {
+      return { type: 'card', card: totalCard, cash: 0 };
+    } else if (order.paymentMethod === 'cash' || totalCash > 0) {
+      return { type: 'cash', card: 0, cash: total };
+    }
+
+    return null;
   };
 
   const getFilteredOrders = () => {
@@ -373,9 +416,24 @@ export default function OrdersPage() {
                     </div>
 
                     <div className="flex justify-between items-end pt-3 border-t border-gray-100">
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm border-gray-500">
                         <div><TranslatedText>Toplam</TranslatedText></div>
-                        <div className="text-xs">{order.paymentMethod ? getStatic((order.paymentMethod === 'cash' ? 'Nakit' : 'Kart')) : '-'}</div>
+                        <div className="text-xs text-gray-500">
+                          {(() => {
+                            const breakdown = getPaymentBreakdown(order);
+                            if (!breakdown) return '-';
+                            if (breakdown.type === 'hybrid') {
+                              return (
+                                <span className="flex flex-col">
+                                  <span>{getStatic('Nakit')}: ₺{breakdown.cash.toFixed(2)}</span>
+                                  <span>{getStatic('Kart')}: ₺{breakdown.card.toFixed(2)}</span>
+                                </span>
+                              );
+                            }
+                            if (breakdown.type === 'online') return getStatic('Çevrimiçi');
+                            return getStatic(breakdown.type === 'cash' ? 'Nakit' : 'Kart');
+                          })()}
+                        </div>
                       </div>
                       <div className="text-xl font-bold text-blue-600">
                         ₺{order.totalAmount}
@@ -500,7 +558,26 @@ export default function OrdersPage() {
                     </div>
                     <div className="flex justify-between text-lg font-bold text-gray-900 pt-3 border-t border-gray-200">
                       <span><TranslatedText>Toplam Tutar</TranslatedText></span>
-                      <span>₺{selectedOrder.totalAmount}</span>
+                      <div className="text-right">
+                        <div>₺{selectedOrder.totalAmount}</div>
+                        {(() => {
+                          const breakdown = getPaymentBreakdown(selectedOrder);
+                          if (breakdown && breakdown.type === 'hybrid') {
+                            return (
+                              <div className="text-[10px] font-normal text-gray-500 mt-1">
+                                ({getStatic('Nakit')}: ₺{breakdown.cash.toFixed(2)}, {getStatic('Kart')}: ₺{breakdown.card.toFixed(2)})
+                              </div>
+                            );
+                          } else if (breakdown) {
+                            return (
+                              <div className="text-[10px] font-normal text-gray-500 mt-1">
+                                ({getStatic(breakdown.type === 'cash' ? 'Nakit' : (breakdown.type === 'online' ? 'Çevrimiçi' : 'Kart'))})
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
                     </div>
                   </div>
                 </div>
