@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Debugger</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        pre {
+            background: #333;
+            color: #0f0;
+            padding: 15px;
+            overflow-x: auto;
+            border-radius: 4px;
+        }
+
+        .error {
+            color: #ff4444;
+        }
+
+        input {
+            padding: 8px;
+            width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>RestXqR API Debugger</h1>
+
+        <div>
+            <label>API URL:</label>
+            <input type="text" id="apiUrl" value="https://masapp-backend.onrender.com/api">
+        </div>
+        <br>
+
+        <div>
+            <label>Restaurant ID:</label>
+            <input type="text" id="restId" value="37b0322a-e11f-4ef1-b108-83be310aaf4d">
+        </div>
+        <br>
+
+        <button onclick="checkHealth()">1. Check Health</button>
+        <button onclick="getMenu()">2. Get Kroren Menu (Causes 500?)</button>
+        <button onclick="getCategories()">3. Get Categories</button>
+        <button onclick="getOneCategoryItem()">4. Get Items of First Category</button>
+
+        <hr>
+        <h3>Fix Schema (Missing Columns)</h3>
+        <button onclick="fixOrders()" style="background: #e67e22;">Fix Orders Table ('approved')</button>
+        <button onclick="fixKitchenStation()" style="background: #e67e22;">Fix Menu Items ('kitchen_station')</button>
+        <button onclick="fixRestaurants()" style="background: #e67e22;">Fix Restaurants Schema</button>
+        <button onclick="fixDiscounts()" style="background: #e67e22;">Fix Discount Columns</button>
+        <hr>
+
+        <div id="status"></div>
+        <pre id="output">Waiting for action...</pre>
+    </div>
+
+    <script>
+        const output = document.getElementById('output');
+        const status = document.getElementById('status');
+
+        function log(msg, isError = false) {
+            output.textContent = JSON.stringify(msg, null, 2);
+            output.className = isError ? 'error' : '';
+        }
+
+        async function fetchAPI(endpoint) {
+            const baseUrl = document.getElementById('apiUrl').value;
+            status.textContent = 'Fetching ' + endpoint + '...';
+            try {
+                const res = await fetch(baseUrl + endpoint);
+                status.textContent = `Status: ${res.status} ${res.statusText}`;
+
+                try {
+                    const json = await res.json();
+                    log(json);
+                } catch (e) {
+                    const text = await res.text();
+                    log(text, true);
+                }
+            } catch (err) {
+                status.textContent = 'Network Error';
+                log(err.message, true);
+            }
+        }
+
+        // POST request helper
+        async function postAPI(endpoint) {
+            const baseUrl = document.getElementById('apiUrl').value;
+            status.textContent = 'Posting to ' + endpoint + '...';
+            try {
+                const res = await fetch(baseUrl + endpoint, { method: 'POST' });
+                status.textContent = `Status: ${res.status} ${res.statusText}`;
+                try {
+                    const json = await res.json();
+                    log(json);
+                } catch (e) {
+                    const text = await res.text();
+                    log(text, true);
+                }
+            } catch (err) {
+                log(err.message, true);
+            }
+        }
+
+        async function getAPI(endpoint) {
+            // Re-use fetchAPI but allows specific GET calls from buttons
+            fetchAPI(endpoint);
+        }
+
+        function checkHealth() { fetchAPI('/health'); }
+        function getMenu() { const id = document.getElementById('restId').value; fetchAPI(`/restaurants/${id}/menu`); }
+        function getCategories() { const id = document.getElementById('restId').value; fetchAPI(`/restaurants/${id}/menu/categories`); }
+
+        // Schema Fixes
+        function fixOrders() { postAPI('/debug/sync-db'); }
+        function fixKitchenStation() { postAPI('/debug/add-kitchen-station'); }
+        function fixRestaurants() { getAPI('/debug/fix-restaurants-schema'); } // This one is GET in index.js
+        function fixDiscounts() { getAPI('/debug/add-discount-columns'); } // This one is GET in index.js
+
+        async function getOneCategoryItem() {
+            const baseUrl = document.getElementById('apiUrl').value;
+            const id = document.getElementById('restId').value;
+            status.textContent = 'Fetching Categories first...';
+
+            try {
+                const res = await fetch(`${baseUrl}/restaurants/${id}/menu/categories`);
+                const data = await res.json();
+                if (data.data && data.data.length > 0) {
+                    const catId = data.data[0].id;
+                    status.textContent = `Fetching items for category ${data.data[0].name}...`;
+                    fetchAPI(`/restaurants/${id}/menu/items?categoryId=${catId}`);
+                } else {
+                    log("No categories found", true);
+                }
+            } catch (e) {
+                log(e, true);
+            }
+        }
+    </script>
+</body>
+
+</html>
