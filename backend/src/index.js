@@ -2141,16 +2141,37 @@ app.use('*', (req, res) => {
   });
 });
 
+// Health Check Endpoint (Explicit)
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', uptime: process.uptime() });
+});
+
+// START SERVER
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n🚀 Server is running on port ${PORT}`);
+  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 API Base: http://localhost:${PORT}/api\n`);
+
+  // Auto-sync when server starts
+  if (connectDB) {
+    // Small delay to ensure DB connection is ready
+    setTimeout(() => {
+      try {
+        const { sequelize } = require('./models');
+        sequelize.sync({ alter: true }).then(() => {
+          console.log('✅ Background schema sync complete');
+        }).catch(err => {
+          console.error('⚠️ Background schema sync failed:', err.message);
+        });
+      } catch (e) {
+        console.error('⚠️ Could not trigger background sync');
+      }
+    }, 5000);
+  }
+});
+
 // Initialize database and start server
 const startServer = async () => {
-  // Start server first
-  const server = app.listen(PORT, () => {
-    console.log(`🚀 Backend server running on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`🌐 API Base: http://localhost:${PORT}/api`);
-    console.log(`🔐 2FA API: http://localhost:${PORT}/api/admin/2fa/status`);
-  });
-
   // Connect to database (non-blocking) - ignore errors for 2FA testing
   try {
     await connectDB();
