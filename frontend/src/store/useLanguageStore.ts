@@ -1720,6 +1720,11 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Hızlı Servis',
       de: 'Schnelle Lieferung',
     },
+    learnMore: {
+      en: 'LEARN MORE',
+      tr: 'DETAYLI BİLGİ',
+      de: 'MEHR ERFAHREN',
+    },
   },
 
   t: (key) => {
