@@ -168,15 +168,34 @@ export default function QRCodesPage() {
       ]) as any;
 
       if (res?.success && Array.isArray(res.data)) {
+        // Floor bilgisini almak için settings'i kullan (reloadQRCodes içinde erişilebilir olması için burada helper tanımlıyoruz veya direkt kullanıyoruz)
+        const getFloorInfo = (tNum: number) => {
+          const cfg = (settingsStore.settings as any)?.drinkStationRouting;
+          const floors = Array.isArray(cfg?.floors) ? cfg.floors : [];
+          const match = floors.find((f: any) => Number(f.startTable) <= tNum && tNum <= Number(f.endTable));
+          if (!match) return null;
+          return { name: match.name, start: match.startTable, end: match.endTable };
+        };
+
         const mapped: QRCodeData[] = res.data.map((t: any) => {
           const restaurantSlug = authenticatedRestaurant.username;
           let backendQrUrl = t.qrUrl;
 
+          // URL Oluşturma Mantığı
           if (!backendQrUrl) {
+            const floor = getFloorInfo(t.tableNumber);
+            let paramPart = `table=${t.tableNumber}`;
+
+            if (floor && floor.name === 'Paket Servis') {
+              const packetNum = Number(t.tableNumber) - Number(floor.start) + 1;
+              paramPart = `packet=${packetNum}`;
+            }
+
             backendQrUrl = restaurantSlug
-              ? `https://${restaurantSlug}.restxqr.com/menu/?t=${t.token}&table=${t.tableNumber}`
+              ? `https://${restaurantSlug}.restxqr.com/menu/?t=${t.token}&${paramPart}`
               : '';
           } else if (backendQrUrl.includes('aksaray.restxqr.com') && restaurantSlug && restaurantSlug !== 'aksaray') {
+            // Eski URL yapısı varsa ve domain değişimi gerekiyorsa (opsiyonel, genelde yukarıdaki blok çalışır)
             backendQrUrl = backendQrUrl.replace('aksaray.restxqr.com', `${restaurantSlug}.restxqr.com`);
           }
 
