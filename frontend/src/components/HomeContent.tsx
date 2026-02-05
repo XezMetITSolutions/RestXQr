@@ -196,14 +196,14 @@ export default function HomeContent() {
                                 </div>
                             </div>
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
-                            <div className="absolute bottom-10 left-10 right-10 flex justify-between items-end">
-                                <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-6 rounded-3xl">
-                                    <div className="text-slate-400 text-xs font-black uppercase mb-1">Satisfied Clients</div>
-                                    <div className="text-white text-3xl font-black">500+</div>
+                            <div className="absolute bottom-10 left-10 right-10 flex justify-between items-end gap-4">
+                                <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-6 rounded-3xl flex-1">
+                                    <div className="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-wider">{t('satisfiedClientsLabel')}</div>
+                                    <div className="text-white text-2xl md:text-3xl font-black">500+</div>
                                 </div>
-                                <div className="bg-blue-600/20 backdrop-blur-xl border border-blue-500/30 p-6 rounded-3xl">
-                                    <div className="text-blue-300 text-xs font-black uppercase mb-1">Average Growth</div>
-                                    <div className="text-white text-3xl font-black">+35%</div>
+                                <div className="bg-emerald-600/20 backdrop-blur-xl border border-emerald-500/30 p-6 rounded-3xl flex-1 text-right">
+                                    <div className="text-emerald-300 text-[10px] font-black uppercase mb-1 tracking-wider">{t('averageGrowthLabel')}</div>
+                                    <div className="text-white text-2xl md:text-3xl font-black">+35%</div>
                                 </div>
                             </div>
                         </div>
