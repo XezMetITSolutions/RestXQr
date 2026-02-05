@@ -132,7 +132,7 @@ export default function HomeContent() {
                 </motion.div>
             </section>
 
-            {/* Kroren Success Case Study - Premium Highlight */}
+            {/* Success Stories - Premium Highlight */}
             <section className="py-24 bg-white relative overflow-hidden">
                 <div className="container mx-auto px-4">
                     <div className="max-w-6xl mx-auto rounded-[3rem] bg-slate-900 overflow-hidden shadow-2xl flex flex-col lg:flex-row border border-white/10">
@@ -144,7 +144,7 @@ export default function HomeContent() {
                                 viewport={{ once: true }}
                             >
                                 <div className="inline-flex items-center px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-sm font-black mb-6 border border-emerald-500/20">
-                                    <FaCheckCircle className="mr-2" /> SUCCESS STORY
+                                    <FaCheckCircle className="mr-2" /> {t('caseStudyBadge') || 'BAŞARI HİKAYELERİMİZ'}
                                 </div>
                                 <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
                                     {t('customersSuccessTitle')}
@@ -155,13 +155,13 @@ export default function HomeContent() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
                                     {[
-                                        { label: t('caseStudyResult1'), color: "text-blue-400" },
-                                        { label: t('caseStudyResult2'), color: "text-emerald-400" },
-                                        { label: t('caseStudyResult3'), color: "text-purple-400" },
-                                        { label: "100% Digital", color: "text-pink-400" }
+                                        { label: t('caseStudyResult1'), icon: FaClock, color: "text-blue-400" },
+                                        { label: t('caseStudyResult2'), icon: FaCheckCircle, color: "text-emerald-400" },
+                                        { label: t('caseStudyResult3'), icon: FaChartLine, color: "text-purple-400" },
+                                        { label: "100% Dijital", icon: FaRocket, color: "text-pink-400" }
                                     ].map((res, i) => (
-                                        <div key={i} className="flex items-center gap-3 bg-white/5 p-4 rounded-2xl border border-white/5">
-                                            <FaStar className={res.color} />
+                                        <div key={i} className="flex items-center gap-3 bg-white/5 p-4 rounded-2xl border border-white/5 group hover:bg-white/10 transition-colors">
+                                            <res.icon className={`${res.color} text-xl`} />
                                             <span className="text-white font-black text-lg">{res.label}</span>
                                         </div>
                                     ))}
@@ -172,39 +172,82 @@ export default function HomeContent() {
                                 </button>
                             </motion.div>
                         </div>
-                        <div className="lg:w-1/2 bg-slate-800 relative min-h-[400px] overflow-hidden">
+                        <div className="lg:w-1/2 bg-slate-800 relative min-h-[500px] overflow-hidden">
                             {/* Abstract General Visual */}
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 to-indigo-900/40"></div>
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center">
-                                <div className="relative">
-                                    <div className="w-48 h-48 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-                                    <FaUsers className="text-[12rem] text-white/10 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                                    <div className="relative grid grid-cols-2 gap-6 p-8">
-                                        <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/10 flex items-center justify-center text-4xl text-blue-400 shadow-2xl">
-                                            <FaUtensils />
+
+                            {/* Dynamic Icon Grid */}
+                            <div className="absolute inset-0 opacity-20">
+                                <div className="grid grid-cols-6 h-full w-full p-4">
+                                    {Array.from({ length: 24 }).map((_, i) => (
+                                        <div key={i} className="flex items-center justify-center border border-white/5">
+                                            <FaStar className="text-white/10 text-xs" />
                                         </div>
-                                        <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/10 flex items-center justify-center text-4xl text-emerald-400 shadow-2xl translate-y-8">
-                                            <FaChartLine />
-                                        </div>
-                                        <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/10 flex items-center justify-center text-4xl text-purple-400 shadow-2xl -translate-y-4">
-                                            <FaQrcode />
-                                        </div>
-                                        <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/10 flex items-center justify-center text-4xl text-pink-400 shadow-2xl translate-y-4">
-                                            <FaShieldAlt />
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
                             </div>
+
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center">
+                                <div className="relative">
+                                    {/* Central glowing element */}
+                                    <div className="w-64 h-64 bg-blue-500/20 rounded-full blur-[100px] animate-pulse"></div>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-32 h-32 bg-white/5 backdrop-blur-3xl rounded-full border border-white/10 flex items-center justify-center shadow-2xl">
+                                            <FaUsers className="text-6xl text-white/20" />
+                                        </div>
+                                    </div>
+
+                                    {/* Orbiting Stats */}
+                                    {[
+                                        { icon: FaUtensils, color: "text-blue-400", pos: "-top-16 -left-16" },
+                                        { icon: FaChartLine, color: "text-emerald-400", pos: "-bottom-16 -right-16" },
+                                        { icon: FaQrcode, color: "text-purple-400", pos: "-top-16 -right-16" },
+                                        { icon: FaShieldAlt, color: "text-pink-400", pos: "-bottom-16 -left-16" }
+                                    ].map((item, i) => (
+                                        <motion.div
+                                            key={i}
+                                            animate={{ y: [0, 10, 0] }}
+                                            transition={{ repeat: Infinity, duration: 3, delay: i * 0.5 }}
+                                            className={`absolute ${item.pos} w-20 h-20 bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/10 flex items-center justify-center text-3xl ${item.color} shadow-2xl`}
+                                        >
+                                            <item.icon />
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Transparent Overlay for Text Contrast */}
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
-                            <div className="absolute bottom-10 left-10 right-10 flex justify-between items-end gap-4">
-                                <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-6 rounded-3xl flex-1">
-                                    <div className="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-wider">{t('satisfiedClientsLabel')}</div>
-                                    <div className="text-white text-2xl md:text-3xl font-black">500+</div>
-                                </div>
-                                <div className="bg-emerald-600/20 backdrop-blur-xl border border-emerald-500/30 p-6 rounded-3xl flex-1 text-right">
-                                    <div className="text-emerald-300 text-[10px] font-black uppercase mb-1 tracking-wider">{t('averageGrowthLabel')}</div>
-                                    <div className="text-white text-2xl md:text-3xl font-black">+35%</div>
-                                </div>
+
+                            {/* Stats Display */}
+                            <div className="absolute bottom-10 left-10 right-10 flex flex-col sm:flex-row justify-between items-center gap-6">
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    className="bg-white/5 backdrop-blur-3xl border border-white/10 p-6 rounded-[2rem] w-full sm:w-auto min-w-[200px]"
+                                >
+                                    <div className="text-slate-400 text-xs font-black uppercase mb-1 tracking-widest">{t('satisfiedClientsLabel')}</div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400">
+                                            <FaUsers />
+                                        </div>
+                                        <div className="text-white text-3xl font-black">500+</div>
+                                    </div>
+                                </motion.div>
+
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    className="bg-emerald-600/10 backdrop-blur-3xl border border-emerald-500/20 p-6 rounded-[2rem] w-full sm:w-auto min-w-[200px]"
+                                >
+                                    <div className="text-emerald-400 text-xs font-black uppercase mb-1 tracking-widest text-right">{t('averageGrowthLabel')}</div>
+                                    <div className="flex items-center justify-end gap-3">
+                                        <div className="text-white text-3xl font-black">+35%</div>
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                                            <FaChartLine />
+                                        </div>
+                                    </div>
+                                </motion.div>
                             </div>
                         </div>
                     </div>

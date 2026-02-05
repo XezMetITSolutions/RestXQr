@@ -1519,6 +1519,168 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Ortalama Büyüme',
       de: 'Durchschnittliches Wachstum',
     },
+    kitchenStatTitle: {
+      en: 'Specialized Kitchen Stations',
+      tr: 'Özelleştirilmiş Mutfak İstasyonları',
+      de: 'Spezialisierte Küchenstationen',
+    },
+    kitchenStatDesc: {
+      en: 'Grilled, Pasta, Cold, and Dessert stations - each with its own smart screen.',
+      tr: 'Izgara, Makarna, Soğuk ve Tatlı istasyonları - her biri için akıllı ekran.',
+      de: 'Grill-, Pasta-, Kalt- und Dessertstationen - jede mit eigenem smarten Bildschirm.',
+    },
+    splitPaymentTitle: {
+      en: 'Hybrid (Split) Payments',
+      tr: 'Hibrit (Parçalı) Ödeme',
+      de: 'Hybrid-Zahlungen (Split)',
+    },
+    splitPaymentDesc: {
+      en: 'Cash + Card or multiple cards. Flexible payment for group tables.',
+      tr: 'Nakit + Kart veya çoklu kart. Grup masaları için esnek ödeme.',
+      de: 'Bar + Karte oder mehrere Karten. Flexibel für Gruppen.',
+    },
+    caseStudyResult1: {
+      en: '40% Faster Service',
+      tr: '%40 Daha Hızlı Servis',
+      de: '40% Schnellerer Service',
+    },
+    caseStudyResult2: {
+      en: '0 Communication Errors',
+      tr: '0 İletişim Hatası',
+      de: '0 Kommunikationsfehler',
+    },
+    caseStudyResult3: {
+      en: '30% More Revenue',
+      tr: '%30 Daha Fazla Kazanç',
+      de: '30% Mehr Umsatz',
+    },
+    featureKitchen: {
+      en: 'Kitchen Operations',
+      tr: 'Mutfak Operasyonu',
+      de: 'Küchenbetrieb',
+    },
+    featurePayment: {
+      en: 'Payment Systems',
+      tr: 'Ödeme Sistemleri',
+      de: 'Zahlungssysteme',
+    },
+    featureBranch: {
+      en: 'Branch Management',
+      tr: 'Şube Yönetimi',
+      de: 'Filialmanagement',
+    },
+    featureAI: {
+      en: 'AI Optimization',
+      tr: 'AI Optimizasyonu',
+      de: 'KI-Optimierung',
+    },
+
+    // New Sales Features
+    mgmtTitle: {
+      en: 'Menu, Stock & Campaign Management',
+      tr: 'Menü – Stok – Kampanya – Duyuru Yönetimi',
+      de: 'Menü-, Lager- & Kampagnenmanagement',
+    },
+    mgmtControlTitle: {
+      en: 'Everything Is Under Your Control',
+      tr: 'Her şey sizin kontrolünüzde',
+      de: 'Alles unter Ihrer Kontrolle',
+    },
+    mgmtMenuUpdate: {
+      en: 'Update menu items instantly',
+      tr: 'Menü ürünlerini istediğiniz an güncelleyin',
+      de: 'Menüpunkte sofort aktualisieren',
+    },
+    mgmtStockHide: {
+      en: 'Hide out-of-stock items immediately',
+      tr: 'Stokta olmayan ürünü anında gizleyin',
+      de: 'Ausverkaufte Artikel sofort ausblenden',
+    },
+    mgmtCampaignDrive: {
+      en: 'Drive sales with campaigns and featured items',
+      tr: 'Kampanyalar ve öne çıkan ürünlerle satışları yönlendirin',
+      de: 'Umsatz steigern mit Kampagnen und Highlights',
+    },
+    mgmtAnnounceDirect: {
+      en: 'Reach customers directly with announcements',
+      tr: 'Duyurularla müşteriye doğrudan ulaşın',
+      de: 'Kunden direkt mit Ankündigungen erreichen',
+    },
+    mgmtNoTechRequired: {
+      en: 'No technical support or expert required.',
+      tr: 'Uzman veya teknik destek gerektirmez.',
+      de: 'Kein technischer Support oder Experte erforderlich.',
+    },
+    waiterCallMainTitle: {
+      en: 'WAITER CALL = SATISFACTION + STAFF SAVING',
+      tr: 'GARSON ÇAĞIRMA = MEMNUNİYET + PERSONEL TASARRUFU',
+      de: 'KELLNER-RUF = ZUFRIEDENHEIT + PERSONAL-ERSPARNIS',
+    },
+    waiterCallTitle: {
+      en: 'Waiter Call – Only When Needed',
+      tr: 'Garson çağırma – sadece ihtiyaç olduğunda',
+      de: 'Kellner-Ruf – Nur bei Bedarf',
+    },
+    waiterCallDesc: {
+      en: 'Customers call with one touch. Reduces unnecessary movement, staff works more controlled, customers never feel ignored.',
+      tr: 'Müşteriler QR üzerinden tek dokunuşla garson çağırabilir. Gereksiz dolaşma azalır, personel daha kontrollü çalışır, müşteri kendini bekletilmiş hissetmez.',
+      de: 'Kunden rufen per Fingertipp. Weniger unnötige Wege, kontrollierteres Arbeiten, keine Wartefühlen.',
+    },
+    waiterCallFooter: {
+      en: 'Less staff, more organized service, happier customers.',
+      tr: 'Daha az personel, daha organize hizmet, daha mutlu müşteri.',
+      de: 'Weniger Personal, besserer Service, glücklichere Kunden.',
+    },
+    zeroErrorSectionTitle: {
+      en: 'HOW DO WE ELIMINATE WRONG ORDERS?',
+      tr: 'YANLIŞ SİPARİŞLERİ NASIL ORTADAN KALDIRIYORUZ?',
+      de: 'WIE VERMEIDEN WIR FALSCHE BESTELLUNGEN?',
+    },
+    qrToKitchenTitle: {
+      en: 'Order from QR → Directly to Kitchen Station',
+      tr: 'QR’dan sipariş → Doğrudan mutfak istasyonuna',
+      de: 'Bestellung via QR → Direkt zur Küchenstation',
+    },
+    qrToKitchenDesc: {
+      en: 'Orders go directly to the relevant station without intermediaries. Reduces errors, returns, and increases speed.',
+      tr: 'Müşteri siparişi QR üzerinden verir, sipariş aracı olmadan doğrudan mutfakta ilgili istasyona düşer. Yanlış siparişler azalır, iadeler düşer, servis hızlanır.',
+      de: 'Bestellungen gehen ohne Umwege direkt an die Station. Weniger Fehler, weniger Retouren, schnellerer Service.',
+    },
+    adIncomeTitle: {
+      en: 'EXTRA INCOME & ADVERTISING OPPORTUNITY',
+      tr: 'EKSTRA GELİR & REKLAM FIRSATI',
+      de: 'EXTRA EINNAHMEN & WERBEMÖGLICHKEITEN',
+    },
+    adIncomeSubtitle: {
+      en: 'Your QR menu is also an income area',
+      tr: 'QR menünüz aynı zamanda bir gelir alanı',
+      de: 'Ihr QR-Menü ist auch eine Einnahmequelle',
+    },
+    adIncomeDesc: {
+      en: 'Earn extra income with internal or external ad spaces, promote your partners or brands.',
+      tr: 'İşletme içi veya dışı reklam alanlarıyla ek gelir elde edebilir, iş ortaklarınızın veya markaların tanıtımını yapabilirsiniz.',
+      de: 'Verdenen Sie dazu mit Werbeflächen, bewerben Sie Partner oder Marken.',
+    },
+    noChangeTitle: {
+      en: 'WITHOUT CHANGING YOUR SYSTEMS',
+      tr: 'SİSTEMLERİNİZİ DEĞİŞTİRMEDEN',
+      de: 'OHNE IHRE SYSTEME ZU ÄNDERN',
+    },
+    noChangeSubtitle: {
+      en: 'Does not disrupt your current routine',
+      tr: 'Mevcut düzeninizi bozmaz',
+      de: 'Stört Ihren aktuellen Ablauf nicht',
+    },
+    noChangeDesc: {
+      en: 'Your kitchen or workflow stays the same. RestXQR integrates on top, digitizing and professionalizing your process.',
+      tr: 'Mevcut işleyişiniz, mutfağınız veya sistemleriniz değişmez. RestXQR, işletmenizin üzerine eklenir ve süreci dijitalleştirerek daha hızlı ve profesyonel hale getirir.',
+      de: 'Ihr Workflow bleibt gleich. RestXQR digitalisiert und professionalisiert Ihren bestehenden Prozess.',
+    },
+    noChangeFooter: {
+      en: 'No change, no chaos — just a smarter business.',
+      tr: 'Değişiklik yok, karmaşa yok — sadece daha akıllı bir işletme.',
+      de: 'Keine Änderung, kein Chaos – einfach ein smarterer Betrieb.',
+    },
     zeroErrorList1: {
       en: 'Order via QR',
       tr: 'QR’dan Sipariş',
