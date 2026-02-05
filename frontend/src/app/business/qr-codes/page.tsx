@@ -253,7 +253,7 @@ export default function QRCodesPage() {
 
     loadWithRetry();
     return () => { mounted = false; };
-  }, [authenticatedRestaurant?.id]);
+  }, [authenticatedRestaurant?.id, (settings as any)?.drinkStationRouting]);
 
   const handleSaveFloorSettings = async () => {
     if (!authenticatedRestaurant) return;
@@ -756,13 +756,18 @@ export default function QRCodesPage() {
       const generalQR: QRCodeData = {
         id: 'general-menu',
         restaurantId: authenticatedRestaurant?.id || '',
-        tableNumber: 'Genel Menü',
+        tableNumber: 'Genel Menü' as any,
         token: 'public',
         qrCode: qrDataUrl,
         createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        // expiresAt removed as it is not in interface
         isActive: true,
-        type: 'general'
+        type: 'general',
+        name: 'Genel Menü',
+        url: menuUrl,
+        theme: 'default',
+        scanCount: 0,
+        description: 'Genel Menü QR Kodu'
       };
 
       const blob = await generateQRCardBlob(generalQR);
