@@ -1574,6 +1574,11 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'AI Optimizasyonu',
       de: 'KI-Optimierung',
     },
+    premiumServicesBadge: {
+      en: 'PREMIUM FEATURES',
+      tr: 'PREMİUM ÖZELLİKLER',
+      de: 'PREMIUM FUNKTIONEN',
+    },
 
     // New Sales Features
     mgmtTitle: {
@@ -1681,6 +1686,20 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Değişiklik yok, karmaşa yok — sadece daha akıllı bir işletme.',
       de: 'Keine Änderung, kein Chaos – einfach ein smarterer Betrieb.',
     },
+    adTag1: { en: 'Banner Ads', tr: 'Banner Reklamlar', de: 'Banner-Anzeigen' },
+    adTag2: { en: 'Digital Brochures', tr: 'Dijital Broşürler', de: 'Digitale Broschüren' },
+    adTag3: { en: 'Partner Promo', tr: 'İş Ortağı Tanıtımı', de: 'Partner-Promotion' },
+    adTag4: { en: 'Video Ads', tr: 'Video Reklamlar', de: 'Video-Anzeigen' },
+    passiveIncomeLabel: { en: 'Passive Income', tr: 'Pasif Gelir', de: 'Passives Einkommen' },
+    premiumSpaceLabel: { en: 'Premium Space', tr: 'Premium Alan', de: 'Premium-Platz' },
+
+    // Core Value Propositions
+    valPropSatisfy: { en: 'Customer Satisfaction', tr: 'Müşteri Memnuniyeti', de: 'Kundenzufriedenheit' },
+    valPropProfit: { en: 'Increased Profit', tr: 'Kâr Artışı', de: 'Gewinnsteigerung' },
+    valPropStaff: { en: 'Staff Optimization', tr: 'Personel Tasarrufu', de: 'Personaloptimierung' },
+    valPropSpeed: { en: 'Lightning Fast', tr: 'Işık Hızında Servis', de: 'Blitzschneller Service' },
+    valPropDigital: { en: '100% Digital', tr: '%100 Dijitalleşme', de: '100% Digitalisierung' },
+    valPropTrust: { en: 'Reliable System', tr: 'Güvenilir Altyapı', de: 'Zuverlässiges System' },
     zeroErrorList1: {
       en: 'Order via QR',
       tr: 'QR’dan Sipariş',
