@@ -147,10 +147,10 @@ export default function HomeContent() {
                                     <FaCheckCircle className="mr-2" /> SUCCESS STORY
                                 </div>
                                 <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
-                                    {t('krorenSuccessTitle')}
+                                    {t('customersSuccessTitle')}
                                 </h2>
                                 <p className="text-xl text-slate-400 mb-10 leading-relaxed font-medium">
-                                    {t('krorenSuccessDesc')}
+                                    {t('customersSuccessDesc')}
                                 </p>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
@@ -172,22 +172,38 @@ export default function HomeContent() {
                                 </button>
                             </motion.div>
                         </div>
-                        <div className="lg:w-1/2 bg-slate-800 relative min-h-[400px]">
-                            <Image
-                                src="/Kroren_Logo.png"
-                                alt="Kroren Logo"
-                                fill
-                                className="object-contain p-12 md:p-24 opacity-80"
-                            />
+                        <div className="lg:w-1/2 bg-slate-800 relative min-h-[400px] overflow-hidden">
+                            {/* Abstract General Visual */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 to-indigo-900/40"></div>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center">
+                                <div className="relative">
+                                    <div className="w-48 h-48 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+                                    <FaUsers className="text-[12rem] text-white/10 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                                    <div className="relative grid grid-cols-2 gap-6 p-8">
+                                        <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/10 flex items-center justify-center text-4xl text-blue-400 shadow-2xl">
+                                            <FaUtensils />
+                                        </div>
+                                        <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/10 flex items-center justify-center text-4xl text-emerald-400 shadow-2xl translate-y-8">
+                                            <FaChartLine />
+                                        </div>
+                                        <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/10 flex items-center justify-center text-4xl text-purple-400 shadow-2xl -translate-y-4">
+                                            <FaQrcode />
+                                        </div>
+                                        <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/10 flex items-center justify-center text-4xl text-pink-400 shadow-2xl translate-y-4">
+                                            <FaShieldAlt />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
                             <div className="absolute bottom-10 left-10 right-10 flex justify-between items-end">
                                 <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-6 rounded-3xl">
-                                    <div className="text-slate-400 text-xs font-black uppercase mb-1">Installation Time</div>
-                                    <div className="text-white text-3xl font-black">24 Hours</div>
+                                    <div className="text-slate-400 text-xs font-black uppercase mb-1">Satisfied Clients</div>
+                                    <div className="text-white text-3xl font-black">500+</div>
                                 </div>
                                 <div className="bg-blue-600/20 backdrop-blur-xl border border-blue-500/30 p-6 rounded-3xl">
-                                    <div className="text-blue-300 text-xs font-black uppercase mb-1">Status</div>
-                                    <div className="text-white text-3xl font-black">Live</div>
+                                    <div className="text-blue-300 text-xs font-black uppercase mb-1">Average Growth</div>
+                                    <div className="text-white text-3xl font-black">+35%</div>
                                 </div>
                             </div>
                         </div>
@@ -286,62 +302,6 @@ export default function HomeContent() {
                                 </motion.div>
                             );
                         })}
-                    </div>
-                </div>
-            </section>
-
-            {/* AI Comparison Section - Sleeker Design */}
-            <section className="py-24 bg-white">
-                <div className="container mx-auto px-4">
-                    <div className="max-w-6xl mx-auto rounded-[3rem] bg-indigo-600 p-8 md:p-20 text-white relative overflow-hidden shadow-[0_40px_100px_rgba(79,70,229,0.3)]">
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2"></div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                            <div>
-                                <div className="inline-flex items-center px-4 py-2 bg-white/10 rounded-full text-xs font-black tracking-widest uppercase mb-6 backdrop-blur-md">
-                                    <FaMagic className="mr-2" /> {t('aiBadge')}
-                                </div>
-                                <h2 className="text-4xl md:text-5xl font-black mb-6 leading-tight">
-                                    {t('aiTitle')}
-                                </h2>
-                                <p className="text-xl text-indigo-100 mb-8 leading-relaxed">
-                                    {t('aiDesc')}
-                                </p>
-                                <div className="space-y-4 mb-10">
-                                    {[t('costSavings'), t('fastResult'), t('salesIncrease')].map((item, i) => (
-                                        <div key={i} className="flex items-center gap-4">
-                                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                                                <FaCheckCircle className="text-indigo-200" />
-                                            </div>
-                                            <span className="text-lg font-bold">{item}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                                <button onClick={() => setShowDemoModal(true)} className="px-8 py-4 bg-white text-indigo-600 font-black text-lg rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all">
-                                    {t('tryNow')}
-                                </button>
-                            </div>
-
-                            <div className="relative group perspective-1000">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-4">
-                                        <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-white/10 border border-white/20 shadow-2xl relative">
-                                            <Image src="/ai-before.jpg" alt="Before" fill className="object-cover" />
-                                            <div className="absolute top-4 left-4 bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase">BEFORE</div>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4 pt-8">
-                                        <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-white border-4 border-white shadow-2xl relative scale-110">
-                                            <Image src="/ai-after.jpg" alt="After" fill className="object-cover" />
-                                            <div className="absolute top-4 right-4 bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase shadow-lg">AFTER</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-white text-indigo-600 px-8 py-4 rounded-2xl shadow-2xl font-black whitespace-nowrap">
-                                    {t('proLook')} ✨
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </section>
