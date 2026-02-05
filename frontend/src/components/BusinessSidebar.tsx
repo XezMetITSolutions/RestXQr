@@ -312,7 +312,7 @@ export default function BusinessSidebar({ sidebarOpen, setSidebarOpen, onLogout 
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 w-72 text-white transform transition-all duration-500 ease-in-out z-40 shadow-2xl flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 w-[288px] min-w-[288px] max-w-[288px] shrink-0 text-white transform transition-all duration-500 ease-in-out z-40 shadow-2xl flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           } lg:translate-x-0`}
         style={{
           background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',

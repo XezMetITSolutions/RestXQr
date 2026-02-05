@@ -1485,7 +1485,7 @@ export default function MenuManagement() {
       />
 
       {/* Main Content */}
-      <div className="ml-0 lg:ml-72 relative z-10">
+      <div className="ml-0 lg:ml-[288px] relative z-10">
         {/* Header */}
         <header className="bg-white/90 backdrop-blur-xl shadow-2xl border-b border-white/20 sticky top-0 z-30">
           <div className="px-6 lg:px-8 py-6 flex justify-between items-center">
@@ -2805,8 +2805,8 @@ export default function MenuManagement() {
                               <button
                                 onClick={() => setEditingMappingItemId(item.id === editingMappingItemId ? null : item.id)}
                                 className={`w-full max-w-[240px] px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all outline-none border-2 text-left flex justify-between items-center ${(Array.isArray(item.kitchenStation) ? item.kitchenStation.length > 0 : item.kitchenStation)
-                                    ? 'bg-amber-50 border-amber-200 text-amber-900 hover:border-amber-400'
-                                    : 'bg-gray-50 border-gray-100 text-gray-500 hover:border-purple-300'
+                                  ? 'bg-amber-50 border-amber-200 text-amber-900 hover:border-amber-400'
+                                  : 'bg-gray-50 border-gray-100 text-gray-500 hover:border-purple-300'
                                   }`}
                               >
                                 <span className="truncate block">
@@ -2914,7 +2914,7 @@ export default function MenuManagement() {
           {/* Modals */}
           {showItemForm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999] lg:ml-72">
+              <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative z-[9999] lg:ml-[288px]">
                 <div className="p-6 border-b flex justify-between items-center">
                   <h2 className="text-2xl font-bold">
                     {editingItem ? <TranslatedText>Ürünü Düzenle</TranslatedText> : <TranslatedText>Yeni Ürün Ekle</TranslatedText>}
@@ -3782,7 +3782,7 @@ export default function MenuManagement() {
 
           {showCategoryForm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
+              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-[288px]">
                 <div className="p-6 border-b flex justify-between items-center">
                   <h2 className="text-2xl font-bold">
                     {editingCategory ? <TranslatedText>Kategoriyi Düzenle</TranslatedText> : <TranslatedText>Yeni Kategori Ekle</TranslatedText>}
@@ -3901,7 +3901,7 @@ export default function MenuManagement() {
           {/* İstasyon Form Modal */}
           {showStationForm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
+              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-[288px]">
                 <div className="p-6 border-b flex justify-between items-center">
                   <h2 className="text-2xl font-bold">
                     {editingStation ? <TranslatedText>İstasyonu Düzenle</TranslatedText> : <TranslatedText>Yeni İstasyon Ekle</TranslatedText>}
@@ -4008,7 +4008,7 @@ export default function MenuManagement() {
           {/* Kamera Modal */}
           {showCameraModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-72">
+              <div className="bg-white rounded-xl max-w-md w-full overflow-hidden relative z-[9999] lg:ml-[288px]">
                 <div className="p-6 border-b flex justify-between items-center">
                   <h2 className="text-xl font-bold"><TranslatedText>Fotoğraf Çek</TranslatedText></h2>
                   <button
@@ -4059,7 +4059,7 @@ export default function MenuManagement() {
           {/* Bulk Import Modal */}
           {showBulkImport && (
             <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-2xl w-full relative z-[9999] lg:ml-72">
+              <div className="bg-white rounded-xl max-w-2xl w-full relative z-[9999] lg:ml-[288px]">
                 <div className="p-6 border-b flex justify-between items-center">
                   <h2 className="text-xl font-bold flex items-center gap-2">
                     <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -4756,7 +4756,7 @@ export default function MenuManagement() {
           {/* Bulk Translate Modal */}
           {showBulkTranslateModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
+              <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-[288px]">
                 <div className="p-6 border-b flex justify-between items-center">
                   <h2 className="text-xl font-bold"><TranslatedText>Toplu Çeviri Ayarları</TranslatedText></h2>
                   <button
@@ -4844,7 +4844,7 @@ export default function MenuManagement() {
           {/* Bulk Price Update Modal */}
           {showBulkPriceModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-end p-4">
-              <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-72">
+              <div className="bg-white rounded-xl max-w-md w-full relative z-[9999] lg:ml-[288px]">
                 <div className="p-6 border-b flex justify-between items-center">
                   <h2 className="text-xl font-bold"><TranslatedText>Toplu Fiyat Düzenle</TranslatedText></h2>
                   <button

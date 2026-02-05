@@ -353,7 +353,7 @@ function BusinessDashboardContent() {
         setSidebarOpen={setSidebarOpen}
         onLogout={logout}
       />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden lg:ml-72">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden lg:ml-[288px]">
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-30 shadow-sm">
           <div className="px-6 lg:px-8 py-6 flex justify-between items-center">

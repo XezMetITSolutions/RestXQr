@@ -742,7 +742,7 @@ export default function ReportsPage() {
       />
 
       {/* Main Content */}
-      <div className="ml-0 lg:ml-72 relative z-10">
+      <div className="ml-0 lg:ml-[288px] relative z-10">
         {/* Header */}
         <header className="bg-white/90 backdrop-blur-xl shadow-2xl border-b border-white/20 sticky top-0 z-30">
           <div className="px-6 lg:px-8 py-6 flex justify-between items-center">
