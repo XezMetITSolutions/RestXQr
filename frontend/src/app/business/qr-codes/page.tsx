@@ -18,7 +18,8 @@ import {
   FaExternalLinkAlt,
   FaCheckSquare,
   FaSquare,
-  FaSync
+  FaSync,
+  FaMotorcycle
 } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useQRStore, type QRCodeData } from '@/store/useQRStore';
@@ -66,6 +67,10 @@ export default function QRCodesPage() {
   const [authTimeout, setAuthTimeout] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [activeFloorFilter, setActiveFloorFilter] = useState<'all' | string>('all');
+
+  // Paket Servis State
+  const [showPaketModal, setShowPaketModal] = useState(false);
+  const [paketCount, setPaketCount] = useState(5);
 
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
 
@@ -461,6 +466,90 @@ export default function QRCodesPage() {
     }
   };
 
+  const handleCreatePaketServis = async () => {
+    if (!authenticatedRestaurant) return;
+    try {
+      setCreating(true);
+
+      // Mevcut katları al
+      const currentFloors = [...floorConfigs];
+
+      // Eğer hiç kat yoksa veya start/end hesaplanmamışsa düzelt
+      let cursor = 1;
+      const normalizedFloors = currentFloors.map(f => {
+        const tCount = Number(f.tableCount) || ((Number(f.endTable) - Number(f.startTable) + 1) || 0);
+
+        let start = Number(f.startTable);
+        let end = Number(f.endTable);
+
+        // Eğer manuel aralıklar yoksa veya sayılar geçersizse
+        if (!Number.isFinite(start) || !Number.isFinite(end) || start === 0) {
+          start = cursor;
+          end = cursor + tCount - 1;
+        }
+
+        cursor = Math.max(cursor, end + 1);
+
+        return {
+          name: f.name,
+          tableCount: tCount,
+          startTable: start,
+          endTable: end,
+          drinkStationId: f.drinkStationId || ''
+        };
+      });
+
+      // En son masa numarasını bul
+      const maxTable = normalizedFloors.reduce((max, f) => Math.max(max, f.endTable || 0), 0);
+
+      // Yeni aralık
+      const startTable = maxTable + 1;
+      const endTable = startTable + paketCount - 1;
+
+      // Yeni "Paket Servis" bölümü ekle
+      const newFloor = {
+        name: 'Paket Servis',
+        tableCount: paketCount,
+        startTable: startTable,
+        endTable: endTable,
+        stationId: ''
+      };
+
+      const finalFloors = [...normalizedFloors, newFloor];
+
+      // Settings güncelle
+      settingsStore.updateSettings({
+        drinkStationRouting: {
+          drinkCategoryId: drinkCategoryId || null,
+          floors: finalFloors
+        }
+      } as any);
+
+      await settingsStore.saveSettings();
+
+      // Tokenları oluştur
+      for (let i = startTable; i <= endTable; i++) {
+        try {
+          await apiService.generateQRToken({
+            restaurantId: authenticatedRestaurant.id,
+            tableNumber: i,
+            duration: 24
+          });
+        } catch (e) { console.error(e); }
+      }
+
+      await reloadQRCodes();
+      setShowPaketModal(false);
+      showToast(`${paketCount} adet Paket Servis QR oluşturuldu!`, 'success');
+
+    } catch (error) {
+      console.error(error);
+      showToast(getStatic('Hata oluştu'), 'error');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   // Profesyonel QR Kart Oluşturucu
   const generateQRCardBlob = async (qrCode: QRCodeData): Promise<Blob | null> => {
     try {
@@ -743,6 +832,13 @@ export default function QRCodesPage() {
                 >
                   <FaQrcode />
                   <span className="hidden sm:inline"><TranslatedText>Genel Menü QR</TranslatedText></span>
+                </button>
+                <button
+                  onClick={() => setShowPaketModal(true)}
+                  className="bg-orange-100 text-orange-700 px-4 py-2 rounded-lg hover:bg-orange-200 flex items-center gap-2 shadow-sm border border-orange-200"
+                >
+                  <FaMotorcycle />
+                  <span className="hidden sm:inline"><TranslatedText>Paket Servis QR</TranslatedText></span>
                 </button>
                 <button
                   onClick={() => { setShowCreateModal(true); setUseManualRanges(true); }}
@@ -1225,6 +1321,53 @@ export default function QRCodesPage() {
                 ) : (
                   <TranslatedText>Sadece Bölümleri Kaydet</TranslatedText>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* PAKET SERVIS MODAL */}
+      {showPaketModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <FaMotorcycle className="text-orange-600" />
+              <TranslatedText>Paket Servis QR Oluştur</TranslatedText>
+            </h3>
+
+            <p className="text-gray-600 mb-4 text-sm">
+              <TranslatedText>Paket servisleriniz için kaç adet QR kod oluşturmak istersiniz?</TranslatedText>
+              <br />
+              <span className="text-xs text-gray-400"><TranslatedText>(Bu işlem yeni bir bölüm olarak kaydedilecektir)</TranslatedText></span>
+            </p>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1"><TranslatedText>Adet</TranslatedText></label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={paketCount}
+                onChange={(e) => setPaketCount(parseInt(e.target.value) || 1)}
+                className="w-full border rounded-lg px-4 py-2 text-lg font-bold text-center focus:ring-2 focus:ring-orange-500 outline-none"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowPaketModal(false)}
+                className="flex-1 px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50"
+              >
+                <TranslatedText>İptal</TranslatedText>
+              </button>
+              <button
+                onClick={handleCreatePaketServis}
+                disabled={creating}
+                className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {creating ? <FaSpinner className="animate-spin" /> : <TranslatedText>Oluştur</TranslatedText>}
               </button>
             </div>
           </div>
