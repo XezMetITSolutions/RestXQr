@@ -112,6 +112,7 @@ export default function KasaPanel() {
   // Product Management State
   const [showProductModal, setShowProductModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historySearchTerm, setHistorySearchTerm] = useState('');
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
@@ -3004,9 +3005,23 @@ export default function KasaPanel() {
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-gray-800 uppercase tracking-tight">GEÇMİŞ SİPARİŞLER</h2>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">SON 24 SAATTEKİ TAMAMLANAN SİPARİŞLER</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">BUGÜNKÜ TAMAMLANAN SİPARİŞLER</p>
                 </div>
               </div>
+
+              <div className="flex-1 max-w-sm mx-4 relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaSearch className="text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Masa veya Ürün Ara..."
+                  value={historySearchTerm}
+                  onChange={(e) => setHistorySearchTerm(e.target.value)}
+                  className="w-full bg-white border border-gray-200 focus:border-blue-500 rounded-xl py-2 pl-10 pr-4 text-xs font-bold transition-all shadow-sm outline-none"
+                />
+              </div>
+
               <button
                 onClick={() => setShowHistoryModal(false)}
                 className="p-3 hover:bg-gray-200 rounded-2xl transition-all"
@@ -3016,19 +3031,37 @@ export default function KasaPanel() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
-              {allOrders
-                .filter(o => o.status === 'completed' || o.status === 'cancelled')
-                .length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-                  <FaReceipt size={48} className="mb-4 opacity-20" />
-                  <p className="font-black uppercase tracking-widest text-sm">GEÇMİŞ SİPARİŞ BULUNAMADI</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {allOrders
-                    .filter(o => o.status === 'completed' || o.status === 'cancelled')
-                    .sort((a, b) => new Date(b.created_at || b.createdAt || '').getTime() - new Date(a.created_at || a.createdAt || '').getTime())
-                    .map(order => (
+              {(() => {
+                const startOfToday = new Date();
+                startOfToday.setHours(0, 0, 0, 0);
+
+                const filteredHistory = allOrders
+                  .filter(o => o.status === 'completed' || o.status === 'cancelled')
+                  .filter(o => {
+                    const orderDate = new Date(o.created_at || o.createdAt || '');
+                    return orderDate >= startOfToday;
+                  })
+                  .filter(o => {
+                    if (!historySearchTerm) return true;
+                    const term = historySearchTerm.toLowerCase();
+                    const tableMatch = o.tableNumber?.toString().includes(term);
+                    const itemMatch = o.items.some(it => it.name.toLowerCase().includes(term));
+                    return tableMatch || itemMatch;
+                  })
+                  .sort((a, b) => new Date(b.created_at || b.createdAt || '').getTime() - new Date(a.created_at || a.createdAt || '').getTime());
+
+                if (filteredHistory.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                      <FaReceipt size={48} className="mb-4 opacity-20" />
+                      <p className="font-black uppercase tracking-widest text-sm">GEÇMİŞ SİPARİŞ BULUNAMADI</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredHistory.map(order => (
                       <div
                         key={order.id}
                         className={`p-4 rounded-2xl border-2 border-gray-100 hover:border-green-500 transition-all cursor-pointer group ${order.status === 'cancelled' ? 'bg-red-50/50' : 'bg-white'}`}
@@ -3036,7 +3069,6 @@ export default function KasaPanel() {
                           setSelectedOrder(order);
                           setShowPaymentModal(true);
                           setPaymentTab('full');
-                          // setShowHistoryModal(false);
                         }}
                       >
                         <div className="flex justify-between items-center mb-3">
@@ -3060,8 +3092,9 @@ export default function KasaPanel() {
                         </div>
                       </div>
                     ))}
-                </div>
-              )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
