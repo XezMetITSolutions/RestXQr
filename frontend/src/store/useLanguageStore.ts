@@ -1499,15 +1499,15 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
     },
 
     // Kroren Case Study & New Features
-    krorenSuccessTitle: {
-      en: 'Customer Success: Kroren Restaurant',
-      tr: 'Müşteri Başarısı: Kroren Restaurant',
-      de: 'Kunden-Erfolg: Kroren Restaurant',
+    customersSuccessTitle: {
+      en: 'Success Story: Our Customers',
+      tr: 'Başarı Hikayeleri: Müşterilerimiz',
+      de: 'Erfolgsgeschichten: Unsere Kunden',
     },
-    krorenSuccessDesc: {
-      en: 'From 0 to digital in 24 hours. A complete transformation of operations.',
-      tr: '0\'dan dijitale 24 saatte! Operasyonel süreçlerin tam dönüşümü.',
-      de: 'Von 0 auf Digital in 24 Stunden. Eine komplette Transformation.',
+    customersSuccessDesc: {
+      en: 'From 0 to digital in 24 hours. A complete transformation for hundreds of businesses.',
+      tr: '0\'dan dijitale 24 saatte! Yüzlerce işletme için tam operasyonel dönüşüm.',
+      de: 'Von 0 auf Digital in 24 Stunden. Eine komplette Transformation für hunderte Betriebe.',
     },
     kitchenStatTitle: {
       en: 'Specialized Kitchen Stations',
