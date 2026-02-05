@@ -111,6 +111,7 @@ export default function KasaPanel() {
 
   // Product Management State
   const [showProductModal, setShowProductModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
@@ -1634,6 +1635,14 @@ export default function KasaPanel() {
               <span className="text-[10px] font-black">STOK</span>
             </button>
 
+            <button
+              onClick={() => setShowHistoryModal(true)}
+              className="p-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all shadow-sm flex flex-col items-center justify-center gap-1 min-w-[80px]"
+            >
+              <FaReceipt size={20} />
+              <span className="text-[10px] font-black">GEÇMİŞ</span>
+            </button>
+
             <button onClick={() => { localStorage.clear(); router.push('/staff-login'); }} className="p-4 bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
               <FaSignOutAlt />
             </button>
@@ -2979,6 +2988,80 @@ export default function KasaPanel() {
                 <FaPrint className="text-lg" />
                 EVET
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PAST ORDERS MODAL */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-md overflow-hidden">
+          <div className="bg-white w-full max-w-4xl h-[80vh] rounded-[32px] overflow-hidden shadow-2xl flex flex-col border border-gray-100">
+            <div className="p-6 border-b flex justify-between items-center bg-gray-50 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-gray-900 text-white rounded-xl">
+                  <FaReceipt size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-gray-800 uppercase tracking-tight">GEÇMİŞ SİPARİŞLER</h2>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">SON 24 SAATTEKİ TAMAMLANAN SİPARİŞLER</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowHistoryModal(false)}
+                className="p-3 hover:bg-gray-200 rounded-2xl transition-all"
+              >
+                <FaTimesCircle className="text-gray-400 text-xl" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
+              {allOrders
+                .filter(o => o.status === 'completed' || o.status === 'cancelled')
+                .length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                  <FaReceipt size={48} className="mb-4 opacity-20" />
+                  <p className="font-black uppercase tracking-widest text-sm">GEÇMİŞ SİPARİŞ BULUNAMADI</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {allOrders
+                    .filter(o => o.status === 'completed' || o.status === 'cancelled')
+                    .sort((a, b) => new Date(b.created_at || b.createdAt || '').getTime() - new Date(a.created_at || a.createdAt || '').getTime())
+                    .map(order => (
+                      <div
+                        key={order.id}
+                        className={`p-4 rounded-2xl border-2 border-gray-100 hover:border-green-500 transition-all cursor-pointer group ${order.status === 'cancelled' ? 'bg-red-50/50' : 'bg-white'}`}
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setShowPaymentModal(true);
+                          setPaymentTab('full');
+                          // setShowHistoryModal(false);
+                        }}
+                      >
+                        <div className="flex justify-between items-center mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className={`px-3 py-1 rounded-lg text-xs font-black ${order.tableNumber != null ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
+                              {order.tableNumber != null ? `MASA ${order.tableNumber}` : (order.orderType === 'dine_in' ? '?' : 'WEB')}
+                            </div>
+                            <span className="text-[10px] font-bold text-gray-400">{new Date(order.created_at || order.createdAt || '').toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                          <div className={`px-3 py-1 rounded-lg text-[10px] font-black ${order.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {order.status === 'completed' ? 'TAMAMLANDI' : 'İPTAL'}
+                          </div>
+                        </div>
+                        <div className="text-sm font-bold text-gray-600 mb-2 truncate group-hover:text-green-600 transition-colors">
+                          {order.items.slice(0, 2).map(it => `${it.quantity}x ${it.name}`).join(', ')}
+                          {order.items.length > 2 && '...'}
+                        </div>
+                        <div className="flex justify-between items-center pt-3 border-t border-gray-50">
+                          <span className="text-xs font-bold text-gray-400 uppercase">TUTAR</span>
+                          <span className="font-black text-gray-800">{(Number(order.totalAmount || 0)).toFixed(2)}₺</span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
