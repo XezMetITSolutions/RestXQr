@@ -7,13 +7,17 @@ import apiService from '@/services/api';
 import { QRCodeData } from '@/store/useQRStore';
 
 export default function DebugCreateQRPage() {
-    const { authenticatedRestaurant } = useAuthStore();
+    const { authenticatedRestaurant, initializeAuth } = useAuthStore();
     const settingsStore = useRestaurantSettings(authenticatedRestaurant?.id);
     const [logs, setLogs] = useState<string[]>([]);
     const [qrs, setQrs] = useState<QRCodeData[]>([]);
     const [loading, setLoading] = useState(false);
 
     const addLog = (msg: string) => setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev]);
+
+    useEffect(() => {
+        initializeAuth();
+    }, []);
 
     const fetchQRs = async () => {
         if (!authenticatedRestaurant?.id) return;
@@ -164,7 +168,7 @@ export default function DebugCreateQRPage() {
                 <div className="bg-white p-4 rounded shadow">
                     <h2 className="font-bold mb-4">Latest Created QRs</h2>
                     <div className="space-y-2 max-h-[500px] overflow-auto">
-                        {qrs.sort((a, b) => b.tableNumber - a.tableNumber).map(qr => (
+                        {qrs.sort((a, b) => Number(b.tableNumber || 0) - Number(a.tableNumber || 0)).map(qr => (
                             <div key={qr.id} className="p-2 border rounded flex justify-between items-center text-xs">
                                 <div>
                                     <span className="font-bold mr-2">#{qr.tableNumber}</span>
