@@ -35,15 +35,20 @@ export default function DebugCreateQRPage() {
         if (authenticatedRestaurant?.id) fetchQRs();
     }, [authenticatedRestaurant]);
 
-    // Helper to calculate Packet URL (Same logic as main page)
+    // Helper to calculate Paket URL (Same logic as main page)
     const getDisplayURL = (qr: any) => {
         const cfg = (settingsStore.settings as any)?.drinkStationRouting;
         const floors = Array.isArray(cfg?.floors) ? cfg.floors : [];
-        const floor = floors.find((f: any) => Number(f.startTable) <= qr.tableNumber && qr.tableNumber <= Number(f.endTable));
+        const floor = floors.find((f: any) => {
+            const start = Number(f.startTable || f.start || 0);
+            const end = Number(f.endTable || f.end || 0);
+            return start <= qr.tableNumber && qr.tableNumber <= end;
+        });
 
-        if (floor && floor.name === 'Paket Servis') {
-            const packetNum = Number(qr.tableNumber) - Number(floor.startTable) + 1;
-            return `https://${authenticatedRestaurant?.username}.restxqr.com/menu/?t=${qr.token}&packet=${packetNum} (FORCED)`;
+        if (floor && floor.name?.trim().toLowerCase() === 'paket servis') {
+            const start = Number(floor.startTable || floor.start || 0);
+            const packetNum = Number(qr.tableNumber) - start + 1;
+            return `https://${authenticatedRestaurant?.username}.restxqr.com/menu/?t=${qr.token}&packet=${packetNum}`;
         }
         return qr.qrUrl || `https://${authenticatedRestaurant?.username}.restxqr.com/menu/?t=${qr.token}&table=${qr.tableNumber}`;
     };
@@ -139,7 +144,7 @@ export default function DebugCreateQRPage() {
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
-            <h1 className="text-2xl font-bold mb-6">QR Creation Debugger</h1>
+            <h1 className="text-2xl font-bold mb-6">QR Oluşturma Debug</h1>
 
             <div className="flex gap-4 mb-8">
                 <button
@@ -147,20 +152,20 @@ export default function DebugCreateQRPage() {
                     disabled={loading}
                     className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                 >
-                    Create 3 Standard Tables (900-902)
+                    3 Standart Masa Oluştur (900-902)
                 </button>
                 <button
                     onClick={createPacketService}
                     disabled={loading}
                     className="px-6 py-3 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50"
                 >
-                    Create 3 Packet Service Items
+                    3 Paket Servis Öğesi Oluştur
                 </button>
                 <button
                     onClick={fetchQRs}
                     className="px-6 py-3 bg-gray-600 text-white rounded hover:bg-gray-700"
                 >
-                    Refresh List
+                    Listeyi Yenile
                 </button>
             </div>
 

@@ -169,12 +169,23 @@ export default function QRCodesPage() {
 
       if (res?.success && Array.isArray(res.data)) {
         // Floor bilgisini almak için settings'i kullan (reloadQRCodes içinde erişilebilir olması için burada helper tanımlıyoruz veya direkt kullanıyoruz)
+        const normalizeFloorName = (name: string) => name?.trim().toLowerCase();
+        const TARGET_FLOOR_NAME = 'paket servis';
+
         const getFloorInfo = (tNum: number) => {
           const cfg = (settingsStore.settings as any)?.drinkStationRouting;
           const floors = Array.isArray(cfg?.floors) ? cfg.floors : [];
-          const match = floors.find((f: any) => Number(f.startTable) <= tNum && tNum <= Number(f.endTable));
+          const match = floors.find((f: any) => {
+            const start = Number(f.startTable || f.start || 0);
+            const end = Number(f.endTable || f.end || 0);
+            return start <= tNum && tNum <= end;
+          });
           if (!match) return null;
-          return { name: match.name, start: match.startTable, end: match.endTable };
+          return {
+            name: match.name,
+            start: Number(match.startTable || match.start || 0),
+            end: Number(match.endTable || match.end || 0)
+          };
         };
 
         const mapped: QRCodeData[] = res.data.map((t: any) => {
@@ -184,10 +195,11 @@ export default function QRCodesPage() {
           // URL Oluşturma Mantığı - FORCE OVERRIDE for Paket Servis
           const floor = getFloorInfo(t.tableNumber);
 
-          if (floor && floor.name === 'Paket Servis') {
+          if (floor && normalizeFloorName(floor.name) === TARGET_FLOOR_NAME) {
             const packetNum = Number(t.tableNumber) - Number(floor.start) + 1;
             if (t.token && restaurantSlug) {
               backendQrUrl = `https://${restaurantSlug}.restxqr.com/menu/?t=${t.token}&packet=${packetNum}`;
+              console.log(`Bingo! Table ${t.tableNumber} is Paket ${packetNum}. URL: ${backendQrUrl}`);
             }
           } else if (!backendQrUrl) {
             let paramPart = `table=${t.tableNumber}`;
@@ -792,9 +804,17 @@ export default function QRCodesPage() {
     if (!Number.isFinite(t)) return null;
     const cfg = (settings as any)?.drinkStationRouting;
     const floors = Array.isArray(cfg?.floors) ? cfg.floors : [];
-    const match = floors.find((f: any) => Number(f.startTable) <= t && t <= Number(f.endTable));
+    const match = floors.find((f: any) => {
+      const start = Number(f.startTable || f.start || 0);
+      const end = Number(f.endTable || f.end || 0);
+      return start <= t && t <= end;
+    });
     if (!match) return null;
-    return { name: match.name, start: match.startTable, end: match.endTable };
+    return {
+      name: match.name,
+      start: Number(match.startTable || match.start || 0),
+      end: Number(match.endTable || match.end || 0)
+    };
   };
 
   const floors = (settings as any)?.drinkStationRouting?.floors || [];
@@ -1099,9 +1119,9 @@ export default function QRCodesPage() {
                         )}
                       </div>
                       <div className="mt-2 font-bold text-lg text-gray-900">
-                        {floor?.name === 'Paket Servis' ? (
+                        {floor?.name?.trim().toLowerCase() === 'paket servis' ? (
                           <>
-                            <TranslatedText>Paket</TranslatedText> {Number(qr.tableNumber) - Number(floor.start) + 1}
+                            <TranslatedText>Paket</TranslatedText> {Number(qr.tableNumber) - floor.start + 1}
                           </>
                         ) : (
                           <>
@@ -1128,7 +1148,7 @@ export default function QRCodesPage() {
                     {/* Details */}
                     <div className="p-4">
                       <h4 className="font-bold text-gray-900 text-lg mb-1">
-                        {floor?.name === 'Paket Servis' ? (
+                        {floor?.name?.trim().toLowerCase() === 'paket servis' ? (
                           <>
                             {Number(qr.tableNumber) - Number(floor.start) + 1}. <TranslatedText>Paket</TranslatedText>
                           </>
