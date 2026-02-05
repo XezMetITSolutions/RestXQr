@@ -466,6 +466,62 @@ app.get('/api/debug/fix-restaurants-schema', async (req, res) => {
 // TEST ENDPOINT
 app.get('/api/debug/ping', (req, res) => res.send('pong'));
 
+// DETAILED DB SCHEMA DEBUG
+app.get('/api/debug/db-schema-info', async (req, res) => {
+  console.log('📊 Schema info endpoint called');
+  try {
+    const { sequelize } = require('./models');
+
+    // Define tables to check
+    const tables = ['menu_items', 'menu_categories', 'orders', 'restaurants', 'order_items'];
+    const schemaInfo = {};
+
+    for (const table of tables) {
+      const [columns] = await sequelize.query(`
+        SELECT column_name, data_type, is_nullable, column_default
+        FROM information_schema.columns 
+        WHERE table_name = '${table}'
+        ORDER BY column_name ASC
+      `);
+      schemaInfo[table] = columns;
+    }
+
+    // Manual definitions of what SHOULD be there (for critical columns)
+    const expected = {
+      menu_items: [
+        { name: 'id', type: 'uuid' },
+        { name: 'restaurant_id', type: 'uuid' },
+        { name: 'category_id', type: 'uuid' },
+        { name: 'name', type: 'string' },
+        { name: 'price', type: 'decimal' },
+        { name: 'kitchen_station', type: 'string/json' }, // Critical for 500 error
+        { name: 'discounted_price', type: 'decimal' },
+        { name: 'discount_percentage', type: 'integer' },
+        { name: 'is_popular', type: 'boolean' }
+      ],
+      orders: [
+        { name: 'id', type: 'uuid' },
+        { name: 'approved', type: 'boolean' }, // Critical for flow
+        { name: 'created_at', type: 'timestamp' }
+      ],
+      restaurants: [
+        { name: 'kitchen_stations', type: 'json' },
+        { name: 'printer_config', type: 'json' }
+      ]
+    };
+
+    res.json({
+      success: true,
+      schema: schemaInfo,
+      expected: expected,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error('❌ Schema Info Error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ADD DISCOUNT COLUMNS MIGRATION
 app.get('/api/debug/add-discount-columns', async (req, res) => {
   console.log('🔧 Add discount columns migration endpoint called');

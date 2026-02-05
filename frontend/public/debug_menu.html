@@ -4,168 +4,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Debugger</title>
+    <title>Advanced RestXqR Debugger</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: monospace;
+            background: #f8f9fa;
             padding: 20px;
-            background: #f0f0f0;
+            font-size: 14px;
         }
 
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        button {
-            padding: 10px 20px;
-            cursor: pointer;
-            background: #007bff;
-            color: white;
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             border: none;
-            border-radius: 4px;
         }
 
-        button:hover {
-            background: #0056b3;
+        .card-header {
+            background: #343a40;
+            color: white;
+            font-weight: bold;
         }
 
         pre {
-            background: #333;
-            color: #0f0;
+            background: #212529;
+            color: #00ff9d;
             padding: 15px;
-            overflow-x: auto;
-            border-radius: 4px;
+            border-radius: 5px;
+            max-height: 300px;
         }
 
-        .error {
-            color: #ff4444;
+        .status-badge {
+            font-size: 0.9em;
         }
 
-        input {
-            padding: 8px;
-            width: 300px;
+        .missing-col {
+            background-color: #ffebee;
+            color: #c62828;
+            font-weight: bold;
+        }
+
+        .present-col {
+            background-color: #e8f5e9;
+            color: #2e7d32;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>RestXqR API Debugger</h1>
-
-        <div>
-            <label>API URL:</label>
-            <input type="text" id="apiUrl" value="https://masapp-backend.onrender.com/api">
+    <div class="container-fluid">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">🛠️ RestXqR System Debugger</h3>
+                            <small class="text-muted">API: <span id="apiUrlDisplay">...</span></small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <input type="text" id="apiUrl" class="form-control"
+                                value="https://masapp-backend.onrender.com/api" style="width: 300px;">
+                            <input type="text" id="restId" class="form-control"
+                                value="37b0322a-e11f-4ef1-b108-83be310aaf4d" placeholder="Restaurant ID"
+                                style="width: 300px;">
+                            <button class="btn btn-primary" onclick="init()">Refresh All</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <br>
 
-        <div>
-            <label>Restaurant ID:</label>
-            <input type="text" id="restId" value="37b0322a-e11f-4ef1-b108-83be310aaf4d">
+        <div class="row">
+            <!-- Left Column: Actions -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">⚡ Quick Fixes</div>
+                    <div class="card-body d-flex flex-column gap-2">
+                        <button onclick="runFix('/debug/sync-db', 'POST')" class="btn btn-warning text-start">
+                            <strong>1. Fix Orders Table</strong><br>
+                            <small>Adds 'approved' column</small>
+                        </button>
+                        <button onclick="runFix('/debug/add-kitchen-station', 'POST')"
+                            class="btn btn-warning text-start">
+                            <strong>2. Fix Menu Items</strong><br>
+                            <small>Adds 'kitchen_station' column</small>
+                        </button>
+                        <button onclick="runFix('/debug/fix-restaurants-schema', 'GET')"
+                            class="btn btn-warning text-start">
+                            <strong>3. Fix Restaurants Table</strong><br>
+                            <small>Adds 'kitchen_stations', 'printer_config'</small>
+                        </button>
+                        <button onclick="runFix('/debug/add-discount-columns', 'GET')"
+                            class="btn btn-warning text-start">
+                            <strong>4. Fix Discount Columns</strong><br>
+                            <small>Adds discount fields to menu/cats</small>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">📡 API Tests</div>
+                    <div class="card-body d-flex flex-column gap-2">
+                        <button onclick="testApi('/health')" class="btn btn-outline-secondary">Check Health</button>
+                        <button onclick="testApiMenu()" class="btn btn-outline-primary">Get Menu (Test 500
+                            Error)</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">📝 Console Output</div>
+                    <div class="card-body p-0">
+                        <pre id="consoleOutput">Waiting...</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Schema Status -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between">
+                        <span>📊 Database Schema Status</span>
+                        <button class="btn btn-sm btn-light" onclick="checkSchema()">Refresh Schema</button>
+                    </div>
+                    <div class="card-body" id="schemaContainer">
+                        <div class="text-center p-5">Loading schema info...</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <br>
-
-        <button onclick="checkHealth()">1. Check Health</button>
-        <button onclick="getMenu()">2. Get Kroren Menu (Causes 500?)</button>
-        <button onclick="getCategories()">3. Get Categories</button>
-        <button onclick="getOneCategoryItem()">4. Get Items of First Category</button>
-
-        <hr>
-        <h3>Fix Schema (Missing Columns)</h3>
-        <button onclick="fixOrders()" style="background: #e67e22;">Fix Orders Table ('approved')</button>
-        <button onclick="fixKitchenStation()" style="background: #e67e22;">Fix Menu Items ('kitchen_station')</button>
-        <button onclick="fixRestaurants()" style="background: #e67e22;">Fix Restaurants Schema</button>
-        <button onclick="fixDiscounts()" style="background: #e67e22;">Fix Discount Columns</button>
-        <hr>
-
-        <div id="status"></div>
-        <pre id="output">Waiting for action...</pre>
     </div>
 
     <script>
-        const output = document.getElementById('output');
-        const status = document.getElementById('status');
+        const getUrl = () => document.getElementById('apiUrl').value;
+        const getRestId = () => document.getElementById('restId').value;
+        const log = (msg, type = 'info') => {
+            const el = document.getElementById('consoleOutput');
+            const str = typeof msg === 'object' ? JSON.stringify(msg, null, 2) : msg;
+            el.innerHTML = `<span class="${type === 'error' ? 'text-danger' : 'text-success'}">${new Date().toLocaleTimeString()} > ${str}</span>\n` + el.innerHTML;
+        };
 
-        function log(msg, isError = false) {
-            output.textContent = JSON.stringify(msg, null, 2);
-            output.className = isError ? 'error' : '';
+        function init() {
+            document.getElementById('apiUrlDisplay').innerText = getUrl();
+            checkSchema();
         }
 
-        async function fetchAPI(endpoint) {
-            const baseUrl = document.getElementById('apiUrl').value;
-            status.textContent = 'Fetching ' + endpoint + '...';
+        async function fetchAPI(endpoint, method = 'GET') {
             try {
-                const res = await fetch(baseUrl + endpoint);
-                status.textContent = `Status: ${res.status} ${res.statusText}`;
-
+                const res = await fetch(getUrl() + endpoint, { method });
+                const text = await res.text();
                 try {
-                    const json = await res.json();
-                    log(json);
-                } catch (e) {
-                    const text = await res.text();
-                    log(text, true);
-                }
-            } catch (err) {
-                status.textContent = 'Network Error';
-                log(err.message, true);
-            }
-        }
-
-        // POST request helper
-        async function postAPI(endpoint) {
-            const baseUrl = document.getElementById('apiUrl').value;
-            status.textContent = 'Posting to ' + endpoint + '...';
-            try {
-                const res = await fetch(baseUrl + endpoint, { method: 'POST' });
-                status.textContent = `Status: ${res.status} ${res.statusText}`;
-                try {
-                    const json = await res.json();
-                    log(json);
-                } catch (e) {
-                    const text = await res.text();
-                    log(text, true);
-                }
-            } catch (err) {
-                log(err.message, true);
-            }
-        }
-
-        async function getAPI(endpoint) {
-            // Re-use fetchAPI but allows specific GET calls from buttons
-            fetchAPI(endpoint);
-        }
-
-        function checkHealth() { fetchAPI('/health'); }
-        function getMenu() { const id = document.getElementById('restId').value; fetchAPI(`/restaurants/${id}/menu`); }
-        function getCategories() { const id = document.getElementById('restId').value; fetchAPI(`/restaurants/${id}/menu/categories`); }
-
-        // Schema Fixes
-        function fixOrders() { postAPI('/debug/sync-db'); }
-        function fixKitchenStation() { postAPI('/debug/add-kitchen-station'); }
-        function fixRestaurants() { getAPI('/debug/fix-restaurants-schema'); } // This one is GET in index.js
-        function fixDiscounts() { getAPI('/debug/add-discount-columns'); } // This one is GET in index.js
-
-        async function getOneCategoryItem() {
-            const baseUrl = document.getElementById('apiUrl').value;
-            const id = document.getElementById('restId').value;
-            status.textContent = 'Fetching Categories first...';
-
-            try {
-                const res = await fetch(`${baseUrl}/restaurants/${id}/menu/categories`);
-                const data = await res.json();
-                if (data.data && data.data.length > 0) {
-                    const catId = data.data[0].id;
-                    status.textContent = `Fetching items for category ${data.data[0].name}...`;
-                    fetchAPI(`/restaurants/${id}/menu/items?categoryId=${catId}`);
-                } else {
-                    log("No categories found", true);
+                    return JSON.parse(text);
+                } catch {
+                    return { error: text };
                 }
             } catch (e) {
-                log(e, true);
+                return { error: e.message };
             }
         }
+
+        async function runFix(endpoint, method) {
+            log(`Running fix: ${endpoint}...`);
+            const res = await fetchAPI(endpoint, method);
+            log(res, res.success ? 'info' : 'error');
+            setTimeout(checkSchema, 1000); // Reload schema after fix
+        }
+
+        async function testApi(endpoint) {
+            log(`Fetching ${endpoint}...`);
+            const res = await fetchAPI(endpoint);
+            log(res, res.success ? 'info' : 'error');
+        }
+
+        async function testApiMenu() {
+            const id = getRestId();
+            log(`Fetching menu for ${id}...`);
+            const res = await fetchAPI(`/restaurants/${id}/menu`);
+            log(res);
+        }
+
+        async function checkSchema() {
+            const container = document.getElementById('schemaContainer');
+            container.innerHTML = '<div class="text-center text-muted">Scanning database...</div>';
+
+            const res = await fetchAPI('/debug/db-schema-info');
+
+            if (!res.success) {
+                container.innerHTML = `<div class="alert alert-danger">${res.error || 'Failed to fetch schema'}</div>`;
+                return;
+            }
+
+            let html = '';
+
+            // Expected columns mapping
+            const expected = res.expected || {};
+
+            Object.keys(res.schema).forEach(table => {
+                const columns = res.schema[table];
+                const tableExpected = expected[table] || [];
+
+                // Calculate missing critical columns
+                const missing = tableExpected.filter(exp =>
+                    !columns.find(col => col.column_name === exp.name)
+                );
+
+                const statusColor = missing.length > 0 ? 'border-danger' : 'border-success';
+                const headerColor = missing.length > 0 ? 'bg-danger text-white' : 'bg-light';
+
+                html += `
+                    <div class="card mb-3 border ${statusColor}">
+                        <div class="card-header ${headerColor} py-1 px-3 d-flex justify-content-between align-items-center">
+                            <span>${table.toUpperCase()} (${columns.length} columns)</span>
+                            ${missing.length > 0 ? '<span class="badge bg-white text-danger">MISSING CRITICAL COLUMNS!</span>' : '<span class="badge bg-success">OK</span>'}
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive" style="max-height: 200px;">
+                                <table class="table table-sm table-striped mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Column</th>
+                                            <th>Type</th>
+                                            <th>Nullable</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                `;
+
+                // Show missing first
+                missing.forEach(m => {
+                    html += `
+                        <tr class="missing-col">
+                            <td>${m.name}</td>
+                            <td>${m.type}</td>
+                            <td>-</td>
+                            <td>MISSING ❌</td>
+                        </tr>
+                    `;
+                });
+
+                // Show existing
+                columns.forEach(c => {
+                    html += `
+                        <tr>
+                            <td>${c.column_name}</td>
+                            <td>${c.data_type}</td>
+                            <td>${c.is_nullable}</td>
+                            <td>Present ✔️</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Init on load
+        init();
     </script>
 </body>
 
