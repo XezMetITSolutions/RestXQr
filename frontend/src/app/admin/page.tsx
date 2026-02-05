@@ -30,14 +30,7 @@ export default function SuperAdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Check authentication
-  useEffect(() => {
-    const token = localStorage.getItem('adminAccessToken');
-    if (!token) {
-      router.push('/admin/login');
-      return;
-    }
-  }, [router]);
+
 
   useEffect(() => {
     const loadData = async () => {

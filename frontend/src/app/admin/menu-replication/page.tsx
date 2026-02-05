@@ -57,7 +57,7 @@ export default function MenuReplicationPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('adminAccessToken')}`
+                    'Authorization': `Bearer ${localStorage.getItem('admin_access_token')}`
                 },
                 body: JSON.stringify({
                     sourceRestaurantId: sourceId,
