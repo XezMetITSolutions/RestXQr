@@ -9,7 +9,9 @@ export default function BusinessLayout({
 }) {
     return (
         <LanguageProvider>
-            {children}
+            <div style={{ zoom: '0.8', minHeight: '100vh' }}>
+                {children}
+            </div>
         </LanguageProvider>
     );
 }
