@@ -637,7 +637,17 @@ export default function QRCodesPage() {
       if (qrCode.tableNumber && String(qrCode.tableNumber).toLowerCase().includes('genel')) {
         text = 'Genel Menü';
       } else {
-        text = `Masa ${qrCode.tableNumber}`;
+        const floor = findFloorForTable(qrCode.tableNumber);
+        if (floor && floor.name === 'Paket Servis') {
+          const localNum = Number(qrCode.tableNumber) - Number(floor.start) + 1;
+          // Canvas ctx supports simple text, explicit translation needed if multilingual support in canvas is required, 
+          // but here we keep it simple or check the language. 
+          // Assuming 'Paket' is fine or we can guess.
+          // Since this is canvas drawing, we can't use React components.
+          text = `Paket ${localNum}`;
+        } else {
+          text = `Masa ${qrCode.tableNumber}`;
+        }
       }
       ctx.fillText(text, canvas.width / 2, size + (bottomPadding / 2) - 10);
 
@@ -1065,7 +1075,15 @@ export default function QRCodesPage() {
                         )}
                       </div>
                       <div className="mt-2 font-bold text-lg text-gray-900">
-                        <TranslatedText>Masa</TranslatedText> {qr.tableNumber}
+                        {floor?.name === 'Paket Servis' ? (
+                          <>
+                            <TranslatedText>Paket</TranslatedText> {Number(qr.tableNumber) - Number(floor.start) + 1}
+                          </>
+                        ) : (
+                          <>
+                            <TranslatedText>Masa</TranslatedText> {qr.tableNumber}
+                          </>
+                        )}
                       </div>
                       <div className="flex gap-2 mt-3">
                         {floor && (
@@ -1085,7 +1103,17 @@ export default function QRCodesPage() {
 
                     {/* Details */}
                     <div className="p-4">
-                      <h4 className="font-bold text-gray-900 text-lg mb-1">{qr.tableNumber}. <TranslatedText>Masa</TranslatedText></h4>
+                      <h4 className="font-bold text-gray-900 text-lg mb-1">
+                        {floor?.name === 'Paket Servis' ? (
+                          <>
+                            {Number(qr.tableNumber) - Number(floor.start) + 1}. <TranslatedText>Paket</TranslatedText>
+                          </>
+                        ) : (
+                          <>
+                            {qr.tableNumber}. <TranslatedText>Masa</TranslatedText>
+                          </>
+                        )}
+                      </h4>
 
                       <div className="flex items-center gap-2 mb-3">
                         <div className="flex-1 bg-gray-100 rounded px-2 py-1 text-xs text-gray-500 truncate font-mono">
