@@ -2234,8 +2234,6 @@ const startServer = async () => {
   } catch (printerError) {
     console.error('⚠️ Yazıcı servisi başlatılamadı:', printerError.message);
   }
-
-  return server;
 };
 
 startServer();
