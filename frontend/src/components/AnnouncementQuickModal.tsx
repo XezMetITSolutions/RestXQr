@@ -15,7 +15,7 @@ const ICONS = [
 ];
 
 export default function AnnouncementQuickModal({ isOpen, onClose }: Props) {
-  const { settings, updateSettings } = useBusinessSettingsStore();
+  const { settings, updateSettings, saveSettings } = useBusinessSettingsStore();
   const announcements = settings.basicInfo.menuSpecialContents || [];
 
   const [title, setTitle] = useState('');
@@ -45,11 +45,13 @@ export default function AnnouncementQuickModal({ isOpen, onClose }: Props) {
       }
     });
 
+    await saveSettings();
+
     setTitle('');
     setDescription('');
   };
 
-  const handleRemove = (id: string) => {
+  const handleRemove = async (id: string) => {
     const updatedContents = announcements.filter(a => a.id !== id);
     updateSettings({
       basicInfo: {
@@ -57,9 +59,10 @@ export default function AnnouncementQuickModal({ isOpen, onClose }: Props) {
         menuSpecialContents: updatedContents
       }
     });
+    await saveSettings();
   };
 
-  const handleUpdate = (id: string, patch: any) => {
+  const handleUpdate = async (id: string, patch: any) => {
     const updatedContents = announcements.map(a =>
       a.id === id ? { ...a, ...patch } : a
     );
@@ -69,6 +72,7 @@ export default function AnnouncementQuickModal({ isOpen, onClose }: Props) {
         menuSpecialContents: updatedContents
       }
     });
+    await saveSettings();
   };
 
   return (
