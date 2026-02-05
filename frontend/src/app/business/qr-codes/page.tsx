@@ -181,16 +181,16 @@ export default function QRCodesPage() {
           const restaurantSlug = authenticatedRestaurant.username;
           let backendQrUrl = t.qrUrl;
 
-          // URL Oluşturma Mantığı
-          if (!backendQrUrl) {
-            const floor = getFloorInfo(t.tableNumber);
-            let paramPart = `table=${t.tableNumber}`;
+          // URL Oluşturma Mantığı - FORCE OVERRIDE for Paket Servis
+          const floor = getFloorInfo(t.tableNumber);
 
-            if (floor && floor.name === 'Paket Servis') {
-              const packetNum = Number(t.tableNumber) - Number(floor.start) + 1;
-              paramPart = `packet=${packetNum}`;
+          if (floor && floor.name === 'Paket Servis') {
+            const packetNum = Number(t.tableNumber) - Number(floor.start) + 1;
+            if (t.token && restaurantSlug) {
+              backendQrUrl = `https://${restaurantSlug}.restxqr.com/menu/?t=${t.token}&packet=${packetNum}`;
             }
-
+          } else if (!backendQrUrl) {
+            let paramPart = `table=${t.tableNumber}`;
             backendQrUrl = restaurantSlug
               ? `https://${restaurantSlug}.restxqr.com/menu/?t=${t.token}&${paramPart}`
               : '';
