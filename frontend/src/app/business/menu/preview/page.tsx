@@ -33,6 +33,13 @@ export default function MenuPreviewPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const { logout } = useAuthStore();
+
+    const handleLogout = () => {
+        logout();
+        window.location.href = '/isletme-giris';
+    };
 
     // Initialize Auth
     useEffect(() => {
@@ -150,7 +157,11 @@ export default function MenuPreviewPage() {
     if (loading) {
         return (
             <div className="flex bg-gray-50 min-h-screen">
-                <BusinessSidebar />
+                <BusinessSidebar
+                    sidebarOpen={sidebarOpen}
+                    setSidebarOpen={setSidebarOpen}
+                    onLogout={handleLogout}
+                />
                 <div className="flex-1 flex items-center justify-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                 </div>
@@ -160,8 +171,12 @@ export default function MenuPreviewPage() {
 
     return (
         <div className="flex bg-gray-50 min-h-screen font-sans">
-            <BusinessSidebar />
-            <div className="flex-1 flex flex-col h-screen overflow-hidden">
+            <BusinessSidebar
+                sidebarOpen={sidebarOpen}
+                setSidebarOpen={setSidebarOpen}
+                onLogout={handleLogout}
+            />
+            <div className="flex-1 flex flex-col h-screen overflow-hidden ml-0 lg:ml-[288px]">
 
                 {/* Header */}
                 <header className="bg-white border-b px-8 py-4 flex justify-between items-center shadow-sm z-10">

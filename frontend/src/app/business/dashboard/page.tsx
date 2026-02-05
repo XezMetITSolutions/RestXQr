@@ -310,7 +310,7 @@ function BusinessDashboardContent() {
 
   // Siparişleri filtrele (createdAt bazlı)
   const todayOrders = (orders || []).filter(order => {
-    const orderDate = new Date(order.createdAt || order.created_at || '');
+    const orderDate = new Date(order.createdAt || (order as any).created_at || '');
     return orderDate >= startOfDay && orderDate <= endOfDay;
   });
 
@@ -319,7 +319,7 @@ function BusinessDashboardContent() {
     .reduce((total, order) => total + (Number(order.totalAmount) || 0), 0);
 
   const monthlyOrders = (orders || []).filter(order => {
-    const orderDate = new Date(order.createdAt || order.created_at || '');
+    const orderDate = new Date(order.createdAt || (order as any).created_at || '');
     return orderDate >= startOfMonth;
   });
 
@@ -613,7 +613,7 @@ function BusinessDashboardContent() {
                     </div>
                     <div className="text-green-200 text-sm font-bold bg-green-500/20 px-3 py-1 rounded-full"><TranslatedText>Ciro</TranslatedText></div>
                   </div>
-                  <p className="text-5xl font-black mb-2">₺{stats.monthlyRevenue.toLocaleString('tr-TR')}</p>
+                  <p className="text-3xl font-black mb-2 truncate" title={`₺${stats.monthlyRevenue.toLocaleString('tr-TR')}`}>₺{stats.monthlyRevenue.toLocaleString('tr-TR')}</p>
                   <p className="text-purple-200 text-lg font-bold"><TranslatedText>Aylık Ciro</TranslatedText></p>
                 </div>
                 <div className="group/metric bg-white/15 backdrop-blur-xl rounded-2xl p-8 hover:bg-white/25 transition-all duration-500 hover:scale-105 hover:shadow-2xl border border-white/20">
