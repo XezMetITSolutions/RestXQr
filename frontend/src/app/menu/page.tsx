@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaShoppingCart, FaBell, FaArrowLeft, FaStar, FaPlus, FaInfo, FaUtensils, FaFilter, FaUsers, FaTimes } from 'react-icons/fa';
+import { FaShoppingCart, FaBell, FaArrowLeft, FaStar, FaInfo, FaUtensils, FaFilter, FaUsers, FaTimes } from 'react-icons/fa';
 import useRestaurantStore from '@/store/useRestaurantStore';
 import { useCartStore } from '@/store';
 import Toast from '@/components/Toast';
@@ -1075,25 +1075,6 @@ function MenuPageContent() {
                               <TranslatedText>Popüler</TranslatedText>
                             </div>
                           )}
-                          {/* Add Button Overlay */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (!orderingAllowed) {
-                                alert('Sipariş vermek için lütfen QR kodu tekrar okutunuz.');
-                                return;
-                              }
-                              addToCart(item);
-                            }}
-                            disabled={!orderingAllowed}
-                            className={`absolute bottom-1 right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-md active:scale-90 transition-all z-10 ${orderingAllowed
-                              ? 'bg-white text-black'
-                              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                              }`}
-                            style={orderingAllowed ? { color: designSettings?.primaryColor || 'var(--brand-primary)' } : {}}
-                          >
-                            <FaPlus size={12} />
-                          </button>
                         </div>
 
                         <div className="ml-3 flex-grow min-w-0 flex flex-col justify-between">
