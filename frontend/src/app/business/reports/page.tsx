@@ -548,15 +548,39 @@ export default function ReportsPage() {
   sourceOrders.forEach(order => {
     if (order.items && Array.isArray(order.items)) {
       order.items.forEach((item: any) => {
-        const baseName = item.name || item.menuItem?.name || 'Bilinmeyen Ürün';
-        const variations = item.variations || [];
-        const variationString = variations.length > 0
-          ? ` (${variations.map((v: any) => typeof v === 'string' ? v : (v.name || v.value)).join(', ')})`
-          : '';
-        const productName = `${baseName}${variationString}`;
+        let baseName = item.name || item.menuItem?.name || 'Bilinmeyen Ürün';
 
-        // Group by both ID and variations to separate different types of the same base product
-        const productId = `${item.menuItemId || item.id || baseName}-${JSON.stringify(variations)}`;
+        // 1. İsimden porsiyon bilgisini ayıkla ve temizle
+        let porsiyon = '';
+        if (baseName.includes('(Büyük)')) {
+          porsiyon = 'Büyük';
+          baseName = baseName.replace('(Büyük)', '').trim();
+        } else if (baseName.includes('(Küçük)')) {
+          porsiyon = 'Küçük';
+          baseName = baseName.replace('(Küçük)', '').trim();
+        } else if (baseName.includes('(Orta)')) {
+          porsiyon = 'Orta';
+          baseName = baseName.replace('(Orta)', '').trim();
+        }
+
+        // 2. Varyasyonlardan porsiyon bilgisini kontrol et
+        const variations = item.variations || [];
+        variations.forEach((v: any) => {
+          const vName = typeof v === 'string' ? v : (v.name || v.value);
+          if (vName === 'Büyük' || vName === 'Küçük' || vName === 'Orta') {
+            porsiyon = vName;
+          }
+        });
+
+        // 3. Tekil bir ürün ismi oluştur
+        // Eğer porsiyon varsa sona ekle: "Dana etli ramen (Büyük)"
+        // Eğer porsiyon yoksa sadece isim: "Dana etli ramen"
+        // Çince karakterleri veya tireyi koruyoruz ama parantez içindeki porsiyonları normalize ettik.
+        const normalizedName = porsiyon ? `${baseName} (${porsiyon})` : baseName;
+
+        // Group by normalized name
+        const productId = normalizedName;
+
         const quantity = item.quantity || 1;
         const price = item.unitPrice || item.price || 0;
         const revenue = quantity * price;
@@ -568,7 +592,7 @@ export default function ReportsPage() {
           existing.orderCount += 1;
         } else {
           productMap.set(productId, {
-            productName,
+            productName: normalizedName,
             totalQuantity: quantity,
             totalRevenue: revenue,
             orderCount: 1
