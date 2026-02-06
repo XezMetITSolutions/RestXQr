@@ -614,7 +614,6 @@ export default function HomeContent() {
                         </div>
                     </div>
                 </div>
-            </div>
         </section>
 
             {/* FAQ Section */ }
