@@ -530,12 +530,42 @@ export default function HomeContent() {
                         ))}
                     </div>
 
-                    <div className="mt-16 text-center">
-                        <div className="inline-flex items-center gap-4 bg-slate-50 border border-slate-200 px-8 py-4 rounded-[2rem] shadow-sm">
-                            <FaShieldAlt className="text-blue-600 text-3xl" />
-                            <p className="text-slate-700 font-black text-sm md:text-base">
-                                {t('refundNote')}
-                            </p>
+                    <div className="mt-20 max-w-4xl mx-auto">
+                        <div className="bg-slate-900 rounded-[3rem] p-10 md:p-16 text-white relative overflow-hidden shadow-2xl">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                            <div className="relative z-10">
+                                <h3 className="text-2xl md:text-3xl font-black mb-10 text-center tracking-tight">{t('roiTitle')}</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-10">
+                                    <div className="text-center p-8 bg-white/5 rounded-3xl border border-white/10">
+                                        <div className="text-4xl md:text-5xl font-black text-emerald-400 mb-3">{t('roiGrowth')}</div>
+                                        <div className="text-lg font-bold text-slate-300 uppercase tracking-widest">{t('roiGrowthSub')}</div>
+                                    </div>
+                                    <div className="text-center p-8 bg-white/5 rounded-3xl border border-white/10">
+                                        <div className="text-4xl md:text-5xl font-black text-blue-400 mb-3">{t('roiEfficiency')}</div>
+                                        <div className="text-lg font-bold text-slate-300 uppercase tracking-widest">{t('roiEfficiencySub')}</div>
+                                    </div>
+                                </div>
+                                <p className="text-center text-slate-400 font-medium italic mb-2 px-4 italic leading-relaxed">
+                                    " {t('roiNote')} "
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-16 text-center space-y-6">
+                        <div className="inline-flex flex-wrap justify-center items-center gap-6 px-4">
+                            <div className="flex items-center gap-4 bg-blue-50 border border-blue-100 px-8 py-4 rounded-[2rem] shadow-sm group hover:scale-105 transition-transform duration-300">
+                                <FaLayerGroup className="text-blue-600 text-3xl" />
+                                <p className="text-blue-900 font-black text-sm md:text-base">
+                                    {t('branchDiscountNote')}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-4 bg-slate-50 border border-slate-200 px-8 py-4 rounded-[2rem] shadow-sm group hover:scale-105 transition-transform duration-300">
+                                <FaShieldAlt className="text-blue-600 text-3xl" />
+                                <p className="text-slate-700 font-black text-sm md:text-base">
+                                    {t('refundNote')}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

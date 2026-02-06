@@ -695,9 +695,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Wie läuft die Einrichtung ab?',
     },
     faq2A: {
-      en: 'Setup is completely free for 1-year plans. For other plans or custom operational requests, a one-time setup fee is applied. Our team visits your restaurant for seamless setup and staff training. For multi-branch businesses, special discounts are applied per branch.',
-      tr: '1 yıllık planlarda kurulum tamamen ücretsizdir. Daha kısa süreli planlar veya kurulum sonrası özel özelleştirme istekleri için tek seferlik kurulum ücreti uygulanır. Uzman ekibimiz yerinde kurulum ve personel eğitimi sağlar. Şubeli işletmelerde ise şube sayısına göre özel indirimler uygulanmaktadır.',
-      de: 'Bei Jahresplänen ist die Einrichtung komplett kostenlos. Für spezielle Anpassungen oder kürzere Laufzeiten fällt eine einmalige Gebühr an. Unsere Experten schulen Ihr Personal direkt vor Ort. Filialbetriebe erhalten attraktive Rabatte pro Standort.',
+      en: 'Setup and configuration processes are subject to a professional service fee as they involve on-site technical installation and specialized training for your staff. Our expert team ensures your digital architecture is perfectly established. For multi-branch businesses, special discounts are applied per branch.',
+      tr: 'Kurulum ve yapılandırma süreçleri, yerinde teknik montaj ve personel eğitimi gerektirdiği için profesyonel hizmet ücretine tabidir. Uzman ekibimiz, dijital mimarinizin kusursuz kurulmasını sağlar. Şubeli işletmelerde ise şube sayısına göre özel indirimler uygulanmaktadır.',
+      de: 'Einrichtungs- und Konfigurationsprozesse unterliegen einer professionellen Servicegebühr, da sie eine technische Installation vor Ort und spezielle Schulungen für Ihr Personal umfassen.',
     },
     faq3Q: {
       en: 'How does the refund guarantee work?',
@@ -1758,9 +1758,26 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
     planEntTitle: { en: 'RestX Enterprise', tr: 'RestX Kurumsal', de: 'RestX Enterprise' },
     planEntPrice: { en: 'Custom', tr: 'Özel', de: 'Individuell' },
     planEntDesc: { en: 'Scale with power across all branches.', tr: 'Tüm şubelerinizde profesyonel güç.', de: 'Power für alle Ihre Filialen.' },
-    planEntFeat1: { en: 'Multi-branch discounts', tr: 'Şube sayısına göre indirimler', de: 'Filial-Rabatte' },
-    planEntFeat2: { en: 'Dedicated Account Manager', tr: 'Size özel müşteri yöneticisi', de: 'Persönlicher Account Manager' },
-    planEntFeat3: { en: 'Full API Integration', tr: 'Tam API Entegrasyonu', de: 'Volle API-Integration' },
+    planEntFeat1: { en: 'POS & Printer Integrations', tr: 'POS ve Yazıcı Entegrasyonları', de: 'POS & Drucker Integration' },
+    planEntFeat2: { en: 'Performance & Inventory Pro', tr: 'Personel Performans ve Stok Takibi', de: 'Personal & Inventar Pro' },
+    planEntFeat3: { en: 'Full Digital Architecture', tr: 'Tam kapsamlı Dijital Mimari', de: 'Komplette Digitale Architektur' },
+
+    branchDiscountNote: {
+      en: '5% discount applied per branch for multi-location businesses.',
+      tr: 'Şubeli işletmelerde şube başına %5 indirim uygulanır.',
+      de: '5% Rabatt pro Filiale für Unternehmen mit mehreren Standorten.',
+    },
+
+    roiTitle: { en: 'ROI (Return on Investment) Estimate', tr: 'Yatırım Geri Dönüş (ROI) Tahmini', de: 'ROI-Schätzung' },
+    roiGrowth: { en: '~15-20%', tr: '%15-20+', de: '~15-20%' },
+    roiGrowthSub: { en: 'Revenue Increase', tr: 'Ciro Artışı', de: 'Umsatzsteigerung' },
+    roiEfficiency: { en: 'Zero Error', tr: 'Sıfır Hata', de: 'Null Fehler' },
+    roiEfficiencySub: { en: 'Operational Accuracy', tr: 'Operasyonel Doğruluk', de: 'Operative Genauigkeit' },
+    roiNote: {
+      en: 'Based on average client results: Average monthly profit increases by ~22% through operational efficiency.',
+      tr: 'Müşteri ortalamalarına göre: Operasyonel verimlilik sayesinde aylık kâr ortalama %22 artış gösterir.',
+      de: 'Basierend auf Kundenergebnissen: Der monatliche Gewinn steigt durch Effizienz um ca. 22%.',
+    },
 
     refundNote: {
       en: '15 days free trial. 1 month refund guarantee (Setup fee excluded).',
