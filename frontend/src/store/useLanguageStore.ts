@@ -1788,6 +1788,16 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       en: 'Like having an in-house developer team; lighting fast responses and tailored software feel.',
       tr: 'Bünyenizde bir yazılım ekibi varmış gibi; ışık hızında geri dönüşler ve işletmenize özel yazılım deneyimi.',
       de: 'Wie ein internes Entwickler-Team; blitzschnelle Hilfe und maßgeschneiderte Software.'
+    },
+    instantSetupTitle: {
+      en: 'Instant Setup: From Idea to Interaction in Minutes',
+      tr: 'Işık Hızında Kurulum: Dakikalar İçinde Hazırsınız',
+      de: 'Sofort-Setup: In wenigen Minuten einsatzbereit',
+    },
+    instantSetupDesc: {
+      en: 'Forget heavy, complicated software. RestXQr works with a simple link. Just reach out to us; we handle the entire setup, menu digitizing, and optimization immediately, so you can focus on your guests.',
+      tr: 'Hantal ve yavaş kurulan eski sistemleri unutun. RestXQr sadece bir linkle çalışır. Tek yapmanız gereken bize ulaşmak; tüm kurulum, menü dijitalleştirme ve optimizasyon sürecini biz anında hallediyoruz.',
+      de: 'Vergessen Sie schwere, komplizierte Software. RestXQr funktioniert über einen einfachen Link. Kontaktieren Sie uns; wir erledigen das gesamte Setup und die Menü-Digitalisierung sofort.',
     }
   },
 
