@@ -571,59 +571,48 @@ export default function HomeContent() {
                 </div>
             </section>
 
-            {/* Instant Setup Section */}
-            <section className="py-24 bg-blue-600 relative overflow-hidden">
+            {/* Fast Setup Section */}
+            <section className="py-16 bg-blue-600 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-400/20 rounded-full -ml-48 -mb-48 blur-3xl"></div>
+                    <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full -mr-36 -mt-36 blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-400/20 rounded-full -ml-36 -mb-36 blur-3xl"></div>
                 </div>
-                <div className="container mx-auto px-4 max-w-5xl relative z-10">
-                    <div className="bg-white rounded-[3rem] p-8 md:p-16 shadow-2xl">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div className="container mx-auto px-4 max-w-4xl relative z-10">
+                    <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
                             <div>
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-black tracking-widest uppercase mb-6">
-                                    <FaRocket className="animate-pulse" />
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black tracking-widest uppercase mb-4">
+                                    <FaRocket />
                                     {t('instantSetupTitle')}
                                 </div>
-                                <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight leading-tight">
+                                <h2 className="text-2xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight leading-tight">
                                     {t('instantSetupTitle')}
                                 </h2>
-                                <p className="text-lg text-slate-600 font-medium leading-relaxed mb-8">
+                                <p className="text-base text-slate-600 font-medium leading-relaxed mb-6">
                                     {t('instantSetupDesc')}
                                 </p>
-                                <div className="flex flex-wrap gap-4">
+                                <div className="flex flex-wrap gap-3">
                                     <button
                                         onClick={() => setShowDemoModal(true)}
-                                        className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200"
+                                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200"
                                     >
                                         {t('startNow')}
                                     </button>
                                     <a
                                         href="https://wa.me/436608682201"
                                         target="_blank"
-                                        className="px-8 py-4 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2"
+                                        className="px-6 py-3 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2"
                                     >
-                                        <FaWhatsapp className="text-xl" />
+                                        <FaWhatsapp className="text-base" />
                                         WhatsApp
                                     </a>
                                 </div>
                             </div>
                             <div className="relative">
-                                <div className="aspect-video bg-slate-100 rounded-3xl overflow-hidden shadow-inner flex items-center justify-center border-4 border-slate-50">
-                                    <div className="text-center p-8">
-                                        <FaMagic className="text-6xl text-blue-600 mx-auto mb-4" />
-                                        <div className="text-slate-400 font-bold uppercase tracking-widest text-xs">Magic in Minutes</div>
-                                    </div>
-                                </div>
-                                <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-3xl shadow-xl border border-slate-100 hidden md:block">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 text-2xl">
-                                            <FaClock />
-                                        </div>
-                                        <div>
-                                            <div className="text-slate-900 font-black text-lg">15 Min</div>
-                                            <div className="text-slate-400 font-bold text-xs uppercase tracking-widest">Setup Time</div>
-                                        </div>
+                                <div className="aspect-video bg-slate-50 rounded-2xl overflow-hidden flex items-center justify-center border-2 border-slate-100">
+                                    <div className="text-center p-6">
+                                        <FaMagic className="text-5xl text-blue-600/20 mx-auto mb-3" />
+                                        <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Seamless Integration</p>
                                     </div>
                                 </div>
                             </div>

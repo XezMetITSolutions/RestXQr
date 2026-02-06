@@ -1790,14 +1790,14 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Wie ein internes Entwickler-Team; blitzschnelle Hilfe und maßgeschneiderte Software.'
     },
     instantSetupTitle: {
-      en: 'Instant Setup: From Idea to Interaction in Minutes',
-      tr: 'Işık Hızında Kurulum: Dakikalar İçinde Hazırsınız',
-      de: 'Sofort-Setup: In wenigen Minuten einsatzbereit',
+      en: 'Fast & Seamless Setup: Ready When You Are',
+      tr: 'Hızlı ve Sorunsuz Kurulum: Siz Hazırsanız Biz Hazırız',
+      de: 'Schnelles & nahtloses Setup: Bereit, wenn Sie es sind',
     },
     instantSetupDesc: {
-      en: 'Forget heavy, complicated software. RestXQr works with a simple link. Just reach out to us; we handle the entire setup, menu digitizing, and optimization immediately, so you can focus on your guests.',
-      tr: 'Hantal ve yavaş kurulan eski sistemleri unutun. RestXQr sadece bir linkle çalışır. Tek yapmanız gereken bize ulaşmak; tüm kurulum, menü dijitalleştirme ve optimizasyon sürecini biz anında hallediyoruz.',
-      de: 'Vergessen Sie schwere, komplizierte Software. RestXQr funktioniert über einen einfachen Link. Kontaktieren Sie uns; wir erledigen das gesamte Setup und die Menü-Digitalisierung sofort.',
+      en: 'Forget heavy, complicated software. RestXQr works via a simple link. Reach out to us; we handle the entire setup, menu digitizing, and optimization process, so you can focus on what matters most.',
+      tr: 'Hantal ve yavaş kurulan eski sistemleri unutun. RestXQr sadece bir linkle çalışır. Tek yapmanız gereken bize ulaşmak; tüm kurulum ve menü dijitalleştirme sürecini biz titizlikle hallediyoruz.',
+      de: 'Vergessen Sie schwere, komplizierte Software. RestXQr funktioniert über einen einfachen Link. Kontaktieren Sie uns; wir erledigen das gesamte Setup und die Menü-Digitalisierung.',
     }
   },
 
