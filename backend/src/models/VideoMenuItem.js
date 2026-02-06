@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'restaurants',
+        model: 'Restaurants',
         key: 'id'
       }
     },
@@ -29,8 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     videoUrl: {
       type: DataTypes.STRING,
-      allowNull: false,
-      field: 'video_url'
+      allowNull: false
     },
     thumbnail: {
       type: DataTypes.STRING,
@@ -49,10 +48,8 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'active'
     }
   }, {
-    tableName: 'video_menu_items',
-    timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    tableName: 'VideoMenuItems',
+    timestamps: true
   });
 
   return VideoMenuItem;

@@ -1,0 +1,2753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kroren Restaurant Çapa</title>
+    <link rel="icon" type="image/x-icon" href="https://menu.qoropos.com/assets/img/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap" rel="stylesheet">
+            <link href="https://menu.qoropos.com/assets/plugin/bs/bootstrap.min.css" rel="stylesheet">
+       
+    <link rel="stylesheet" href="https://menu.qoropos.com/assets/plugin/owl/assets/owl.carousel.min.css">
+    <link rel="stylesheet" href="https://menu.qoropos.com/assets/plugin/owl/assets/owl.theme.default.min.css">
+    <link rel="stylesheet" href="https://menu.qoropos.com/assets/plugin/sweetalert2/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://menu.qoropos.com/assets/plugin/bsicon/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+          --menu-theme-color: #2b2a28;
+        }
+        .header {
+            background: var(--menu-theme-color);
+        }
+    </style>
+    <link rel="stylesheet" href="https://menu.qoropos.com/assets/css/theme1.css?v=2.19">
+    <script src="https://menu.qoropos.com/assets/js/jquery-3.7.1.min.js"></script>
+    <script src="https://menu.qoropos.com/assets/plugin/bs/bootstrap.bundle.min.js"></script>
+    <script src="https://menu.qoropos.com/assets/plugin/owl/owl.carousel.min.js"></script>
+    <script src="https://menu.qoropos.com/assets/plugin/sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="https://menu.qoropos.com/assets/js/vue.js"></script>
+    
+    </head>
+<body class="no-select">
+    <div class="top-menu">
+        <a href="https://menu.qoropos.com/qr/nAKIIX7psokayF1I/1sI6bBrXx4kcTIp?lang=cn">中文</a><a href="https://menu.qoropos.com/qr/nAKIIX7psokayF1I/1sI6bBrXx4kcTIp?lang=tr">Türkçe</a>    </div>
+
+    <div class="container" id="app">
+        <div class="header">
+            <img class="logo" src="https://qoropos.com/uploads/27/695bbc2e5e513_1767619630.png" alt="Kroren Restaurant Çapa">
+        </div>
+
+        <div class="category">
+            <div class="category-list">
+                                    <div class="category-item" onclick="scrollToSection('menu-list-239')">
+                        <img src="https://qoropos.com/uploads/1adf9edb-a08e-461d-bf7f-5ed05b6ba800.jpg" alt="Kampanya">
+                        <div class="category-item-text">Kampanya</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-193')">
+                        <img src="https://qoropos.com/uploads/7c88dd00-2c26-4fdf-4458-0a356bdbb600.jpg" alt="Kroren Soğuk Çayları">
+                        <div class="category-item-text">Kroren Soğuk Çayları</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-194')">
+                        <img src="https://qoropos.com/uploads/d0b8616c-6e2f-4e19-1cbe-807e25412200.jpg" alt="Makarnalar">
+                        <div class="category-item-text">Makarnalar</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-195')">
+                        <img src="https://qoropos.com/uploads/15d990f4-2f5e-4096-e5fd-49eb56aa7e00.jpg" alt="Kebap">
+                        <div class="category-item-text">Kebap</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-196')">
+                        <img src="https://qoropos.com/uploads/28a0c2a5-ae74-4bd9-2210-a191ed6e7f00.jpg" alt="Başlangıç">
+                        <div class="category-item-text">Başlangıç</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-197')">
+                        <img src="https://qoropos.com/uploads/b1d4764e-78a1-43d3-3486-c6d1782c8000.jpg" alt="Kimbap">
+                        <div class="category-item-text">Kimbap</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-198')">
+                        <img src="https://qoropos.com/uploads/a6058ad7-faa7-4ab4-ab56-606e0348b400.jpg" alt="Salatalar">
+                        <div class="category-item-text">Salatalar</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-199')">
+                        <img src="https://qoropos.com/uploads/b3b800e7-060d-44ba-6c76-edf4843b1200.jpg" alt="Etli yemekler">
+                        <div class="category-item-text">Etli yemekler</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-200')">
+                        <img src="https://qoropos.com/uploads/00eecad5-2422-45d7-efe2-5357ce62f400.jpg" alt="Tavuklu Yemekler">
+                        <div class="category-item-text">Tavuklu Yemekler</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-201')">
+                        <img src="https://qoropos.com/uploads/409ed739-b76b-40df-c2b6-1de65ed7ef00.jpg" alt="Tofular">
+                        <div class="category-item-text">Tofular</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-202')">
+                        <img src="https://qoropos.com/uploads/44912604-90df-4544-5b36-645dd0fb6200.jpg" alt="Sebzeli yemekler">
+                        <div class="category-item-text">Sebzeli yemekler</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-203')">
+                        <img src="https://qoropos.com/uploads/36e99a48-718b-42a2-ce62-a8e224ace900.jpg" alt="Pilavlar">
+                        <div class="category-item-text">Pilavlar</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-204')">
+                        <img src="https://qoropos.com/uploads/bf8efc54-7b61-4ada-dd59-86ee31f2bf00.jpg" alt="İçecekler">
+                        <div class="category-item-text">İçecekler</div>
+                    </div>
+                                    <div class="category-item" onclick="scrollToSection('menu-list-205')">
+                        <img src="https://qoropos.com/uploads/147b90a6-127d-47a2-695e-7b17c7cefc00.jpg" alt="Çorbalar">
+                        <div class="category-item-text">Çorbalar</div>
+                    </div>
+                            </div>
+        </div>    <div class="tab-content">
+	    <div class="tab-pane show active" role="tabpanel" id="home-tab-pane">
+		    		    			    <div class="menu-list" id="menu-list-239">
+			        <div class="category-name">Kampanya</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Tavuklu Rojamo" data-desc="" data-img="https://qoropos.com/uploads/27/697e44ddaa096_1769882845.jpg">
+				                    <img src="https://qoropos.com/uploads/27/697e44ddaa096_1769882845.jpg" class="item-img" alt="Tavuklu Rojamo">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Tavuklu Rojamo</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                			
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>178.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1914"
+				                				data-item-name="Tavuklu Rojamo"
+				                				data-item-price="178.00"
+				                				data-item-img="https://qoropos.com/uploads/27/697e44ddaa096_1769882845.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-193">
+			        <div class="category-name">Kroren Soğuk Çayları</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Milk tea" data-desc="" data-img="https://qoropos.com/uploads/da36953c-20a6-459d-6a68-14768de04400.jpg">
+				                    <img src="https://qoropos.com/uploads/da36953c-20a6-459d-6a68-14768de04400.jpg" class="item-img" alt="Milk tea">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Milk tea</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>150</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>5</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>168.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1070"
+				                				data-item-name="Milk tea"
+				                				data-item-price="168.00"
+				                				data-item-img="https://qoropos.com/uploads/da36953c-20a6-459d-6a68-14768de04400.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Mango Sago" data-desc="" data-img="https://qoropos.com/uploads/195a09b3-0f47-4252-6966-c7030cdc8400.jpg">
+				                    <img src="https://qoropos.com/uploads/195a09b3-0f47-4252-6966-c7030cdc8400.jpg" class="item-img" alt="Mango Sago">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Mango Sago</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>90</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>5</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>208.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1072"
+				                				data-item-name="Mango Sago"
+				                				data-item-price="208.00"
+				                				data-item-img="https://qoropos.com/uploads/195a09b3-0f47-4252-6966-c7030cdc8400.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Barbi limonata" data-desc="" data-img="https://qoropos.com/uploads/e2eba324-90fb-4b06-7c66-2040d76fad00.jpg">
+				                    <img src="https://qoropos.com/uploads/e2eba324-90fb-4b06-7c66-2040d76fad00.jpg" class="item-img" alt="Barbi limonata">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Barbi limonata</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>120</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>5</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>198.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1069"
+				                				data-item-name="Barbi limonata"
+				                				data-item-price="198.00"
+				                				data-item-img="https://qoropos.com/uploads/e2eba324-90fb-4b06-7c66-2040d76fad00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Mango Juice" data-desc="" data-img="https://qoropos.com/uploads/809edb03-ba77-4f40-5037-7f8747473000.jpg">
+				                    <img src="https://qoropos.com/uploads/809edb03-ba77-4f40-5037-7f8747473000.jpg" class="item-img" alt="Mango Juice">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Mango Juice</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                			
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>1</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>208.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1195"
+				                				data-item-name="Mango Juice"
+				                				data-item-price="208.00"
+				                				data-item-img="https://qoropos.com/uploads/809edb03-ba77-4f40-5037-7f8747473000.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Harbi Limonlu Çay" data-desc="" data-img="https://qoropos.com/uploads/83de2c97-5c79-4727-20c5-e0d53ce03800.jpg">
+				                    <img src="https://qoropos.com/uploads/83de2c97-5c79-4727-20c5-e0d53ce03800.jpg" class="item-img" alt="Harbi Limonlu Çay">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Harbi Limonlu Çay</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>90</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>5</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>198.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1071"
+				                				data-item-name="Harbi Limonlu Çay"
+				                				data-item-price="198.00"
+				                				data-item-img="https://qoropos.com/uploads/83de2c97-5c79-4727-20c5-e0d53ce03800.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-194">
+			        <div class="category-name">Makarnalar</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Dilimlenmiş makarna" data-desc="" data-img="https://qoropos.com/uploads/1f110066-cc58-4fd8-b1af-12bd2ec51600.jpg">
+				                    <img src="https://qoropos.com/uploads/1f110066-cc58-4fd8-b1af-12bd2ec51600.jpg" class="item-img" alt="Dilimlenmiş makarna">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Dilimlenmiş makarna</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>380</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>248.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1077"
+				                				data-item-name="Dilimlenmiş makarna"
+				                				data-item-price="248.00"
+				                				data-item-img="https://qoropos.com/uploads/1f110066-cc58-4fd8-b1af-12bd2ec51600.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Dana etli ramen Küçük boy" data-desc="" data-img="https://qoropos.com/uploads/ddb0ed82-5f1a-44e6-f34b-3c1703299a00.jpg">
+				                    <img src="https://qoropos.com/uploads/ddb0ed82-5f1a-44e6-f34b-3c1703299a00.jpg" class="item-img" alt="Dana etli ramen Küçük boy">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Dana etli ramen Küçük boy</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>150</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>228.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1074"
+				                				data-item-name="Dana etli ramen Küçük boy"
+				                				data-item-price="228.00"
+				                				data-item-img="https://qoropos.com/uploads/ddb0ed82-5f1a-44e6-f34b-3c1703299a00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Dana etli ramen Normal" data-desc="" data-img="https://qoropos.com/uploads/b7572d52-9003-4a29-116b-2dffceff3000.jpg">
+				                    <img src="https://qoropos.com/uploads/b7572d52-9003-4a29-116b-2dffceff3000.jpg" class="item-img" alt="Dana etli ramen Normal">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Dana etli ramen Normal</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>248.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1075"
+				                				data-item-name="Dana etli ramen Normal"
+				                				data-item-price="248.00"
+				                				data-item-img="https://qoropos.com/uploads/b7572d52-9003-4a29-116b-2dffceff3000.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Kızarmış dana döş" data-desc="" data-img="https://qoropos.com/uploads/d895f37c-8961-477d-67e1-c162d9c26800.jpg">
+				                    <img src="https://qoropos.com/uploads/d895f37c-8961-477d-67e1-c162d9c26800.jpg" class="item-img" alt="Kızarmış dana döş">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Kızarmış dana döş</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>328.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1076"
+				                				data-item-name="Kızarmış dana döş"
+				                				data-item-price="328.00"
+				                				data-item-img="https://qoropos.com/uploads/d895f37c-8961-477d-67e1-c162d9c26800.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Dana noodle" data-desc="" data-img="https://qoropos.com/uploads/894bec74-4ecf-42b7-7466-d2018829e100.jpg">
+				                    <img src="https://qoropos.com/uploads/894bec74-4ecf-42b7-7466-d2018829e100.jpg" class="item-img" alt="Dana noodle">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Dana noodle</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>368.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1081"
+				                				data-item-name="Dana noodle"
+				                				data-item-price="368.00"
+				                				data-item-img="https://qoropos.com/uploads/894bec74-4ecf-42b7-7466-d2018829e100.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Tavuk noodle" data-desc="" data-img="https://qoropos.com/uploads/f52a85d6-7c65-47f8-b775-860b90099a00.jpg">
+				                    <img src="https://qoropos.com/uploads/f52a85d6-7c65-47f8-b775-860b90099a00.jpg" class="item-img" alt="Tavuk noodle">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Tavuk noodle</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>250</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>328.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1080"
+				                				data-item-name="Tavuk noodle"
+				                				data-item-price="328.00"
+				                				data-item-img="https://qoropos.com/uploads/f52a85d6-7c65-47f8-b775-860b90099a00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Guyro lagmen" data-desc="" data-img="https://qoropos.com/uploads/eeaaf0e8-e74e-453c-fe78-56d5be53c700.jpg">
+				                    <img src="https://qoropos.com/uploads/eeaaf0e8-e74e-453c-fe78-56d5be53c700.jpg" class="item-img" alt="Guyro lagmen">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Guyro lagmen</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>428.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1078"
+				                				data-item-name="Guyro lagmen"
+				                				data-item-price="428.00"
+				                				data-item-img="https://qoropos.com/uploads/eeaaf0e8-e74e-453c-fe78-56d5be53c700.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Sebzeli noodle" data-desc="" data-img="https://qoropos.com/uploads/6a97faf9-b4e1-484e-b97e-fa8891adb600.jpg">
+				                    <img src="https://qoropos.com/uploads/6a97faf9-b4e1-484e-b97e-fa8891adb600.jpg" class="item-img" alt="Sebzeli noodle">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Sebzeli noodle</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>360</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>298.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1082"
+				                				data-item-name="Sebzeli noodle"
+				                				data-item-price="298.00"
+				                				data-item-img="https://qoropos.com/uploads/6a97faf9-b4e1-484e-b97e-fa8891adb600.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Ganbian makarnası" data-desc="" data-img="https://qoropos.com/uploads/aab6ec49-1ca2-4d96-a899-6a74c413f500.jpg">
+				                    <img src="https://qoropos.com/uploads/aab6ec49-1ca2-4d96-a899-6a74c413f500.jpg" class="item-img" alt="Ganbian makarnası">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Ganbian makarnası</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>560</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>398.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1079"
+				                				data-item-name="Ganbian makarnası"
+				                				data-item-price="398.00"
+				                				data-item-img="https://qoropos.com/uploads/aab6ec49-1ca2-4d96-a899-6a74c413f500.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-195">
+			        <div class="category-name">Kebap</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Kebap ekmek" data-desc="" data-img="https://qoropos.com/uploads/72b6f3be-772a-415c-33c1-ac555e8efd00.jpg">
+				                    <img src="https://qoropos.com/uploads/72b6f3be-772a-415c-33c1-ac555e8efd00.jpg" class="item-img" alt="Kebap ekmek">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Kebap ekmek</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>96.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1086"
+				                				data-item-name="Kebap ekmek"
+				                				data-item-price="96.00"
+				                				data-item-img="https://qoropos.com/uploads/72b6f3be-772a-415c-33c1-ac555e8efd00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Kebap ekmek Yarım" data-desc="" data-img="https://qoropos.com/uploads/bb05a36e-a7fe-4ad6-7951-3c03c446db00.jpg">
+				                    <img src="https://qoropos.com/uploads/bb05a36e-a7fe-4ad6-7951-3c03c446db00.jpg" class="item-img" alt="Kebap ekmek Yarım">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Kebap ekmek Yarım</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>48.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1087"
+				                				data-item-name="Kebap ekmek Yarım"
+				                				data-item-price="48.00"
+				                				data-item-img="https://qoropos.com/uploads/bb05a36e-a7fe-4ad6-7951-3c03c446db00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Menjin kebap" data-desc="1şiş/1串" data-img="https://qoropos.com/uploads/0146cf56-8b7c-4e04-99d1-99117af21a00.jpg">
+				                    <img src="https://qoropos.com/uploads/0146cf56-8b7c-4e04-99d1-99117af21a00.jpg" class="item-img" alt="Menjin kebap">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Menjin kebap</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>355</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>128.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1083"
+				                				data-item-name="Menjin kebap"
+				                				data-item-price="128.00"
+				                				data-item-img="https://qoropos.com/uploads/0146cf56-8b7c-4e04-99d1-99117af21a00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Pirinç keki" data-desc="" data-img="https://qoropos.com/uploads/7767e9db-c87f-4582-d3bc-846f9dde9b00.jpg">
+				                    <img src="https://qoropos.com/uploads/7767e9db-c87f-4582-d3bc-846f9dde9b00.jpg" class="item-img" alt="Pirinç keki">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Pirinç keki</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>200</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>158.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1088"
+				                				data-item-name="Pirinç keki"
+				                				data-item-price="158.00"
+				                				data-item-img="https://qoropos.com/uploads/7767e9db-c87f-4582-d3bc-846f9dde9b00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Kuzu şiş kebap" data-desc="1şiş/1串" data-img="https://qoropos.com/uploads/f1103f16-287c-42e0-d9df-cad983a41400.jpg">
+				                    <img src="https://qoropos.com/uploads/f1103f16-287c-42e0-d9df-cad983a41400.jpg" class="item-img" alt="Kuzu şiş kebap">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Kuzu şiş kebap</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>650</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>168.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1084"
+				                				data-item-name="Kuzu şiş kebap"
+				                				data-item-price="168.00"
+				                				data-item-img="https://qoropos.com/uploads/f1103f16-287c-42e0-d9df-cad983a41400.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="İşkembe kebap" data-desc="1şiş/1串" data-img="https://qoropos.com/uploads/e73a9338-3158-41a2-504c-dc0c2a276400.jpg">
+				                    <img src="https://qoropos.com/uploads/e73a9338-3158-41a2-504c-dc0c2a276400.jpg" class="item-img" alt="İşkembe kebap">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">İşkembe kebap</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>355</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>118.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1085"
+				                				data-item-name="İşkembe kebap"
+				                				data-item-price="118.00"
+				                				data-item-img="https://qoropos.com/uploads/e73a9338-3158-41a2-504c-dc0c2a276400.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-196">
+			        <div class="category-name">Başlangıç</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Dana etli rojamo" data-desc="" data-img="https://qoropos.com/uploads/8876887b-d9ed-4647-bd84-782f86c76400.jpg">
+				                    <img src="https://qoropos.com/uploads/8876887b-d9ed-4647-bd84-782f86c76400.jpg" class="item-img" alt="Dana etli rojamo">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Dana etli rojamo</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>490</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>298.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1091"
+				                				data-item-name="Dana etli rojamo"
+				                				data-item-price="298.00"
+				                				data-item-img="https://qoropos.com/uploads/8876887b-d9ed-4647-bd84-782f86c76400.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Buharda tatlı mantı (2 adet)" data-desc="" data-img="https://qoropos.com/uploads/0a112a7d-4235-4064-5bfb-00fc6d608600.jpg">
+				                    <img src="https://qoropos.com/uploads/0a112a7d-4235-4064-5bfb-00fc6d608600.jpg" class="item-img" alt="Buharda tatlı mantı (2 adet)">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Buharda tatlı mantı (2 adet)</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                			
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>188.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1196"
+				                				data-item-name="Buharda tatlı mantı (2 adet)"
+				                				data-item-price="188.00"
+				                				data-item-img="https://qoropos.com/uploads/0a112a7d-4235-4064-5bfb-00fc6d608600.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Sade ekmek" data-desc="" data-img="https://qoropos.com/uploads/fa5d0115-7bad-499a-7aee-3ad0ace8b500.jpg">
+				                    <img src="https://qoropos.com/uploads/fa5d0115-7bad-499a-7aee-3ad0ace8b500.jpg" class="item-img" alt="Sade ekmek">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Sade ekmek</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>320</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>48.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1093"
+				                				data-item-name="Sade ekmek"
+				                				data-item-price="48.00"
+				                				data-item-img="https://qoropos.com/uploads/fa5d0115-7bad-499a-7aee-3ad0ace8b500.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Haşlanmış mantı" data-desc="" data-img="https://qoropos.com/uploads/27/692c9f855d3d8_1764532101.png">
+				                    <img src="https://qoropos.com/uploads/27/692c9f855d3d8_1764532101.png" class="item-img" alt="Haşlanmış mantı">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Haşlanmış mantı</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>20</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>368.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1614"
+				                				data-item-name="Haşlanmış mantı"
+				                				data-item-price="368.00"
+				                				data-item-img="https://qoropos.com/uploads/27/692c9f855d3d8_1764532101.png">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Lanzhu çüçüresi" data-desc="" data-img="https://qoropos.com/uploads/c885eeac-bd8f-442b-1362-6191da4f3300.jpg">
+				                    <img src="https://qoropos.com/uploads/c885eeac-bd8f-442b-1362-6191da4f3300.jpg" class="item-img" alt="Lanzhu çüçüresi">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Lanzhu çüçüresi</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>380</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>358.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1089"
+				                				data-item-name="Lanzhu çüçüresi"
+				                				data-item-price="358.00"
+				                				data-item-img="https://qoropos.com/uploads/c885eeac-bd8f-442b-1362-6191da4f3300.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Çay yumurtası" data-desc="" data-img="https://qoropos.com/uploads/7da25fb4-6979-4c48-2314-ba45385fa800.jpg">
+				                    <img src="https://qoropos.com/uploads/7da25fb4-6979-4c48-2314-ba45385fa800.jpg" class="item-img" alt="Çay yumurtası">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Çay yumurtası</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>320</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>38.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1096"
+				                				data-item-name="Çay yumurtası"
+				                				data-item-price="38.00"
+				                				data-item-img="https://qoropos.com/uploads/7da25fb4-6979-4c48-2314-ba45385fa800.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Beyaz pilav" data-desc="" data-img="https://qoropos.com/uploads/7e4579b2-6bb2-4f5c-fd3f-44f38102e200.jpg">
+				                    <img src="https://qoropos.com/uploads/7e4579b2-6bb2-4f5c-fd3f-44f38102e200.jpg" class="item-img" alt="Beyaz pilav">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Beyaz pilav</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>290</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>128.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1094"
+				                				data-item-name="Beyaz pilav"
+				                				data-item-price="128.00"
+				                				data-item-img="https://qoropos.com/uploads/7e4579b2-6bb2-4f5c-fd3f-44f38102e200.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Buharda mantı" data-desc="" data-img="https://qoropos.com/uploads/86fe77e4-f3c0-4476-9b2c-a8d330a16d00.jpg">
+				                    <img src="https://qoropos.com/uploads/86fe77e4-f3c0-4476-9b2c-a8d330a16d00.jpg" class="item-img" alt="Buharda mantı">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Buharda mantı</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>380</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>20</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>398.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1090"
+				                				data-item-name="Buharda mantı"
+				                				data-item-price="398.00"
+				                				data-item-img="https://qoropos.com/uploads/86fe77e4-f3c0-4476-9b2c-a8d330a16d00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Uygur mantı" data-desc="" data-img="https://qoropos.com/uploads/6b67f92b-bf4f-4f18-80c7-317cb7441e00.jpg">
+				                    <img src="https://qoropos.com/uploads/6b67f92b-bf4f-4f18-80c7-317cb7441e00.jpg" class="item-img" alt="Uygur mantı">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Uygur mantı</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>20</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>428.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1097"
+				                				data-item-name="Uygur mantı"
+				                				data-item-price="428.00"
+				                				data-item-img="https://qoropos.com/uploads/6b67f92b-bf4f-4f18-80c7-317cb7441e00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Çin böreği" data-desc="" data-img="https://qoropos.com/uploads/bb1a5083-3b5f-4820-da6c-6df9c6a1b500.jpg">
+				                    <img src="https://qoropos.com/uploads/bb1a5083-3b5f-4820-da6c-6df9c6a1b500.jpg" class="item-img" alt="Çin böreği">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Çin böreği</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>250</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>198.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1098"
+				                				data-item-name="Çin böreği"
+				                				data-item-price="198.00"
+				                				data-item-img="https://qoropos.com/uploads/bb1a5083-3b5f-4820-da6c-6df9c6a1b500.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-197">
+			        <div class="category-name">Kimbap</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Sebze kimbap" data-desc="" data-img="https://qoropos.com/uploads/8b1d588c-6442-4aa7-2725-c55850d78a00.jpg">
+				                    <img src="https://qoropos.com/uploads/8b1d588c-6442-4aa7-2725-c55850d78a00.jpg" class="item-img" alt="Sebze kimbap">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Sebze kimbap</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>660</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>298.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1100"
+				                				data-item-name="Sebze kimbap"
+				                				data-item-price="298.00"
+				                				data-item-img="https://qoropos.com/uploads/8b1d588c-6442-4aa7-2725-c55850d78a00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Balık kimbap" data-desc="" data-img="https://qoropos.com/uploads/69e65ef5-04b5-4c0f-a66e-1fbe41705a00.jpg">
+				                    <img src="https://qoropos.com/uploads/69e65ef5-04b5-4c0f-a66e-1fbe41705a00.jpg" class="item-img" alt="Balık kimbap">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Balık kimbap</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>380</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>378.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1099"
+				                				data-item-name="Balık kimbap"
+				                				data-item-price="378.00"
+				                				data-item-img="https://qoropos.com/uploads/69e65ef5-04b5-4c0f-a66e-1fbe41705a00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Dana etli kimbap" data-desc="" data-img="https://qoropos.com/uploads/16eea5b3-4e81-4f02-ae35-b1941d012400.jpg">
+				                    <img src="https://qoropos.com/uploads/16eea5b3-4e81-4f02-ae35-b1941d012400.jpg" class="item-img" alt="Dana etli kimbap">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Dana etli kimbap</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>720</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>20</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>378.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1101"
+				                				data-item-name="Dana etli kimbap"
+				                				data-item-price="378.00"
+				                				data-item-img="https://qoropos.com/uploads/16eea5b3-4e81-4f02-ae35-b1941d012400.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-198">
+			        <div class="category-name">Salatalar</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Sığır eti salatası" data-desc="" data-img="https://qoropos.com/uploads/c97023c4-ba27-453a-7ba5-b95ce62ba100.jpg">
+				                    <img src="https://qoropos.com/uploads/c97023c4-ba27-453a-7ba5-b95ce62ba100.jpg" class="item-img" alt="Sığır eti salatası">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Sığır eti salatası</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>858.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1102"
+				                				data-item-name="Sığır eti salatası"
+				                				data-item-price="858.00"
+				                				data-item-img="https://qoropos.com/uploads/c97023c4-ba27-453a-7ba5-b95ce62ba100.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Erişte salatası" data-desc="" data-img="https://qoropos.com/uploads/fb19953d-e1af-4946-5f79-8449acff6900.jpg">
+				                    <img src="https://qoropos.com/uploads/fb19953d-e1af-4946-5f79-8449acff6900.jpg" class="item-img" alt="Erişte salatası">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Erişte salatası</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>240</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>5</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>178.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1103"
+				                				data-item-name="Erişte salatası"
+				                				data-item-price="178.00"
+				                				data-item-img="https://qoropos.com/uploads/fb19953d-e1af-4946-5f79-8449acff6900.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-199">
+			        <div class="category-name">Etli yemekler</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Özel soslu dana" data-desc="" data-img="https://qoropos.com/uploads/bfd53191-5d88-44ed-efbc-7c1901f86400.jpg">
+				                    <img src="https://qoropos.com/uploads/bfd53191-5d88-44ed-efbc-7c1901f86400.jpg" class="item-img" alt="Özel soslu dana">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Özel soslu dana</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>728.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1108"
+				                				data-item-name="Özel soslu dana"
+				                				data-item-price="728.00"
+				                				data-item-img="https://qoropos.com/uploads/bfd53191-5d88-44ed-efbc-7c1901f86400.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="50 gram dana eti" data-desc="" data-img="https://qoropos.com/uploads/0c368bb1-0f1f-4980-69b4-edb90f164900.jpg">
+				                    <img src="https://qoropos.com/uploads/0c368bb1-0f1f-4980-69b4-edb90f164900.jpg" class="item-img" alt="50 gram dana eti">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">50 gram dana eti</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>100</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>198.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1109"
+				                				data-item-name="50 gram dana eti"
+				                				data-item-price="198.00"
+				                				data-item-img="https://qoropos.com/uploads/0c368bb1-0f1f-4980-69b4-edb90f164900.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Soğan et kavurması" data-desc="" data-img="https://qoropos.com/uploads/18d3e210-fdfd-4ba5-5a94-e06eba4be000.jpg">
+				                    <img src="https://qoropos.com/uploads/18d3e210-fdfd-4ba5-5a94-e06eba4be000.jpg" class="item-img" alt="Soğan et kavurması">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Soğan et kavurması</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>440</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>728.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1110"
+				                				data-item-name="Soğan et kavurması"
+				                				data-item-price="728.00"
+				                				data-item-img="https://qoropos.com/uploads/18d3e210-fdfd-4ba5-5a94-e06eba4be000.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Guyro" data-desc="" data-img="https://qoropos.com/uploads/65df5c7d-e00f-4bcc-19e1-4c0750d99500.jpg">
+				                    <img src="https://qoropos.com/uploads/65df5c7d-e00f-4bcc-19e1-4c0750d99500.jpg" class="item-img" alt="Guyro">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Guyro</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>460</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>728.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1107"
+				                				data-item-name="Guyro"
+				                				data-item-price="728.00"
+				                				data-item-img="https://qoropos.com/uploads/65df5c7d-e00f-4bcc-19e1-4c0750d99500.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Kimyonlu dana kavurması" data-desc="" data-img="https://qoropos.com/uploads/097c3732-ec55-49e8-e2f3-050f6db39100.jpg">
+				                    <img src="https://qoropos.com/uploads/097c3732-ec55-49e8-e2f3-050f6db39100.jpg" class="item-img" alt="Kimyonlu dana kavurması">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Kimyonlu dana kavurması</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>728.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1111"
+				                				data-item-name="Kimyonlu dana kavurması"
+				                				data-item-price="728.00"
+				                				data-item-img="https://qoropos.com/uploads/097c3732-ec55-49e8-e2f3-050f6db39100.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Acılı haşlanmış dana" data-desc="" data-img="https://qoropos.com/uploads/9efcf52e-da19-4cbb-c00e-57a9b20dee00.jpg">
+				                    <img src="https://qoropos.com/uploads/9efcf52e-da19-4cbb-c00e-57a9b20dee00.jpg" class="item-img" alt="Acılı haşlanmış dana">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Acılı haşlanmış dana</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>525</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>1328.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1105"
+				                				data-item-name="Acılı haşlanmış dana"
+				                				data-item-price="1328.00"
+				                				data-item-img="https://qoropos.com/uploads/9efcf52e-da19-4cbb-c00e-57a9b20dee00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Pırasalı dana" data-desc="" data-img="https://qoropos.com/uploads/747c985d-6ddf-448a-a21b-421b2a095800.jpg">
+				                    <img src="https://qoropos.com/uploads/747c985d-6ddf-448a-a21b-421b2a095800.jpg" class="item-img" alt="Pırasalı dana">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Pırasalı dana</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>455</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>728.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1106"
+				                				data-item-name="Pırasalı dana"
+				                				data-item-price="728.00"
+				                				data-item-img="https://qoropos.com/uploads/747c985d-6ddf-448a-a21b-421b2a095800.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-200">
+			        <div class="category-name">Tavuklu Yemekler</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Portakallı  tavuk" data-desc="" data-img="https://qoropos.com/uploads/4c3915ca-14db-4c31-9020-8927ce008500.jpg">
+				                    <img src="https://qoropos.com/uploads/4c3915ca-14db-4c31-9020-8927ce008500.jpg" class="item-img" alt="Portakallı  tavuk">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Portakallı  tavuk</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>340</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>428.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1115"
+				                				data-item-name="Portakallı  tavuk"
+				                				data-item-price="428.00"
+				                				data-item-img="https://qoropos.com/uploads/4c3915ca-14db-4c31-9020-8927ce008500.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Manzhou usulu tavuk" data-desc="" data-img="https://qoropos.com/uploads/ba4c414c-4f1d-4ffb-f2da-73607205cf00.jpg">
+				                    <img src="https://qoropos.com/uploads/ba4c414c-4f1d-4ffb-f2da-73607205cf00.jpg" class="item-img" alt="Manzhou usulu tavuk">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Manzhou usulu tavuk</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>330</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>428.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1116"
+				                				data-item-name="Manzhou usulu tavuk"
+				                				data-item-price="428.00"
+				                				data-item-img="https://qoropos.com/uploads/ba4c414c-4f1d-4ffb-f2da-73607205cf00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Tatlı ekşi tavuk" data-desc="" data-img="https://qoropos.com/uploads/d9b29531-4c4d-42bd-2c76-eb0ccb034700.jpg">
+				                    <img src="https://qoropos.com/uploads/d9b29531-4c4d-42bd-2c76-eb0ccb034700.jpg" class="item-img" alt="Tatlı ekşi tavuk">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Tatlı ekşi tavuk</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>15</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>428.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1117"
+				                				data-item-name="Tatlı ekşi tavuk"
+				                				data-item-price="428.00"
+				                				data-item-img="https://qoropos.com/uploads/d9b29531-4c4d-42bd-2c76-eb0ccb034700.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Dapanji" data-desc="" data-img="https://qoropos.com/uploads/06ee9d5c-c4ab-4d3b-9bca-c1f1c6faf400.jpg">
+				                    <img src="https://qoropos.com/uploads/06ee9d5c-c4ab-4d3b-9bca-c1f1c6faf400.jpg" class="item-img" alt="Dapanji">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Dapanji</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>560</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>30</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>588.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1112"
+				                				data-item-name="Dapanji"
+				                				data-item-price="588.00"
+				                				data-item-img="https://qoropos.com/uploads/06ee9d5c-c4ab-4d3b-9bca-c1f1c6faf400.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Tavuk noodle" data-desc="" data-img="https://qoropos.com/uploads/94b01d95-a748-4c81-d58d-496bfc6fd700.jpg">
+				                    <img src="https://qoropos.com/uploads/94b01d95-a748-4c81-d58d-496bfc6fd700.jpg" class="item-img" alt="Tavuk noodle">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Tavuk noodle</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>525</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>328.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1114"
+				                				data-item-name="Tavuk noodle"
+				                				data-item-price="328.00"
+				                				data-item-img="https://qoropos.com/uploads/94b01d95-a748-4c81-d58d-496bfc6fd700.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Acılı lokum tavuk" data-desc="" data-img="https://qoropos.com/uploads/6aa69659-1f46-44a0-b6e1-d79d2c2b0900.jpg">
+				                    <img src="https://qoropos.com/uploads/6aa69659-1f46-44a0-b6e1-d79d2c2b0900.jpg" class="item-img" alt="Acılı lokum tavuk">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Acılı lokum tavuk</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>400</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>388.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1113"
+				                				data-item-name="Acılı lokum tavuk"
+				                				data-item-price="388.00"
+				                				data-item-img="https://qoropos.com/uploads/6aa69659-1f46-44a0-b6e1-d79d2c2b0900.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Kemiksiz dapanji pilav" data-desc="" data-img="https://qoropos.com/uploads/b2edf694-ec23-4eb3-1e3e-efa6c8d87000.jpg">
+				                    <img src="https://qoropos.com/uploads/b2edf694-ec23-4eb3-1e3e-efa6c8d87000.jpg" class="item-img" alt="Kemiksiz dapanji pilav">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Kemiksiz dapanji pilav</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>850</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>20</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>368.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1278"
+				                				data-item-name="Kemiksiz dapanji pilav"
+				                				data-item-price="368.00"
+				                				data-item-img="https://qoropos.com/uploads/b2edf694-ec23-4eb3-1e3e-efa6c8d87000.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-201">
+			        <div class="category-name">Tofular</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Kızartma tofu" data-desc="" data-img="https://qoropos.com/uploads/70be5056-c4f5-4255-e904-a44f4506c700.jpg">
+				                    <img src="https://qoropos.com/uploads/70be5056-c4f5-4255-e904-a44f4506c700.jpg" class="item-img" alt="Kızartma tofu">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Kızartma tofu</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>290</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>8</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>388.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1119"
+				                				data-item-name="Kızartma tofu"
+				                				data-item-price="388.00"
+				                				data-item-img="https://qoropos.com/uploads/70be5056-c4f5-4255-e904-a44f4506c700.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Özel soslu tofu" data-desc="" data-img="https://qoropos.com/uploads/3d2c9178-e8b8-48b6-c98a-10ba8c757800.jpg">
+				                    <img src="https://qoropos.com/uploads/3d2c9178-e8b8-48b6-c98a-10ba8c757800.jpg" class="item-img" alt="Özel soslu tofu">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Özel soslu tofu</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>250</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>388.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1118"
+				                				data-item-name="Özel soslu tofu"
+				                				data-item-price="388.00"
+				                				data-item-img="https://qoropos.com/uploads/3d2c9178-e8b8-48b6-c98a-10ba8c757800.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Acılı tofu" data-desc="" data-img="https://qoropos.com/uploads/d04cac9e-108d-4497-97f8-fde2197bf000.jpg">
+				                    <img src="https://qoropos.com/uploads/d04cac9e-108d-4497-97f8-fde2197bf000.jpg" class="item-img" alt="Acılı tofu">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Acılı tofu</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>290</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>388.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1120"
+				                				data-item-name="Acılı tofu"
+				                				data-item-price="388.00"
+				                				data-item-img="https://qoropos.com/uploads/d04cac9e-108d-4497-97f8-fde2197bf000.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-202">
+			        <div class="category-name">Sebzeli yemekler</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Sarımsaklı kıvırcık" data-desc="" data-img="https://qoropos.com/uploads/40f70389-2f0c-4b67-9999-459dd43c2d00.jpg">
+				                    <img src="https://qoropos.com/uploads/40f70389-2f0c-4b67-9999-459dd43c2d00.jpg" class="item-img" alt="Sarımsaklı kıvırcık">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Sarımsaklı kıvırcık</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>165</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>388.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1124"
+				                				data-item-name="Sarımsaklı kıvırcık"
+				                				data-item-price="388.00"
+				                				data-item-img="https://qoropos.com/uploads/40f70389-2f0c-4b67-9999-459dd43c2d00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Brokoli kavurması" data-desc="" data-img="https://qoropos.com/uploads/24f52c91-c5b8-4318-397a-948249a54200.jpg">
+				                    <img src="https://qoropos.com/uploads/24f52c91-c5b8-4318-397a-948249a54200.jpg" class="item-img" alt="Brokoli kavurması">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Brokoli kavurması</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>185</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>398.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1125"
+				                				data-item-name="Brokoli kavurması"
+				                				data-item-price="398.00"
+				                				data-item-img="https://qoropos.com/uploads/24f52c91-c5b8-4318-397a-948249a54200.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Domatesli yumurta kavurması" data-desc="" data-img="https://qoropos.com/uploads/dc9bbe5d-e837-410b-a992-7526bd283200.jpg">
+				                    <img src="https://qoropos.com/uploads/dc9bbe5d-e837-410b-a992-7526bd283200.jpg" class="item-img" alt="Domatesli yumurta kavurması">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Domatesli yumurta kavurması</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>305</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>428.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1126"
+				                				data-item-name="Domatesli yumurta kavurması"
+				                				data-item-price="428.00"
+				                				data-item-img="https://qoropos.com/uploads/dc9bbe5d-e837-410b-a992-7526bd283200.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Patates kavurması" data-desc="" data-img="https://qoropos.com/uploads/53cfe7d6-3d9a-4c46-117a-550742a0e900.jpg">
+				                    <img src="https://qoropos.com/uploads/53cfe7d6-3d9a-4c46-117a-550742a0e900.jpg" class="item-img" alt="Patates kavurması">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Patates kavurması</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>270</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>388.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1122"
+				                				data-item-name="Patates kavurması"
+				                				data-item-price="388.00"
+				                				data-item-img="https://qoropos.com/uploads/53cfe7d6-3d9a-4c46-117a-550742a0e900.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Acılı kızarmış patates" data-desc="" data-img="https://qoropos.com/uploads/30523681-6ed3-4cef-4f51-c2d5c2304d00.jpg">
+				                    <img src="https://qoropos.com/uploads/30523681-6ed3-4cef-4f51-c2d5c2304d00.jpg" class="item-img" alt="Acılı kızarmış patates">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Acılı kızarmış patates</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>320</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>458.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1127"
+				                				data-item-name="Acılı kızarmış patates"
+				                				data-item-price="458.00"
+				                				data-item-img="https://qoropos.com/uploads/30523681-6ed3-4cef-4f51-c2d5c2304d00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="İstiridye soslu kıvırcık" data-desc="" data-img="https://qoropos.com/uploads/63bd77a3-a135-4bb9-3ac6-473cea1b9900.jpg">
+				                    <img src="https://qoropos.com/uploads/63bd77a3-a135-4bb9-3ac6-473cea1b9900.jpg" class="item-img" alt="İstiridye soslu kıvırcık">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">İstiridye soslu kıvırcık</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>85</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>398.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1123"
+				                				data-item-name="İstiridye soslu kıvırcık"
+				                				data-item-price="398.00"
+				                				data-item-img="https://qoropos.com/uploads/63bd77a3-a135-4bb9-3ac6-473cea1b9900.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Sarımsaklı ıspanak" data-desc="" data-img="https://qoropos.com/uploads/10f344fe-8202-4358-0464-19140f0e5000.jpg">
+				                    <img src="https://qoropos.com/uploads/10f344fe-8202-4358-0464-19140f0e5000.jpg" class="item-img" alt="Sarımsaklı ıspanak">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Sarımsaklı ıspanak</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>170</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>388.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1128"
+				                				data-item-name="Sarımsaklı ıspanak"
+				                				data-item-price="388.00"
+				                				data-item-img="https://qoropos.com/uploads/10f344fe-8202-4358-0464-19140f0e5000.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Sebzeli noodle" data-desc="" data-img="https://qoropos.com/uploads/f4c552bc-8d94-4da8-b1a4-49a4b254cd00.jpg">
+				                    <img src="https://qoropos.com/uploads/f4c552bc-8d94-4da8-b1a4-49a4b254cd00.jpg" class="item-img" alt="Sebzeli noodle">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Sebzeli noodle</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>298.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1121"
+				                				data-item-name="Sebzeli noodle"
+				                				data-item-price="298.00"
+				                				data-item-img="https://qoropos.com/uploads/f4c552bc-8d94-4da8-b1a4-49a4b254cd00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-203">
+			        <div class="category-name">Pilavlar</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Dana pirinç" data-desc="" data-img="https://qoropos.com/uploads/cf183d84-b0f3-4bfa-9c8d-53249132c200.jpg">
+				                    <img src="https://qoropos.com/uploads/cf183d84-b0f3-4bfa-9c8d-53249132c200.jpg" class="item-img" alt="Dana pirinç">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Dana pirinç</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>540</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>498.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1132"
+				                				data-item-name="Dana pirinç"
+				                				data-item-price="498.00"
+				                				data-item-img="https://qoropos.com/uploads/cf183d84-b0f3-4bfa-9c8d-53249132c200.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Tavuk pilav" data-desc="" data-img="https://qoropos.com/uploads/11685919-1043-4864-bcf9-e7264392e600.jpg">
+				                    <img src="https://qoropos.com/uploads/11685919-1043-4864-bcf9-e7264392e600.jpg" class="item-img" alt="Tavuk pilav">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Tavuk pilav</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>600</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>458.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1129"
+				                				data-item-name="Tavuk pilav"
+				                				data-item-price="458.00"
+				                				data-item-img="https://qoropos.com/uploads/11685919-1043-4864-bcf9-e7264392e600.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Yumurtalı pilav" data-desc="" data-img="https://qoropos.com/uploads/18d64a16-514d-4f88-e263-6bfa195b9300.jpg">
+				                    <img src="https://qoropos.com/uploads/18d64a16-514d-4f88-e263-6bfa195b9300.jpg" class="item-img" alt="Yumurtalı pilav">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Yumurtalı pilav</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>445</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>358.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1131"
+				                				data-item-name="Yumurtalı pilav"
+				                				data-item-price="358.00"
+				                				data-item-img="https://qoropos.com/uploads/18d64a16-514d-4f88-e263-6bfa195b9300.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Dana etli köri pilav kavurması" data-desc="" data-img="https://qoropos.com/uploads/8e69c774-b76c-4f0a-4a6c-5e3a26f36f00.jpg">
+				                    <img src="https://qoropos.com/uploads/8e69c774-b76c-4f0a-4a6c-5e3a26f36f00.jpg" class="item-img" alt="Dana etli köri pilav kavurması">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Dana etli köri pilav kavurması</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>650</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>498.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1130"
+				                				data-item-name="Dana etli köri pilav kavurması"
+				                				data-item-price="498.00"
+				                				data-item-img="https://qoropos.com/uploads/8e69c774-b76c-4f0a-4a6c-5e3a26f36f00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-204">
+			        <div class="category-name">İçecekler</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Didi bergamot" data-desc="" data-img="https://qoropos.com/uploads/aadab2a2-25e5-4125-3b15-0b4ec139fb00.jpg">
+				                    <img src="https://qoropos.com/uploads/aadab2a2-25e5-4125-3b15-0b4ec139fb00.jpg" class="item-img" alt="Didi bergamot">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Didi bergamot</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>50</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>1</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>75.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1136"
+				                				data-item-name="Didi bergamot"
+				                				data-item-price="75.00"
+				                				data-item-img="https://qoropos.com/uploads/aadab2a2-25e5-4125-3b15-0b4ec139fb00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Niğde gazozu" data-desc="" data-img="https://qoropos.com/uploads/e6342bb8-cfe6-481f-f6cc-868fb67da700.jpg">
+				                    <img src="https://qoropos.com/uploads/e6342bb8-cfe6-481f-f6cc-868fb67da700.jpg" class="item-img" alt="Niğde gazozu">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Niğde gazozu</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>30</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>1</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>65.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1137"
+				                				data-item-name="Niğde gazozu"
+				                				data-item-price="65.00"
+				                				data-item-img="https://qoropos.com/uploads/e6342bb8-cfe6-481f-f6cc-868fb67da700.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Didi limon" data-desc="" data-img="https://qoropos.com/uploads/b0657cbc-35d8-4a49-98e5-343f4dbe3f00.jpg">
+				                    <img src="https://qoropos.com/uploads/b0657cbc-35d8-4a49-98e5-343f4dbe3f00.jpg" class="item-img" alt="Didi limon">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Didi limon</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>45</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>75.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1138"
+				                				data-item-name="Didi limon"
+				                				data-item-price="75.00"
+				                				data-item-img="https://qoropos.com/uploads/b0657cbc-35d8-4a49-98e5-343f4dbe3f00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Limon fresh mango" data-desc="" data-img="https://qoropos.com/uploads/27/692ca140524c5_1764532544.png">
+				                    <img src="https://qoropos.com/uploads/27/692ca140524c5_1764532544.png" class="item-img" alt="Limon fresh mango">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Limon fresh mango</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                			
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>1</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>75.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1615"
+				                				data-item-name="Limon fresh mango"
+				                				data-item-price="75.00"
+				                				data-item-img="https://qoropos.com/uploads/27/692ca140524c5_1764532544.png">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Limonlu soda" data-desc="" data-img="https://qoropos.com/uploads/be9e820a-21d8-44e5-662a-857f91a37f00.jpg">
+				                    <img src="https://qoropos.com/uploads/be9e820a-21d8-44e5-662a-857f91a37f00.jpg" class="item-img" alt="Limonlu soda">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Limonlu soda</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>45</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>1</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>40.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1140"
+				                				data-item-name="Limonlu soda"
+				                				data-item-price="40.00"
+				                				data-item-img="https://qoropos.com/uploads/be9e820a-21d8-44e5-662a-857f91a37f00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Didi şeftali" data-desc="" data-img="https://qoropos.com/uploads/8a1d9463-4886-4a34-fa2b-eef8176ab500.jpg">
+				                    <img src="https://qoropos.com/uploads/8a1d9463-4886-4a34-fa2b-eef8176ab500.jpg" class="item-img" alt="Didi şeftali">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Didi şeftali</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>40</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>1</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>75.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1135"
+				                				data-item-name="Didi şeftali"
+				                				data-item-price="75.00"
+				                				data-item-img="https://qoropos.com/uploads/8a1d9463-4886-4a34-fa2b-eef8176ab500.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Sade soda" data-desc="" data-img="https://qoropos.com/uploads/0a6abf8f-4cf1-4539-d5a2-a7f5b967e700.jpg">
+				                    <img src="https://qoropos.com/uploads/0a6abf8f-4cf1-4539-d5a2-a7f5b967e700.jpg" class="item-img" alt="Sade soda">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Sade soda</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                			
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>1</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>40.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1139"
+				                				data-item-name="Sade soda"
+				                				data-item-price="40.00"
+				                				data-item-img="https://qoropos.com/uploads/0a6abf8f-4cf1-4539-d5a2-a7f5b967e700.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Cola turka" data-desc="" data-img="https://qoropos.com/uploads/46ab99c3-bca1-452b-c400-e16a296e6e00.jpg">
+				                    <img src="https://qoropos.com/uploads/46ab99c3-bca1-452b-c400-e16a296e6e00.jpg" class="item-img" alt="Cola turka">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Cola turka</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>42</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>65.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1134"
+				                				data-item-name="Cola turka"
+				                				data-item-price="65.00"
+				                				data-item-img="https://qoropos.com/uploads/46ab99c3-bca1-452b-c400-e16a296e6e00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Limon fresh çilek" data-desc="" data-img="https://qoropos.com/uploads/27/692ca196f1cbf_1764532630.png">
+				                    <img src="https://qoropos.com/uploads/27/692ca196f1cbf_1764532630.png" class="item-img" alt="Limon fresh çilek">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Limon fresh çilek</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                			
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>1</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>75.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1616"
+				                				data-item-name="Limon fresh çilek"
+				                				data-item-price="75.00"
+				                				data-item-img="https://qoropos.com/uploads/27/692ca196f1cbf_1764532630.png">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Su" data-desc="" data-img="https://qoropos.com/uploads/25e65913-5004-4e9e-c759-c1e2ab945300.jpg">
+				                    <img src="https://qoropos.com/uploads/25e65913-5004-4e9e-c759-c1e2ab945300.jpg" class="item-img" alt="Su">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Su</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                			
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>1</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>30.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1133"
+				                				data-item-name="Su"
+				                				data-item-price="30.00"
+				                				data-item-img="https://qoropos.com/uploads/25e65913-5004-4e9e-c759-c1e2ab945300.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Elmalı soda" data-desc="" data-img="https://qoropos.com/uploads/b51632f9-e563-4daf-f73c-3834cf388a00.jpg">
+				                    <img src="https://qoropos.com/uploads/b51632f9-e563-4daf-f73c-3834cf388a00.jpg" class="item-img" alt="Elmalı soda">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Elmalı soda</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                			
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>1</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>40.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1493"
+				                				data-item-name="Elmalı soda"
+				                				data-item-price="40.00"
+				                				data-item-img="https://qoropos.com/uploads/b51632f9-e563-4daf-f73c-3834cf388a00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Limon fresh nane limon" data-desc="" data-img="https://qoropos.com/uploads/5e68dd20-0b6a-4db9-660c-98786f454a00.jpg">
+				                    <img src="https://qoropos.com/uploads/5e68dd20-0b6a-4db9-660c-98786f454a00.jpg" class="item-img" alt="Limon fresh nane limon">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Limon fresh nane limon</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>45</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>1</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>75.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1141"
+				                				data-item-name="Limon fresh nane limon"
+				                				data-item-price="75.00"
+				                				data-item-img="https://qoropos.com/uploads/5e68dd20-0b6a-4db9-660c-98786f454a00.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+						    <div class="menu-list" id="menu-list-205">
+			        <div class="category-name">Çorbalar</div>
+			        				        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Domatesli yumurta çorba" data-desc="" data-img="https://qoropos.com/uploads/aeb53a32-72d6-419e-623b-d92ddfc2e700.jpg">
+				                    <img src="https://qoropos.com/uploads/aeb53a32-72d6-419e-623b-d92ddfc2e700.jpg" class="item-img" alt="Domatesli yumurta çorba">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Domatesli yumurta çorba</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>90</span></div>
+			                    		
+			                    					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>10</span></div>
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>278.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1142"
+				                				data-item-name="Domatesli yumurta çorba"
+				                				data-item-price="278.00"
+				                				data-item-img="https://qoropos.com/uploads/aeb53a32-72d6-419e-623b-d92ddfc2e700.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    					        <div class="card m-2 p-2">
+				            <div class="row g-2">
+				                <div class="col-4 item" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Yumurtalı yosun çorbası" data-desc="" data-img="https://qoropos.com/uploads/351b4b3d-8022-414a-6ff1-7a44b7f35700.jpg">
+				                    <img src="https://qoropos.com/uploads/351b4b3d-8022-414a-6ff1-7a44b7f35700.jpg" class="item-img" alt="Yumurtalı yosun çorbası">
+				                </div>
+				                <div class="col-8 d-flex flex-column justify-content-around">
+			                		<h6 class="mb-0">Yumurtalı yosun çorbası</h6>
+			                		
+			                		<div class="d-flex justify-content-start gap-1"> 
+			                						                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>85</span></div>
+			                    		
+			                    					                		</div>
+			                		<div class="d-flex justify-content-between align-items-center">
+			                			<b>288.00 TL</b>
+			                							                			<button class="btn btn-dark text-white add-btn btn-sm" 
+				                				data-item-id="1143"
+				                				data-item-name="Yumurtalı yosun çorbası"
+				                				data-item-price="288.00"
+				                				data-item-img="https://qoropos.com/uploads/351b4b3d-8022-414a-6ff1-7a44b7f35700.jpg">
+				                				<span>Sepete ekle</span>
+				                				<i class="bi bi-cart-plus-fill"></i>
+				            				</button>
+			            							                		</div>
+				                </div>
+				            </div>
+				        </div>
+			    				    </div>
+					</div>
+
+		<div class="tab-pane" role="tabpanel" id="fav-tab-pane">
+		    <div class="menu-list">
+				<div class="category-name">Favoriler</div>
+		        			        <div class="card m-2 p-2">
+			            <div class="row g-2">
+			                <div class="col-4 item" id="menu-list-196" data-bs-toggle="modal" data-bs-target="#imageModal" data-title="Uygur mantı" data-desc="" data-img="https://qoropos.com/uploads/6b67f92b-bf4f-4f18-80c7-317cb7441e00.jpg">
+			                    <img src="https://qoropos.com/uploads/6b67f92b-bf4f-4f18-80c7-317cb7441e00.jpg" class="item-img" alt="Uygur mantı">
+			                </div>
+			                <div class="col-8 d-flex flex-column justify-content-around pt-2">
+		                		<h6 class="mb-0">Uygur mantı</h6>
+		                		
+		                		<div class="d-flex justify-content-start gap-1"> 
+		                					                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/kcal.png" alt="kcal"><span>450</span></div>
+		                    		
+		                    				                        		<div class="d-flex align-items-center small bg-light rounded p-1 gap-1"><img width="12" src="https://menu.qoropos.com/assets/img/time.png" alt="time"><span>20</span></div>
+		                    				                		</div>
+		                		<div class="d-flex justify-content-between align-items-center">
+		                			<b>428.00 TL</b>
+		                						                			<button class="btn btn-dark text-white add-btn btn-sm" 
+			                				data-item-id="1097"
+			                				data-item-name="Uygur mantı"
+			                				data-item-price="428.00"
+			                				data-item-img="https://qoropos.com/uploads/6b67f92b-bf4f-4f18-80c7-317cb7441e00.jpg">
+			                				<span>Sepete ekle</span>
+			                				<i class="bi bi-cart-plus-fill"></i>
+			            				</button>
+		            						                		</div>
+			                </div>
+			            </div>
+			        </div>
+		    			    </div>
+		</div>
+
+		<div class="tab-pane" role="tabpanel" id="myorder-tab-pane">
+			<div class="cart-items" v-if="orderHistory.length > 0">
+				<div class="category-name">Siparişlerim</div>
+				<div class="card m-2 p-2" v-for="order in orderHistory" :key="order.id" class="order-item">
+					<div class="card-body p-1">
+						<div class="d-flex justify-content-between">
+							<h6 class="m-0">Masa: {{ order.tableNumber }}</h6>
+							<p class="small text-muted">{{ order.tarih }}</p>
+						</div>
+						<table class="table table-bordered">
+		                    <thead>
+		                        <tr>
+		                            <td></td>
+		                            <td>Fiyat</td>
+		                            <td>Adet</td>
+		                            <td>Toplam</td>
+		                        </tr>
+		                    </thead>
+		                    <tbody>
+		                        <tr v-for="item in order.items" :key="item.id">
+		                           
+		                            <td>{{ item.name }}</td>
+		                            <td class="nowrap">{{ item.price }}</td>
+		                            <td class="nowrap">{{ item.quantity }}</td>
+		                            <td class="nowrap">{{ item.price * item.quantity }} TL</td>
+		                        </tr>
+		                       	<tr>
+		                            <td colspan="3">Toplam tutar</td>
+		                            <td class="nowrap">{{ order.items.reduce((total, item) => total + item.price * item.quantity, 0) }} TL</td>
+		                        </tr>
+		                    </tbody>
+		                </table>
+					</div>					
+				</div>
+				<div class="p-2">
+					<button class="btn btn-danger w-100" @click="deleteHistory()"><i class="bi bi-trash"></i></button>
+				</div>
+			</div>
+		</div>
+
+		<div class="tab-pane" role="tabpanel" id="basket-tab-pane">				
+			<div class="cart-items">
+				<div class="category-name">Sepet</div>
+                <div class="card m-2 p-2" v-for="item in cart" :key="item.id" class="cart-item">
+                    <div class="row g-2">
+                        <div class="col-4 item">
+                            <img :src="item.img" :alt="item.name" class="item-img">
+                        </div>
+                        <div class="col-8 d-flex flex-column justify-content-between">
+                            <div>
+                                <h6 class="mb-1">{{ item.name }}</h6>
+                                <b class="price">{{ item.price }} TL</b>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button class="btn btn-sm btn-outline-danger btn-note" :data-id="item.id"><i class="bi bi-pencil"></i></button>
+                                <div class="d-flex justify-content-end gap-1 align-items-center">
+	                                <button class="btn btn-sm btn-outline-secondary btn-minus" :data-id="item.id">−</button>
+	                                <span class="px-2">{{item.quantity}}</span>
+	                                <button class="btn btn-sm btn-outline-secondary btn-plus" :data-id="item.id">+</button>
+                            	</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+						<div class="cart-footer" v-if="cart.length > 0">
+				<div class="p-2">
+					<h6 class="fw-bold m-0">Masa: PAKET</h6>
+			    	<div class="small">Toplam tutar: {{ totalPrice }} TL</div>
+				</div>
+			    <button class="btn btn-success confirm-btn" @click="siparisTamamla()" id="order-button">Siparişi tamamla</button>
+			</div>
+			
+		</div>
+
+	</div>
+
+    	<footer>
+    	    <div class="footer-tab" role="tablist">
+                <div class="footer-tab-item active" data-bs-toggle="tab" role="tab" data-bs-target="#home-tab-pane">
+                    <i class="bi bi-house-fill"></i>
+                    <span>Anasayfa</span>
+                </div>
+                <div class="footer-tab-item" data-bs-toggle="tab" role="tab" data-bs-target="#fav-tab-pane">
+                    <i class="bi bi-suit-heart-fill"></i>
+                    <span>Favoriler</span>
+                </div>
+                                <div class="footer-tab-item" data-bs-toggle="tab" role="tab" data-bs-target="#myorder-tab-pane">
+                    <i class="bi bi-bag-check-fill"></i>
+                    <span>Siparişlerim</span>
+                </div>
+                <div class="footer-tab-item basket-tab" data-bs-toggle="tab" role="tab" data-bs-target="#basket-tab-pane">
+                    <span class="badge-new bg-warning text-dark rounded-circle">{{ cart.length }}</span>
+                    <i class="bi bi-cart-check-fill"></i>
+                    <span>Sepet</span>
+                </div>
+                            </div>
+            <div class="powered-by">
+                Powered by <a target="_blank" href="https://qoropos.com">QOROPOS</a>
+            </div>
+    	</footer>
+	</div>
+	<div class="modal fade" id="imageModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-0">
+                    <img src="" class="modal-img" width="100%" id="modalImage">
+                    <p class="mt-2 p-2" id="modalDesc"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <script>
+        function showLoading(){
+          Swal.fire({
+              position: 'center',
+              allowOutsideClick: false,
+              didOpen: () => {
+                  Swal.showLoading();
+              },
+          });
+        }
+
+        function hideLoading(){
+          Swal.close();
+        }
+
+        function scrollToSection(sectionId) {
+            const element = document.getElementById(sectionId);
+            const offset = 100;
+            const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+            const offsetPosition = elementPosition - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: "smooth"
+            });
+        }
+
+        function addedToCard(){
+            Swal.fire({
+              title: "Sepete eklendi",
+              icon: "success",
+              confirmButtonColor: "#333333",
+              confirmButtonText: "Kapat",
+            });
+        }
+
+        const app = Vue.createApp({
+            data() {
+                return {
+                    cart: [],
+                    cartTimeout: null,
+                    orderHistory: []
+                };
+            },
+            computed: {
+                totalPrice() {
+                    return this.cart.reduce((total, item) => total + item.price * item.quantity, 0);
+                }
+            },
+            methods: {
+                addToCart(id, name, price, img) {
+                    const existingItem = this.cart.find(i => i.id === id);
+                    if (existingItem) {
+                        existingItem.quantity++;
+                    } else {
+                        this.cart.push({ id, name, price, img, quantity: 1 });
+                    }
+                    this.saveCart();
+                    this.resetCartTimeout();
+                    addedToCard();
+                },
+                increaseQuantity(id) {
+                    const item = this.cart.find(i => i.id === id);
+                    if (item) {
+                        item.quantity++;
+                        this.saveCart();
+                        this.resetCartTimeout();
+                    }
+                },
+                decreaseQuantity(id) {
+                    const item = this.cart.find(i => i.id === id);
+                    if (item) {
+                        item.quantity--;
+                        if (item.quantity <= 0) {
+                            this.cart = this.cart.filter(i => i.id !== id);
+                        }
+                        this.saveCart();
+                        this.resetCartTimeout();
+                    }
+                },
+                addNoteToItem(id) {
+                    const item = this.cart.find(i => i.id === id);
+                    if (!item) return;
+
+                    Swal.fire({
+                        title: 'Not ekle',
+                        input: 'textarea',
+                        inputPlaceholder: 'Notunuzu buraya yazın...',
+                        inputValue: item.note || '',
+                        showCancelButton: true,
+                        confirmButtonText: 'Kaydet',
+                        cancelButtonText: 'İptal',
+                        confirmButtonColor: "#408559",
+                        cancelButtonColor: "#d33",
+                        inputAttributes: {
+                            'aria-label': 'Notunuzu girin',
+                            'style': 'height:100px'
+                        },
+                        inputValidator: (value) => {
+                            if (value.length > 32) {
+                                return 'Not 32 karakterden uzun olamaz.';
+                            }
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && result.value.trim() !== '') {
+                            item.note = result.value.trim();
+                            this.saveCart();
+                        }
+                    });
+                },
+                clearCart() {
+                    this.cart = [];
+                    localStorage.removeItem('cart');
+                    if (this.cartTimeout) {
+                        clearTimeout(this.cartTimeout);
+                        this.cartTimeout = null;
+                    }
+                },
+                saveCart() {
+                    localStorage.setItem('cart', JSON.stringify(this.cart));
+                },
+                loadCart() {
+                    const savedCart = localStorage.getItem('cart');
+                    if (savedCart) {
+                        this.cart = JSON.parse(savedCart);
+                    }
+                    const currentDate = '2026-02-06';
+                    let orderHistory = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+                    orderHistory = orderHistory.filter(order => order.tarih === currentDate);
+                    this.orderHistory = orderHistory;
+                    localStorage.setItem('orderHistory', JSON.stringify(orderHistory));
+                },
+                resetCartTimeout() {
+                    if (this.cartTimeout) {
+                        clearTimeout(this.cartTimeout);
+                    }
+                    if (this.cart.length > 0) {
+                        this.cartTimeout = setTimeout(() => {
+                            this.clearCart();
+                        }, 900000);
+                    }
+                },
+                siparisTamamla(){
+                    let thisLocal = this;
+                    if (this.cart.length === 0) {
+                        Swal.fire({
+                            title: 'Sepet boş',
+                            icon: 'error',
+                            confirmButtonText: 'Kapat'
+                        });
+                        return;
+                    }
+                    
+                    const urunler = this.cart.map(item => ({
+                        id: item.id,
+                        miktar: item.quantity,
+                        not: item.note || ''
+                    }));
+
+                    const postData = {
+                        masa: '1sI6bBrXx4kcTIp',
+                        urunler: urunler,
+                        toplamtutar: this.totalPrice
+                    };
+
+                    Swal.fire({
+                        title: 'Siparişi tamamla',
+                        showCancelButton: true,
+                        confirmButtonColor: "#408559",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: 'Onayla',
+                        cancelButtonText: 'İptal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            showLoading();
+                            $.ajax({
+                                url: 'https://menu.qoropos.com/complate_order',
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify(postData),
+                                success: function (response) {
+                                    if (response.success) {
+                                        thisLocal.saveOrderHistory('PAKET');
+                                        thisLocal.cart = [];
+                                        localStorage.removeItem('cart');
+                                        if (thisLocal.cartTimeout) {
+                                            clearTimeout(thisLocal.cartTimeout);
+                                            thisLocal.cartTimeout = null;
+                                        }
+                                        Swal.fire({
+                                            title: 'Siparişiniz alındı, garsona bildiriniz.',
+                                            icon: 'success',
+                                            confirmButtonText: 'Kapat',
+                                                timer: 3000,
+                                                timerProgressBar: true,
+                                                showConfirmButton: false,
+                                                allowOutsideClick: false,
+                                            }).then(() => {
+                                                location.reload();
+                                            });
+                                    } else {
+                                        if(response['message'] == 'full') {
+                                            Swal.fire({
+                                                title: 'Dolu masaya tekrar sipariş veremezsiniz.',
+                                                icon: 'error',
+                                                confirmButtonText: 'Kapat'
+                                            });
+                                        } else if(response['message'] == 'qrfull') {
+                                            Swal.fire({
+                                                title: 'Üzgünüz',
+                                                text: 'Üzgünüz, masanız için bir sipariş zaten mevcut. Lütfen garsonumuzun siparişinizi onaylamasını bekleyiniz.',
+                                                icon: 'error',
+                                                confirmButtonText: 'Kapat'
+                                            });
+                                        } else if(response['message'] == 'max_limit') {
+                                            Swal.fire({
+                                                title: 'Üzgünüz',
+                                                text: 'Sipariş limitini aştınız. Lütfen garson ile iletişime geçiniz.',
+                                                icon: 'error',
+                                                confirmButtonText: 'Kapat'
+                                            });
+                                        } else {
+                                            Swal.fire({
+                                                title: 'İşlem başarısız oldu',
+                                                icon: 'error',
+                                                confirmButtonText: 'Kapat'
+                                            });
+                                        }
+                                        
+                                    }
+                                },
+                                error: function () {
+                                    Swal.fire({
+                                        title: 'Sipariş gönderilirken bir hata oluştu.',
+                                        icon: 'error',
+                                        confirmButtonText: 'Kapat'
+                                    });
+                                }
+                            });
+
+                        }
+                    });
+                },
+                saveOrderHistory(tableNumber) {
+                    const orderHistory = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+                    const order = {
+                        id: Date.now(),
+                        tarih: '2026-02-06',
+                        tableNumber,
+                        items: [...this.cart]
+                    };
+                    orderHistory.push(order);
+                    localStorage.setItem('orderHistory', JSON.stringify(orderHistory));
+                },
+                deleteHistory(){
+                    localStorage.removeItem('orderHistory');
+                    this.orderHistory = [];
+                    this.loadCart();
+                }
+            },
+            created() {
+                this.loadCart();
+                this.resetCartTimeout();
+            }
+        });
+        const vueApp = app.mount('#app');
+    
+        $( document ).ready(function() { 
+            $(document).on('click', '.add-btn', function () {
+                const id = $(this).data('item-id');
+                const price = parseFloat($(this).data('item-price'));
+                const img = $(this).data('item-img');
+                const name = $(this).data('item-name');
+                vueApp.addToCart(id, name, price, img);
+            });
+
+            $(document).on('click', '.btn-plus', function () {
+                const id = $(this).data('id');
+                vueApp.increaseQuantity(id);
+            });
+
+            $(document).on('click', '.btn-minus', function () {
+                const id = $(this).data('id');
+                vueApp.decreaseQuantity(id);
+            });
+
+            $(document).on('click', '.btn-note', function () {
+                const id = $(this).data('id');
+                vueApp.addNoteToItem(id);
+            });
+
+            $('.item').on('click', function() {
+                var title = $(this).data('title');
+                var desc  = $(this).data('desc');
+                var img   = $(this).data('img');
+
+                $('#imageModalLabel').text(title);
+                $('#modalDesc').text(desc);
+                $('#modalImage').attr('src', img);
+            });
+
+            $(".owl-carousel").owlCarousel({
+                loop:true,
+                margin:0,
+                nav:false,
+                items:1,
+                dots: false
+            });
+        });
+
+                    function showAd() {
+                let maxWidth = window.innerWidth * 0.8;
+                let maxHeight = window.innerHeight * 0.8;
+
+                Swal.fire({
+                  imageUrl: 'https://qoropos.com/uploads/27/697e45162c9e6_1769882902.jpg',
+                  imageAlt: 'Reklam',
+                  showConfirmButton: false,
+                  showCloseButton: true,
+                  backdrop: true,
+                  width: maxWidth,
+                  didOpen: () => {
+                    const img = Swal.getImage();
+                    if (img) {
+                      img.style.maxWidth = maxWidth + "px";
+                      img.style.maxHeight = maxHeight + "px";
+                      img.style.height = "auto";
+                    }
+                  }
+                }).then(() => {
+                  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                  localStorage.setItem("adShownDate", today);
+                });
+              }
+
+              window.onload = function() {
+                const today = new Date().toISOString().split('T')[0];
+                const lastShown = localStorage.getItem("adShownDate");
+                if (lastShown !== today) {
+                  showAd();
+                }
+            }
+            </script>
+</body>
+</html>

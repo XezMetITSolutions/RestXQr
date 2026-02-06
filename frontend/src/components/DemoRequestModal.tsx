@@ -73,7 +73,7 @@ export default function DemoRequestModal({ isOpen, onClose }: DemoRequestModalPr
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // Validation
         if (!formData.name || !formData.email || !formData.phone) {
             alert(trans.required);
@@ -122,7 +122,7 @@ export default function DemoRequestModal({ isOpen, onClose }: DemoRequestModalPr
             const body = encodeURIComponent(
                 `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\nMessage: ${formData.message}`
             );
-            window.location.href = `mailto:info@restxqr.com?subject=${subject}&body=${body}`;
+            window.location.href = `mailto:bp@xezmet.at?subject=${subject}&body=${body}`;
             setIsSubmitted(true);
             setTimeout(() => {
                 setIsSubmitted(false);

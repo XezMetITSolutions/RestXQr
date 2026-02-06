@@ -3,7 +3,7 @@ const path = require('path');
 
 // Configuration
 const API_BASE = 'https://masapp-backend.onrender.com/api';
-const KROREN_RESTAURANT_ID = '37b0322a-e11f-4ef1-b108-83be310aaf4d';
+const KROREN_RESTAURANT_ID = '560b0683-2523-4c34-b7a4-8e80a6118770';
 
 const headers = {
     'Content-Type': 'application/json'
