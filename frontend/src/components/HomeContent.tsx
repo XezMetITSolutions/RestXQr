@@ -74,7 +74,8 @@ export default function HomeContent() {
 
                     <motion.h1
                         initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
                         transition={{ delay: 0.2 }}
                         className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black mb-6 md:mb-8 leading-[1.1] tracking-tight"
                     >
@@ -85,7 +86,8 @@ export default function HomeContent() {
 
                     <motion.p
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
+                        whileInView={{ opacity: 1 }}
+                        viewport={{ once: true, margin: "-50px" }}
                         transition={{ delay: 0.4 }}
                         className="text-base md:text-xl mb-10 md:mb-12 text-slate-300 leading-relaxed max-w-3xl mx-auto font-medium px-4"
                     >
@@ -96,7 +98,8 @@ export default function HomeContent() {
 
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
                         transition={{ delay: 0.6 }}
                         className="flex flex-col sm:flex-row justify-center gap-4 px-4 mb-20"
                     >
@@ -338,7 +341,15 @@ export default function HomeContent() {
                             { icon: FaFire, title: t('mgmtCampaignDrive'), color: "bg-orange-600" },
                             { icon: FaBell, title: t('mgmtAnnounceDirect'), color: "bg-purple-600" }
                         ].map((item, i) => (
-                            <motion.div key={i} whileHover={{ y: -5 }} className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-md border border-slate-100 flex flex-col items-center text-center">
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, margin: "-50px" }}
+                                transition={{ delay: i * 0.05 }}
+                                whileHover={{ y: -5 }}
+                                className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-md border border-slate-100 flex flex-col items-center text-center"
+                            >
                                 <div className={`${item.color} w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-xl md:text-2xl mb-4 md:mb-6 shadow-lg`}><item.icon /></div>
                                 <h4 className="text-sm md:text-lg font-black text-slate-900 leading-tight">{item.title}</h4>
                             </motion.div>
@@ -390,7 +401,15 @@ export default function HomeContent() {
                             { step: "03", title: t('zeroErrorList3'), icon: FaUtensils, color: "bg-emerald-600" },
                             { step: "04", title: t('zeroErrorList4'), icon: FaRocket, color: "bg-pink-600" }
                         ].map((item, i) => (
-                            <motion.div key={i} whileHover={{ scale: 1.05 }} className="relative z-10 bg-slate-800/50 backdrop-blur-md border border-white/5 p-8 rounded-[2.5rem] flex flex-col items-center text-center">
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true, margin: "-50px" }}
+                                transition={{ delay: i * 0.05 }}
+                                whileHover={{ scale: 1.05 }}
+                                className="relative z-10 bg-slate-800/50 backdrop-blur-md border border-white/5 p-8 rounded-[2.5rem] flex flex-col items-center text-center"
+                            >
                                 <span className="absolute top-4 left-6 text-white/10 text-5xl font-black font-mono italic">{item.step}</span>
                                 <div className={`${item.color} w-16 h-16 rounded-2xl mb-6 flex items-center justify-center text-3xl shadow-2xl`}><item.icon /></div>
                                 <h4 className="text-base md:text-lg font-black leading-tight">{item.title}</h4>
@@ -406,11 +425,23 @@ export default function HomeContent() {
                     <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 md:gap-20">
                         <div className="lg:w-1/2 order-2 lg:order-1">
                             <div className="grid grid-cols-2 gap-4 relative">
-                                <motion.div whileHover={{ y: -10 }} className="aspect-square bg-slate-50 rounded-[2.5rem] flex flex-col items-center justify-center p-6 text-center border border-slate-100 shadow-lg relative z-10">
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true, margin: "-50px" }}
+                                    whileHover={{ y: -10 }}
+                                    className="aspect-square bg-slate-50 rounded-[2.5rem] flex flex-col items-center justify-center p-6 text-center border border-slate-100 shadow-lg relative z-10"
+                                >
                                     <div className="w-16 h-16 bg-blue-600 text-white rounded-[1.5rem] flex items-center justify-center text-3xl mb-4 shadow-xl"><FaChartLine /></div>
                                     <span className="text-slate-900 font-black text-lg leading-tight uppercase tracking-tight">{t('passiveIncomeLabel')}</span>
                                 </motion.div>
-                                <motion.div whileHover={{ y: -10 }} className="aspect-square bg-slate-900 text-white rounded-[2.5rem] flex flex-col items-center justify-center p-6 text-center shadow-xl -mt-8 md:-mt-12 relative z-10">
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true, margin: "-50px" }}
+                                    whileHover={{ y: -10 }}
+                                    className="aspect-square bg-slate-900 text-white rounded-[2.5rem] flex flex-col items-center justify-center p-6 text-center shadow-xl -mt-8 md:-mt-12 relative z-10"
+                                >
                                     <div className="w-16 h-16 bg-emerald-500 text-white rounded-[1.5rem] flex items-center justify-center text-3xl mb-4 shadow-xl"><FaGem /></div>
                                     <span className="font-black text-lg leading-tight uppercase tracking-tight">{t('premiumSpaceLabel')}</span>
                                 </motion.div>
@@ -454,6 +485,7 @@ export default function HomeContent() {
                         <motion.span
                             initial={{ opacity: 0 }}
                             whileInView={{ opacity: 1 }}
+                            viewport={{ once: true, margin: "-50px" }}
                             className="text-blue-600 font-extrabold tracking-[0.3em] text-[10px] md:text-xs uppercase block mb-4"
                         >
                             {t('pricingBadge')}
