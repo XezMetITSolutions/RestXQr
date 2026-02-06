@@ -1503,6 +1503,68 @@ app.get('/api/debug/search-file', async (req, res) => {
   }
 });
 
+// E-POSTA TEST ENDPOINT'İ
+app.get('/api/debug/test-email', async (req, res) => {
+  console.log('📧 Debug email test endpoint called');
+  try {
+    const nodemailer = require('nodemailer');
+
+    // Transporter konfigürasyonu (emailService.js ile aynı)
+    const transporter = nodemailer.createTransport({
+      host: 'w01dc0ea.kasserver.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'bp@xezmet.at',
+        pass: '1528797Mb'
+      },
+      tls: {
+        rejectUnauthorized: false
+      },
+      debug: true, // Show debug output
+      logger: true // Log information to console
+    });
+
+    // 1. Bağlantıyı test et
+    console.log('🔌 SMTP bağlantısı test ediliyor...');
+    await transporter.verify();
+    console.log('✅ SMTP bağlantısı başarılı!');
+
+    // 2. Test maili gönder
+    console.log('📨 Test maili gönderiliyor...');
+    const info = await transporter.sendMail({
+      from: '"Debug Test" <bp@xezmet.at>',
+      to: 'bp@xezmet.at',
+      subject: 'RestXQr Test E-postası',
+      text: 'Bu bir test e-postasıdır. Eğer bunu görüyorsanız SMTP ayarları çalışıyor demektir.',
+      html: '<h3>Test Başarılı!</h3><p>Bu e-posta RestXQr sisteminden test amaçlı gönderilmiştir.</p><p>Zaman: ' + new Date().toLocaleString('tr-TR') + '</p>'
+    });
+
+    console.log('✅ Test maili gönderildi:', info.messageId);
+
+    res.json({
+      success: true,
+      message: 'Test e-postası başarıyla gönderildi',
+      details: {
+        messageId: info.messageId,
+        response: info.response,
+        envelope: info.envelope
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ E-posta test hatası:', error);
+    res.status(500).json({
+      success: false,
+      message: 'E-posta testi başarısız oldu',
+      error: error.message,
+      stack: error.stack,
+      code: error.code,
+      command: error.command
+    });
+  }
+});
+
 // Demo talep endpoint'i
 // Demo talep endpoint'i
 app.post('/api/demo-request', async (req, res) => {
