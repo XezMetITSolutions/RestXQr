@@ -1552,6 +1552,11 @@ export default function KasaPanel() {
     return { mins: diffMins, color };
   };
 
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  };
   const getPaymentBreakdown = (order: Order) => {
     if (order.status !== 'completed' && order.status !== 'delivered') return null;
 
