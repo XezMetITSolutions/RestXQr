@@ -17,9 +17,10 @@ export default function LandingLanguageToggle() {
     const { language, setLanguage } = useLanguageStore();
     const [isOpen, setIsOpen] = useState(false);
 
-    const handleLanguageChange = (newLang: 'tr' | 'de' | 'en') => {
-        setLanguage(newLang);
+    const handleLanguageChange = (lang: typeof languages[0]) => {
+        setLanguage(lang.code as 'tr' | 'de' | 'en');
         setIsOpen(false);
+        router.push(lang.route);
     };
 
     const currentLang = languages.find(l => l.code === language) || languages[0];
@@ -47,7 +48,7 @@ export default function LandingLanguageToggle() {
                             {languages.map((lang) => (
                                 <button
                                     key={lang.code}
-                                    onClick={() => handleLanguageChange(lang.code as 'tr' | 'de' | 'en')}
+                                    onClick={() => handleLanguageChange(lang)}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-bold ${language === lang.code
                                         ? 'bg-blue-50 text-blue-600'
                                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'

@@ -407,6 +407,26 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Tüm hakları saklıdır.',
       de: 'Alle Rechte vorbehalten.',
     },
+    caseStudyBadge: {
+      en: 'CUSTOMER SATISFACTION',
+      tr: 'MÜŞTERİ MEMNUNİYETİ',
+      de: 'KUNDENZUFRIEDENHEIT',
+    },
+    referralProgramTitle: {
+      en: 'Reward Program',
+      tr: 'Ödüllendirme Programı',
+      de: 'Epsylone Belohnungsprogramm',
+    },
+    referralProgramDesc: {
+      en: 'Benefit together with our referral system! Get 3 months free for every business you refer.',
+      tr: 'Referans sistemimizle birlikte kazanın! Referans olduğunuz her işletme için size 3 ay ücretsiz kullanım.',
+      de: 'Profitieren Sie gemeinsam von unserem Empfehlungssystem! Erhalten Sie 3 Monate kostenlos für jedes empfohlene Unternehmen.',
+    },
+    referralPromoLine: {
+      en: 'Using a team reference code? New users get 1 month free, and you get 3 months free!',
+      tr: 'Ekibimizden aldığınız referans koduyla: Yeni kullanıcıya 1 ay, size 3 ay ücretsiz kullanım!',
+      de: 'Referenzcode vom Team? 1 Monat gratis für neue Nutzer, 3 Monate gratis für Sie!',
+    },
 
     fastResult: {
       en: 'Fast Result',
@@ -1782,6 +1802,16 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       en: 'Based on average client results: Average monthly profit increases by ~22% through operational efficiency.',
       tr: 'Müşteri ortalamalarına göre: Operasyonel verimlilik sayesinde aylık kâr ortalama %22 artış gösterir.',
       de: 'Basierend auf Kundenergebnissen: Der monatliche Gewinn steigt durch Effizienz um ca. 22%.',
+    },
+    referralFaqQ: {
+      en: 'What is the Reward Program?',
+      tr: 'Ödüllendirme programı nedir?',
+      de: 'Was ist das Belohnungsprogramm?',
+    },
+    referralFaqA: {
+      en: 'By using a reference code provided by our team, new users who sign up get 1 month free. In return, the referrer receives 3 months of free usage. It\'s a win-win for everyone!',
+      tr: 'Ekibimiz tarafından size verilen referans kodu ile sistemi kullanmaya başlayanlara 1 ay, size ise 3 ay ücretsiz kullanım hakkı tanımlıyoruz. Herkes için kazançlı bir ortaklık!',
+      de: 'Mit einem Referenzcode von unserem Team erhalten neue Nutzer 1 Monat kostenlos. Empfehler erhalten im Gegenzug 3 Monate Gratis-Nutzung. Ein Gewinn für alle!',
     },
 
     refundNote: {
