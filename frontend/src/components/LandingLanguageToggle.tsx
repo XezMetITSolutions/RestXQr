@@ -32,7 +32,7 @@ export default function LandingLanguageToggle() {
                     className="flex items-center gap-2 bg-white/90 backdrop-blur-xl px-5 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-white/50 text-slate-800 font-bold tracking-wide text-sm group"
                 >
                     <span className="text-lg">{currentLang.flag}</span>
-                    <span>{currentLang.label}</span>
+                    <span>{currentLang.code.toUpperCase()}</span>
                     <FaChevronDown className={`text-xs text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
 
