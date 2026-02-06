@@ -31,7 +31,6 @@ export default function LandingLanguageToggle() {
                     onClick={() => setIsOpen(!isOpen)}
                     className="flex items-center gap-2 bg-white/90 backdrop-blur-xl px-5 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-white/50 text-slate-800 font-bold tracking-wide text-sm group"
                 >
-                    <span className="text-lg">{currentLang.flag}</span>
                     <span>{currentLang.code.toUpperCase()}</span>
                     <FaChevronDown className={`text-xs text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -54,7 +53,6 @@ export default function LandingLanguageToggle() {
                                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                         }`}
                                 >
-                                    <span className="text-xl">{lang.flag}</span>
                                     <div className="flex flex-col items-start">
                                         <span>{lang.label}</span>
                                         <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{lang.fullName}</span>

@@ -584,154 +584,111 @@ export default function HomeContent() {
                 </div>
                 <div className="container mx-auto px-4 max-w-4xl relative z-10">
                     <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-                            <div>
-                                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black tracking-widest uppercase mb-4">
-                                    <FaRocket />
-                                    {t('instantSetupTitle')}
-                                </div>
-                                <h2 className="text-2xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight leading-tight">
-                                    {t('instantSetupTitle')}
-                                </h2>
-                                <p className="text-base text-slate-600 font-medium leading-relaxed mb-6">
-                                    {t('instantSetupDesc')}
-                                </p>
-                                <div className="flex flex-wrap gap-3">
-                                    <button
-                                        onClick={() => setShowDemoModal(true)}
-                                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200"
-                                    >
-                                        {t('startNow')}
-                                    </button>
-                                    <a
-                                        href="https://wa.me/436608682201"
-                                        target="_blank"
-                                        className="px-6 py-3 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2"
-                                    >
-                                        <FaWhatsapp className="text-base" />
-                                        WhatsApp
-                                    </a>
-                                </div>
+                        <div className="mx-auto max-w-2xl text-center">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black tracking-widest uppercase mb-4">
+                                <FaRocket />
+                                {t('instantSetupTitle')}
                             </div>
-                            <div className="relative">
-                                <div className="aspect-video bg-gradient-to-br from-slate-50 to-white rounded-2xl overflow-hidden flex flex-col border-2 border-slate-100 shadow-sm relative group">
-                                    {/* Dashboard Top Bar */}
-                                    <div className="h-10 border-b border-slate-100 flex items-center px-4 bg-white/50 backdrop-blur-sm gap-2">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-red-400/20"></div>
-                                        <div className="w-2.5 h-2.5 rounded-full bg-amber-400/20"></div>
-                                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/20"></div>
-                                        <div className="ml-auto flex items-center gap-2">
-                                            <div className="w-16 h-2 bg-slate-100 rounded-full"></div>
-                                            <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center">
-                                                <FaCheckCircle className="text-[10px] text-blue-500" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Dashboard Content */}
-                                    <div className="flex-1 p-6 flex flex-col items-center justify-center relative">
-                                        {/* Status Lines */}
-                                        <div className="w-full max-w-[200px] bg-emerald-50/50 border border-emerald-100/50 rounded-xl p-3 mb-3 flex items-center gap-3 animate-pulse">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
-                                            <div className="w-16 h-2 bg-emerald-200/50 rounded-full"></div>
-                                            <div className="ml-auto w-8 h-2 bg-emerald-100/50 rounded-full"></div>
-                                        </div>
-                                        <div className="w-full max-w-[200px] bg-blue-50/50 border border-blue-100/50 rounded-xl p-3 mb-3 flex items-center gap-3">
-                                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                            <div className="w-20 h-2 bg-blue-200/50 rounded-full"></div>
-                                            <div className="ml-auto w-6 h-2 bg-blue-100/50 rounded-full"></div>
-                                        </div>
-                                        <div className="w-full max-w-[200px] bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-center gap-3">
-                                            <div className="w-2 h-2 rounded-full bg-slate-300"></div>
-                                            <div className="w-12 h-2 bg-slate-200 rounded-full"></div>
-                                            <div className="ml-auto w-10 h-2 bg-slate-100 rounded-full"></div>
-                                        </div>
-
-                                        {/* Floating Badge */}
-                                        <div className="absolute -bottom-4 right-8 bg-white px-4 py-2 rounded-lg shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-50 flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                            <span className="text-[10px] font-black text-slate-700 tracking-widest uppercase">System Online</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* FAQ Section */}
-            <section className="py-24 bg-white px-4">
-                <div className="container mx-auto max-w-4xl">
-                    <div className="text-center mb-12 md:mb-16">
-                        <h2 className="text-3xl md:text-5xl font-black mb-4 text-slate-900">{t('faq')}</h2>
-                        <p className="text-lg text-slate-500 font-medium">{t('faqDesc')}</p>
-                    </div>
-                    <div className="space-y-4">
-                        {faqs.map((faq, i) => (
-                            <div key={i} className="border border-slate-100 rounded-[2rem] bg-slate-50 overflow-hidden transition-all hover:shadow-md">
-                                <button onClick={() => toggleFAQ(i)} className="w-full p-6 text-left flex items-center justify-between hover:bg-white transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-lg"><faq.icon /></div>
-                                        <span className="font-bold text-lg text-slate-900">{faq.question}</span>
-                                    </div>
-                                    <FaChevronDown className={`text-slate-400 transition-transform duration-300 ${openFAQ === i ? 'rotate-180' : ''}`} />
+                            <h2 className="text-2xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight leading-tight">
+                                {t('instantSetupTitle')}
+                            </h2>
+                            <p className="text-base text-slate-600 font-medium leading-relaxed mb-8">
+                                {t('instantSetupDesc')}
+                            </p>
+                            <div className="flex flex-wrap justify-center gap-3">
+                                <button
+                                    onClick={() => setShowDemoModal(true)}
+                                    className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200"
+                                >
+                                    {t('startNow')}
                                 </button>
-                                <AnimatePresence>
-                                    {openFAQ === i && (
-                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden bg-white px-6 pb-6 text-slate-600 font-medium text-base leading-relaxed border-t border-slate-50">
-                                            <div className="pt-4 px-10">{faq.answer}</div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="bg-slate-950 text-white pt-24 pb-12 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600"></div>
-                <div className="container mx-auto px-4 max-w-7xl">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 mb-16">
-                        <div>
-                            <div className="text-4xl font-black tracking-tighter mb-8 bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">RestXQr</div>
-                            <p className="text-xl text-slate-400 leading-relaxed font-medium max-w-md">{t('footerSlogan')}</p>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
-                            <div>
-                                <h4 className="text-[10px] font-black text-slate-500 mb-8 uppercase tracking-[0.3em]">{t('contactUs')}</h4>
-                                <div className="space-y-4">
-                                    <a href="tel:+436608682201" className="flex items-center gap-4 text-slate-300 hover:text-white transition-all font-bold">
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-emerald-400"><FaPhone /></div>
-                                        +43 660 868 22 01
-                                    </a>
-                                    <div className="flex items-center gap-4 text-slate-300 font-bold">
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-blue-400"><FaGlobe /></div>
-                                        restxqr.com
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 className="text-[10px] font-black text-slate-500 mb-8 uppercase tracking-[0.3em]">{t('legalLinkSection')}</h4>
-                                <div className="flex flex-col gap-4 text-slate-400 font-bold">
-                                    <Link href="/datenschutz" className="hover:text-white transition-colors">{t('privacyPolicy')}</Link>
-                                    <Link href="/terms" className="hover:text-white transition-colors">{t('termsOfService')}</Link>
-                                    <Link href="/impressum" className="hover:text-white transition-colors">{t('legalInfo')}</Link>
-                                </div>
+                                <a
+                                    href="https://wa.me/436608682201"
+                                    target="_blank"
+                                    className="px-6 py-3 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2"
+                                >
+                                    <FaWhatsapp className="text-base" />
+                                    WhatsApp
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
-            </footer>
+            </div>
+        </section>
 
-            {/* Floating WhatsApp Action */}
+            {/* FAQ Section */ }
+    <section className="py-24 bg-white px-4">
+        <div className="container mx-auto max-w-4xl">
+            <div className="text-center mb-12 md:mb-16">
+                <h2 className="text-3xl md:text-5xl font-black mb-4 text-slate-900">{t('faq')}</h2>
+                <p className="text-lg text-slate-500 font-medium">{t('faqDesc')}</p>
+            </div>
+            <div className="space-y-4">
+                {faqs.map((faq, i) => (
+                    <div key={i} className="border border-slate-100 rounded-[2rem] bg-slate-50 overflow-hidden transition-all hover:shadow-md">
+                        <button onClick={() => toggleFAQ(i)} className="w-full p-6 text-left flex items-center justify-between hover:bg-white transition-colors">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-lg"><faq.icon /></div>
+                                <span className="font-bold text-lg text-slate-900">{faq.question}</span>
+                            </div>
+                            <FaChevronDown className={`text-slate-400 transition-transform duration-300 ${openFAQ === i ? 'rotate-180' : ''}`} />
+                        </button>
+                        <AnimatePresence>
+                            {openFAQ === i && (
+                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden bg-white px-6 pb-6 text-slate-600 font-medium text-base leading-relaxed border-t border-slate-50">
+                                    <div className="pt-4 px-10">{faq.answer}</div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </section>
+
+    {/* Footer */ }
+    <footer className="bg-slate-950 text-white pt-24 pb-12 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600"></div>
+        <div className="container mx-auto px-4 max-w-7xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 mb-16">
+                <div>
+                    <div className="text-4xl font-black tracking-tighter mb-8 bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">RestXQr</div>
+                    <p className="text-xl text-slate-400 leading-relaxed font-medium max-w-md">{t('footerSlogan')}</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
+                    <div>
+                        <h4 className="text-[10px] font-black text-slate-500 mb-8 uppercase tracking-[0.3em]">{t('contactUs')}</h4>
+                        <div className="space-y-4">
+                            <a href="tel:+436608682201" className="flex items-center gap-4 text-slate-300 hover:text-white transition-all font-bold">
+                                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-emerald-400"><FaPhone /></div>
+                                +43 660 868 22 01
+                            </a>
+                            <div className="flex items-center gap-4 text-slate-300 font-bold">
+                                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-blue-400"><FaGlobe /></div>
+                                restxqr.com
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 className="text-[10px] font-black text-slate-500 mb-8 uppercase tracking-[0.3em]">{t('legalLinkSection')}</h4>
+                        <div className="flex flex-col gap-4 text-slate-400 font-bold">
+                            <Link href="/datenschutz" className="hover:text-white transition-colors">{t('privacyPolicy')}</Link>
+                            <Link href="/terms" className="hover:text-white transition-colors">{t('termsOfService')}</Link>
+                            <Link href="/impressum" className="hover:text-white transition-colors">{t('legalInfo')}</Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {/* Floating WhatsApp Action */ }
             <div className="fixed bottom-8 right-8 z-[100]">
                 <a href="https://wa.me/436608682201" target="_blank" className="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center text-3xl shadow-2xl hover:scale-110 transition-all"><FaWhatsapp /></a>
             </div>
 
             <DemoRequestModal isOpen={showDemoModal} onClose={() => setShowDemoModal(false)} />
-        </main>
+        </main >
     );
 }
