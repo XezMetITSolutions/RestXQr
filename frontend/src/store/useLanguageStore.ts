@@ -28,6 +28,11 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
 
   translations: {
     // Common UI elements
+    metaTitle: {
+      en: 'RestXQr - Digital Restaurant Menu & Ordering System',
+      tr: 'RestXQr - Dijital Restoran Menü ve Sipariş Sistemi',
+      de: 'RestXQr - Digitales Restaurant-Menü & Bestellsystem',
+    },
     appName: {
       en: 'MASAPP',
       tr: 'MASAPP',

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaQrcode, FaUtensils, FaShoppingCart, FaBell, FaMagic,
@@ -17,6 +17,11 @@ import DemoRequestModal from '@/components/DemoRequestModal';
 
 export default function HomeContent() {
     const { t } = useLanguageStore();
+
+    useEffect(() => {
+        document.title = t('metaTitle');
+    }, [t]);
+
     const [openFAQ, setOpenFAQ] = useState<number | null>(null);
     const [showDemoModal, setShowDemoModal] = useState(false);
 
