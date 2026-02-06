@@ -258,10 +258,11 @@ export default function HomeContent() {
                         <div className="h-1.5 w-20 bg-blue-600 mx-auto rounded-full"></div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[
                             { icon: FaUtensils, title: t('kitchenStatTitle'), desc: t('kitchenStatDesc'), color: "blue", badge: "Advanced" },
                             { icon: FaCreditCard, title: t('splitPaymentTitle'), desc: t('splitPaymentDesc'), color: "emerald", badge: "Exclusive" },
+                            { icon: FaStar, title: t('socialGrowthTitle'), desc: t('socialGrowthDesc'), color: "orange", badge: "Growth" },
                             { icon: FaLayerGroup, title: t('multiBranchTitle'), desc: t('multiBranchDesc'), color: "purple", badge: "Enterprise" },
                             { icon: FaMagic, title: t('aiTitle'), desc: t('aiDesc'), color: "pink", badge: "AI Powered" }
                         ].map((feature, i) => (
@@ -432,6 +433,110 @@ export default function HomeContent() {
                             <p className="text-lg md:text-2xl text-blue-100/80 mb-10 md:mb-12 max-w-3xl mx-auto leading-relaxed">{t('noChangeDesc')}</p>
                             <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl text-lg md:text-xl font-black italic"><FaRocket className="text-emerald-400" /> "{t('noChangeFooter')}"</div>
                         </motion.div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Pricing Section */}
+            <section className="py-24 bg-white overflow-hidden">
+                <div className="container mx-auto px-4 max-w-7xl">
+                    <div className="text-center mb-16 px-4">
+                        <motion.span
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            className="text-blue-600 font-extrabold tracking-[0.3em] text-[10px] md:text-xs uppercase block mb-4"
+                        >
+                            {t('pricingBadge')}
+                        </motion.span>
+                        <h2 className="text-3xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">
+                            {t('pricingTitle')}
+                        </h2>
+                        <div className="h-1.5 w-24 bg-blue-600 mx-auto rounded-full mb-8"></div>
+                        <p className="text-lg md:text-xl text-slate-500 font-bold max-w-2xl mx-auto mb-4 italic">
+                            🚀 {t('devTeamPromise')}
+                        </p>
+                        <p className="text-sm font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 w-fit mx-auto px-6 py-2 rounded-full border border-emerald-100 shadow-sm">
+                            {t('annualGift')}
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
+                        {[
+                            {
+                                title: t('planBasicTitle'),
+                                price: t('planBasicPrice'),
+                                desc: t('planBasicDesc'),
+                                features: [t('planBasicFeat1'), t('planBasicFeat2'), t('planBasicFeat3')],
+                                color: "blue",
+                                badge: "POPULAR"
+                            },
+                            {
+                                title: t('planProTitle'),
+                                price: t('planProPrice'),
+                                desc: t('planProDesc'),
+                                features: [t('planProFeat1'), t('planProFeat2'), t('planProFeat3')],
+                                color: "emerald",
+                                badge: "BEST VALUE",
+                                featured: true
+                            },
+                            {
+                                title: t('planEntTitle'),
+                                price: t('planEntPrice'),
+                                desc: t('planEntDesc'),
+                                features: [t('planEntFeat1'), t('planEntFeat2'), t('planEntFeat3')],
+                                color: "slate",
+                                badge: "CORPORATE"
+                            }
+                        ].map((plan, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                className={`relative group p-8 md:p-12 rounded-[3rem] border transition-all h-full flex flex-col ${plan.featured
+                                    ? 'bg-slate-900 text-white border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.3)] scale-105 z-10'
+                                    : 'bg-white text-slate-900 border-slate-100 hover:border-blue-200 shadow-xl'
+                                    }`}
+                            >
+                                {plan.badge && (
+                                    <div className={`absolute -top-4 right-8 px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase ${plan.featured ? 'bg-emerald-500 text-white' : 'bg-blue-600 text-white'}`}>
+                                        {plan.badge}
+                                    </div>
+                                )}
+                                <h3 className="text-2xl font-black mb-4 uppercase tracking-tighter">{plan.title}</h3>
+                                <div className="mb-6">
+                                    <span className="text-4xl md:text-5xl font-black">{plan.price}</span>
+                                    {plan.price !== 'Custom' && plan.price !== 'Özel' && <span className="text-sm font-bold opacity-60 ml-2">TL</span>}
+                                </div>
+                                <p className={`mb-8 font-medium italic ${plan.featured ? 'text-slate-400' : 'text-slate-500'}`}>{plan.desc}</p>
+                                <div className="space-y-4 mb-12 flex-grow">
+                                    {plan.features.map((feat, fi) => (
+                                        <div key={fi} className="flex items-center gap-3">
+                                            <FaCheckCircle className={plan.featured ? 'text-emerald-400' : 'text-blue-600'} />
+                                            <span className="font-bold text-sm md:text-base">{feat}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setShowDemoModal(true)}
+                                    className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${plan.featured
+                                        ? 'bg-white text-slate-900 hover:bg-emerald-400 hover:text-white'
+                                        : 'bg-slate-900 text-white hover:bg-blue-600'
+                                        }`}
+                                >
+                                    {t('startNow')}
+                                </button>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <div className="mt-16 text-center">
+                        <div className="inline-flex items-center gap-4 bg-slate-50 border border-slate-200 px-8 py-4 rounded-[2rem] shadow-sm">
+                            <FaShieldAlt className="text-blue-600 text-3xl" />
+                            <p className="text-slate-700 font-black text-sm md:text-base">
+                                {t('refundNote')}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </section>

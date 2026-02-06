@@ -498,6 +498,16 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'Süper yönetici özelliğiyle tüm şubelerinize hakim olun. Anlık kontrol, şubeye özel reklamlar ve toplu ürün yönetimi.',
       de: 'Steuern Sie alle Filialen mit dem Super-Admin. Echtzeit-Überwachung und Filial-Werbung.',
     },
+    socialGrowthTitle: {
+      en: 'Organic Social Growth & Reviews',
+      tr: 'Organik Sosyal Büyüme ve Yorumlar',
+      de: 'Organisches Social Growth & Bewertungen',
+    },
+    socialGrowthDesc: {
+      en: 'Direct customers to Google Reviews, Instagram, or Facebook instantly. Turn satisfied diners into loyal followers and boost your local ranking organically.',
+      tr: 'Müşterileri anında Google Yorumları, Instagram veya Facebook\'a yönlendirin. Memnun konukları sadık takipçilere dönüştürün ve yerel sıralamanızı organik olarak yükseltin.',
+      de: 'Leiten Sie Kunden sofort zu Google-Bewertungen, Instagram oder Facebook weiter. Verwandeln Sie zufriedene Gäste in treue Follower.',
+    },
     aiBannerTitle: {
       en: 'AI Image Optimization',
       tr: 'AI GÖRSEL OPTİMİZASYONU',
@@ -685,9 +695,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Wie läuft die Einrichtung ab?',
     },
     faq2A: {
-      en: 'Setup is completely free for plans of 6 months or more. Our expert technical team comes to your restaurant, sets up the system, and trains all your staff. The setup process takes 1-2 days and you can start using it immediately.',
-      tr: '6 ay ve üzeri planlar için kurulum tamamen ücretsizdir. Uzman teknik ekibimiz restoranınıza gelir, sistemi kurar ve tüm personellerinizi eğitir. Kurulum süreci 1-2 gün sürer ve hemen kullanmaya başlayabilirsiniz.',
-      de: 'Bei Jahresplänen ist die Einrichtung komplett kostenlos. Unser Team richtet alles für Sie ein und schult Ihr Personal. In 1-2 Tagen sind Sie startklar.',
+      en: 'Setup is completely free for 1-year plans. For other plans or custom operational requests, a one-time setup fee is applied. Our team visits your restaurant for seamless setup and staff training. For multi-branch businesses, special discounts are applied per branch.',
+      tr: '1 yıllık planlarda kurulum tamamen ücretsizdir. Daha kısa süreli planlar veya kurulum sonrası özel özelleştirme istekleri için tek seferlik kurulum ücreti uygulanır. Uzman ekibimiz yerinde kurulum ve personel eğitimi sağlar. Şubeli işletmelerde ise şube sayısına göre özel indirimler uygulanmaktadır.',
+      de: 'Bei Jahresplänen ist die Einrichtung komplett kostenlos. Für spezielle Anpassungen oder kürzere Laufzeiten fällt eine einmalige Gebühr an. Unsere Experten schulen Ihr Personal direkt vor Ort. Filialbetriebe erhalten attraktive Rabatte pro Standort.',
     },
     faq3Q: {
       en: 'How does the refund guarantee work?',
@@ -695,9 +705,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Gibt es eine Geld-zurück-Garantie?',
     },
     faq3A: {
-      en: 'If you are not satisfied for any reason within 30 days, we refund your fee in full. If setup has been done, only the setup cost is deducted and the remaining amount is refunded. Try it risk-free!',
-      tr: '30 gün içinde herhangi bir sebeple memnun kalmazsanız, ücretinizi tam olarak iade ediyoruz. Kurulum yapılmış ise sadece kurulum maliyeti kesilerek kalan tutar iade edilir. Risk almadan deneyin!',
-      de: 'Sollten Sie innerhalb von 30 Tagen nicht zufrieden sein, erhalten Sie Ihr Geld zurück. Ohne Wenn und Aber.',
+      en: 'All our services include a 15-day free trial period. Even after 1 month of full usage, we offer a refund guarantee if you are not satisfied. In refund cases, only the setup fee is retained, and the full usage fee is returned. Try it with confidence!',
+      tr: 'Tüm hizmetlerimizde 15 günlük ücretsiz deneme süresi mevcuttur. 1 aylık kullanım sonunda memnun kalmazsanız iade hakkınız bulunur; bu durumda sadece kurulum ücreti kesilerek kalan tutarın tamamı iade edilir. Restoranınızı korkusuzca dijitalleştirin!',
+      de: 'Alle Dienste können 15 Tage kostenlos getestet werden. Falls Sie nach einem Monat nicht zufrieden sind, erstatten wir die Gebühr (abzüglich der Einrichtungskosten) zurück.',
     },
     faq4Q: {
       en: 'Which payment methods do you accept?',
@@ -705,9 +715,9 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       de: 'Welche Zahlungsarten werden akzeptiert?',
     },
     faq4A: {
-      en: 'We accept credit card, debit card, wire transfer/EFT, and all mobile payment options. We offer great discounts for 6-month and annual payments. Installment options are also available.',
-      tr: 'Kredi kartı, banka kartı, havale/EFT ve tüm mobil ödeme seçeneklerini kabul ediyoruz. 6 aylık ve yıllık ödemeler için büyük indirimler sunuyoruz. Taksit seçenekleri de mevcuttur.',
-      de: 'Wir akzeptieren alle gängigen Kreditkarten, Überweisung und mobile Zahlungen. Attraktive Rabatte bei jährlicher Zahlung.',
+      en: 'We accept credit card, debit card, wire transfer/EFT, and all mobile payment options. Installment options are also available to support your business cash flow.',
+      tr: 'Kredi kartı, banka kartı, havale/EFT ve tüm mobil ödeme seçeneklerini kabul ediyoruz. İşletme nakit akışınızı desteklemek için taksit seçenekleri de sunuyoruz.',
+      de: 'Wir akzeptieren alle gängigen Kreditkarten, Überweisung und mobile Zahlungen. Auch Ratenzahlung ist möglich.',
     },
     faq5Q: {
       en: 'Do you provide technical support?',
@@ -1725,6 +1735,43 @@ const useLanguageStore = create<LanguageState>()((set, get) => ({
       tr: 'DETAYLI BİLGİ',
       de: 'MEHR ERFAHREN',
     },
+    // Pricing Section
+    pricingTitle: { en: 'Fair & Flexible Pricing', tr: 'Adil ve Esnek Fiyatlandırma', de: 'Faire & flexible Preise' },
+    pricingBadge: { en: 'PLANS', tr: 'PAKETLER', de: 'PLÄNE' },
+    priceMonthly: { en: 'TL/Period', tr: 'TL/Dönem', de: 'TL/Zeitraum' },
+    annualGift: { en: '+1 Month Free on 1-Year Plans', tr: '1 Yıllık Alımlarda +1 Ay Bedava', de: '+1 Monat gratis bei Jahresabo' },
+
+    planBasicTitle: { en: 'RestX Essential', tr: 'RestX Temel Plus', de: 'RestX Basic' },
+    planBasicPrice: { en: '8.000', tr: '8.000', de: '8.000' },
+    planBasicDesc: { en: 'The perfect foundation for your digital transformation.', tr: 'Dijital dönüşümünüz için mükemmel bir başlangıç noktası.', de: 'Das perfekte Paket für Ihren digitalen Start.' },
+    planBasicFeat1: { en: 'Full expert setup service', tr: 'Eksiksiz uzman kurulum hizmeti', de: 'Kompletter Einrichtungs-Service' },
+    planBasicFeat2: { en: 'Smart order & menu routing', tr: 'Akıllı sipariş ve menü yönlendirme', de: 'Smartes Bestell-Management' },
+    planBasicFeat3: { en: 'Professional Technical Support', tr: 'Profesyonel Teknik Destek', de: 'Professioneller Support' },
+
+    planProTitle: { en: 'RestX Elite', tr: 'RestX Premium Elite', de: 'RestX Premium' },
+    planProPrice: { en: '13.000', tr: '13.000', de: '13.000' },
+    planProDesc: { en: 'Your personal software dev team, integrated into your business.', tr: 'İşletmenize entegre, size özel yazılım ekibi deneyimi.', de: 'Ihr eigenes Software-Team, direkt im Haus.' },
+    planProFeat1: { en: 'Unlimited custom feature requests', tr: 'Sınırsız yeni özellik ve özelleştirme', de: 'Unbegrenzte Feature-Wünsche' },
+    planProFeat2: { en: 'Priority VIP direct line', tr: 'Öncelikli VIP doğrudan destek hattı', de: 'Exklusiver VIP-Support-Kanal' },
+    planProFeat3: { en: 'Full AI Visual Optimization', tr: 'Tam kapsamlı AI Görsel Optimizasyonu', de: 'KI-Bildoptimierung inklusive' },
+
+    planEntTitle: { en: 'RestX Enterprise', tr: 'RestX Kurumsal', de: 'RestX Enterprise' },
+    planEntPrice: { en: 'Custom', tr: 'Özel', de: 'Individuell' },
+    planEntDesc: { en: 'Scale with power across all branches.', tr: 'Tüm şubelerinizde profesyonel güç.', de: 'Power für alle Ihre Filialen.' },
+    planEntFeat1: { en: 'Multi-branch discounts', tr: 'Şube sayısına göre indirimler', de: 'Filial-Rabatte' },
+    planEntFeat2: { en: 'Dedicated Account Manager', tr: 'Size özel müşteri yöneticisi', de: 'Persönlicher Account Manager' },
+    planEntFeat3: { en: 'Full API Integration', tr: 'Tam API Entegrasyonu', de: 'Volle API-Integration' },
+
+    refundNote: {
+      en: '15 days free trial. 1 month refund guarantee (Setup fee excluded).',
+      tr: '15 gün ücretsiz kullanım. 1 ay sonunda iade garantisi (Kurulum ücreti hariç).',
+      de: '15 Tage Testversion. Rückerstattung nach 1 Monat möglich (exkl. Einrichtung).'
+    },
+    devTeamPromise: {
+      en: 'Like having an in-house developer team; lighting fast responses and tailored software feel.',
+      tr: 'Bünyenizde bir yazılım ekibi varmış gibi; ışık hızında geri dönüşler ve işletmenize özel yazılım deneyimi.',
+      de: 'Wie ein internes Entwickler-Team; blitzschnelle Hilfe und maßgeschneiderte Software.'
+    }
   },
 
   t: (key) => {
