@@ -12,7 +12,12 @@ export default function EmailDebugPage() {
         setResult(null);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/debug/test-email`);
+            // API URL'sini standardize et (sonunda /api olup olmadığına bakmaksızın)
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
+            // URL zaten /api ile bitiyorsa, endpoint'ten /api kısmını çıkar
+            const endpoint = baseUrl.endsWith('/api') ? '/debug/test-email' : '/api/debug/test-email';
+
+            const response = await fetch(`${baseUrl}${endpoint}`);
             const data = await response.json();
 
             if (response.ok && data.success) {
@@ -81,8 +86,8 @@ export default function EmailDebugPage() {
 
                         {result && (
                             <div className={`mt-8 rounded-xl border-l-4 p-6 animate-fade-in ${status === 'success'
-                                    ? 'bg-green-50 border-green-500'
-                                    : 'bg-red-50 border-red-500'
+                                ? 'bg-green-50 border-green-500'
+                                : 'bg-red-50 border-red-500'
                                 }`}>
                                 <div className="flex items-start gap-4">
                                     <div className={`mt-1 text-2xl ${status === 'success' ? 'text-green-500' : 'text-red-500'
