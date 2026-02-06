@@ -530,6 +530,23 @@ export default function HomeContent() {
                         ))}
                     </div>
 
+                    <div className="mt-16 text-center space-y-6">
+                        <div className="inline-flex flex-wrap justify-center items-center gap-6 px-4">
+                            <div className="flex items-center gap-4 bg-blue-50 border border-blue-100 px-8 py-4 rounded-[2rem] shadow-sm group hover:scale-105 transition-transform duration-300">
+                                <FaLayerGroup className="text-blue-600 text-3xl" />
+                                <p className="text-blue-900 font-black text-sm md:text-base">
+                                    {t('branchDiscountNote')}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-4 bg-slate-50 border border-slate-200 px-8 py-4 rounded-[2rem] shadow-sm group hover:scale-105 transition-transform duration-300">
+                                <FaShieldAlt className="text-blue-600 text-3xl" />
+                                <p className="text-slate-700 font-black text-sm md:text-base">
+                                    {t('refundNote')}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="mt-20 max-w-4xl mx-auto">
                         <div className="bg-slate-900 rounded-[3rem] p-10 md:p-16 text-white relative overflow-hidden shadow-2xl">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
@@ -547,23 +564,6 @@ export default function HomeContent() {
                                 </div>
                                 <p className="text-center text-slate-400 font-medium italic mb-2 px-4 italic leading-relaxed">
                                     " {t('roiNote')} "
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-16 text-center space-y-6">
-                        <div className="inline-flex flex-wrap justify-center items-center gap-6 px-4">
-                            <div className="flex items-center gap-4 bg-blue-50 border border-blue-100 px-8 py-4 rounded-[2rem] shadow-sm group hover:scale-105 transition-transform duration-300">
-                                <FaLayerGroup className="text-blue-600 text-3xl" />
-                                <p className="text-blue-900 font-black text-sm md:text-base">
-                                    {t('branchDiscountNote')}
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-4 bg-slate-50 border border-slate-200 px-8 py-4 rounded-[2rem] shadow-sm group hover:scale-105 transition-transform duration-300">
-                                <FaShieldAlt className="text-blue-600 text-3xl" />
-                                <p className="text-slate-700 font-black text-sm md:text-base">
-                                    {t('refundNote')}
                                 </p>
                             </div>
                         </div>
