@@ -614,10 +614,44 @@ export default function HomeContent() {
                                 </div>
                             </div>
                             <div className="relative">
-                                <div className="aspect-video bg-slate-50 rounded-2xl overflow-hidden flex items-center justify-center border-2 border-slate-100">
-                                    <div className="text-center p-6">
-                                        <FaMagic className="text-5xl text-blue-600/20 mx-auto mb-3" />
-                                        <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Seamless Integration</p>
+                                <div className="aspect-video bg-gradient-to-br from-slate-50 to-white rounded-2xl overflow-hidden flex flex-col border-2 border-slate-100 shadow-sm relative group">
+                                    {/* Dashboard Top Bar */}
+                                    <div className="h-10 border-b border-slate-100 flex items-center px-4 bg-white/50 backdrop-blur-sm gap-2">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-red-400/20"></div>
+                                        <div className="w-2.5 h-2.5 rounded-full bg-amber-400/20"></div>
+                                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/20"></div>
+                                        <div className="ml-auto flex items-center gap-2">
+                                            <div className="w-16 h-2 bg-slate-100 rounded-full"></div>
+                                            <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center">
+                                                <FaCheckCircle className="text-[10px] text-blue-500" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Dashboard Content */}
+                                    <div className="flex-1 p-6 flex flex-col items-center justify-center relative">
+                                        {/* Status Lines */}
+                                        <div className="w-full max-w-[200px] bg-emerald-50/50 border border-emerald-100/50 rounded-xl p-3 mb-3 flex items-center gap-3 animate-pulse">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
+                                            <div className="w-16 h-2 bg-emerald-200/50 rounded-full"></div>
+                                            <div className="ml-auto w-8 h-2 bg-emerald-100/50 rounded-full"></div>
+                                        </div>
+                                        <div className="w-full max-w-[200px] bg-blue-50/50 border border-blue-100/50 rounded-xl p-3 mb-3 flex items-center gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                            <div className="w-20 h-2 bg-blue-200/50 rounded-full"></div>
+                                            <div className="ml-auto w-6 h-2 bg-blue-100/50 rounded-full"></div>
+                                        </div>
+                                        <div className="w-full max-w-[200px] bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-center gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-slate-300"></div>
+                                            <div className="w-12 h-2 bg-slate-200 rounded-full"></div>
+                                            <div className="ml-auto w-10 h-2 bg-slate-100 rounded-full"></div>
+                                        </div>
+
+                                        {/* Floating Badge */}
+                                        <div className="absolute -bottom-4 right-8 bg-white px-4 py-2 rounded-lg shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-50 flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                            <span className="text-[10px] font-black text-slate-700 tracking-widest uppercase">System Online</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
