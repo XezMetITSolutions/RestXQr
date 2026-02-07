@@ -1545,6 +1545,13 @@ export default function KasaPanel() {
     }
   };
 
+  const getPacketNumber = (tableNum: number) => {
+    if (!tableNum) return '?';
+    if (floors.length === 0) return tableNum;
+    const maxTable = floors.reduce((max, f) => Math.max(max, Number(f.endTable)), 0);
+    return tableNum > maxTable ? tableNum - maxTable : tableNum;
+  };
+
   const getWaitInfo = (dateString: string) => {
     const diffMins = Math.floor((currentTime.getTime() - new Date(dateString).getTime()) / 60000);
     let color = 'text-green-600 bg-green-50';
@@ -1946,13 +1953,15 @@ export default function KasaPanel() {
                   >
                     <div className="p-5 flex justify-between items-center border-b bg-gray-50">
                       <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg ${order.tableNumber != null ? 'bg-green-500 shadow-green-100' : 'bg-purple-500 shadow-purple-100'}`}>
-                          {order.tableNumber != null ? order.tableNumber : (order.orderType === 'dine_in' ? '?' : 'WEB')}
+                        <div className={`w-12 h-12 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg ${order.orderType === 'takeaway' ? 'bg-orange-500 shadow-orange-100' : (order.tableNumber != null ? 'bg-green-500 shadow-green-100' : 'bg-purple-500 shadow-purple-100')}`}>
+                          {order.orderType === 'takeaway'
+                            ? (getPacketNumber(order.tableNumber) || '?')
+                            : (order.tableNumber != null ? order.tableNumber : (order.orderType === 'dine_in' ? '?' : 'WEB'))}
                         </div>
                         <div>
                           <div className="font-black text-gray-800 flex items-center gap-2">
                             {order.orderType === 'takeaway'
-                              ? `PAKET ${order.tableNumber || '?'}`
+                              ? `PAKET ${getPacketNumber(order.tableNumber) || '?'}`
                               : order.tableNumber != null
                                 ? `MASA ${order.tableNumber}`
                                 : (order.orderType === 'dine_in' ? 'MASASIZ SİPARİŞ' : (
@@ -2136,7 +2145,7 @@ export default function KasaPanel() {
                   <div className="flex justify-between items-center mb-2">
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                       {selectedOrder.orderType === 'takeaway'
-                        ? <span className="bg-orange-600 text-white px-2 py-1 rounded text-sm">PAKET {selectedOrder.tableNumber || '?'}</span>
+                        ? <span className="bg-orange-600 text-white px-2 py-1 rounded text-sm">PAKET {getPacketNumber(selectedOrder.tableNumber) || '?'}</span>
                         : selectedOrder.tableNumber
                           ? <span className="bg-gray-800 text-white px-2 py-1 rounded text-sm">MASA {selectedOrder.tableNumber}</span>
                           : <span className="bg-orange-500 text-white px-2 py-1 rounded text-sm">PAKET / WEB</span>}
