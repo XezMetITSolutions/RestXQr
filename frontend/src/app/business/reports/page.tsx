@@ -561,17 +561,31 @@ export default function ReportsPage() {
         let baseName = item.name || item.menuItem?.name || 'Bilinmeyen Ürün';
 
         // 1. İsimden porsiyon bilgisini ayıkla ve temizle
+        // 1. İsimden porsiyon bilgisini ayıkla ve temizle
         let porsiyon = '';
         if (baseName.includes('(Büyük)')) {
           porsiyon = 'Büyük';
-          baseName = baseName.replace('(Büyük)', '').trim();
         } else if (baseName.includes('(Küçük)')) {
           porsiyon = 'Küçük';
-          baseName = baseName.replace('(Küçük)', '').trim();
         } else if (baseName.includes('(Orta)')) {
           porsiyon = 'Orta';
-          baseName = baseName.replace('(Orta)', '').trim();
         }
+
+        // Porsiyon etiketlerini ismin içinden kaldır
+        baseName = baseName.replace('(Büyük)', '').replace('(Küçük)', '').replace('(Orta)', '');
+
+        // Dil ayracına göre böl ve Türkçe kısmı al (Çince karakterleri temizle)
+        // Örnek: "Dana etli ramen - 牛肉面" -> "Dana etli ramen"
+        if (baseName.includes(' - ')) {
+          baseName = baseName.split(' - ')[0];
+        } else if (baseName.includes('- ')) { // Tire ve boşluk varsa
+          // Eğer tireden sonra Çince karakter varsa böl (Basit kontrol: ASCII dışı)
+          // Veya sadece tireye güven (Menü yapısı genelde "TR - CN" şeklindeyse)
+          // Kullanıcının belirttiği formata göre " - " veya "- " ayracı var.
+          baseName = baseName.split('- ')[0];
+        }
+
+        baseName = baseName.trim();
 
         // 2. Varyasyonlardan porsiyon bilgisini kontrol et
         const variations = item.variations || [];
