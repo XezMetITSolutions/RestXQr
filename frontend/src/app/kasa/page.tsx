@@ -1674,23 +1674,26 @@ export default function KasaPanel() {
           <div className="flex items-center gap-8">
             <div className="text-center group">
               <div className="text-2xl font-black text-green-600 group-hover:scale-110 transition-transform">
-                {allOrders
-                  .filter(o => {
-                    if (o.status === 'cancelled') return false;
-                    const date = new Date(o.created_at || o.createdAt || '');
-                    const today = new Date();
-                    return date.getDate() === today.getDate() &&
-                      date.getMonth() === today.getMonth() &&
-                      date.getFullYear() === today.getFullYear();
-                  })
-                  .reduce((s, o) => s + (Number(o.totalAmount) || 0), 0)
-                  .toFixed(2)}₺
+                {new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+                  allOrders
+                    .filter(o => {
+                      if (o.status === 'cancelled') return false;
+                      const date = new Date(o.created_at || o.createdAt || '');
+                      const today = new Date();
+                      return date.getDate() === today.getDate() &&
+                        date.getMonth() === today.getMonth() &&
+                        date.getFullYear() === today.getFullYear();
+                    })
+                    .reduce((s, o) => s + (Number(o.totalAmount) || 0), 0)
+                )}₺
               </div>
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">GÜNLÜK CİRO</div>
             </div>
             <div className="text-center group">
               <div className="text-2xl font-black text-orange-500 group-hover:scale-110 transition-transform">
-                {orders.reduce((s, o) => s + ((Number(o.totalAmount) || 0) - (Number(o.paidAmount) || 0) - (Number(o.discountAmount) || 0)), 0).toFixed(2)}₺
+                {new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+                  orders.reduce((s, o) => s + ((Number(o.totalAmount) || 0) - (Number(o.paidAmount) || 0) - (Number(o.discountAmount) || 0)), 0)
+                )}₺
               </div>
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">BEKLEYEN TAHSİLAT</div>
             </div>
