@@ -1552,11 +1552,16 @@ export default function KasaPanel() {
     return { mins: diffMins, color };
   };
 
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-  };
+
+
+  const formatTime = (dateString: string) => {
+
+    const date = new Date(dateString);
+
+    return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+  };
+
   const getPaymentBreakdown = (order: Order) => {
     if (order.status !== 'completed' && order.status !== 'delivered') return null;
 
@@ -1711,8 +1716,8 @@ export default function KasaPanel() {
               : 'text-gray-400 hover:bg-gray-100'
               }`}
           >
-            <FaGlobe />
-            <span>ONLINE SİPARİŞ</span>
+            <FaBox />
+            <span>GEL AL</span>
             <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] ${activeSource === 'online' ? 'bg-white/20' : 'bg-gray-100'}`}>
               {orders.filter(o => o.orderType !== 'dine_in').length}
             </span>
@@ -1893,7 +1898,7 @@ export default function KasaPanel() {
           <div className="bg-white/50 border-2 border-dashed border-gray-300 rounded-3xl p-20 text-center">
             <FaReceipt className="text-6xl text-gray-300 mx-auto mb-4" />
             <h3 className="text-2xl font-black text-gray-400 uppercase">
-              {activeSource === 'restoran' ? 'AKTİF MASA BULUNMUYOR' : 'AKTİF ONLİNE SİPARİŞ YOK'}
+              {activeSource === 'restoran' ? 'AKTİF MASA BULUNMUYOR' : 'AKTİF GEL AL SİPARİŞİ YOK'}
             </h3>
           </div>
         ) : (

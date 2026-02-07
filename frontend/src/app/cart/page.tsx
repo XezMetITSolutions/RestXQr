@@ -341,7 +341,7 @@ function CartPageContent() {
         notes: `${orderNote ? `📝 NOT: ${orderNote} | ` : ''}Ödeme: ${(!settings?.paymentSettings?.allowCardPayment && !settings?.paymentSettings?.allowCashPayment) ? 'Kasada Ödeme' :
           (paymentMethod === 'cash' ? 'nakit' : paymentMethod)
           }, Bahşiş: ${tipAmount}₺, Bağış: ${donationAmount}₺`,
-        orderType: 'dine_in'
+        orderType: isPacket ? 'takeaway' : 'dine_in'
       };
 
       console.log('📦 SİPARİŞ VERİSİ:', {
