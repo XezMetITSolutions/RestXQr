@@ -36,6 +36,7 @@ import BusinessSidebar from '@/components/BusinessSidebar';
 import { useFeature } from '@/hooks/useFeature';
 import TranslatedText, { useTranslation } from '@/components/TranslatedText';
 import apiService from '@/services/api';
+import useRestaurantStore from '@/store/useRestaurantStore';
 
 export default function ReportsPage() {
   const { t } = useTranslation();
@@ -58,6 +59,15 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<any[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<any[]>([]);
+  const { menuItems, fetchRestaurantMenu } = useRestaurantStore();
+  const [productSubTab, setProductSubTab] = useState<'bestsellers' | 'worstsellers' | 'unsold' | 'all'>('bestsellers');
+
+  useEffect(() => {
+    const rId = authenticatedRestaurant?.id || authenticatedStaff?.restaurantId;
+    if (rId && menuItems.length === 0) {
+      fetchRestaurantMenu(rId);
+    }
+  }, [authenticatedRestaurant?.id, authenticatedStaff?.restaurantId, menuItems.length, fetchRestaurantMenu]);
 
   useEffect(() => {
     // Default to showing all orders or maybe just today's orders depending on UX? 
@@ -604,7 +614,45 @@ export default function ReportsPage() {
 
   const topProducts = Array.from(productMap.values())
     .sort((a, b) => b.totalRevenue - a.totalRevenue)
-    .slice(0, 15); // Increased to 15 to show more variety after split
+    .slice(0, 50); // Increased to 50 for more visibility
+
+  // Calculate other product lists
+  const allSoldProducts = Array.from(productMap.values());
+
+  const worstProducts = [...allSoldProducts]
+    .sort((a, b) => a.totalQuantity - b.totalQuantity)
+    .slice(0, 50);
+
+  const unsoldProducts = menuItems.filter(item => {
+    // Check if item name exists in sold products (exact or as base of variation)
+    const isSold = Array.from(productMap.keys()).some(key =>
+      key === item.name || key.startsWith(item.name + ' (')
+    );
+    return !isSold;
+  });
+
+  const allProductsStats = menuItems.map(item => {
+    let quantity = 0;
+    let revenue = 0;
+    let ordersCount = 0;
+
+    // Aggregate from productMap
+    Array.from(productMap.entries()).forEach(([key, stats]) => {
+      if (key === item.name || key.startsWith(item.name + ' (')) {
+        quantity += stats.totalQuantity;
+        revenue += stats.totalRevenue;
+        ordersCount += stats.orderCount;
+      }
+    });
+
+    return {
+      productName: item.name,
+      totalQuantity: quantity,
+      totalRevenue: revenue,
+      orderCount: ordersCount,
+      menuItem: item
+    };
+  }).sort((a, b) => b.totalRevenue - a.totalRevenue); // Default sort by revenue
 
   // Saatlik satışlar (8:00 - 20:00)
   const hourlySales: number[] = Array(12).fill(0);
@@ -1159,40 +1207,187 @@ export default function ReportsPage() {
           {/* Ürün Analizi */}
           {activeTab === 'products' && (
             <div className="space-y-6">
+              {/* Product Sub Tabs */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                <button
+                  onClick={() => setProductSubTab('bestsellers')}
+                  className={`px-4 py-2 rounded-lg font-bold transition-all ${productSubTab === 'bestsellers'
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                    }`}
+                >
+                  🏆 <TranslatedText>En Çok Satanlar</TranslatedText>
+                </button>
+                <button
+                  onClick={() => setProductSubTab('worstsellers')}
+                  className={`px-4 py-2 rounded-lg font-bold transition-all ${productSubTab === 'worstsellers'
+                    ? 'bg-orange-600 text-white shadow-lg'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                    }`}
+                >
+                  📉 <TranslatedText>En Az Satanlar</TranslatedText>
+                </button>
+                <button
+                  onClick={() => setProductSubTab('unsold')}
+                  className={`px-4 py-2 rounded-lg font-bold transition-all ${productSubTab === 'unsold'
+                    ? 'bg-red-600 text-white shadow-lg'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                    }`}
+                >
+                  🚫 <TranslatedText>Hiç Satmayanlar</TranslatedText>
+                </button>
+                <button
+                  onClick={() => setProductSubTab('all')}
+                  className={`px-4 py-2 rounded-lg font-bold transition-all ${productSubTab === 'all'
+                    ? 'bg-gray-800 text-white shadow-lg'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                    }`}
+                >
+                  📋 <TranslatedText>Bütün Ürünler</TranslatedText>
+                </button>
+              </div>
+
               <div className="bg-white rounded-lg shadow-sm border">
-                <div className="p-6 border-b">
+                <div className="p-6 border-b flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                    🏆 <TranslatedText>En Çok Satan Ürünler</TranslatedText>
+                    {productSubTab === 'bestsellers' && <>🏆 <TranslatedText>En Çok Satan Ürünler</TranslatedText></>}
+                    {productSubTab === 'worstsellers' && <>📉 <TranslatedText>En Az Satan Ürünler</TranslatedText></>}
+                    {productSubTab === 'unsold' && <>🚫 <TranslatedText>Hiç Satmayan Ürünler</TranslatedText></>}
+                    {productSubTab === 'all' && <>📋 <TranslatedText>Tüm Ürün Listesi ve Performans</TranslatedText></>}
                   </h3>
+                  <div className="text-sm text-gray-500">
+                    {productSubTab === 'bestsellers' && <>{topProducts.length} <TranslatedText>ürün listeleniyor</TranslatedText></>}
+                    {productSubTab === 'worstsellers' && <>{worstProducts.length} <TranslatedText>ürün listeleniyor</TranslatedText></>}
+                    {productSubTab === 'unsold' && <>{unsoldProducts.length} <TranslatedText>ürün listeleniyor</TranslatedText></>}
+                    {productSubTab === 'all' && <>{allProductsStats.length} <TranslatedText>ürün listeleniyor</TranslatedText></>}
+                  </div>
                 </div>
 
                 <div className="p-6">
-                  {topProducts.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8"><TranslatedText>Bu tarih aralığında veri bulunamadı.</TranslatedText></p>
-                  ) : (
-                    <div className="space-y-4">
-                      {topProducts.map((product, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-4">
-                            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                              {index + 1}
+                  {/* Bestsellers View */}
+                  {productSubTab === 'bestsellers' && (
+                    topProducts.length === 0 ? (
+                      <p className="text-gray-500 text-center py-8"><TranslatedText>Bu tarih aralığında veri bulunamadı.</TranslatedText></p>
+                    ) : (
+                      <div className="space-y-4">
+                        {topProducts.map((product, index) => (
+                          <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border hover:bg-blue-50/30 transition-colors">
+                            <div className="flex items-center gap-4">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${index < 3 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-600'
+                                }`}>
+                                {index + 1}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-800 text-lg">{product.productName}</h4>
+                                <p className="text-sm text-gray-600">
+                                  {product.totalQuantity} <TranslatedText>adet</TranslatedText> • {product.orderCount} <TranslatedText>sipariş</TranslatedText>
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="font-bold text-gray-800 text-lg">{product.productName}</h4>
+                            <div className="text-right">
+                              <p className="font-bold text-green-600">{formatCurrency(product.totalRevenue)}</p>
                               <p className="text-sm text-gray-600">
-                                {product.totalQuantity} <TranslatedText>adet</TranslatedText> • {product.orderCount} <TranslatedText>sipariş</TranslatedText>
+                                {product.totalQuantity > 0 ? formatCurrency(product.totalRevenue / product.totalQuantity) : 0} / <TranslatedText>adet</TranslatedText>
                               </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-bold text-green-600">{formatCurrency(product.totalRevenue)}</p>
-                            <p className="text-sm text-gray-600">
-                              {formatCurrency(product.totalRevenue / product.totalQuantity)} / adet
-                            </p>
+                        ))}
+                      </div>
+                    )
+                  )}
+
+                  {/* Worstsellers View */}
+                  {productSubTab === 'worstsellers' && (
+                    worstProducts.length === 0 ? (
+                      <p className="text-gray-500 text-center py-8"><TranslatedText>Bu tarih aralığında veri bulunamadı.</TranslatedText></p>
+                    ) : (
+                      <div className="space-y-4">
+                        {worstProducts.map((product, index) => (
+                          <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border hover:bg-orange-50/30 transition-colors">
+                            <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center font-bold">
+                                {index + 1}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-800 text-lg">{product.productName}</h4>
+                                <p className="text-sm text-gray-600">
+                                  {product.totalQuantity} <TranslatedText>adet</TranslatedText> • {product.orderCount} <TranslatedText>sipariş</TranslatedText>
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-orange-600">{formatCurrency(product.totalRevenue)}</p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )
+                  )}
+
+                  {/* Unsold View */}
+                  {productSubTab === 'unsold' && (
+                    unsoldProducts.length === 0 ? (
+                      <p className="text-gray-500 text-center py-8"><TranslatedText>Tüm ürünler satılmış! Harika iş!</TranslatedText> 🎉</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {unsoldProducts.map((item, index) => (
+                          <div key={index} className="flex items-center justify-between p-4 bg-red-50/30 rounded-lg border border-red-100 hover:bg-red-50 transition-colors">
+                            <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 bg-red-100 text-red-700 rounded-full flex items-center justify-center font-bold">
+                                !
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-800 text-lg">{item.name}</h4>
+                                <p className="text-sm text-gray-500">{item.description || <TranslatedText>Açıklama yok</TranslatedText>}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium text-gray-400"><TranslatedText>Satış Yok</TranslatedText></p>
+                              <p className="text-sm font-bold text-gray-800">{formatCurrency(item.price)}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  )}
+
+                  {/* All Products View */}
+                  {productSubTab === 'all' && (
+                    allProductsStats.length === 0 ? (
+                      <p className="text-gray-500 text-center py-8"><TranslatedText>Ürün bulunamadı.</TranslatedText></p>
+                    ) : (
+                      <div className="space-y-4">
+                        {allProductsStats.map((stat, index) => (
+                          <div key={index} className="flex items-center justify-between p-4 bg-white rounded-lg border hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                {stat.menuItem.imageUrl ? (
+                                  <img src={stat.menuItem.imageUrl} alt={stat.productName} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                    <FaUtensils />
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-800">{stat.productName}</h4>
+                                <div className="flex items-center gap-3 text-sm text-gray-600 mt-1">
+                                  <span className={stat.totalQuantity > 0 ? "text-green-600 font-medium" : "text-gray-400"}>
+                                    {stat.totalQuantity > 0 ? `✅ ${stat.totalQuantity} adet` : "❌ Satış yok"}
+                                  </span>
+                                  <span className="text-gray-300">|</span>
+                                  <span>{formatCurrency(stat.menuItem.price)}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-gray-900">{formatCurrency(stat.totalRevenue)}</p>
+                              <p className="text-xs text-gray-500"><TranslatedText>Toplam Gelir</TranslatedText></p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
                   )}
                 </div>
               </div>
