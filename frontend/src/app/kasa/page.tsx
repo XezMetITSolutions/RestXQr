@@ -570,30 +570,33 @@ export default function KasaPanel() {
   const fetchFloors = async () => {
     if (!restaurantId) return;
     try {
-      // 1. Fetch QR Tables Count (Real Source of Truth)
+      // 1. Fetch QR Tables Count to get ALL tokens
       const qrResponse = await apiService.getRestaurantQRTokens(restaurantId);
-      if (qrResponse.success && Array.isArray(qrResponse.data)) {
-        setTotalTables(qrResponse.data.length);
-        console.log(`✅ ${qrResponse.data.length} masaya ait QR bulundu.`);
-      }
 
-      // 2. Fetch Settings
+      // 2. Fetch Settings specifically to find the table count boundary
       try {
         const restaurantResponse = await apiService.getRestaurantById(restaurantId);
         if (restaurantResponse.success && restaurantResponse.data) {
           const restaurant = restaurantResponse.data;
           const settings = restaurant.settings || {};
 
+          // qrCount genelde masa sayısını (fiziksel masalar) temsil eder
+          const physicalTableCount = Number(settings.qrCount || restaurant.qrCount || 0);
+
           if (settings.drinkStationRouting?.floors) {
             setFloors(settings.drinkStationRouting.floors);
-          }
-
-          // Fallback: If QRTokens failed, try using settings
-          if (!qrResponse.success) {
-            const qrCount = settings.qrCount || restaurant.qrCount;
-            if (qrCount) {
-              setTotalTables(Number(qrCount));
+            // Floors varsa, oradaki endTable'ların en büyüğünü kullan
+            const maxFromFloors = settings.drinkStationRouting.floors.reduce((max: number, f: any) => Math.max(max, Number(f.endTable)), 0);
+            if (maxFromFloors > 0) {
+              setTotalTables(maxFromFloors);
+            } else if (physicalTableCount > 0) {
+              setTotalTables(physicalTableCount);
             }
+          } else if (physicalTableCount > 0) {
+            setTotalTables(physicalTableCount);
+          } else if (qrResponse.success && Array.isArray(qrResponse.data)) {
+            // Hiç ayar yoksa eskisi gibi git (ama genelde qrCount ayarı vardır)
+            setTotalTables(qrResponse.data.length);
           }
         }
       } catch (err) {
@@ -1547,8 +1550,21 @@ export default function KasaPanel() {
 
   const getPacketNumber = (tableNum: number) => {
     if (!tableNum) return '?';
-    if (floors.length === 0) return tableNum;
-    const maxTable = floors.reduce((max, f) => Math.max(max, Number(f.endTable)), 0);
+
+    // 1. Önce kat tanımlarından en yüksek masa numarasını bul
+    let maxTable = 0;
+    if (floors && floors.length > 0) {
+      maxTable = floors.reduce((max, f) => Math.max(max, Number(f.endTable)), 0);
+    }
+
+    // 2. Kat tanımı yoksa, restoran ayarlarındaki qrCount (masa sayısı) bilgisini kullan
+    if (maxTable === 0 && totalTables > 0) {
+      // totalTables genelde QR sayısıdır, ama kat tanımı yoksa bunu sınır kabul edebiliriz
+      // Ancak genellikle restaurant settings içindeki qrCount daha doğrudur.
+      maxTable = totalTables;
+    }
+
+    // Eğer masa numarası sınırı aşıyorsa paket numarasına dönüştür
     return tableNum > maxTable ? tableNum - maxTable : tableNum;
   };
 
