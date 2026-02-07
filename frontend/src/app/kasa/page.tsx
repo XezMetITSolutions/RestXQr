@@ -23,7 +23,7 @@ interface Order {
   restaurantId: string;
   tableNumber: number;
   customerName?: string;
-  status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+  status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled' | 'delivered';
   totalAmount: number;
   paidAmount: number;
   discountAmount: number;
@@ -37,6 +37,7 @@ interface Order {
   items: OrderItem[]
   approved?: boolean
   originalOrders?: Order[]
+  paymentMethod?: string;
 }
 
 interface WaiterCall {
@@ -1950,13 +1951,15 @@ export default function KasaPanel() {
                         </div>
                         <div>
                           <div className="font-black text-gray-800 flex items-center gap-2">
-                            {order.tableNumber != null
-                              ? `MASA ${order.tableNumber}`
-                              : (order.orderType === 'dine_in' ? 'MASASIZ SİPARİŞ' : (
-                                order.notes?.toLowerCase().includes('getir') ? 'GETİR YEMEK' :
-                                  order.notes?.toLowerCase().includes('yemeksepeti') ? 'YEMEKSEPETİ' :
-                                    order.notes?.toLowerCase().includes('trendyol') ? 'TRENDYOL YEMEK' : 'DIŞ SİPARİŞ'
-                              ))}
+                            {order.orderType === 'takeaway'
+                              ? `PAKET ${order.tableNumber || '?'}`
+                              : order.tableNumber != null
+                                ? `MASA ${order.tableNumber}`
+                                : (order.orderType === 'dine_in' ? 'MASASIZ SİPARİŞ' : (
+                                  order.notes?.toLowerCase().includes('getir') ? 'GETİR YEMEK' :
+                                    order.notes?.toLowerCase().includes('yemeksepeti') ? 'YEMEKSEPETİ' :
+                                      order.notes?.toLowerCase().includes('trendyol') ? 'TRENDYOL YEMEK' : 'DIŞ SİPARİŞ'
+                                ))}
                           </div>
                           <div className="text-[10px] font-bold text-gray-400">{formatTime(order.created_at)}</div>
                         </div>
@@ -2132,8 +2135,11 @@ export default function KasaPanel() {
                 <div className="p-4 bg-white border-b border-gray-200 shrink-0">
                   <div className="flex justify-between items-center mb-2">
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                      {selectedOrder.tableNumber && <span className="bg-gray-800 text-white px-2 py-1 rounded text-sm">MASA {selectedOrder.tableNumber}</span>}
-                      {!selectedOrder.tableNumber && <span className="bg-orange-500 text-white px-2 py-1 rounded text-sm">PAKET / WEB</span>}
+                      {selectedOrder.orderType === 'takeaway'
+                        ? <span className="bg-orange-600 text-white px-2 py-1 rounded text-sm">PAKET {selectedOrder.tableNumber || '?'}</span>
+                        : selectedOrder.tableNumber
+                          ? <span className="bg-gray-800 text-white px-2 py-1 rounded text-sm">MASA {selectedOrder.tableNumber}</span>
+                          : <span className="bg-orange-500 text-white px-2 py-1 rounded text-sm">PAKET / WEB</span>}
                     </h2>
                     {undoStack.length > 0 && (
                       <button onClick={handleUndo} className="text-xs font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded hover:bg-orange-200">GERİ AL</button>
