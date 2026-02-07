@@ -555,54 +555,43 @@ export default function ReportsPage() {
 
   const productMap = new Map<string, { productName: string; totalQuantity: number; totalRevenue: number; orderCount: number }>();
 
+  // Helper to normalize product names
+  const normalizeItemName = (name: string, variations: any[] = []) => {
+    let baseName = name || 'Bilinmeyen Ürün';
+    let porsiyon = '';
+
+    // 1. İsimden porsiyon bilgisini ayıkla ve temizle
+    if (baseName.includes('(Büyük)')) porsiyon = 'Büyük';
+    else if (baseName.includes('(Küçük)')) porsiyon = 'Küçük';
+    else if (baseName.includes('(Orta)')) porsiyon = 'Orta';
+
+    // Porsiyon etiketlerini ismin içinden kaldır
+    baseName = baseName.replace('(Büyük)', '').replace('(Küçük)', '').replace('(Orta)', '');
+
+    // Dil ayracına göre böl ve Türkçe kısmı al
+    if (baseName.includes(' - ')) {
+      baseName = baseName.split(' - ')[0];
+    } else if (baseName.includes('- ')) {
+      baseName = baseName.split('- ')[0];
+    }
+
+    baseName = baseName.trim();
+
+    // 2. Varyasyonlardan porsiyon tespiti
+    variations.forEach((v: any) => {
+      const vName = typeof v === 'string' ? v : (v.name || v.value);
+      if (vName === 'Büyük' || vName === 'Küçük' || vName === 'Orta') {
+        porsiyon = vName;
+      }
+    });
+
+    return porsiyon ? `${baseName} (${porsiyon})` : baseName;
+  };
+
   sourceOrders.forEach(order => {
     if (order.items && Array.isArray(order.items)) {
       order.items.forEach((item: any) => {
-        let baseName = item.name || item.menuItem?.name || 'Bilinmeyen Ürün';
-
-        // 1. İsimden porsiyon bilgisini ayıkla ve temizle
-        // 1. İsimden porsiyon bilgisini ayıkla ve temizle
-        let porsiyon = '';
-        if (baseName.includes('(Büyük)')) {
-          porsiyon = 'Büyük';
-        } else if (baseName.includes('(Küçük)')) {
-          porsiyon = 'Küçük';
-        } else if (baseName.includes('(Orta)')) {
-          porsiyon = 'Orta';
-        }
-
-        // Porsiyon etiketlerini ismin içinden kaldır
-        baseName = baseName.replace('(Büyük)', '').replace('(Küçük)', '').replace('(Orta)', '');
-
-        // Dil ayracına göre böl ve Türkçe kısmı al (Çince karakterleri temizle)
-        // Örnek: "Dana etli ramen - 牛肉面" -> "Dana etli ramen"
-        if (baseName.includes(' - ')) {
-          baseName = baseName.split(' - ')[0];
-        } else if (baseName.includes('- ')) { // Tire ve boşluk varsa
-          // Eğer tireden sonra Çince karakter varsa böl (Basit kontrol: ASCII dışı)
-          // Veya sadece tireye güven (Menü yapısı genelde "TR - CN" şeklindeyse)
-          // Kullanıcının belirttiği formata göre " - " veya "- " ayracı var.
-          baseName = baseName.split('- ')[0];
-        }
-
-        baseName = baseName.trim();
-
-        // 2. Varyasyonlardan porsiyon bilgisini kontrol et
-        const variations = item.variations || [];
-        variations.forEach((v: any) => {
-          const vName = typeof v === 'string' ? v : (v.name || v.value);
-          if (vName === 'Büyük' || vName === 'Küçük' || vName === 'Orta') {
-            porsiyon = vName;
-          }
-        });
-
-        // 3. Tekil bir ürün ismi oluştur
-        // Eğer porsiyon varsa sona ekle: "Dana etli ramen (Büyük)"
-        // Eğer porsiyon yoksa sadece isim: "Dana etli ramen"
-        // Çince karakterleri veya tireyi koruyoruz ama parantez içindeki porsiyonları normalize ettik.
-        const normalizedName = porsiyon ? `${baseName} (${porsiyon})` : baseName;
-
-        // Group by normalized name
+        const normalizedName = normalizeItemName(item.name || item.menuItem?.name, item.variations);
         const productId = normalizedName;
 
         const quantity = item.quantity || 1;
@@ -638,32 +627,26 @@ export default function ReportsPage() {
     .slice(0, 50);
 
   const unsoldProducts = menuItems.filter(item => {
-    // Check if item name exists in sold products (exact or as base of variation)
-    const isSold = Array.from(productMap.keys()).some(key =>
-      key === item.name || key.startsWith(item.name + ' (')
-    );
-    return !isSold;
+    // Normalization check against sold products
+    const normalized = normalizeItemName(item.name);
+    return !productMap.has(normalized);
   });
 
   const allProductsStats = menuItems.map(item => {
-    let quantity = 0;
-    let revenue = 0;
-    let ordersCount = 0;
+    const normalized = normalizeItemName(item.name);
+    const stats = productMap.get(normalized);
 
-    // Aggregate from productMap
-    Array.from(productMap.entries()).forEach(([key, stats]) => {
-      if (key === item.name || key.startsWith(item.name + ' (')) {
-        quantity += stats.totalQuantity;
-        revenue += stats.totalRevenue;
-        ordersCount += stats.orderCount;
-      }
-    });
+    // If we have stats, use them. If not, return zeroed stats.
+    // Note: This logic now groups sales by normalized name.
+    // However, if multiple menu items map to the SAME normalized name (e.g. duplicate inputs), 
+    // duplicating them in "All Products" list with same stats might be confusing but correct data-wise.
+    // But we are mapping 'menuItems', so we list every menu item.
 
     return {
-      productName: item.name,
-      totalQuantity: quantity,
-      totalRevenue: revenue,
-      orderCount: ordersCount,
+      productName: normalized, // Use clean name for display
+      totalQuantity: stats?.totalQuantity || 0,
+      totalRevenue: stats?.totalRevenue || 0,
+      orderCount: stats?.orderCount || 0,
       menuItem: item
     };
   }).sort((a, b) => b.totalRevenue - a.totalRevenue); // Default sort by revenue
@@ -1351,7 +1334,7 @@ export default function ReportsPage() {
                                 !
                               </div>
                               <div>
-                                <h4 className="font-bold text-gray-800 text-lg">{item.name}</h4>
+                                <h4 className="font-bold text-gray-800 text-lg">{normalizeItemName(item.name)}</h4>
                                 <p className="text-sm text-gray-500">{item.description || <TranslatedText>Açıklama yok</TranslatedText>}</p>
                               </div>
                             </div>
