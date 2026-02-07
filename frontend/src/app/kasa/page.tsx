@@ -1548,22 +1548,27 @@ export default function KasaPanel() {
   const getPacketNumber = (tableNum: number) => {
     if (!tableNum) return '?';
 
-    // 1. Önce kat tanımlarından en yüksek masa numarasını bul
+    // Paket Servis katını bul (isim "Paket Servis" veya "paket servis" olabilir)
+    const paketFloor = floors?.find(
+      (f: any) => String(f.name || '').trim().toLowerCase() === 'paket servis'
+    );
+    if (paketFloor) {
+      const start = Number(paketFloor.startTable);
+      const end = Number(paketFloor.endTable);
+      if (Number.isFinite(start) && Number.isFinite(end) && tableNum >= start && tableNum <= end) {
+        // Bu masa Paket Servis aralığında: 1'den başlayan sıra numarası göster (PAKET 1, PAKET 2, ...)
+        return tableNum - start + 1;
+      }
+    }
+
+    // Eski mantık: Paket Servis katı yoksa veya masa o aralıkta değilse
     let maxTable = 0;
     if (floors && floors.length > 0) {
       maxTable = floors.reduce((max, f) => Math.max(max, Number(f.endTable)), 0);
     }
-
-    // 2. Kat tanımı yoksa veya yetersizse totalTables'ı kullan
     if (maxTable === 0) {
       maxTable = totalTables;
     }
-
-    // KRİTİK DÜZELTME: Eğer masa numarası maxTable'dan büyükse, 
-    // aradaki farkı alıyoruz (43 - 42 = 1). 
-    // Eğer tableNum maxTable'a eşitse ve bu bir takeaway siparişi ise 
-    // muhtemelen maxTable yanlış set edilmiştir (QR sayısı kadar).
-    // Bu yüzden tableNum >= maxTable kontrolü ve takeaway kontrolü ile daha esnek davranıyoruz.
     return tableNum > maxTable ? (tableNum - maxTable) : tableNum;
   };
 
