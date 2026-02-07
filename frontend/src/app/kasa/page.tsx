@@ -1684,7 +1684,7 @@ export default function KasaPanel() {
                         date.getMonth() === today.getMonth() &&
                         date.getFullYear() === today.getFullYear();
                     })
-                    .reduce((s, o) => s + (Number(o.totalAmount) || 0), 0)
+                    .reduce((s, o) => s + ((Number(o.totalAmount) || 0) - (Number(o.discountAmount) || 0)), 0)
                 )}₺
               </div>
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">GÜNLÜK CİRO</div>
