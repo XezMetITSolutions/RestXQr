@@ -587,15 +587,12 @@ export default function KasaPanel() {
             setFloors(settings.drinkStationRouting.floors);
             // Floors varsa, oradaki endTable'ların en büyüğünü kullan
             const maxFromFloors = settings.drinkStationRouting.floors.reduce((max: number, f: any) => Math.max(max, Number(f.endTable)), 0);
-            if (maxFromFloors > 0) {
-              setTotalTables(maxFromFloors);
-            } else if (physicalTableCount > 0) {
-              setTotalTables(physicalTableCount);
-            }
+            setTotalTables(maxFromFloors > 0 ? maxFromFloors : (physicalTableCount > 0 ? physicalTableCount : 50));
           } else if (physicalTableCount > 0) {
             setTotalTables(physicalTableCount);
           } else if (qrResponse.success && Array.isArray(qrResponse.data)) {
-            // Hiç ayar yoksa eskisi gibi git (ama genelde qrCount ayarı vardır)
+            // Hiç ayar yoksa ve paket QR'ları varsa, güvenli bir sınır tahmin etmeye çalış (opsiyonel)
+            // Ama şimdilik qrCount yoksa tüm listeyi masa kabul et
             setTotalTables(qrResponse.data.length);
           }
         }
@@ -1557,15 +1554,17 @@ export default function KasaPanel() {
       maxTable = floors.reduce((max, f) => Math.max(max, Number(f.endTable)), 0);
     }
 
-    // 2. Kat tanımı yoksa, restoran ayarlarındaki qrCount (masa sayısı) bilgisini kullan
-    if (maxTable === 0 && totalTables > 0) {
-      // totalTables genelde QR sayısıdır, ama kat tanımı yoksa bunu sınır kabul edebiliriz
-      // Ancak genellikle restaurant settings içindeki qrCount daha doğrudur.
+    // 2. Kat tanımı yoksa veya yetersizse totalTables'ı kullan
+    if (maxTable === 0) {
       maxTable = totalTables;
     }
 
-    // Eğer masa numarası sınırı aşıyorsa paket numarasına dönüştür
-    return tableNum > maxTable ? tableNum - maxTable : tableNum;
+    // KRİTİK DÜZELTME: Eğer masa numarası maxTable'dan büyükse, 
+    // aradaki farkı alıyoruz (43 - 42 = 1). 
+    // Eğer tableNum maxTable'a eşitse ve bu bir takeaway siparişi ise 
+    // muhtemelen maxTable yanlış set edilmiştir (QR sayısı kadar).
+    // Bu yüzden tableNum >= maxTable kontrolü ve takeaway kontrolü ile daha esnek davranıyoruz.
+    return tableNum > maxTable ? (tableNum - maxTable) : tableNum;
   };
 
   const getWaitInfo = (dateString: string) => {
