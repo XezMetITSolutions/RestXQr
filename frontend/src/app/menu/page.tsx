@@ -850,7 +850,7 @@ function MenuPageContent() {
                 <div className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: 'var(--tone1-bg)', color: 'var(--tone1-text)', border: '1px solid var(--tone1-border)' }}>
                   {tableNumber > 0 ? (
                     <>
-                      {currentRestaurant?.name || 'Restoran'} <TranslatedText>{isPacket ? 'Paket' : 'Masa'}</TranslatedText> {isPacket && packetNumber ? packetNumber : tableNumber}
+                      {currentRestaurant?.name || 'Restoran'} <TranslatedText>{isPacket ? 'Paket' : 'Masa'}</TranslatedText> {isPacket ? (packetNumber || '1') : tableNumber}
                     </>
                   ) : (
                     <TranslatedText>Genel Menü</TranslatedText>
