@@ -176,10 +176,20 @@ class ApiService {
   }
 
   // Order endpoints
-  async getOrders(restaurantId: string, status?: string, tableNumber?: string | number) {
+  async getOrders(
+    restaurantId: string,
+    status?: string,
+    tableNumber?: string | number,
+    startDate?: string,
+    endDate?: string,
+    from?: string
+  ) {
     const params = new URLSearchParams({ restaurantId });
     if (status) params.append('status', status);
-    if (tableNumber) params.append('tableNumber', String(tableNumber));
+    if (tableNumber !== undefined && tableNumber !== null) params.append('tableNumber', String(tableNumber));
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (from) params.append('from', from);
     return this.request<any>(`/orders?${params.toString()}`);
   }
 
