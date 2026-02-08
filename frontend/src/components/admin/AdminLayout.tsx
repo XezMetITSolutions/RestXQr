@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   FaChartBar,
@@ -44,6 +44,7 @@ export default function AdminLayout({
   headerActions
 }: AdminLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [adminRole, setAdminRole] = useState<string>('super_admin');
@@ -59,12 +60,18 @@ export default function AdminLayout({
       const raw = localStorage.getItem('admin_user');
       if (raw) {
         const u = JSON.parse(raw);
+        if (u.role === 'company_admin') {
+          if (pathname === '/admin' || pathname === '/admin/dashboard') {
+            router.replace('/companies/dashboard');
+            return;
+          }
+        }
         setAdminRole(u.role || 'super_admin');
         setCompanyName(u.companyName || null);
       }
     } catch (_) {}
     setIsLoading(false);
-  }, [router]);
+  }, [router, pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_user');
@@ -299,11 +306,17 @@ export default function AdminLayout({
                   <p className="text-gray-600 mt-2 font-medium">{description}</p>
                 </div>
               </div>
-              {headerActions && (
-                <div className="flex space-x-4">
-                  {headerActions}
-                </div>
-              )}
+              <div className="flex items-center gap-4 ml-auto">
+                {headerActions}
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg border border-gray-200 hover:border-red-200 transition-colors"
+                >
+                  <FaSignOutAlt className="text-sm" />
+                  <span className="font-medium">Çıkış yap</span>
+                </button>
+              </div>
             </div>
           </div>
         </header>

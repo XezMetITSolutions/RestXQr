@@ -50,7 +50,7 @@ export default function CompaniesLoginPage() {
       try {
         const u = JSON.parse(raw);
         if (u.role === 'company_admin') {
-          router.replace('/admin/dashboard');
+          router.replace('/companies/dashboard');
         }
       } catch (_) {}
     }
@@ -93,7 +93,7 @@ export default function CompaniesLoginPage() {
           }));
           setLoginAttempts(0);
           localStorage.removeItem('admin_login_attempts');
-          router.push('/admin/dashboard');
+          router.push('/companies/dashboard');
           return;
         }
         if (data.locked) {
@@ -130,7 +130,7 @@ export default function CompaniesLoginPage() {
         }));
         setLoginAttempts(0);
         localStorage.removeItem('admin_login_attempts');
-        router.push('/admin/dashboard');
+        router.push('/companies/dashboard');
       }
     } catch (error) {
       const newAttempts = loginAttempts + 1;
