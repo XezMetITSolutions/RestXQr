@@ -66,7 +66,7 @@ router.get('/stats', adminAuthMiddleware, async (req, res) => {
       where: whereRest,
       limit: 5,
       order: [['created_at', 'DESC']],
-      attributes: ['id', 'name', 'subdomain', 'isActive', 'created_at']
+      attributes: ['id', 'name', 'username', 'isActive', 'created_at']
     });
 
     res.json({
@@ -82,7 +82,7 @@ router.get('/stats', adminAuthMiddleware, async (req, res) => {
       recentRestaurants: recentRestaurants.map(r => ({
         id: r.id,
         name: r.name,
-        subdomain: r.subdomain,
+        subdomain: r.username,
         status: r.isActive ? 'active' : 'inactive',
         createdAt: r.created_at
       })),
