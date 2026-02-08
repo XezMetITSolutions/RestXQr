@@ -58,7 +58,9 @@ export default function AdminCompaniesPage() {
     if (user) {
       try {
         const u = JSON.parse(user);
-        if (u.role !== 'super_admin') {
+        const role = u.role?.toLowerCase();
+        if (role !== 'super_admin') {
+          console.warn('Access denied for role:', u.role);
           router.replace('/admin/dashboard');
           return;
         }

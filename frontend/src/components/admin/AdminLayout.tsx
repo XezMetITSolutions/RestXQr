@@ -66,7 +66,7 @@ export default function AdminLayout({
             return;
           }
         }
-        setAdminRole(u.role || 'super_admin');
+        setAdminRole((u.role || 'super_admin').toLowerCase());
         setCompanyName(u.companyName || null);
       }
     } catch (_) { }
@@ -150,18 +150,20 @@ export default function AdminLayout({
                     <span className="font-medium">Restoran Yönetimi</span>
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    href="/admin/companies"
-                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Şirketler (Çoklu Şube)' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
-                      }`}
-                  >
-                    <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Şirketler (Çoklu Şube)' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
-                      <FaBuilding className="text-lg" />
-                    </div>
-                    <span className="font-medium">Çoklu Restoran / Grup Yönetimi (Restoran Atama)</span>
-                  </Link>
-                </li>
+                {adminRole === 'super_admin' && (
+                  <li>
+                    <Link
+                      href="/admin/companies"
+                      className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title.includes('Çoklu Restoran') ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                        }`}
+                    >
+                      <div className={`p-2 rounded-lg mr-4 transition-all ${title.includes('Çoklu Restoran') ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
+                        <FaBuilding className="text-lg" />
+                      </div>
+                      <span className="font-medium">Çoklu Restoran / Grup Yönetimi (Restoran Atama)</span>
+                    </Link>
+                  </li>
+                )}
                 <li>
                   <Link
                     href="/admin/menu-replication"
