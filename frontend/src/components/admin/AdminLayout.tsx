@@ -69,7 +69,7 @@ export default function AdminLayout({
         setAdminRole(u.role || 'super_admin');
         setCompanyName(u.companyName || null);
       }
-    } catch (_) {}
+    } catch (_) { }
     setIsLoading(false);
   }, [router, pathname]);
 
@@ -152,6 +152,18 @@ export default function AdminLayout({
                 </li>
                 <li>
                   <Link
+                    href="/admin/companies"
+                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Şirketler (Çoklu Şube)' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                      }`}
+                  >
+                    <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Şirketler (Çoklu Şube)' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
+                      <FaBuilding className="text-lg" />
+                    </div>
+                    <span className="font-medium">Çoklu Restoran / Grup Yönetimi (Restoran Atama)</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/admin/menu-replication"
                     className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Menu Replication' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
                       }`}
@@ -186,20 +198,7 @@ export default function AdminLayout({
                     <span className="font-medium">Özellik Yönetimi</span>
                   </Link>
                 </li>
-                {adminRole === 'super_admin' && (
-                <li>
-                  <Link
-                    href="/admin/companies"
-                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Şirketler (Çoklu Şube)' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
-                      }`}
-                  >
-                    <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Şirketler (Çoklu Şube)' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
-                      <FaBuilding className="text-lg" />
-                    </div>
-                    <span className="font-medium">Şirketler (Çoklu Şube)</span>
-                  </Link>
-                </li>
-                )}
+                {/* Çoklu Restoran Yönetimi - Üst tarafa taşındı */}
                 {/* Kullanıcı Yönetimi - Restoran Yönetimi'ne entegre edildi */}
                 {/* QR Kod Yönetimi - Admin panelinden kaldırıldı, restoranlar kendi QR kodlarını oluşturur */}
                 <li>

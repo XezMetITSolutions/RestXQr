@@ -142,6 +142,14 @@ export default function SuperAdminDashboard() {
               <p className="text-sm text-gray-600">Kullanıcı hesapları</p>
             </Link>
 
+            <Link href="/admin/companies" className="group p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl hover:shadow-xl hover:scale-105 transition-all duration-300 text-left">
+              <div className="h-12 w-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <FaBuilding className="text-xl text-white" />
+              </div>
+              <h3 className="font-bold text-gray-900 mb-2">Grup Yönetimi</h3>
+              <p className="text-sm text-gray-600">Çoklu restoran atama</p>
+            </Link>
+
             <Link href="/admin/notifications" className="group p-6 bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl hover:shadow-xl hover:scale-105 transition-all duration-300 text-left">
               <div className="h-12 w-12 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <FaBell className="text-xl text-white" />

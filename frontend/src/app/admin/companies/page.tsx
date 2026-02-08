@@ -62,7 +62,7 @@ export default function AdminCompaniesPage() {
           router.replace('/admin/dashboard');
           return;
         }
-      } catch (_) {}
+      } catch (_) { }
     }
     fetchCompanies();
     fetchAllRestaurants();
@@ -96,7 +96,7 @@ export default function AdminCompaniesPage() {
       if (!res.ok) return;
       const data = await res.json();
       if (data.success && data.data) setAllRestaurants(data.data.map((r: { id: string; name: string; username: string }) => ({ id: r.id, name: r.name, username: r.username })));
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const handleCreateCompany = async (e: React.FormEvent) => {
@@ -191,11 +191,11 @@ export default function AdminCompaniesPage() {
         headers: getAuthHeaders()
       });
       if (res.ok) await fetchCompanies();
-    } catch (_) {}
+    } catch (_) { }
   };
 
   return (
-    <AdminLayout title="Şirketler (Çoklu Şube)" description="Aynı şirkete ait restoranları gruplayın; şirket hesabıyla giriş yapan tüm şubeleri görsün">
+    <AdminLayout title="Çoklu Restoran / Grup Yönetimi (Restoran Atama)" description="Aynı şirkete ait restoranları gruplayın; şirket hesabıyla giriş yapan tüm şubeleri görsün">
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center justify-between">
           <span>{error}</span>
