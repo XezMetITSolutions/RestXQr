@@ -111,6 +111,11 @@ export default function MenuManagement() {
 
   const currentRestaurantId = getRestaurantId();
 
+  console.log('🔍 Filtering data:');
+  console.log('  currentRestaurantId:', currentRestaurantId);
+  console.log('  allCategories:', allCategories.length);
+  console.log('  allMenuItems:', allMenuItems.length);
+
   // Sadece bu restorana ait kategorileri ve ürünleri filtrele
   const categories = useMemo(() => {
     return allCategories
@@ -123,6 +128,10 @@ export default function MenuManagement() {
       .filter(i => i.restaurantId === currentRestaurantId)
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   }, [allMenuItems, currentRestaurantId]);
+
+  console.log('  filtered items:', items.length);
+  console.log('  first item restaurantId:', allMenuItems[0]?.restaurantId);
+  console.log('  match?', allMenuItems[0]?.restaurantId === currentRestaurantId);
 
   const getLangCode = (language: string) => {
     switch (language) {
@@ -157,9 +166,6 @@ export default function MenuManagement() {
   const [editingMappingItemId, setEditingMappingItemId] = useState<string | null>(null);
 
 
-
-  // Menü yükleme zaman aşımı (takılı kalmayı önler)
-  const [menuLoadTimeout, setMenuLoadTimeout] = useState(false);
 
   // Campaign Banner States
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -414,31 +420,17 @@ export default function MenuManagement() {
     initializeAuth();
   }, [initializeAuth]);
 
-  // Sayfa yüklendiğinde menüyü backend'den çek (zaten veri varsa tekrar çekme — hızlı açılış)
-  const hasDataForCurrent = useMemo(
-    () => currentRestaurantId && (
-      allCategories.some((c: any) => c.restaurantId === currentRestaurantId) ||
-      allMenuItems.some((i: any) => i.restaurantId === currentRestaurantId)
-    ),
-    [currentRestaurantId, allCategories.length, allMenuItems.length]
-  );
+  // Sayfa yüklendiğinde menüyü backend'den çek
   useEffect(() => {
-    if (!currentRestaurantId) return;
-    setMenuLoadTimeout(false);
-    const timeoutId = setTimeout(() => setMenuLoadTimeout(true), 15000);
-    if (hasDataForCurrent) {
+    console.log('🏪 Current Restaurant ID:', currentRestaurantId);
+    if (currentRestaurantId) {
+      console.log('📥 Fetching menu for restaurant:', currentRestaurantId);
+      fetchRestaurantMenu(currentRestaurantId);
       fetchCurrentRestaurant(currentRestaurantId);
-      clearTimeout(timeoutId);
-      return () => {};
+    } else {
+      console.warn('⚠️ No restaurant ID found!');
     }
-    fetchRestaurantMenu(currentRestaurantId);
-    fetchCurrentRestaurant(currentRestaurantId);
-    return () => clearTimeout(timeoutId);
-  }, [currentRestaurantId, hasDataForCurrent, fetchRestaurantMenu, fetchCurrentRestaurant]);
-
-  useEffect(() => {
-    if (!loading) setMenuLoadTimeout(false);
-  }, [loading]);
+  }, [currentRestaurantId, fetchRestaurantMenu]);
 
   useEffect(() => {
     if (currentRestaurant && !isStationsInitialized) {
@@ -1665,22 +1657,12 @@ export default function MenuManagement() {
           </div>
 
           {/* Loading State */}
-          {loading && !menuLoadTimeout && (
+
+          {/* Loading State */}
+          {loading && (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
               <span className="ml-2 text-gray-600"><TranslatedText>Yükleniyor...</TranslatedText></span>
-            </div>
-          )}
-          {loading && menuLoadTimeout && (
-            <div className="flex flex-col items-center justify-center py-8 gap-3">
-              <p className="text-gray-600"><TranslatedText>Menü gecikiyor.</TranslatedText></p>
-              <button
-                type="button"
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-              >
-                <TranslatedText>Sayfayı yenile</TranslatedText>
-              </button>
             </div>
           )}
 

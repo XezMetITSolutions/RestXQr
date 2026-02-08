@@ -102,12 +102,7 @@ export default function ReportsPage() {
     router.push('/isletme-giris');
   };
 
-  // Subdomain'de kendi işletmesiyle giriş yapan sahibe rapor erişimi ver (backend özelliği gecikse bile açılsın)
-  const subdomain = typeof window !== 'undefined' ? (window.location.hostname || '').split('.')[0] : '';
-  const isOwnerOnOwnSubdomain = Boolean(
-    authenticatedRestaurant?.username && subdomain && authenticatedRestaurant.username === subdomain
-  );
-  const hasFeatureAccess = hasBasicReports || hasAdvancedAnalytics || isOwnerOnOwnSubdomain;
+  const hasFeatureAccess = hasBasicReports || hasAdvancedAnalytics;
 
   // API'den siparişleri çek (varsayılan: son 90 gün — yükleme süresini kısaltmak için)
   useEffect(() => {
@@ -125,17 +120,9 @@ export default function ReportsPage() {
         start.setDate(start.getDate() - 90);
         const startDate = start.toISOString().split('T')[0];
         const endDate = end.toISOString().split('T')[0];
+        const response = await apiService.getOrders(rId, undefined, undefined, startDate, endDate, 'reports');
 
-        const timeoutMs = 25000;
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Siparişler yüklenirken zaman aşımı. Lütfen sayfayı yenileyin.')), timeoutMs)
-        );
-        const response = await Promise.race([
-          apiService.getOrders(rId, undefined, undefined, startDate, endDate, 'reports'),
-          timeoutPromise
-        ]);
-
-        if (response?.success && response.data) {
+        if (response.success && response.data) {
           const normalized = (response.data || []).map((o: any) => ({
             ...o,
             items: typeof o.items === 'string' ? JSON.parse(o.items) : (Array.isArray(o.items) ? o.items : [])

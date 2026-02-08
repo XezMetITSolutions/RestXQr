@@ -157,9 +157,9 @@ export default function QRCodesPage() {
       setLoading(true);
       setApiError(null);
 
-      // Timeout wrapper - 25 saniye (sayfa takılı kalmasın)
+      // Timeout wrapper - 60 saniye (Render cold start için daha güvenli)
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Sunucu çok geç yanıt verdi (Timeout). Lütfen sayfayı yenileyip tekrar deneyin.')), 25000)
+        setTimeout(() => reject(new Error('Sunucu çok geç yanıt verdi (Timeout). Lütfen sayfayı yenileyip tekrar deneyin.')), 60000)
       );
 
       const res = await Promise.race([
@@ -930,7 +930,7 @@ export default function QRCodesPage() {
                       <div><strong>Restaurant ID:</strong> {authenticatedRestaurant?.id || 'YOK'}</div>
                       <div><strong>Restaurant Username:</strong> {authenticatedRestaurant?.username || 'YOK'}</div>
                       <div><strong>API URL:</strong> {(process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api').replace(/\/api$/, '')}/api/qr/restaurant/{authenticatedRestaurant?.id}/tables</div>
-                      <div><strong>Timeout:</strong> 25 saniye</div>
+                      <div><strong>Timeout:</strong> 30 saniye</div>
                       <div><strong>Loaded QRs:</strong> {qrCodes.length}</div>
                       <div><strong>Zaman:</strong> {new Date().toLocaleString('tr-TR')}</div>
                       <button
