@@ -41,7 +41,7 @@ import useRestaurantStore from '@/store/useRestaurantStore';
 export default function ReportsPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout } = useAuthStore();
+  const { authenticatedRestaurant, authenticatedStaff, isAuthenticated, logout, initializeAuth } = useAuthStore();
 
   // Feature kontrolü
   const hasBasicReports = useFeature('basic_reports');
@@ -61,6 +61,11 @@ export default function ReportsPage() {
   const [filteredOrders, setFilteredOrders] = useState<any[]>([]);
   const { menuItems, fetchRestaurantMenu } = useRestaurantStore();
   const [productSubTab, setProductSubTab] = useState<'bestsellers' | 'worstsellers' | 'unsold' | 'all'>('bestsellers');
+
+  // Doğru işletmeyi subdomain'e göre yükle (direkt raporlara girince kroren/restxqr karışıklığını önler)
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   useEffect(() => {
     const rId = authenticatedRestaurant?.id || authenticatedStaff?.restaurantId;

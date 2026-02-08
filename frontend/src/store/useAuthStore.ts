@@ -65,9 +65,22 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   initializeAuth: () => {
     if (typeof window !== 'undefined') {
       try {
+        const subdomain = get().getCurrentSubdomain();
         const savedUser = localStorage.getItem('currentUser');
         const savedRestaurant = localStorage.getItem('currentRestaurant');
         const savedStaff = localStorage.getItem('currentStaff');
+
+        // Subdomain varsa ve kayıtlı restoran farklı işletmeyse (örn. kroren açık, localStorage'da restxqr),
+        // mevcut subdomain'e göre restoranı yükle ki doğru işletme görünsün
+        if (subdomain && savedRestaurant) {
+          try {
+            const saved = JSON.parse(savedRestaurant);
+            if (saved?.username && saved.username !== subdomain) {
+              get().getRestaurantFromSubdomain();
+              return;
+            }
+          } catch (_) { /* use fallbacks below */ }
+        }
 
         if (savedUser) {
           const user = JSON.parse(savedUser);
@@ -79,7 +92,6 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           const staff = JSON.parse(savedStaff);
           set({ authenticatedStaff: staff, authenticatedRestaurant: null, user: null });
         } else {
-          // Eğer localStorage'da kayıt yoksa, subdomain'den restaurant bilgisini al
           get().getRestaurantFromSubdomain();
         }
       } catch (error) {
