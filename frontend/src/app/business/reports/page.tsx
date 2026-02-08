@@ -104,7 +104,7 @@ export default function ReportsPage() {
 
   const hasFeatureAccess = hasBasicReports || hasAdvancedAnalytics;
 
-  // API'den siparişleri çek (varsayılan: son 90 gün — yükleme süresini kısaltmak için)
+  // API'den tüm siparişleri çek (tarih sınırı yok — raporlarda bütün veri görünsün)
   useEffect(() => {
     const fetchOrders = async () => {
       const rId = authenticatedRestaurant?.id || authenticatedStaff?.restaurantId;
@@ -115,12 +115,7 @@ export default function ReportsPage() {
 
       try {
         setLoading(true);
-        const end = new Date();
-        const start = new Date();
-        start.setDate(start.getDate() - 90);
-        const startDate = start.toISOString().split('T')[0];
-        const endDate = end.toISOString().split('T')[0];
-        const response = await apiService.getOrders(rId, undefined, undefined, startDate, endDate, 'reports');
+        const response = await apiService.getOrders(rId);
 
         if (response.success && response.data) {
           const normalized = (response.data || []).map((o: any) => ({
@@ -935,16 +930,13 @@ export default function ReportsPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div className="flex items-end gap-3 flex-wrap">
+                <div className="flex items-end">
                   <button
                     onClick={handleFilter}
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-md"
                   >
                     <TranslatedText>Filtrele</TranslatedText>
                   </button>
-                  <p className="text-xs text-gray-500 self-center">
-                    <TranslatedText>Veri yüklemesi son 90 gün ile sınırlıdır (hızlı açılış için).</TranslatedText>
-                  </p>
                 </div>
               </>
             )}

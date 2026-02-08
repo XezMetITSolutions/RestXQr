@@ -1,0 +1,399 @@
+{
+  "categories": [
+    {
+      "name": "Begenilenler",
+      "items": [
+        {
+          "name": "Alaska roll",
+          "price": 580,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/11281704468e4d20903d688b8ed1a059.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Avokado roll",
+          "price": 290,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/61f6237531474a2eb09d1232315bdfb9.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Boston roll",
+          "price": 560,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/e07ee490c6d840e4add73a58b2caef2f.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Califrnia roll",
+          "price": 450,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/f15e12a549564a27acbd9554dfbe11bb.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Crispy crab roll",
+          "price": 480,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/7c2f68f264f243918467b9f882a1ba9f.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Dragon roll",
+          "price": 640,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/0523c02f1347413a82e99e2f0c677567.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Ebi maki",
+          "price": 420,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/0e6fbd961e1a4797bf20d25ee669b12a.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Kani maki",
+          "price": 320,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/312eecfead204d1eba2062800e4ac39a.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Meksika roll",
+          "price": 540,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/ed47717aedfa4b1390118360595587d8.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Philadelphia roll",
+          "price": 590,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/51fca75131ed4b35a62689440bc27a5e.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Shake maki",
+          "price": 360,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/e158b21a43374e9c9fd87337e42a1df2.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Takuan Cheese maki",
+          "price": 290,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/d54db70e61904414b816a8b0b9d9b04e.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Tuna bom bom",
+          "price": 630,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/f1200e85ee87429aab0145ea59b28cbe.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Tuna roll",
+          "price": 460,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/1c232a6f30c64d38b2ab1d7d92ac7efb.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Uramaki",
+          "price": 480,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/d4bd101c77f24214947cbdfb87d9ccec.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Vegetarian roll",
+          "price": 260,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/d55087c75ae24e0c8975acfa9e9c0040.jpeg",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "name": "Makarnalar",
+      "items": [
+        {
+          "name": "Dana etli ramen 1-牛肉拉面 Küçük",
+          "price": 228,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/24860fdd-8faf-4ffc-9d84-900b59feba6c.webp",
+          "description": ""
+        },
+        {
+          "name": "Dana etli ramen 1-牛肉拉面 Normal",
+          "price": 248,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/24860fdd-8faf-4ffc-9d84-900b59feba6c.webp",
+          "description": ""
+        },
+        {
+          "name": "Dana noodle -牛肉炒面",
+          "price": 368,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/39d165e0-3c39-4974-9b51-da5bf955ae54.webp",
+          "description": ""
+        },
+        {
+          "name": "Ganbian makarnası -干煸炒面",
+          "price": 398,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/2400c730-8390-472f-9f91-72b9ac1c42c6.webp",
+          "description": ""
+        },
+        {
+          "name": "Guyro lagmen -过油肉拌面",
+          "price": 428,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/4c93cfbc-7870-474f-a11d-70500017658f.webp",
+          "description": ""
+        },
+        {
+          "name": "Pastırmalı ramen -",
+          "price": 328,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/318beb97-3f30-43f8-92a5-3209f00acc10.webp",
+          "description": ""
+        },
+        {
+          "name": "Sebzeli noodle -蔬菜",
+          "price": 298,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/3caaaba0-0733-48f0-bb3c-ce490120db50.webp",
+          "description": ""
+        },
+        {
+          "name": "Tavuk noodle -鸡肉炒面",
+          "price": 328,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/dde58935-9ed3-4ff1-be14-77b5f76519c5.webp",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "name": "Başlangıç",
+      "items": [
+        {
+          "name": "Beyaz pilav -米饭",
+          "price": 128,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/b8d50c7a-1d5d-405a-b15c-54b14af4b03a.webp",
+          "description": ""
+        },
+        {
+          "name": "Buharda mantı -小笼包 2 Adet",
+          "price": 199,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/3ba6c67f-c535-497c-a31b-b21c71a24363.webp",
+          "description": ""
+        },
+        {
+          "name": "Buharda mantı -小笼包 4 Adet",
+          "price": 398,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/3ba6c67f-c535-497c-a31b-b21c71a24363.webp",
+          "description": ""
+        },
+        {
+          "name": "Çay yumurtası - 茶叶蛋",
+          "price": 38,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/631c8133c987424db9c7b7e722b0e4c2.webp",
+          "description": ""
+        },
+        {
+          "name": "Dana etli rojamo -牛肉肉夹馍",
+          "price": 298,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/b9b26aa1-ad24-4aa0-98c0-fd6b0d1304f6.webp",
+          "description": ""
+        },
+        {
+          "name": "Haşlanmış mantı -水饺",
+          "price": 338,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/3c63d10f-9168-42ae-a302-bfff82ceae30.webp",
+          "description": ""
+        },
+        {
+          "name": "Karides krekleri-虾片",
+          "price": 148,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/aece46f1-5239-4cf1-84e2-1c9d4a6896fd.webp",
+          "description": ""
+        },
+        {
+          "name": "Sade ekmek -馒头",
+          "price": 48,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/5e32b11d-1c3d-486c-9d93-423ddeade0c3.webp",
+          "description": ""
+        },
+        {
+          "name": "Tatlı buharda mantı (2 adet)-",
+          "price": 188,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/02085792-734b-4a6b-9fa6-8f0c9bdef213.webp",
+          "description": ""
+        },
+        {
+          "name": "Tavuklu Rojamo",
+          "price": 178,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/257b3c6ec4e144ed8a15f64f04f6a934.jpeg",
+          "description": ""
+        },
+        {
+          "name": "Uygur mantı -薄皮包子",
+          "price": 298,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/53a8652d-894a-4be3-b13a-33a764fd247b.webp",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "name": "Etli Yemekler",
+      "items": [
+        {
+          "name": "50 gram dana eti -牛肉50克",
+          "price": 198,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/9d729fce-d634-4ffc-b8ac-c990814e8b99.webp",
+          "description": ""
+        },
+        {
+          "name": "Acılı haşlanmış dana- 水煮牛肉",
+          "price": 1328,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/33868249-1839-4531-acb0-552661c44ad0.webp",
+          "description": ""
+        },
+        {
+          "name": "Guyro -铁板牛肉",
+          "price": 728,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/e77fca57-5a09-4dc3-b855-c4771d789c19.webp",
+          "description": ""
+        },
+        {
+          "name": "Pırasalı dana-葱爆牛肉",
+          "price": 728,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/8e862bb5-1879-456b-990c-ba3267e9c6df.webp",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "name": "Tavuklu Yemekler",
+      "items": [
+        {
+          "name": "Acılı lokum tavuk -辣子鸡",
+          "price": 428,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/b0631f15-054e-47b9-bdbf-a44f93439c4a.webp",
+          "description": ""
+        },
+        {
+          "name": "Dapanji -大盘鸡",
+          "price": 588,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/3ad6925c-dfbe-4a2a-9a2c-af4335086345.webp",
+          "description": ""
+        },
+        {
+          "name": "Manzhou usulü tavuk - 满洲里鸡我的心情",
+          "price": 388,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Portakallı çıtır tavuk-橙皮鸡",
+          "price": 428,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Portakallı çıtır tavuk -橙皮鸡",
+          "price": 428,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Tatlı ekşi tavuk - 甜酸鸡",
+          "price": 428,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/80a23575f067430a8e75a4c2ae7429cf.webp",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "name": "Sebzeli Yemekler",
+      "items": [
+        {
+          "name": "Domatesli Yumurta-",
+          "price": 298,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Patates kavurması -酸辣土豆丝",
+          "price": 298,
+          "imageUrl": "https://kroren.afacbilisim.com/uploads/d0ab62ba-7446-4f0d-a4bd-ae1d8ebd6022.webp",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "name": "İçecekler",
+      "items": [
+        {
+          "name": "AYRAN",
+          "price": 45,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Didi bergamot - 迪迪佛手柑",
+          "price": 68,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Didi limon - 滴滴柠檬",
+          "price": 68,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Didi şeftali -滴滴桃子",
+          "price": 68,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Limonlu soda - 柠檬苏打水",
+          "price": 40,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Meysu karışık meyva nektarı -",
+          "price": 68,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Meysu kola -",
+          "price": 68,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Meysu portakal ( gazlı ) -",
+          "price": 68,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Meysu şeftali nektarı-",
+          "price": 68,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Meysu vişne -",
+          "price": 68,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "niğde gazozu-",
+          "price": 65,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Sade soda - 苏打",
+          "price": 40,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        },
+        {
+          "name": "Su - 水",
+          "price": 30,
+          "imageUrl": "https://kroren.afacbilisim.com/qrmenu/menu/assets/236f79f9-2644-41db-a7fc-8447effd3ab7.jpg",
+          "description": ""
+        }
+      ]
+    }
+  ]
+}
