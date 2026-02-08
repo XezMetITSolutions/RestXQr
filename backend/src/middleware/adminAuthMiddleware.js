@@ -90,7 +90,7 @@ const adminAuthMiddleware = async (req, res, next) => {
             email: adminUser.email,
             name: adminUser.name,
             role: adminUser.role,
-            companyId: adminUser.company_id || null
+            companyId: adminUser.companyId || adminUser.company_id || null
         };
 
         next();

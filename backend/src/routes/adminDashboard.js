@@ -16,25 +16,22 @@ function restaurantWhereForAdmin(req) {
 // Dashboard stats endpoint
 router.get('/stats', adminAuthMiddleware, async (req, res) => {
   try {
-    console.log('--- ADMIN DASHBOARD STATS DEBUG ---');
     const whereRest = restaurantWhereForAdmin(req);
-
     // Total Restaurants - company_admin ise sadece şirket restoranları
-    const totalRestaurantsCount = await Restaurant.count({ where: whereRest });
-    let totalRestaurants = totalRestaurantsCount;
-    if (Object.keys(whereRest).length === 0) {
-      const [rawRes] = await sequelize.query('SELECT count(*) as count FROM restaurants');
-      totalRestaurants = parseInt(rawRes[0].count) || totalRestaurantsCount;
-    }
+    console.log('Fetching restaurant count with filter:', whereRest);
+    const totalRestaurants = await Restaurant.count({ where: whereRest });
 
     // Active Restaurants
     const activeWhere = { ...whereRest, isActive: true };
     const activeRestaurants = await Restaurant.count({ where: activeWhere });
 
-    // Total Tables (Sequelize ile; raw array binding hatasını önler)
-    const totalTables = parseInt(await Restaurant.sum('maxTables', { where: whereRest }) || 0, 10);
+    // Total Tables
+    const totalTablesResult = await Restaurant.sum('maxTables', { where: whereRest });
+    const totalTables = parseInt(totalTablesResult || 0, 10);
 
-    const restIds = (await Restaurant.findAll({ where: whereRest, attributes: ['id'] })).map(r => r.id);
+    const restaurantsForIds = await Restaurant.findAll({ where: whereRest, attributes: ['id'] });
+    const restIds = restaurantsForIds.map(r => r.id);
+    console.log('Relevant restaurant IDs:', restIds);
 
     // Total Menu Items
     const totalMenuItems = restIds.length
@@ -46,11 +43,16 @@ router.get('/stats', adminAuthMiddleware, async (req, res) => {
     let totalRevenue = 0;
     if (restIds.length) {
       totalOrders = await Order.count({ where: { restaurantId: { [Op.in]: restIds } } });
+
+      // Calculate revenue using a safer literal for SUM
       const revRows = await Order.findAll({
         where: { restaurantId: { [Op.in]: restIds } },
-        attributes: [[sequelize.fn('SUM', sequelize.literal('COALESCE(total_amount,0) - COALESCE(discount_amount,0)')), 'net']],
+        attributes: [
+          [sequelize.literal('SUM(COALESCE(total_amount, 0) - COALESCE(discount_amount, 0))'), 'net']
+        ],
         raw: true
       });
+      console.log('Revenue query result:', revRows);
       totalRevenue = parseFloat(revRows[0]?.net || 0) || 0;
     }
 
@@ -88,13 +90,16 @@ router.get('/stats', adminAuthMiddleware, async (req, res) => {
         raw: {
           restaurants: totalRestaurants,
           orders: totalOrders,
-          staff: totalStaff
+          staff: totalStaff,
+          restIdsCount: restIds.length
         }
       }
     });
 
   } catch (error) {
-    console.error('Dashboard stats error:', error);
+    console.error('--- DASHBOARD STATS ERROR STACK ---');
+    console.error(error.stack);
+    console.error('-----------------------------------');
     res.status(500).json({
       success: false,
       message: 'Dashboard istatistikleri alınırken hata oluştu',
