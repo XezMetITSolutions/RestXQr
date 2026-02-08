@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { AdminUser } = require('../models');
+const { AdminUser, sequelize } = require('../models');
+const { Op } = require('sequelize');
 const {
     hashPassword,
     verifyPassword,
@@ -24,12 +25,12 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Find admin user (Allow both username or email)
+        // Find admin user (Allow both username or email, büyük/küçük harf duyarsız)
         const adminUser = await AdminUser.findOne({
             where: {
-                [require('sequelize').Op.or]: [
-                    { username: username },
-                    { email: username }
+                [Op.or]: [
+                    sequelize.where(sequelize.fn('LOWER', sequelize.col('username')), sequelize.fn('LOWER', username)),
+                    sequelize.where(sequelize.fn('LOWER', sequelize.col('email')), sequelize.fn('LOWER', username))
                 ]
             }
         });
