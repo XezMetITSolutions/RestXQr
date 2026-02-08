@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,6 +9,7 @@ import {
   FaDatabase,
   FaChartLine
 } from 'react-icons/fa';
+import { fetchWithAdminAuth } from '@/lib/adminApi';
 
 interface DashboardStats {
   totalRestaurants: number;
@@ -43,12 +44,6 @@ export default function AdminDashboard() {
   });
   const [loading, setLoading] = useState(true);
 
-  // API URL'i normalize et
-  const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
-  const API_URL = (rawApiUrl.startsWith('http') ? rawApiUrl : `https://${rawApiUrl}`)
-    .replace(/\/+$/, '')
-    .concat(rawApiUrl.endsWith('/api') || rawApiUrl.endsWith('/api/') ? '' : '/api');
-
   useEffect(() => {
     const adminUser = localStorage.getItem('admin_user');
     const accessToken = localStorage.getItem('admin_access_token');
@@ -63,19 +58,12 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async (token: string) => {
     try {
-      console.log('Fetching dashboard stats...');
-      const response = await fetch(`${API_URL}/admin/dashboard/stats`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      console.log('Dashboard stats response status:', response.status);
+      const response = await fetchWithAdminAuth('/admin/dashboard/stats');
 
       if (response.status === 401) {
         localStorage.removeItem('admin_access_token');
         localStorage.removeItem('admin_user');
+        localStorage.removeItem('admin_refresh_token');
         router.push('/admin/login');
         return;
       }

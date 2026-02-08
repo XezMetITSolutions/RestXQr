@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CompaniesLayout from '@/components/companies/CompaniesLayout';
 import { FaStore, FaCheckCircle, FaDatabase, FaChartLine } from 'react-icons/fa';
+import { fetchWithAdminAuth } from '@/lib/adminApi';
 
 interface DashboardStats {
   totalRestaurants: number;
@@ -38,20 +39,13 @@ export default function CompaniesDashboardPage() {
   });
   const [loading, setLoading] = useState(true);
 
-  const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
-  const API_URL = (rawApiUrl.startsWith('http') ? rawApiUrl : `https://${rawApiUrl}`)
-    .replace(/\/+$/, '')
-    .concat(rawApiUrl.endsWith('/api') || rawApiUrl.endsWith('/api/') ? '' : '/api');
-
   useEffect(() => {
     const token = localStorage.getItem('admin_access_token');
     if (!token) {
       router.replace('/companies/login');
       return;
     }
-    fetch(`${API_URL}/admin/dashboard/stats`, {
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-    })
+    fetchWithAdminAuth('/admin/dashboard/stats')
       .then((res) => {
         if (res.status === 401) {
           router.replace('/companies/login');
@@ -76,7 +70,7 @@ export default function CompaniesDashboardPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [router, API_URL]);
+  }, [router]);
 
   return (
     <CompaniesLayout title="Şirket Dashboard" description="Şirketinize ait restoranların özeti">

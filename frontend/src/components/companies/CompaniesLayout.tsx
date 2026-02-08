@@ -21,6 +21,7 @@ import {
   FaGlobe,
   FaStore
 } from 'react-icons/fa';
+import { fetchWithAdminAuth } from '@/lib/adminApi';
 
 const COMPANY_SELECTED_RESTAURANT_KEY = 'company_selected_restaurant_id';
 const COMPANY_SELECTED_RESTAURANT_NAME_KEY = 'company_selected_restaurant_name';
@@ -35,12 +36,6 @@ interface CompaniesLayoutProps {
   children: React.ReactNode;
   title: string;
   description?: string;
-}
-
-function getApiUrl() {
-  const raw = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com';
-  const base = (raw.startsWith('http') ? raw : `https://${raw}`).replace(/\/+$/, '');
-  return base + (raw.endsWith('/api') || raw.endsWith('/api/') ? '' : '/api');
 }
 
 export default function CompaniesLayout({
@@ -81,10 +76,8 @@ export default function CompaniesLayout({
     if (isLoading) return;
     const token = localStorage.getItem('admin_access_token');
     if (!token) return;
-    fetch(`${getApiUrl()}/admin/dashboard/restaurants`, {
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-    })
-      .then((r) => r.ok ? r.json() : null)
+    fetchWithAdminAuth('/admin/dashboard/restaurants')
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data?.success && Array.isArray(data.data)) {
           const list = data.data.map((r: { id: string; name: string; username: string }) => ({ id: r.id, name: r.name, username: r.username }));
