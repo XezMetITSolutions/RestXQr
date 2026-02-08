@@ -41,6 +41,7 @@ export default function AdminCompaniesPage() {
   const [adminForm, setAdminForm] = useState({ username: '', email: '', name: '', password: '' });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState<{ text: string; loginUrl: string; username: string } | null>(null);
 
   const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://masapp-backend.onrender.com/api';
   const API_URL = (rawApiUrl.startsWith('http') ? rawApiUrl : `https://${rawApiUrl}`)
@@ -164,6 +165,12 @@ export default function AdminCompaniesPage() {
       });
       const data = await res.json();
       if (data.success) {
+        const loginUrl = typeof window !== 'undefined' ? `${window.location.origin}/companies/login` : '/companies/login';
+        setSuccessMessage({
+          text: 'Şirket yöneticisi oluşturuldu. Bu hesap ile şirket giriş sayfasından giriş yapmalıdır (süper admin girişi ile aynı yer değil).',
+          loginUrl,
+          username: adminForm.username
+        });
         setAdminModal(null);
         setAdminForm({ username: '', email: '', name: '', password: '' });
       } else {
@@ -194,6 +201,24 @@ export default function AdminCompaniesPage() {
           <span>{error}</span>
           <button type="button" onClick={() => setError('')} className="text-red-500 hover:text-red-700">
             <FaTimes />
+          </button>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800">
+          <p className="font-medium mb-2">{successMessage.text}</p>
+          <p className="text-sm mb-2">
+            <strong>Giriş adresi:</strong>{' '}
+            <a href={successMessage.loginUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline">
+              {successMessage.loginUrl}
+            </a>
+          </p>
+          <p className="text-sm">
+            <strong>Kullanıcı adı:</strong> {successMessage.username} — Belirlediğiniz şifre ile giriş yapın.
+          </p>
+          <button type="button" onClick={() => setSuccessMessage(null)} className="mt-2 text-green-600 hover:text-green-800 text-sm">
+            Kapat
           </button>
         </div>
       )}

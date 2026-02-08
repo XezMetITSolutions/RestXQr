@@ -11,9 +11,10 @@ const {
 const adminAuthMiddleware = require('../middleware/adminAuthMiddleware');
 
 // POST /api/admin/auth/login - Initial login with username/password
+// Body may include loginFrom: 'admin' | 'company' - süper admin sadece /admin/login, şirket yöneticisi sadece /companies/login
 router.post('/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, loginFrom } = req.body;
 
         // Validation
         if (!username || !password) {
@@ -83,7 +84,20 @@ router.post('/login', async (req, res) => {
             }
         }
 
-        // Password is correct
+        // Password is correct - giriş sayfası ayrımı
+        if (loginFrom === 'company' && adminUser.role === 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Bu giriş sayfası şirket hesapları içindir. Süper yönetici girişi için /admin/login kullanın.'
+            });
+        }
+        if ((loginFrom === 'admin' || loginFrom == null) && adminUser.role === 'company_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Şirket hesabınızla giriş için /companies/login kullanın.'
+            });
+        }
+
         // Check if 2FA is enabled
         if (adminUser.two_factor_enabled) {
             // Don't generate full token yet, user needs to verify 2FA

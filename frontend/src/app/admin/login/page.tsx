@@ -49,12 +49,17 @@ export default function AdminLogin() {
     }
   }, []);
 
-  // Zaten giriş yapmışsa admin paneline yönlendir
+  // Zaten giriş yapmışsa yönlendir: süper admin -> dashboard, şirket yöneticisi -> şirket giriş sayfası
   useEffect(() => {
-    if (isAuthenticated() && user?.role === 'super_admin') {
-      router.push('/admin/dashboard');
-    }
-  }, [router, isAuthenticated, user]);
+    const token = localStorage.getItem('admin_access_token');
+    const raw = localStorage.getItem('admin_user');
+    if (!token || !raw) return;
+    try {
+      const u = JSON.parse(raw);
+      if (u.role === 'super_admin') router.push('/admin/dashboard');
+      if (u.role === 'company_admin') router.replace('/companies/login');
+    } catch (_) {}
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +76,8 @@ export default function AdminLogin() {
           },
           body: JSON.stringify({
             username: credentials.username,
-            password: credentials.password
+            password: credentials.password,
+            loginFrom: 'admin'
           }),
         });
 

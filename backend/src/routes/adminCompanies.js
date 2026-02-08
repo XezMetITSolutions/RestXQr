@@ -3,6 +3,7 @@ const router = express.Router();
 const { Company, Restaurant, AdminUser } = require('../models');
 const adminAuthMiddleware = require('../middleware/adminAuthMiddleware');
 const { hashPassword } = require('../lib/adminAuth');
+const { Op } = require('sequelize');
 
 // Sadece super_admin erişebilir
 function requireSuperAdmin(req, res, next) {
@@ -123,7 +124,7 @@ router.post('/:id/admins', adminAuthMiddleware, requireSuperAdmin, async (req, r
     if (!username || !email || !name || !password) {
       return res.status(400).json({ success: false, message: 'Kullanıcı adı, email, ad ve şifre gerekli' });
     }
-    const existing = await AdminUser.findOne({ where: require('sequelize').Op.or([{ username }, { email }]) });
+    const existing = await AdminUser.findOne({ where: { [Op.or]: [{ username }, { email }] } });
     if (existing) return res.status(400).json({ success: false, message: 'Bu kullanıcı adı veya email zaten kullanılıyor' });
     const password_hash = await hashPassword(password);
     const admin = await AdminUser.create({
