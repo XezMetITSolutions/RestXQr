@@ -103,7 +103,9 @@ export default function AdminLogin() {
               email: data.data.user.email,
               name: data.data.user.name,
               role: data.data.user.role,
-              twoFactorEnabled: data.data.user.twoFactorEnabled
+              twoFactorEnabled: data.data.user.twoFactorEnabled,
+              companyId: data.data.user.companyId || null,
+              companyName: data.data.user.companyName || null
             }));
 
             setLoginAttempts(0);
@@ -160,7 +162,9 @@ export default function AdminLogin() {
             email: data.data.user.email,
             name: data.data.user.name,
             role: data.data.user.role,
-            twoFactorEnabled: data.data.user.twoFactorEnabled
+            twoFactorEnabled: data.data.user.twoFactorEnabled,
+            companyId: data.data.user.companyId || null,
+            companyName: data.data.user.companyName || null
           }));
 
           setLoginAttempts(0);

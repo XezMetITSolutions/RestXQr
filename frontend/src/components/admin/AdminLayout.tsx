@@ -46,15 +46,24 @@ export default function AdminLayout({
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [adminRole, setAdminRole] = useState<string>('super_admin');
+  const [companyName, setCompanyName] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for admin token
     const token = localStorage.getItem('admin_access_token');
     if (!token) {
       router.push('/admin/login');
-    } else {
-      setIsLoading(false);
+      return;
     }
+    try {
+      const raw = localStorage.getItem('admin_user');
+      if (raw) {
+        const u = JSON.parse(raw);
+        setAdminRole(u.role || 'super_admin');
+        setCompanyName(u.companyName || null);
+      }
+    } catch (_) {}
+    setIsLoading(false);
   }, [router]);
 
   const handleLogout = () => {
@@ -87,7 +96,9 @@ export default function AdminLayout({
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">RestXQr</h1>
-              <p className="text-sm text-blue-200 font-medium">Süper Yönetici</p>
+              <p className="text-sm text-blue-200 font-medium">
+                {adminRole === 'company_admin' && companyName ? `Şirket: ${companyName}` : 'Süper Yönetici'}
+              </p>
             </div>
           </div>
           <button
@@ -168,6 +179,20 @@ export default function AdminLayout({
                     <span className="font-medium">Özellik Yönetimi</span>
                   </Link>
                 </li>
+                {adminRole === 'super_admin' && (
+                <li>
+                  <Link
+                    href="/admin/companies"
+                    className={`group flex items-center p-4 rounded-xl hover:bg-white/10 text-blue-100 hover:text-white transition-all duration-200 ${title === 'Şirketler (Çoklu Şube)' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : ''
+                      }`}
+                  >
+                    <div className={`p-2 rounded-lg mr-4 transition-all ${title === 'Şirketler (Çoklu Şube)' ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
+                      <FaBuilding className="text-lg" />
+                    </div>
+                    <span className="font-medium">Şirketler (Çoklu Şube)</span>
+                  </Link>
+                </li>
+                )}
                 {/* Kullanıcı Yönetimi - Restoran Yönetimi'ne entegre edildi */}
                 {/* QR Kod Yönetimi - Admin panelinden kaldırıldı, restoranlar kendi QR kodlarını oluşturur */}
                 <li>

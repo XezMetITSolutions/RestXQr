@@ -4,42 +4,72 @@ const { Restaurant, QRToken, MenuItem, Order, Staff, sequelize } = require('../m
 const adminAuthMiddleware = require('../middleware/adminAuthMiddleware');
 const { Sequelize } = require('sequelize');
 
+// company_admin ise sadece kendi şirketinin restoranlarını göster
+function restaurantWhereForAdmin(req) {
+  if (req.adminUser && req.adminUser.companyId) {
+    return { companyId: req.adminUser.companyId };
+  }
+  return {};
+}
+
 // Dashboard stats endpoint
 router.get('/stats', adminAuthMiddleware, async (req, res) => {
   try {
     console.log('--- ADMIN DASHBOARD STATS DEBUG ---');
+    const whereRest = restaurantWhereForAdmin(req);
 
-    // Total Restaurants - Try both model and query
-    const totalRestaurantsCount = await Restaurant.count();
-    const [rawRes] = await sequelize.query('SELECT count(*) as count FROM restaurants');
-    const totalRestaurants = parseInt(rawRes[0].count) || totalRestaurantsCount;
+    // Total Restaurants - company_admin ise sadece şirket restoranları
+    const totalRestaurantsCount = await Restaurant.count({ where: whereRest });
+    let totalRestaurants = totalRestaurantsCount;
+    if (Object.keys(whereRest).length === 0) {
+      const [rawRes] = await sequelize.query('SELECT count(*) as count FROM restaurants');
+      totalRestaurants = parseInt(rawRes[0].count) || totalRestaurantsCount;
+    }
 
     // Active Restaurants
-    const [rawActive] = await sequelize.query('SELECT count(*) as count FROM restaurants WHERE is_active = true');
-    const activeRestaurants = parseInt(rawActive[0].count);
+    const activeWhere = { ...whereRest, isActive: true };
+    const activeRestaurants = await Restaurant.count({ where: activeWhere });
 
-    // Total Tables
-    const [rawTables] = await sequelize.query('SELECT sum(max_tables) as sum FROM restaurants');
-    const totalTables = parseInt(rawTables[0].sum) || 0;
+    // Total Tables (şirket restoranlarına göre)
+    const restIds = (await Restaurant.findAll({ where: whereRest, attributes: ['id'] })).map(r => r.id);
+    const totalTables = restIds.length
+      ? (await sequelize.query(
+          `SELECT COALESCE(SUM(max_tables), 0) as sum FROM restaurants WHERE id = ANY(ARRAY[:ids]::uuid[])`,
+          { replacements: { ids: restIds }, type: sequelize.QueryTypes.SELECT }
+        ))[0]?.sum || 0
+      : 0;
 
-    // Total Menu Items
-    const [rawMenu] = await sequelize.query('SELECT count(*) as count FROM menu_items');
-    const totalMenuItems = parseInt(rawMenu[0].count);
+    // Total Menu Items (şirket restoranlarına göre)
+    const totalMenuItems = restIds.length
+      ? (await sequelize.query(
+          `SELECT count(*) as count FROM menu_items WHERE restaurant_id = ANY(ARRAY[:ids]::uuid[])`,
+          { replacements: { ids: restIds }, type: sequelize.QueryTypes.SELECT }
+        ))[0]?.count || 0
+      : 0;
 
-    // Total Orders
-    const [rawOrders] = await sequelize.query('SELECT count(*) as count FROM orders');
-    const totalOrders = parseInt(rawOrders[0].count);
+    // Total Orders & Revenue (şirket restoranlarına göre)
+    let totalOrders = 0;
+    let totalRevenue = 0;
+    if (restIds.length) {
+      const [ord] = await sequelize.query(
+        `SELECT count(*) as count, COALESCE(SUM(COALESCE(total_amount, 0) - COALESCE(discount_amount, 0)), 0) as net FROM orders WHERE restaurant_id = ANY(ARRAY[:ids]::uuid[])`,
+        { replacements: { ids: restIds }, type: sequelize.QueryTypes.SELECT }
+      );
+      totalOrders = parseInt(ord[0]?.count || 0);
+      totalRevenue = parseFloat(ord[0]?.net || 0);
+    }
 
-    // Total Revenue
-    const [rawRev] = await sequelize.query('SELECT SUM(COALESCE(total_amount, 0) - COALESCE(discount_amount, 0)) as net FROM orders');
-    const totalRevenue = parseFloat(rawRev[0].net) || 0;
-
-    // Total Staff
-    const [rawStaff] = await sequelize.query('SELECT count(*) as count FROM staff');
-    const totalStaff = parseInt(rawStaff[0].count);
+    // Total Staff (şirket restoranlarına göre)
+    const totalStaff = restIds.length
+      ? (await sequelize.query(
+          `SELECT count(*) as count FROM staff WHERE restaurant_id = ANY(ARRAY[:ids]::uuid[])`,
+          { replacements: { ids: restIds }, type: sequelize.QueryTypes.SELECT }
+        ))[0]?.count || 0
+      : 0;
 
     // Get recent restaurants
     const recentRestaurants = await Restaurant.findAll({
+      where: whereRest,
       limit: 5,
       order: [['created_at', 'DESC']],
       attributes: ['id', 'name', 'subdomain', 'isActive', 'created_at']
@@ -81,10 +111,12 @@ router.get('/stats', adminAuthMiddleware, async (req, res) => {
   }
 });
 
-// Get all restaurants for admin
+// Get all restaurants for admin (company_admin sadece kendi şirketini görür)
 router.get('/restaurants', adminAuthMiddleware, async (req, res) => {
   try {
+    const whereRest = restaurantWhereForAdmin(req);
     const restaurants = await Restaurant.findAll({
+      where: whereRest,
       order: [['created_at', 'DESC']],
       attributes: [
         'id',

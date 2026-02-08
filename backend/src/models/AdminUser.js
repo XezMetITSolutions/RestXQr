@@ -38,9 +38,16 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     role: {
-      type: DataTypes.ENUM('super_admin'),
+      type: DataTypes.ENUM('super_admin', 'company_admin'),
       defaultValue: 'super_admin',
       allowNull: false
+    },
+    companyId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      field: 'company_id',
+      references: { model: 'companies', key: 'id' },
+      comment: 'Şirket admin ise sadece bu şirketin restoranlarını görür'
     },
     status: {
       type: DataTypes.ENUM('active', 'inactive', 'locked'),

@@ -102,17 +102,24 @@ router.post('/login', async (req, res) => {
         // Reset login attempts and update last login
         await adminUser.resetLoginAttempts();
 
+        const userPayload = {
+            id: adminUser.id,
+            username: adminUser.username,
+            email: adminUser.email,
+            name: adminUser.name,
+            role: adminUser.role,
+            twoFactorEnabled: adminUser.two_factor_enabled
+        };
+        if (adminUser.company_id) {
+            const { Company } = require('../models');
+            const company = await Company.findByPk(adminUser.company_id);
+            userPayload.companyId = adminUser.company_id;
+            userPayload.companyName = company ? company.name : null;
+        }
         res.json({
             success: true,
             data: {
-                user: {
-                    id: adminUser.id,
-                    username: adminUser.username,
-                    email: adminUser.email,
-                    name: adminUser.name,
-                    role: adminUser.role,
-                    twoFactorEnabled: adminUser.two_factor_enabled
-                },
+                user: userPayload,
                 accessToken,
                 refreshToken
             },
@@ -216,17 +223,24 @@ router.post('/verify-2fa', async (req, res) => {
         // Reset login attempts and update last login
         await adminUser.resetLoginAttempts();
 
+        const userPayload = {
+            id: adminUser.id,
+            username: adminUser.username,
+            email: adminUser.email,
+            name: adminUser.name,
+            role: adminUser.role,
+            twoFactorEnabled: adminUser.two_factor_enabled
+        };
+        if (adminUser.company_id) {
+            const { Company } = require('../models');
+            const company = await Company.findByPk(adminUser.company_id);
+            userPayload.companyId = adminUser.company_id;
+            userPayload.companyName = company ? company.name : null;
+        }
         res.json({
             success: true,
             data: {
-                user: {
-                    id: adminUser.id,
-                    username: adminUser.username,
-                    email: adminUser.email,
-                    name: adminUser.name,
-                    role: adminUser.role,
-                    twoFactorEnabled: adminUser.two_factor_enabled
-                },
+                user: userPayload,
                 accessToken,
                 refreshToken,
                 usedBackupCode
@@ -248,8 +262,10 @@ router.post('/verify-2fa', async (req, res) => {
 // GET /api/admin/auth/me - Get current authenticated admin user
 router.get('/me', adminAuthMiddleware, async (req, res) => {
     try {
+        const { Company } = require('../models');
         const adminUser = await AdminUser.findByPk(req.adminUser.id, {
-            attributes: ['id', 'username', 'email', 'name', 'role', 'status', 'two_factor_enabled', 'last_login']
+            attributes: ['id', 'username', 'email', 'name', 'role', 'status', 'two_factor_enabled', 'last_login', 'company_id'],
+            include: req.adminUser.companyId ? [{ model: Company, as: 'company', attributes: ['id', 'name'] }] : []
         });
 
         if (!adminUser) {
@@ -259,10 +275,17 @@ router.get('/me', adminAuthMiddleware, async (req, res) => {
             });
         }
 
+        const userData = adminUser.toJSON ? adminUser.toJSON() : adminUser;
+        if (userData.company) {
+            userData.companyId = userData.company_id;
+            userData.companyName = userData.company?.name;
+        }
+        delete userData.company;
+
         res.json({
             success: true,
             data: {
-                user: adminUser
+                user: userData
             }
         });
 

@@ -42,8 +42,8 @@ const adminAuthMiddleware = async (req, res, next) => {
             });
         }
 
-        // Check if user has super_admin role
-        if (decoded.role !== 'super_admin') {
+        // super_admin veya company_admin olabilir
+        if (decoded.role !== 'super_admin' && decoded.role !== 'company_admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Insufficient permissions'
@@ -75,13 +75,22 @@ const adminAuthMiddleware = async (req, res, next) => {
             });
         }
 
-        // Attach user to request
+        // company_admin ise company_id zorunlu
+        if (adminUser.role === 'company_admin' && !adminUser.company_id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Şirket ataması eksik'
+            });
+        }
+
+        // Attach user to request (company_admin için companyId ile filtre yapılacak)
         req.adminUser = {
             id: adminUser.id,
             username: adminUser.username,
             email: adminUser.email,
             name: adminUser.name,
-            role: adminUser.role
+            role: adminUser.role,
+            companyId: adminUser.company_id || null
         };
 
         next();

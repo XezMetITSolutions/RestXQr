@@ -119,6 +119,13 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: {},
       field: 'printer_config',
       comment: 'Printer IP configuration for each kitchen station: {stationId: {ip, port, enabled}}'
+    },
+    companyId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      field: 'company_id',
+      references: { model: 'companies', key: 'id' },
+      comment: 'Şirket ID - aynı şirkete ait restoranlar gruplanır'
     }
   }, {
     tableName: 'restaurants',

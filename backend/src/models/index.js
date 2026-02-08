@@ -44,6 +44,13 @@ const Event = require('./Event')(sequelize, Sequelize.DataTypes);
 const InventoryItem = require('./InventoryItem')(sequelize, Sequelize.DataTypes);
 const AdminUser = require('./AdminUser')(sequelize, Sequelize.DataTypes);
 const SupportTicket = require('./SupportTicket')(sequelize, Sequelize.DataTypes);
+const Company = require('./Company')(sequelize, Sequelize.DataTypes);
+
+// Company associations (çoklu şube / şirket yönetimi)
+Company.hasMany(Restaurant, { foreignKey: 'companyId', as: 'restaurants' });
+Restaurant.belongsTo(Company, { foreignKey: 'companyId', as: 'company' });
+Company.hasMany(AdminUser, { foreignKey: 'companyId', as: 'adminUsers' });
+AdminUser.belongsTo(Company, { foreignKey: 'companyId', as: 'company' });
 
 // Define associations
 Restaurant.hasMany(MenuCategory, { foreignKey: 'restaurantId', as: 'categories' });
@@ -119,11 +126,46 @@ const connectDB = async () => {
     console.log('✅ PostgreSQL connection established successfully.');
 
     // Sync Core Models first
+    await Company.sync();
     await Restaurant.sync();
     await AdminUser.sync();
     await MenuCategory.sync();
     await MenuItem.sync();
     console.log('✅ Core models synchronized');
+
+    // Çoklu şube: companies tablosu ve company_id sütunları
+    try {
+      const [companyTable] = await sequelize.query(`
+        SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'companies');
+      `);
+      if (!companyTable || !companyTable[0].exists) {
+        console.log('⚙️ Creating companies table...');
+        await sequelize.query(`
+          CREATE TABLE IF NOT EXISTS companies (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+          );
+        `);
+        console.log('✅ companies table created');
+      }
+      await sequelize.query(`
+        ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS company_id UUID REFERENCES companies(id);
+      `);
+      await sequelize.query(`
+        ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS company_id UUID REFERENCES companies(id);
+      `);
+      try {
+        await sequelize.query(`ALTER TYPE admin_users_role_enum ADD VALUE 'company_admin';`);
+      } catch (e) {
+        if (e.name !== 'SequelizeDatabaseError' && !/already exists/.test(e.message || '')) console.warn('⚠️ company_admin enum:', e.message);
+      }
+      console.log('✅ Company/Restaurant/AdminUser company_id migration done');
+    } catch (migrationError) {
+      console.error('❌ Company migration error:', migrationError);
+    }
 
     // Ensure translations column exists on menu_items
     try {
@@ -287,5 +329,6 @@ module.exports = {
   Event,
   InventoryItem,
   AdminUser,
-  SupportTicket
+  SupportTicket,
+  Company
 };
